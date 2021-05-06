@@ -4,6 +4,8 @@
 
 ### Seagull Engine is a real-time rendering game engine.
 
+Still rewriting!!!
+
 This engine is now in beta version and it is under development.  
 If you are interesting in it, you can contact me with these email: 2565492401@qq.com or illmewds@gmail.com.
 
