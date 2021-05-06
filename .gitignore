@@ -1,3 +1,10 @@
+# Directories
+.vs/
+bin/
+bin-int/
+Bin/
+Bin-int/
+
 # Prerequisites
 *.d
 
@@ -27,6 +34,17 @@
 *.lib
 
 # Executables
-*.exe
 *.out
 *.app
+
+# Files
+*.sln
+*.user
+*.vcxproj
+*.vcxproj.filters
+
+# Log files
+.log
+
+# compiled shaders
+.bin
