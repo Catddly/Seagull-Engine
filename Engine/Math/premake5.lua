@@ -1,4 +1,4 @@
-project "SCommon"
+project "SMath"
     kind "SharedLib"
     language "C++"
     cppdialect "C++17"

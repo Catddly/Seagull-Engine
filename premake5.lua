@@ -21,7 +21,29 @@ IncludeDir = { }
 -- copylibdir  = "\"$(ProjectDir)bin\\%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}\\$(ProjectName)\\"
 -- copydstdir  = "\"$(SolutionDir)bin\\" .. outputdir .. "\\Sandbox\\\""
 
-group "Sandbox"
+group "Seagull Engine"
+
+    include "Engine/Common/"
+    include "Engine/Engine/"
+    include "Engine/Log/"
+    include "Engine/FileSystem/"
+    include "Engine/Utility/"
+    include "Engine/Renderer/"
+    include "Engine/RendererVulkan/"
+    include "Engine/Editor/"
+    include "Engine/Input/"
+    include "Engine/Platform/"
+    include "Engine/Math/"
+
+group ""
+
+group "Third-party"
+group ""
+
+group "Tools"
+group ""
+
+group "User"
 
     project "Sandbox"
         location "User/Sandbox"
@@ -34,8 +56,8 @@ group "Sandbox"
         -- bin-int/Debug-windows-x64/Seagull Core
         objdir    ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-        -- pchheader "StdAfx.h"
-        -- pchsource "Sandbox/Sandbox/StdAfx.cpp"
+        pchheader "StdAfx.h"
+        pchsource "User/Sandbox/StdAfx.cpp"
 
         -- include files
         files
@@ -46,12 +68,18 @@ group "Sandbox"
 
         includedirs
         {
-            "Engine/Common/"
+            "Engine/"
+        }
+
+        defines
+        {
+            "SG_USE_DLL"
         }
 
         links
         {
-            "SCommon"
+            "SCommon",
+            "SEngine",
         }
 
     filter "system:windows"
@@ -65,11 +93,5 @@ group "Sandbox"
     filter "configurations:Release"
         runtime "Release"
         optimize "on"
-
-group ""
-
-group "SeagullEngine"
-
-    include "Engine/Common/"
 
 group ""

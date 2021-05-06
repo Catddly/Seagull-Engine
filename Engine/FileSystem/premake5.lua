@@ -1,4 +1,4 @@
-project "SCommon"
+project "SFileSystem"
     kind "SharedLib"
     language "C++"
     cppdialect "C++17"

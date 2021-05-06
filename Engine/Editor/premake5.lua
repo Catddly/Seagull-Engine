@@ -1,4 +1,4 @@
-project "SCommon"
+project "SEditor"
     kind "SharedLib"
     language "C++"
     cppdialect "C++17"

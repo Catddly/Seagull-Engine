@@ -1,4 +1,4 @@
-project "SCommon"
+project "SEngine"
     kind "SharedLib"
     language "C++"
     cppdialect "C++17"
