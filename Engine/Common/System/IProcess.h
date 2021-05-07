@@ -2,7 +2,8 @@
 
 namespace SG
 {
-
+	//! @Interface 
+	//! Abstraction of a process
 	struct IProcess
 	{
 		virtual ~IProcess() = default;

@@ -1,21 +1,27 @@
 #include "StdAfx.h"
 
+namespace SG
+{
+	extern SSystemEnvironment __declspec(dllimport) gEnv;
+	SSystemEnvironment gEnv;
+}
+
 class MyApp : public SG::IApp
 {
 public:
 	virtual void OnInit() override
 	{
-		std::cout << "User OnInit()\n";
+		SG_LOG_INFO("User OnInit()");
 	}
 
 	virtual void OnUpdate() override
 	{
-		std::cout << "User OnUpdate()\n";
+		SG_LOG_INFO("User OnUpdate()");
 	}
 
 	virtual void OnExit() override
 	{
-		std::cout << "User OnExit()\n";
+		SG_LOG_INFO("User OnExit()");
 	}
 };
 

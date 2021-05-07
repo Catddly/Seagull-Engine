@@ -26,7 +26,7 @@ project "SLog"
 
     includedirs
     {
-        ""
+        "../",
     }
 
     filter "system:windows"

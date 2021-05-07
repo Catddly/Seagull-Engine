@@ -1,12 +1,12 @@
 #pragma once
-#include "Config.h"
+#include "../Config.h"
 
-#include "Common/System/IProcess.h"
+#include "Common/System/IEngine.h"
 
 namespace SG
 {
 
-	class SG_ENGINE_API SEngine final : public IProcess
+	class SG_ENGINE_API CEngine final : public IEngine
 	{
 	public:
 		//! Engine core initialization
@@ -15,6 +15,9 @@ namespace SG
 		virtual void OnUpdate() override;
 		//! Engine core shutdown
 		virtual void OnExit() override;
+
+		//! Get the thread id of engine thread
+		virtual void GetMainThreadId() const override;
 	};
 
 }

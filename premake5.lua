@@ -73,13 +73,14 @@ group "User"
 
         defines
         {
-            "SG_USE_DLL"
+            -- "SG_USE_DLL"
         }
 
         links
         {
             -- "SCommon",
             "SEngine",
+            "SLog",
         }
 
     filter "system:windows"

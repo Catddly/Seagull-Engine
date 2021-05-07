@@ -5,8 +5,9 @@
 
 namespace SG
 {
-
-	struct SG_COMMON_API IApp : public IProcess
+	//! @Interface
+	//! Little third-party app for user usage
+	struct IApp : public IProcess
 	{
 		virtual ~IApp() = default;
 		//! Initialize before main game loop
@@ -20,5 +21,5 @@ namespace SG
 	//! User use this function to return the instance of 
 	//! the application to engine
 	//! @return user customized app
-	SG_COMMON_API IApp* GetAppInstance();
+	IApp* GetAppInstance();
 }

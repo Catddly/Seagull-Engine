@@ -1,12 +1,7 @@
-#if defined(SG_USE_DLL)
-#	define SG_COMMON_API   __declspec(dllimport)
-#	define SG_ENGINE_API __declspec(dllimport)
-#else
-#	define SG_COMMON_API
-#	define SG_ENGINE_API
-#endif
+#include "Common/Base/BasicTypes.h"
 
-
+#include "Common/System/ISystem.h"
+#include "Common/System/ILog.h"
 #include "Common/System/IApp.h"
 
 //----------------------------------------------------------

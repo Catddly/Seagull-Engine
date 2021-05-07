@@ -1,11 +1,9 @@
 #pragma once
 
-#if defined(SG_BUILD_DLL) // If this module is a dll
-#	define SG_LOG_API __declspec(dllexport)
-#else
-#	define SG_LOG_API
+#ifndef WIN32_LEAN_AND_MEAN
+#	define WIN32_LEAN_AND_MEAN
+#	include <windows.h>
 #endif
 
-#include <cmath>
-#include <xmmintrin.h>
-#include <iostream>
+#include <stdio.h>
+#include <stdarg.h>
