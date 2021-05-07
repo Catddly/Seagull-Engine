@@ -6,5 +6,10 @@
 #	define SG_ENGINE_API
 #endif
 
-#include "Common/Core/Test.h"
-#include "Engine/Core/Test.h"
+
+#include "Common/System/IApp.h"
+
+//----------------------------------------------------------
+// EntryPoint
+//----------------------------------------------------------
+#include "Common/EntryPoint.h"

@@ -78,7 +78,7 @@ group "User"
 
         links
         {
-            "SCommon",
+            -- "SCommon",
             "SEngine",
         }
 

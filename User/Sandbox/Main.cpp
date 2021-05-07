@@ -1,12 +1,25 @@
 #include "StdAfx.h"
 
-int main()
+class MyApp : public SG::IApp
 {
-	std::cout << "Follow Me!" << std::endl;
-	std::cout <<  Add(5, 2) << std::endl;
-	std::cout <<  Sub(7, 4) << std::endl;
+public:
+	virtual void OnInit() override
+	{
+		std::cout << "User OnInit()\n";
+	}
 
-	PrintMsg();
+	virtual void OnUpdate() override
+	{
+		std::cout << "User OnUpdate()\n";
+	}
 
-	system("pause");
+	virtual void OnExit() override
+	{
+		std::cout << "User OnExit()\n";
+	}
+};
+
+SG::IApp* SG::GetAppInstance()
+{
+	return new MyApp();
 }

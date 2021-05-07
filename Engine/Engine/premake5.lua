@@ -26,7 +26,7 @@ project "SEngine"
 
     includedirs
     {
-        ""
+        "../",
     }
 
     filter "system:windows"

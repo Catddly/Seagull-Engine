@@ -26,7 +26,7 @@ project "SCommon"
 
     includedirs
     {
-        ""
+        "../",
     }
 
     filter "system:windows"
