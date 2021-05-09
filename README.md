@@ -12,19 +12,6 @@ If you are interesting in it, you can contact me with these email: 2565492401@qq
 The graphic language: dx12 and vulkan. (now only has vulkan)  
 pc platform: Windows.  
 
-
-### Third-party libraries
-
-- eastl  
-- mimalloc  
-- cgltf  
-- glm  
-- spirv-cross  
-- tinyImageFormat  
-
-This engine is only for learning purpose, build base on The-Forge frame work. Here is the link below.  
-https://github.com/ConfettiFX/The-Forge
-
 ## Building
 
 Open the Scripts folder, and run the GenerateProject-Win.bat.  
@@ -54,12 +41,3 @@ Make sure the filepath of the engine have no unicode!
 
 图形编程语言: dx12 和 vulkan。(现在只有vulkan)  
 pc平台: Windows。
-
-### 使用的第三方库
-
-- eastl  
-- mimalloc  
-- cgltf  
-- glm  
-- spirv-cross  
-- tinyImageFormat  
