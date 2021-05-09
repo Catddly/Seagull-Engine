@@ -1,4 +1,5 @@
 #pragma once
+#include "../Config.h"
 
 #include "Common/System/IProcess.h"
 
@@ -6,7 +7,7 @@ namespace SG
 {
 	//! @Interface
 	//! Abstraction of the engine
-	struct IEngine : public IProcess
+	struct SG_COMMON_API IEngine : public IProcess
 	{
 		//! Temporary test purpose
 		virtual void GetMainThreadId() const = 0;

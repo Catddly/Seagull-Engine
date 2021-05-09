@@ -56,4 +56,9 @@ namespace SG
 		}
 	}
 
+	void CLog::PrintFormat() const
+	{
+		printf("%s\n", fmt::formatter::format().c_str());
+	}
+
 }

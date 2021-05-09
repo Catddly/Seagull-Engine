@@ -1,7 +1,10 @@
 #pragma once
+#include "../Config.h"
 
 #include "Common/Base/BasicTypes.h"
 #include "Common/System/ISystem.h"
+
+#include <string_view>
 
 namespace SG
 {
@@ -18,10 +21,14 @@ namespace SG
 
 	//! @Interface
 	//! Abstraction of the logger
-	struct ILog
+	struct SG_COMMON_API ILog
 	{
 		//! Log to console
 		virtual void LogToConsole(ELogLevel logLevel, const char* format, ...) const = 0;
+		//! Set log format
+		virtual void SetFormat(std::string_view format) = 0;
+		//! Test formatter
+		virtual void PrintFormat() const = 0;
 
 		// TODO: After file system
 		//void LogToFile(ELogLevel logLevel, ...) const;

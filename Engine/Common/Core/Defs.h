@@ -22,6 +22,10 @@
 #	define SG_FORCE_INLINE
 #endif
 
-#ifndef SG_COMPILE_ASSERT
+#ifndef SG_COMPILE_ASSERT(x)
 #	define SG_COMPILE_ASSERT(x) static_assert(x)
+#endif
+
+#ifndef SG_ASSERT(x)
+#	define SG_ASSERT(x) do { if(!(x)) __debugbreak(); } while(false)
 #endif

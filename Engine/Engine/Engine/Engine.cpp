@@ -2,7 +2,7 @@
 #include "Engine.h"
 
 #include "Common/System/ISystem.h"
-#include "Log/Log/Log.h"
+#include "Core/Log/Log.h"
 
 namespace SG
 {

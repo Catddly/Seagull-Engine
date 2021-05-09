@@ -1,10 +1,11 @@
 #pragma once
+#include "../Config.h"
 
 namespace SG
 {
 	//! @Interface 
 	//! Abstraction of a process
-	struct IProcess
+	struct SG_COMMON_API IProcess
 	{
 		virtual ~IProcess() = default;
 
