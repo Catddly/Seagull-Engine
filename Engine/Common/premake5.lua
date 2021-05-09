@@ -29,6 +29,10 @@ project "SCommon"
         "../",
     }
 
+    links
+    {
+    }
+
     filter "system:windows"
     systemversion "latest"
     defines "SG_PLATFORM_WINDOWS"

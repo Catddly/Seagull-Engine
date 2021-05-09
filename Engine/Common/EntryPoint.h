@@ -4,39 +4,34 @@
 //! to avoid some user-side problem
 
 #include "Common/System/ISystem.h"
-#include "Common/System/IApp.h"
 #include "Engine/Engine/Engine.h"
-#include "Log/Log/Log.h"
+#include "Core/Log/Log.h"
+#include "Common/User/IApp.h"
 
 #include <stdlib.h>
-
-namespace SG
-{
-	SSystemEnvironment SG_COMMON_API gEnv;
-}
 
 int main(int argv, char** argc)
 {
 	using namespace SG;
 	extern IApp* GetAppInstance();
-	gEnv.pLog = new CLog;
-	gEnv.pEngine = new CEngine;
-	IApp* app = SG::GetAppInstance();
+	IApp* app = GetAppInstance();
+	// TODO: replace to seagull's allocator
+	gModules.pLog = new CLog;
+	gModules.pEngine = new CEngine;
 
-	IEngine* engine = gEnv.pEngine;
-
-	engine->OnInit();
-	engine->GetMainThreadId();
+	gModules.pEngine->OnInit();
 	app->OnInit();
 
 	char buf[] = "@ILLmew";
 	SG_LOG_INFO("Welcome To Seagull Engine! %s", buf);
 
-	engine->OnUpdate();
+	gModules.pEngine->OnUpdate();
 	app->OnUpdate();
 
-	app->OnExit();
-	engine->OnExit();
+	app->OnShutdown();
+	gModules.pEngine->OnShutdown();
 
+	delete gModules.pEngine;
+	delete gModules.pLog;
 	system("pause");
 }

@@ -1,14 +1,11 @@
 #include "StdAfx.h"
-
 #include "Engine.h"
-#include "Common/System/ILog.h"
+
 #include "Common/System/ISystem.h"
+#include "Log/Log/Log.h"
 
 namespace SG
 {
-
-	extern SSystemEnvironment __declspec(dllimport) gEnv;
-	SSystemEnvironment gEnv;
 
 	void CEngine::OnInit()
 	{
@@ -20,7 +17,7 @@ namespace SG
 		SG_LOG_INFO("Engine OnUpdate()");
 	}
 
-	void CEngine::OnExit()
+	void CEngine::OnShutdown()
 	{
 		SG_LOG_INFO("Engine OnExit()");
 	}

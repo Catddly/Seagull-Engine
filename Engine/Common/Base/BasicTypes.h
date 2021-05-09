@@ -21,14 +21,13 @@ namespace SG
 
 #ifdef __cplusplus
 #	ifndef SG_ENUM_CLASS_FLAG
-#		define SG_ENUM_CLASS_FLAG(TYPE, ENUM_TYPE)																		 \
-			static inline ENUM_TYPE operator|(ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((TYPE)(a) | (TYPE)(b)); } \
-			static inline ENUM_TYPE operator&(ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((TYPE)(a) & (TYPE)(b)); } \
-			static inline ENUM_TYPE operator|=(ENUM_TYPE& a, ENUM_TYPE b) { return a = (a | b); }                        \
-			static inline ENUM_TYPE operator&=(ENUM_TYPE& a, ENUM_TYPE b) { return a = (a & b); }
+#		define SG_ENUM_CLASS_FLAG(VALUE_TYPE, ENUM_TYPE)																		 \
+		static inline ENUM_TYPE operator|(ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) | (VALUE_TYPE)(b)); } \
+		static inline ENUM_TYPE operator&(ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) & (VALUE_TYPE)(b)); } \
+		static inline ENUM_TYPE operator|=(ENUM_TYPE& a, ENUM_TYPE b) { return a = (a | b); }                                    \
+		static inline ENUM_TYPE operator&=(ENUM_TYPE& a, ENUM_TYPE b) { return a = (a & b); }
 #	endif
 #endif
-
 #define SG_HAS_ENUM_FLAG(VALUE, FLAG) static_cast<bool>((VALUE) & (FLAG))
 
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include "../Config.h"
 
-#include "IProcess.h"
+#include "Common/System/IProcess.h"
 
 namespace SG
 {
@@ -15,7 +15,7 @@ namespace SG
 		//! Update per frame
 		virtual void OnUpdate() { }
 		//! Shutdown the app
-		virtual void OnExit() { }
+		virtual void OnShutdown() { }
 	};
 
 	//! User use this function to return the instance of 

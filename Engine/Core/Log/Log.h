@@ -1,13 +1,12 @@
 #pragma once
 #include "../Config.h"
 
-#include "Common/Base/ISingleton.h"
 #include "Common/System/ILog.h"
 
 namespace SG
 {
 
-	class SG_LOG_API CLog final : public ILog, public ISingleton<CLog>
+	class SG_LOG_API CLog final : public ILog
 	{
 	public:
 		//! Log to console

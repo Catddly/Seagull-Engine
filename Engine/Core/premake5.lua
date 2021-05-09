@@ -1,4 +1,4 @@
-project "SMath"
+project "SCore"
     kind "SharedLib"
     language "C++"
     cppdialect "C++17"
@@ -26,7 +26,11 @@ project "SMath"
 
     includedirs
     {
-        ""
+        "../",
+    }
+
+    links
+    {
     }
 
     filter "system:windows"

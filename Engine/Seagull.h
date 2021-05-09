@@ -2,7 +2,7 @@
 
 #include "Common/System/ISystem.h"
 #include "Common/System/ILog.h"
-#include "Common/System/IApp.h"
+#include "Common/User/IApp.h"
 
 //----------------------------------------------------------
 // EntryPoint

@@ -1,11 +1,5 @@
 #include "StdAfx.h"
 
-namespace SG
-{
-	extern SSystemEnvironment __declspec(dllimport) gEnv;
-	SSystemEnvironment gEnv;
-}
-
 class MyApp : public SG::IApp
 {
 public:
@@ -17,9 +11,13 @@ public:
 	virtual void OnUpdate() override
 	{
 		SG_LOG_INFO("User OnUpdate()");
+		SG_LOG_DEBUG("Debug Test!");
+		SG_LOG_WARN("Warn Test!");
+		SG_LOG_ERROR("Error Test!");
+		SG_LOG_CRIT("Criticle Test!");
 	}
 
-	virtual void OnExit() override
+	virtual void OnShutdown() override
 	{
 		SG_LOG_INFO("User OnExit()");
 	}

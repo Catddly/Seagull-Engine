@@ -14,7 +14,7 @@ namespace SG
 		//! Engine update per frame
 		virtual void OnUpdate() override;
 		//! Engine core shutdown
-		virtual void OnExit() override;
+		virtual void OnShutdown() override;
 
 		//! Get the thread id of engine thread
 		virtual void GetMainThreadId() const override;

@@ -25,15 +25,13 @@ group "Seagull Engine"
 
     include "Engine/Common/"
     include "Engine/Engine/"
-    include "Engine/Log/"
-    include "Engine/FileSystem/"
+    include "Engine/Core/"
     include "Engine/Utility/"
     include "Engine/Renderer/"
     include "Engine/RendererVulkan/"
     include "Engine/Editor/"
     include "Engine/Input/"
     include "Engine/Platform/"
-    include "Engine/Math/"
 
 group ""
 
@@ -73,14 +71,11 @@ group "User"
 
         defines
         {
-            -- "SG_USE_DLL"
         }
 
         links
         {
-            -- "SCommon",
             "SEngine",
-            "SLog",
         }
 
     filter "system:windows"

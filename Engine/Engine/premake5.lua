@@ -29,6 +29,11 @@ project "SEngine"
         "../",
     }
 
+    links
+    {
+        "SCore",
+    }
+
     filter "system:windows"
     systemversion "latest"
     defines "SG_PLATFORM_WINDOWS"
