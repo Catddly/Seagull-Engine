@@ -3,6 +3,7 @@
 
 #include "Common/Core/Defs.h"
 #include "Common/Base/BasicTypes.h"
+#include "FormatType.h"
 
 namespace SG
 {
@@ -37,10 +38,13 @@ namespace SG
 
 				switch (mark)
 				{
-					case 'h': resStr += "!hour!"; break;
-					case 'm': resStr += "!minute!"; break;
-					case 's': resStr += "!second!"; break;
-					case 't': resStr += "!thread!"; break;
+					case 'h': resStr += format_type<STimeHourFormat>(); break;
+					case 'm': resStr += format_type<STimeMinuteFormat>(); break;
+					case 's': resStr += format_type<STimeSecondFormat>(); break;
+					case 'y': resStr += format_type<STimeYearFormat>(); break;
+					case 'o': resStr += format_type<STimeMonthFormat>(); break;
+					case 'd': resStr += format_type<STimeDayFormat>(); break;
+					case 't': resStr += format_type<SThreadFormat>(); break;
 					default: SG_ASSERT(false); break;
 				}
 				currPos = markPos + 2;

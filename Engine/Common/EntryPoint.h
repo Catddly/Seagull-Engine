@@ -18,6 +18,7 @@ int main(int argv, char** argc)
 	// TODO: replace to seagull's allocator
 	gModules.pLog = new CLog;
 	gModules.pEngine = new CEngine;
+	gModules.pLog->SetFormat("[%y:%o:%d]-[%h:%m:%s]-[%t]");
 
 	gModules.pEngine->OnInit();
 	app->OnInit();

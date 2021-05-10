@@ -21,44 +21,43 @@ namespace SG
 		sBuffer[offset] = '\n';
 		sBuffer[offset + 1] = 0;
 
-		PrintUnicode(logLevel, sBuffer);
-	}
-
-	void CLog::PrintUnicode(ELogLevel logLevel, const char* buf) const
-	{
 		bool isError = SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLOG_LEVEL_ERROR | ELogLevel::eLOG_LEVEL_CRITICLE);
 		FILE* out = isError ? stderr : stdout;
-		// for changing the console color
 		HANDLE handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+
 		if (isError)
 		{
 			::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED);
-			fprintf(out, "%s", buf);
+			PrintPrefix();
+			fprintf(out, "%s", sBuffer);
 			::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 		}
 		else if (SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLOG_LEVEL_INFO))
 		{
 			::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-			fprintf(out, "%s", buf);
+			PrintPrefix();
+			fprintf(out, "%s", sBuffer);
 			::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 		}
 		else if (SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLOG_LEVEL_DEBUG))
 		{
 			::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_GREEN | FOREGROUND_BLUE);
-			fprintf(out, "%s", buf);
+			PrintPrefix();
+			fprintf(out, "%s", sBuffer);
 			::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 		}
 		else if (SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLOG_LEVEL_WARN))
 		{
 			::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN);
-			fprintf(out, "%s", buf);
+			PrintPrefix();
+			fprintf(out, "%s", sBuffer);
 			::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 		}
 	}
 
-	void CLog::PrintFormat() const
+	void CLog::PrintPrefix() const
 	{
-		printf("%s\n", fmt::formatter::format().c_str());
+		printf("%s ", fmt::formatter::format().c_str());
 	}
 
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Config.h"
+#include "Common/Config.h"
 
 #include "Common/Base/BasicTypes.h"
 #include "Common/System/ISystem.h"
@@ -27,8 +27,6 @@ namespace SG
 		virtual void LogToConsole(ELogLevel logLevel, const char* format, ...) const = 0;
 		//! Set log format
 		virtual void SetFormat(std::string_view format) = 0;
-		//! Test formatter
-		virtual void PrintFormat() const = 0;
 
 		// TODO: After file system
 		//void LogToFile(ELogLevel logLevel, ...) const;

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Config.h"
+#include "Common/Config.h"
 
 #include "Common/System/IProcess.h"
 

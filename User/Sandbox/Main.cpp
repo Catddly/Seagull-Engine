@@ -15,9 +15,6 @@ public:
 		SG_LOG_WARN("Warn Test!");
 		SG_LOG_ERROR("Error Test!");
 		SG_LOG_CRIT("Criticle Test!");
-
-		SG::gModules.pLog->SetFormat("[%h-%m-%s]-[%t]");
-		SG::gModules.pLog->PrintFormat();
 	}
 
 	virtual void OnShutdown() override
