@@ -9,11 +9,12 @@ namespace SG
 	struct INoInstance
 	{
 		INoInstance() = delete;
-		~INoInstance() = delete;
 		INoInstance(const INoInstance&) = delete;
 		INoInstance operator=(const INoInstance&) = delete;
 		INoInstance(const INoInstance&&) = delete;
 		INoInstance operator=(const INoInstance&&) = delete;
+	private:
+		~INoInstance() = default;
 	};
 
 }

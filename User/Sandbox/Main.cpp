@@ -9,7 +9,7 @@ public:
 	}
 
 	virtual void OnUpdate() override
-	{
+	{	
 		SG_LOG_INFO("User OnUpdate()");
 		SG_LOG_DEBUG("Debug Test!");
 		SG_LOG_WARN("Warn Test!");

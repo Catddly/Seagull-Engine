@@ -17,6 +17,9 @@ namespace SG
 	using UInt32 = uint32_t;
 	using UInt64 = uint64_t;
 
+	using UChar = unsigned char;
+	using SChar = signed char;
+
 	using Size = size_t;
 
 #ifdef __cplusplus

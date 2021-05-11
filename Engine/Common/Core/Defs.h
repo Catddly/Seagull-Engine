@@ -3,9 +3,9 @@
 #include <stdint.h>
 
 #if INTPTR_MAX == 0x7FFFFFFFFFFFFFFFLL
-#	define SPTR_SIZE 8
+#	define SG_PTR_SIZE 8
 #else INTPTR_MAX == 0x7FFFFFFF
-#	define SPTR_SIZE 4
+#	define SG_PTR_SIZE 4
 #endif
 
 #ifdef SG_CUSTOM_CONFIG_CPP_VERSION
@@ -20,6 +20,14 @@
 #	define SG_FORCE_INLINE __forceinline
 #else
 #	define SG_FORCE_INLINE
+#endif
+
+#define SG_INLINE inline
+
+#ifdef __cplusplus
+#	define SG_ALIGN(x) alignas(x)
+#else
+#	define SG_ALIGN(x)
 #endif
 
 #ifndef SG_COMPILE_ASSERT
