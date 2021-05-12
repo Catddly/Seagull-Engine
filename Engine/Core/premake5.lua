@@ -27,10 +27,12 @@ project "SCore"
     includedirs
     {
         "../",
+        "../Libs/",
     }
 
     links
     {
+        "mimalloc",
     }
 
     filter "system:windows"

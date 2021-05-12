@@ -27,12 +27,10 @@ project "SCommon"
     includedirs
     {
         "../",
-        "../Libs/",
     }
 
     links
     {
-        "mimalloc",
     }
 
     filter "system:windows"

@@ -37,3 +37,5 @@
 #ifndef SG_ASSERT(x)
 #	define SG_ASSERT(x) do { if(!(x)) __debugbreak(); } while(false)
 #endif
+
+#define SG_NO_USE(x) (void(x))

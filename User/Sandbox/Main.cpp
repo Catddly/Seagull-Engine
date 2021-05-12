@@ -1,9 +1,5 @@
 #include "StdAfx.h"
 
-#define USE_SEAGULL_MEMORY
-#define USE_EXTERN_MIMALLOC
-#include "Common/Core/Memory/MemoryOverride.h"
-
 class MyApp : public SG::IApp
 {
 public:	
@@ -29,5 +25,5 @@ public:
 
 SG::IApp* SG::GetAppInstance()
 {
-	return sg_new MyApp();
+	return New<MyApp>();
 }

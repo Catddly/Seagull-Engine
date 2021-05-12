@@ -8,11 +8,8 @@
 #include "Core/Log/Log.h"
 #include "Common/User/IApp.h"
 
-#define USE_SEAGULL_MEMORY
-#define USE_EXTERN_MIMALLOC
-#include "Common/Core/Memory/MemoryOverride.h"
-
-#include <stdlib.h>
+#include "Common/System/Memory/IMemory.h"
+#include "Core/Memory/Memory.h"
 
 int main(int argv, char** argc)
 {
@@ -20,8 +17,8 @@ int main(int argv, char** argc)
 	extern IApp* GetAppInstance();
 	IApp* app = GetAppInstance();
 	// TODO: replace to seagull's allocator
-	gModules.pLog = sg_new CLog;
-	gModules.pEngine = sg_new CEngine;
+	gModules.pLog = New<CLog>();
+	gModules.pEngine = New<CEngine>();
 	gModules.pLog->SetFormat("[%y:%o:%d]-[%h:%m:%s]-[%t]");
 
 	gModules.pEngine->OnInit();
@@ -36,7 +33,6 @@ int main(int argv, char** argc)
 	app->OnShutdown();
 	gModules.pEngine->OnShutdown();
 
-	sg_delete gModules.pEngine;
-	sg_delete gModules.pLog;
-	system("pause");
+	Delete(gModules.pEngine);
+	Delete(gModules.pLog);
 }

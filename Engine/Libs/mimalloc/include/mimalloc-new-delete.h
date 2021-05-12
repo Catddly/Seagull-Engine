@@ -23,9 +23,6 @@ terms of the MIT license. A copy of the license can be found in the file
   //#include <mimalloc.h>
   #include <mimalloc/include/mimalloc.h>
 
-namespace mimalloc
-{
-
 	void operator delete(void* p) noexcept { mi_free(p); };
 	void operator delete[](void* p) noexcept { mi_free(p); };
 
@@ -51,7 +48,6 @@ namespace mimalloc
 	void* operator new  (std::size_t n, std::align_val_t al, const std::nothrow_t&) noexcept { return mi_new_aligned_nothrow(n, static_cast<size_t>(al)); }
 	void* operator new[](std::size_t n, std::align_val_t al, const std::nothrow_t&) noexcept { return mi_new_aligned_nothrow(n, static_cast<size_t>(al)); }
 #endif
-}
 
 #endif
 
