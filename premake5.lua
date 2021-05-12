@@ -35,7 +35,10 @@ group "Seagull Engine"
 
 group ""
 
-group "Third-party"
+group "Libs"
+
+    include "Engine/Libs/mimalloc/"
+
 group ""
 
 group "Tools"
@@ -66,7 +69,8 @@ group "User"
 
         includedirs
         {
-            "Engine/"
+            "Engine/",
+            "Engine/Libs/",
         }
 
         defines
@@ -75,6 +79,7 @@ group "User"
 
         links
         {
+            "mimalloc",
             "SEngine",
         }
 

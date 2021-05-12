@@ -13,7 +13,7 @@ namespace SG
 		INoInstance operator=(const INoInstance&) = delete;
 		INoInstance(const INoInstance&&) = delete;
 		INoInstance operator=(const INoInstance&&) = delete;
-	private:
+
 		~INoInstance() = default;
 	};
 

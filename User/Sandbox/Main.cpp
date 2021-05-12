@@ -1,8 +1,12 @@
 #include "StdAfx.h"
 
+#define USE_SEAGULL_MEMORY
+#define USE_EXTERN_MIMALLOC
+#include "Common/Core/Memory/MemoryOverride.h"
+
 class MyApp : public SG::IApp
 {
-public:
+public:	
 	virtual void OnInit() override
 	{
 		SG_LOG_INFO("User OnInit()");
@@ -25,5 +29,5 @@ public:
 
 SG::IApp* SG::GetAppInstance()
 {
-	return new MyApp();
+	return sg_new MyApp();
 }
