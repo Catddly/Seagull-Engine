@@ -80,6 +80,7 @@ group "User"
         {
             "mimalloc",
             "SEngine",
+            "SCore",
         }
 
     filter "system:windows"

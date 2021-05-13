@@ -4,6 +4,10 @@
 #include "Common/System/ILog.h"
 #include "Common/User/IApp.h"
 
+#include "Common/System/Platform/ISystemTime.h"
+
+#include "Core/Stl/Vector.h"
+
 //----------------------------------------------------------
 // EntryPoint
 //----------------------------------------------------------

@@ -27,7 +27,7 @@ project "SCore"
     includedirs
     {
         "../",
-        "../Libs/",
+        "../../Libs/",
     }
 
     links

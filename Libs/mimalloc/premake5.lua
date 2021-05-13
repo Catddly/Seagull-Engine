@@ -50,8 +50,8 @@ filter "configurations:Debug"
     -- enable if you want to build a dll
     postbuildcommands
     {
-        ("{COPY} %{cfg.buildtarget.relpath} \"../../../bin/" .. outputdir .. "/Sandbox/\""),
-        ("{COPY} \"libs/mimalloc-redirect.dll\" \"../../../bin/" .. outputdir .. "/Sandbox/\""),
+        ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\""),
+        ("{COPY} \"libs/mimalloc-redirect.dll\" \"../../bin/" .. outputdir .. "/Sandbox/\""),
     }
 
 filter "configurations:Release"
@@ -59,6 +59,6 @@ filter "configurations:Release"
     optimize "on"
     postbuildcommands
     {
-        ("{COPY} %{cfg.buildtarget.relpath} \"../../../bin/" .. outputdir .. "/Sandbox/\""),
-        ("{COPY} \"libs/mimalloc-redirect.dll\" \"../../../bin/" .. outputdir .. "/Sandbox/\""),
+        ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\""),
+        ("{COPY} \"libs/mimalloc-redirect.dll\" \"../../bin/" .. outputdir .. "/Sandbox/\""),
     }

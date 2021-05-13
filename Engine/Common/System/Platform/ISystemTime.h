@@ -1,5 +1,5 @@
 #pragma once
-//#include "Common/Config.h"
+#include "Common/Config.h"
 
 #include "Common/Base/BasicTypes.h"
 
@@ -20,16 +20,16 @@ namespace SG
 	//};
 	
 	//! Get low-res system time in hour
-	Size GetSystemTimeHour();
+	SG_COMMON_API Size GetSystemTimeHour();
 	//! Get low-res system time in minute
-	Size GetSystemTimeMinute();
+	SG_COMMON_API Size GetSystemTimeMinute();
 	//! Get low-res system time in second
-	Size GetSystemTimeSecond();
+	SG_COMMON_API Size GetSystemTimeSecond();
 	//! Get the year of the system
-	Size GetSystemTimeYear();
+	SG_COMMON_API Size GetSystemTimeYear();
 	//! Get the month of the system
-	Size GetSystemTimeMonth();
+	SG_COMMON_API Size GetSystemTimeMonth();
 	//! Get the day of the system
-	Size GetSystemTimeDay();
+	SG_COMMON_API Size GetSystemTimeDay();
 
 }
