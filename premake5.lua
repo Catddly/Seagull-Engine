@@ -37,7 +37,7 @@ group ""
 
 group "Libs"
 
-    include "Engine/Libs/mimalloc/"
+    include "Libs/mimalloc/"
 
 group ""
 
@@ -70,7 +70,7 @@ group "User"
         includedirs
         {
             "Engine/",
-            "Engine/Libs/",
+            "Libs/",
         }
 
         defines
