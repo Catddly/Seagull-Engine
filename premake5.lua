@@ -31,7 +31,6 @@ group "Seagull Engine"
     include "Engine/RendererVulkan/"
     include "Engine/Editor/"
     include "Engine/Input/"
-    include "Engine/Platform/"
 
 group ""
 
