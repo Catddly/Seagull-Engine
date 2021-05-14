@@ -3,6 +3,7 @@
 
 #include "Common/Core/Defs.h"
 #include "Common/Base/BasicTypes.h"
+#include "Core/STL/type_traits.h"
 #include "FormatType.h"
 
 namespace SG
@@ -53,7 +54,7 @@ namespace SG
 			Size end = currFormat.size();
 			resStr += currFormat.substr(currPos, end - currPos);
 
-			return std::move(resStr);
+			return SG::move(resStr);
 		}
 
 	}

@@ -21,6 +21,7 @@ namespace SG
 	using SChar = signed char;
 
 	using Size = size_t;
+	using Diff = long long;
 
 #ifdef __cplusplus
 #	ifndef SG_ENUM_CLASS_FLAG

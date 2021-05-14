@@ -9,8 +9,9 @@
 //----------------------------------------------------------
 // Seagull's standard template library
 //----------------------------------------------------------
-#include "Core/Stl/Vector.h"
-#include "Core/Stl/Algorithm.h"
+#include "Core/STL/type_traits.h"
+#include "Core/STL/vector.h"
+#include "Core/STL/algorithm.h"
 
 //----------------------------------------------------------
 // EntryPoint

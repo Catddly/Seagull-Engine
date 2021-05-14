@@ -1,7 +1,11 @@
+#ifndef VECTOR_H
+#define VECTOR_H
+
 #pragma once
 
 #include "Common/Core/Defs.h"
 #include "Common/Base/BasicTypes.h"
+#include "Core/STL/type_traits.h"
 
 #include "Common/System/Memory/IMemory.h"
 
@@ -37,56 +41,58 @@ namespace SG
 		pointer insert(Size index, const T& value);
 		pointer erase(Size index);
 
-		pointer       data() noexcept       { return mData; }
-		const_pointer data() const noexcept { return mData; }
+		pointer       data() noexcept       { return mBegin; }
+		const_pointer data() const noexcept { return mBegin; }
 
-		bool empty() const noexcept { return mSize == 0; }
+		bool empty() const noexcept { return size() == 0; }
 		Size capacity() const noexcept { return mCapacity; }
-		Size size() const noexcept { return mSize; }
+		Diff size() const noexcept { return Diff(mEnd - mBegin); }
 		void clear() noexcept;
 
-		iterator begin() noexcept { return mData; }
-		iterator end()   noexcept { return mData + mSize; }
-		const_iterator cbegin() const noexcept { return mData; }
-		const_iterator cend()   const noexcept { return mData + mSize; }
+		iterator begin() noexcept { return mBegin; }
+		iterator end()   noexcept { return mEnd; }
+		const_iterator cbegin() const noexcept { return mBegin; }
+		const_iterator cend()   const noexcept { return mEnd; }
 
 		bool	   operator==(const this_type& rhs) const;
-		value_type operator=(const this_type& value);
-		value_type operator=(const this_type&& value);
+		this_type  operator=(const this_type& value);
+		this_type  operator=(const this_type&& value);
 		ref        operator[](Size index);
 		const_ref  operator[](Size index) const;
 	protected:
 		void double_reserve();
 	private:
-		Size mSize;
-		Size mCapacity;
-		pointer mData;
+		pointer mBegin;
+		pointer mEnd;
+		Size    mCapacity;
 	};
 
 	// vector default capacity if 8
 	template<typename T>
 	SG_INLINE vector<T>::vector() noexcept
-		:mCapacity(8), mSize(0)
+		:mCapacity(8)
 	{
-		mData = reinterpret_cast<T*>(Calloc(8, sizeof(T)));
-		SG_ASSERT(mData && "Failed to allocate memory!");
+		mBegin = reinterpret_cast<pointer>(Calloc(8, sizeof(value_type)));
+		mEnd = mBegin;
+		SG_ASSERT(mBegin && "Failed to allocate memory!");
 	}
 
 	template<typename T>
 	SG_INLINE vector<T>::vector(Size s) noexcept
 	{
-		mCapacity = size > 8 ? size : 8;
-		mSize = 0;
-		mData = reinterpret_cast<T*>(Calloc(mCapacity, sizeof(T)));
+		mCapacity = s / 8 == 0 ? 8 : ((s / 8) + 1) * 8;
+		mBegin = reinterpret_cast<pointer>(Calloc(mCapacity, sizeof(value_type)));
+		mEnd = mBegin;
 	}
 
 	template<typename T>
 	SG_INLINE vector<T>::~vector() noexcept
 	{
-		if (mData)
+		if (mBegin)
 		{
-			Free(mData);
-			mData = nullptr;
+			Free(mBegin);
+			mBegin = nullptr;
+			mEnd = nullptr;
 		}
 	}
 
@@ -94,34 +100,44 @@ namespace SG
 	SG_INLINE vector<T>::vector(const this_type& vec)
 	{
 		mCapacity = vec.mCapacity;
-		mSize = vec.mSize;
-		mData = reinterpret_cast<T*>(Calloc(mCapacity, sizeof(T)));
-		memcpy(mData, vec.mData, sizeof(T) * mSize);
+		mBegin = reinterpret_cast<pointer>(Calloc(mCapacity, sizeof(value_type)));
+		mEnd = mBegin + vec.size();
+		memcpy(mData, vec.mData, sizeof(value_type) * vec.size());
 	}
 
 	template<typename T>
 	SG_INLINE vector<T>::vector(const this_type&& vec) noexcept
 	{
 		mCapacity = vec.mCapacity;
-		mSize = vec.mSize;
-		mData = vec.mData;
-		vec.mData = nullptr;
+		mBegin = vec.mBegin;
+		mEnd = vec.mEnd;
+		vec.mBegin = nullptr;
+		vec.mEnd = nullptr;
+	}
+
+	template <typename T>
+	void vector<T>::clear() noexcept
+	{
+		Free(mBegin);
+		mBegin = reinterpret_cast<T*>(Calloc(8, sizeof(T)));
+		SG_ASSERT(mBegin && "Failed to allocate memory!");
+		mEnd = mBegin;
+		mCapacity = 8;
 	}
 
 	template<typename T>
 	SG_INLINE void vector<T>::push_back(const T& value)
 	{
-		if (mSize < mCapacity)
+		if (size() < mCapacity)
 		{
-			mData[mSize] = value;
-			++mSize;
+			*(mEnd) = value;
 		}
 		else
 		{
 			double_reserve();
-			mData[mSize] = value;
-			++mSize;
+			*(mEnd) = value;
 		}
+		++mEnd;
 	}
 
 	template<typename T>
@@ -131,8 +147,8 @@ namespace SG
 			SG_ASSERT(false && "Can't pop_back a empty vector!");
 		else
 		{
-			T temp = mData[mSize - 1];
-			--mSize;
+			T temp = *(mEnd - 1);
+			--mEnd;
 			return temp;
 		}
 		return T();
@@ -143,79 +159,82 @@ namespace SG
 	SG_INLINE typename vector<T>::iterator 
 	vector<T>::emplace_back(Args&&... args)
 	{
-		if (mSize <= mCapacity)
+		if (size() <= mCapacity)
 		{
-			mData[mSize] = T(std::forward<Args>(args)...);
-			++mSize;
+			*(mEnd) = value_type(SG::forward<Args>(args)...);
 		}
 		else
 		{
 			double_reserve();
-			mData[mSize] = T(std::forward<Args>(args)...);
-			++mSize;
+			*(mEnd) = value_type(SG::forward<Args>(args)...);
 		}
-		return mData + mSize - 1;
+		++mEnd;
+		return (mEnd - 1);
 	}
 
 	template<typename T>
 	SG_INLINE T* vector<T>::insert(Size index, const T& value)
 	{
-		if (index < 0 || index >= mSize)
+		if (index < 0 || index >= size())
 		{
 			SG_LOG_WARN("index over the boundary!");
 			return nullptr;
 		}
-		else if (mSize == mCapacity)
+		else if (size() == mCapacity)
 		{
 			double_reserve();
 		}
-		for (Size i = mSize - 1; i > index; i--)
+		for (Size i = size() - 1; i > index; i--) // 6 9 (2) 1
 		{
-			mData[i + 1] = mData[i];
+			*(mBegin + i + 1) = *(mBegin + i);
 		}
-		mData[index + 1] = value;
-		return (mData + index + 1);
+		*(mBegin + index + 1) = value;
+		++mEnd;
+		return (mBegin + index + 1);
 	}
 
 	template<typename T>
 	SG_INLINE T* vector<T>::erase(Size index)
 	{
-		if (index < 0 || index >= mSize)
+		if (index < 0 || index >= size())
 		{
 			SG_LOG_WARN("index over the boundary!");
 			return nullptr;
 		}
 		else
 		{
-			for (Size i = index; i < mSize - 1; i++)
+			for (Size i = index; i < size() - 1; i++)
 			{
-				mData[i] = mData[i + 1];
+				*(mBegin + i) = *(mBegin + i + 1);
 			}
 		}
-		return (mData + index);
+		--mEnd;
+		return (mBegin + index);
 	}
 
 	template<typename T>
 	SG_INLINE void vector<T>::double_reserve()
 	{
-		T* ptr = reinterpret_cast<T*>(Calloc(2 * mCapacity, sizeof(T)));
-		SG_ASSERT(mData && "Failed to allocate memory!");
-		memcpy(ptr, mData, sizeof(T) * mSize);
-		Free(mData);
-		mData = ptr;
+		Diff s = size();
+		T* ptr = reinterpret_cast<pointer>(Calloc(2 * mCapacity, sizeof(value_type)));
+		SG_ASSERT(mBegin && "Failed to allocate memory!");
+		memcpy(ptr, mBegin, sizeof(value_type) * s);
+		Free(mBegin);
+		mBegin = ptr;
+		mEnd = mBegin + s;
 		mCapacity *= 2;
 	}
 
 	template<typename T>
 	SG_INLINE bool vector<T>::operator==(const this_type& rhs) const
 	{
-		if (mSize != rhs.mSize)
+		if (size() != rhs.size())
 			return false;
 		else
 		{
-			for (Size i = 0; i < mSize; i++)
+			for (Size i = 0; i < size(); i++)
 			{
-				if (mData[i] != rhs.mData[i])
+				if (mBegin[i] != rhs.mBegin[i])
 					return false;
 			}
 		}
@@ -223,22 +242,28 @@ namespace SG
 	}
 
 	template<typename T>
-	SG_INLINE T vector<T>::operator=(const this_type& value)
+	SG_INLINE typename vector<T>::this_type
+	vector<T>::operator=(const this_type& value)
 	{
-		mCapacity = vec.mCapacity;
-		mSize = vec.mSize;
-		mData = reinterpret_cast<T*>(Calloc(mCapacity, sizeof(T)));
-		memcpy(mData, vec.mData, sizeof(T) * mSize);
+		if (this != &value)
+		{
+			mCapacity = value.mCapacity;
+			mBegin = reinterpret_cast<pointer>(Calloc(mCapacity, sizeof(value_type)));
+			mEnd = mBegin + value.size();
+			memcpy(mData, value.mData, sizeof(value_type) * value.size());
+		}
 		return *this;
 	}
 
 	template<typename T>
-	SG_INLINE T vector<T>::operator=(const this_type&& value)
+	SG_INLINE typename vector<T>::this_type
+	vector<T>::operator=(const this_type&& value)
 	{
 		mCapacity = vec.mCapacity;
-		mSize = vec.mSize;
-		mData = vec.mData;
-		vec.mData = nullptr;
+		mBegin = vec.mBegin;
+		mEnd = vec.mEnd;
+		vec.mBegin = nullptr;
+		vec.mEnd = nullptr;
 		return *this;
 	}
 
@@ -247,18 +272,25 @@ namespace SG
 	vector<T>::operator[](Size index)
 	{
 #ifdef _DEBUG
-		if (index >= mSize)
+		if (index >= size() || index < 0)
 			SG_ASSERT(false && "Index over the array border!");
 		else
 #endif
-			return *(mData + index);
+			return *(mBegin + index);
 	}
 
 	template<typename T>
 	SG_INLINE typename vector<T>::const_ref
 	vector<T>::operator[](Size index) const
 	{
-		return *(mData + index);
+#ifdef _DEBUG
+		if (index >= size() || index < 0)
+			SG_ASSERT(false && "Index over the array border!");
+		else
+#endif
+		return *(mBegin + index);
 	}
 
 }
+
+#endif // VECTOR_H

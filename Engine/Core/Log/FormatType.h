@@ -4,10 +4,10 @@
 #include "Common/Base/INoInstance.h"
 #include "Common/System/Platform/ISystemTime.h"
 
-// TODO: remove it
+// TODO: reSG::move it
 #include <string>
 // TODO: replace to seagull's type_trait
-#include <type_traits>
+#include "Core/STL/type_traits.h"
 
 namespace SG
 {
@@ -30,7 +30,7 @@ namespace SG
 			static std::string GetDescription() 
 			{
 				auto str = std::to_string(GetSystemTimeYear());
-				return std::move(str);
+				return SG::move(str);
 			}
 		};
 		//! Month of the system (%o)
@@ -40,7 +40,7 @@ namespace SG
 			{
 				auto str = std::to_string(GetSystemTimeMonth());
 				str = str.size() == 1 ? '0' + str : str;
-				return std::move(str);
+				return SG::move(str);
 			}
 		};
 		//! Day of the system (%d)
@@ -50,7 +50,7 @@ namespace SG
 			{
 				auto str = std::to_string(GetSystemTimeDay());
 				str = str.size() == 1 ? '0' + str : str;
-				return std::move(str);
+				return SG::move(str);
 			}
 		};
 		//! Hour in 24-hour system (%h)
@@ -60,7 +60,7 @@ namespace SG
 			{
 				auto str = std::to_string(GetSystemTimeHour());
 				str = str.size() == 1 ? '0' + str : str;
-				return std::move(str);
+				return SG::move(str);
 			}
 		};
 		//! Minute in 60-minute system (%m)
@@ -70,7 +70,7 @@ namespace SG
 			{
 				auto str = std::to_string(GetSystemTimeMinute());
 				str = str.size() == 1 ? '0' + str : str;
-				return std::move(str);
+				return SG::move(str);
 			}
 		};
 		//! Second in 60-second system (%s)
@@ -80,7 +80,7 @@ namespace SG
 			{
 				auto str = std::to_string(GetSystemTimeSecond());
 				str = str.size() == 1 ? '0' + str : str;
-				return std::move(str);
+				return SG::move(str);
 			}
 		};
 
@@ -98,7 +98,7 @@ namespace SG
 		std::string format_type()
 		{
 			SG_COMPILE_ASSERT((std::is_base_of_v<SBaseFormat, T>));
-			return std::move(T::GetDescription());
+			return SG::move(T::GetDescription());
 		}
 	}
 }

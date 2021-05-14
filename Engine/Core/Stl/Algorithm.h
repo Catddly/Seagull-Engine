@@ -1,3 +1,6 @@
+#ifndef ALGORITHM_H
+#define ALGORITHM_H
+
 #pragma once
 
 #include "Common/Core/Defs.h"
@@ -19,22 +22,6 @@ namespace SG
 		return true;
 	}
 
-	template<class T>
-	SG_CONSTEXPR T&& move(T&& val) noexcept
-	{
-		return (T&&)val;
-	}
-
-	template<class T>
-	[[nodiscard]] SG_CONSTEXPR T&& forward(T& args) noexcept
-	{
-		return static_cast<T&&>(args);
-	}
-
-	template<class T>
-	[[nodiscard]] SG_CONSTEXPR T&& forward(T&& args) noexcept
-	{
-		return static_cast<T&&>(args);
-	}
-
 }
+
+#endif // ALGORITHM_H
