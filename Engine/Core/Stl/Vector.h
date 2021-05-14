@@ -4,57 +4,68 @@
 #include "Common/Base/BasicTypes.h"
 
 #include "Common/System/Memory/IMemory.h"
-#include "Core/Memory/Memory.h"
 
 namespace SG
 {
 
-	//! Seagull implemented tiny vector for stl
+	//! Seagull implemented tiny vector
 	template <typename T>
 	class vector
 	{
+		typedef vector<T> this_type;
 	public:
 		typedef T  value_type;
-		typedef T& ref_type;
-		typedef T* iterator_type;
-		typedef const T* const_iterator_type;
-		typedef vector<T> type;
+		typedef T& ref;
+		typedef T* pointer;
+		typedef T* iterator;
+		typedef const T& const_ref;
+		typedef const T* const_pointer;
+		typedef const T* const_iterator;
 
-		vector();
-		vector(const type&);
-		vector(const type&&);
-		~vector();
+		vector() noexcept;
+		vector(const this_type&);
+		vector(const this_type&&) noexcept;
+		~vector() noexcept;
 
-		vector(Size s);
+		vector(Size s) noexcept;
 
 		void       push_back(const T& value);
 		value_type pop_back();
-		void       emplace_back(T&& value);
+		template<typename... Args>
+		iterator   emplace_back(Args&&... args);
 
-		bool       empty() const { return mSize == 0; }
-		Size       capacity() const { return mCapacity; }
-		Size       size() const { return mSize; }
+		pointer insert(Size index, const T& value);
+		pointer erase(Size index);
 
-		iterator_type begin() { return mData; }
-		iterator_type end()   { return mData + mSize; }
-		const_iterator_type cbegin() const { return reinterpret_cast<const_iterator_type>(mData); }
-		const_iterator_type cend() const { return reinterpret_cast<const_iterator_type>(mData + mSize); }
+		pointer       data() noexcept       { return mData; }
+		const_pointer data() const noexcept { return mData; }
 
-		bool	   operator==(const type& rhs) const;
-		value_type operator=(const type& value);
-		value_type operator=(const type&& value);
-		ref_type   operator[](Size index);
+		bool empty() const noexcept { return mSize == 0; }
+		Size capacity() const noexcept { return mCapacity; }
+		Size size() const noexcept { return mSize; }
+		void clear() noexcept;
+
+		iterator begin() noexcept { return mData; }
+		iterator end()   noexcept { return mData + mSize; }
+		const_iterator cbegin() const noexcept { return mData; }
+		const_iterator cend()   const noexcept { return mData + mSize; }
+
+		bool	   operator==(const this_type& rhs) const;
+		value_type operator=(const this_type& value);
+		value_type operator=(const this_type&& value);
+		ref        operator[](Size index);
+		const_ref  operator[](Size index) const;
 	protected:
 		void double_reserve();
 	private:
 		Size mSize;
 		Size mCapacity;
-		iterator_type mData;
+		pointer mData;
 	};
 
 	// vector default capacity if 8
 	template<typename T>
-	SG_INLINE vector<T>::vector()
+	SG_INLINE vector<T>::vector() noexcept
 		:mCapacity(8), mSize(0)
 	{
 		mData = reinterpret_cast<T*>(Calloc(8, sizeof(T)));
@@ -62,7 +73,7 @@ namespace SG
 	}
 
 	template<typename T>
-	SG_INLINE vector<T>::vector(Size s)
+	SG_INLINE vector<T>::vector(Size s) noexcept
 	{
 		mCapacity = size > 8 ? size : 8;
 		mSize = 0;
@@ -70,13 +81,17 @@ namespace SG
 	}
 
 	template<typename T>
-	SG_INLINE vector<T>::~vector()
+	SG_INLINE vector<T>::~vector() noexcept
 	{
-		if (mData) Free(mData);
+		if (mData)
+		{
+			Free(mData);
+			mData = nullptr;
+		}
 	}
 
 	template<typename T>
-	SG_INLINE vector<T>::vector(const type& vec)
+	SG_INLINE vector<T>::vector(const this_type& vec)
 	{
 		mCapacity = vec.mCapacity;
 		mSize = vec.mSize;
@@ -85,7 +100,7 @@ namespace SG
 	}
 
 	template<typename T>
-	SG_INLINE vector<T>::vector(const type&& vec)
+	SG_INLINE vector<T>::vector(const this_type&& vec) noexcept
 	{
 		mCapacity = vec.mCapacity;
 		mSize = vec.mSize;
@@ -124,19 +139,60 @@ namespace SG
 	}
 
 	template<typename T>
-	SG_INLINE void vector<T>::emplace_back(T&& value)
+	template<typename... Args>
+	SG_INLINE typename vector<T>::iterator 
+	vector<T>::emplace_back(Args&&... args)
 	{
 		if (mSize <= mCapacity)
 		{
-			mData[mSize] = std::move(value);
+			mData[mSize] = T(std::forward<Args>(args)...);
 			++mSize;
 		}
 		else
 		{
 			double_reserve();
-			mData[mSize] = std::move(value);
+			mData[mSize] = T(std::forward<Args>(args)...);
 			++mSize;
 		}
+		return mData + mSize - 1;
+	}
+
+	template<typename T>
+	SG_INLINE T* vector<T>::insert(Size index, const T& value)
+	{
+		if (index < 0 || index >= mSize)
+		{
+			SG_LOG_WARN("index over the boundary!");
+			return nullptr;
+		}
+		else if (mSize == mCapacity)
+		{
+			double_reserve();
+		}
+		for (Size i = mSize - 1; i > index; i--)
+		{
+			mData[i + 1] = mData[i];
+		}
+		mData[index + 1] = value;
+		return (mData + index + 1);
+	}
+
+	template<typename T>
+	SG_INLINE T* vector<T>::erase(Size index)
+	{
+		if (index < 0 || index >= mSize)
+		{
+			SG_LOG_WARN("index over the boundary!");
+			return nullptr;
+		}
+		else
+		{
+			for (Size i = index; i < mSize - 1; i++)
+			{
+				mData[i] = mData[i + 1];
+			}
+		}
+		return (mData + index);
 	}
 
 	template<typename T>
@@ -151,7 +207,7 @@ namespace SG
 	}
 
 	template<typename T>
-	SG_INLINE bool vector<T>::operator==(const type& rhs) const
+	SG_INLINE bool vector<T>::operator==(const this_type& rhs) const
 	{
 		if (mSize != rhs.mSize)
 			return false;
@@ -167,7 +223,7 @@ namespace SG
 	}
 
 	template<typename T>
-	SG_INLINE T vector<T>::operator=(const type& value)
+	SG_INLINE T vector<T>::operator=(const this_type& value)
 	{
 		mCapacity = vec.mCapacity;
 		mSize = vec.mSize;
@@ -177,7 +233,7 @@ namespace SG
 	}
 
 	template<typename T>
-	SG_INLINE T vector<T>::operator=(const type&& value)
+	SG_INLINE T vector<T>::operator=(const this_type&& value)
 	{
 		mCapacity = vec.mCapacity;
 		mSize = vec.mSize;
@@ -187,7 +243,8 @@ namespace SG
 	}
 
 	template<typename T>
-	SG_INLINE T& vector<T>::operator[](Size index)
+	SG_INLINE typename vector<T>::ref
+	vector<T>::operator[](Size index)
 	{
 #ifdef _DEBUG
 		if (index >= mSize)
@@ -195,6 +252,13 @@ namespace SG
 		else
 #endif
 			return *(mData + index);
+	}
+
+	template<typename T>
+	SG_INLINE typename vector<T>::const_ref
+	vector<T>::operator[](Size index) const
+	{
+		return *(mData + index);
 	}
 
 }

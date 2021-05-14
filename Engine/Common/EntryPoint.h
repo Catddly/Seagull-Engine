@@ -8,7 +8,6 @@
 #include "Core/Log/Log.h"
 #include "Common/User/IApp.h"
 
-#include "Common/System/Memory/IMemory.h"
 #include "Core/Memory/Memory.h"
 
 int main(int argv, char** argc)

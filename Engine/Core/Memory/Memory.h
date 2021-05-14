@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Common/Core/Defs.h"
-#include "Common/System/Memory/IMemory.h"
 
 #include <mimalloc/include/mimalloc.h>
 
@@ -9,7 +8,7 @@ namespace SG
 {
 
 	template <typename T, typename... Args>
-	static T* PlacementNew(void* ptr, Args&&... args)
+	T* PlacementNew(void* ptr, Args&&... args)
 	{
 		return new (ptr)T(std::forward<Args>(args)...);
 	}
@@ -43,5 +42,8 @@ namespace SG
 			mi_free(ptr);
 		}
 	}
+
+	template <typename T> T* MallocT() { Malloc(sizeof(T)); };
+	template <typename T> T* CallocT(Size count) { Calloc(count, sizeof(T)); };
 
 }

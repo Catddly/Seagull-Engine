@@ -34,8 +34,10 @@
 #	define SG_COMPILE_ASSERT(x) static_assert((x))
 #endif
 
-#ifndef SG_ASSERT(x)
+#ifndef SG_ASSERT
 #	define SG_ASSERT(x) do { if(!(x)) __debugbreak(); } while(false)
 #endif
 
 #define SG_NO_USE(x) (void(x))
+
+#define SG_CONSTEXPR constexpr

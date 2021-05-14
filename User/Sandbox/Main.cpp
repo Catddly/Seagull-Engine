@@ -32,8 +32,9 @@ private:
 		vec.push_back(6);
 		vec.push_back(9);
 		vec.push_back(1);
-		vec.push_back(3);
-		vec.push_back(14);
+		vec.insert(1, 2);
+		vec.emplace_back(14);
+		vec.emplace_back(12);
 		for (auto beg = vec.begin(); beg != vec.end(); beg++)
 			SG_LOG_DEBUG("%d", *beg);
 		SG_LOG_DEBUG("size of vector: %d", vec.size());
@@ -46,6 +47,7 @@ private:
 		vec.push_back(95);
 		vec.push_back(915);
 		vec.push_back(142);
+		vec.erase(4);
 		SG_LOG_DEBUG("4th of vector: %d", vec[4]);
 		SG_LOG_DEBUG("size of vector: %d", vec.size());
 		SG_LOG_DEBUG("capacity of vector: %d", vec.capacity());

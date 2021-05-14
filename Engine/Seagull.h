@@ -6,7 +6,11 @@
 
 #include "Common/System/Platform/ISystemTime.h"
 
+//----------------------------------------------------------
+// Seagull's standard template library
+//----------------------------------------------------------
 #include "Core/Stl/Vector.h"
+#include "Core/Stl/Algorithm.h"
 
 //----------------------------------------------------------
 // EntryPoint
