@@ -109,22 +109,22 @@ namespace impl
 
 	//! Use a simple wrapper to make pointer act like an iterator
 	//! To convert an iterable pointer to a formal iterator
-	template<class iterator, class Container>
+	template<class Iterator, class Container>
 	class generic_iterator
 	{
-	protected:
-		Iterator mIterator;
 	public:
+		typedef generic_iterator<Iterator, Container>                 this_type;
 		typedef typename iterator_traits<Iterator>::iterator_category iterator_category;
 		typedef typename iterator_traits<Iterator>::value_type        value_type;
 		typedef typename iterator_traits<Iterator>::difference_type   difference_type;
 		typedef typename iterator_traits<Iterator>::pointer           pointer;
 		typedef typename iterator_traits<Iterator>::reference         reference;
-		typedef iterator_type                                         wrapped_iterator_type; // Use to distinguish if this class is a wrapped iterator
 		typedef Iterator                                              iterator_type;
+		typedef iterator_type                                         wrapped_iterator_type; // Use to distinguish if this class is a wrapped iterator
 		typedef Container                                             container_type;
-		typedef generic_iterator<Iterator, Container>                 this_type;
-
+	protected:
+		iterator_type mIterator;
+	public:
 		/// necessary operator for a pointer to act like an iterator
 		generic_iterator()
 			: mIterator(iterator_type()) { }
@@ -298,8 +298,6 @@ namespace impl
 	template<typename Iterator>
 	class move_iterator
 	{
-	protected:
-		iterator_type mIterator;
 	public:
 		typedef Iterator                                iterator_type;
 		typedef iterator_traits<Iterator>               traits_type;
@@ -309,6 +307,9 @@ namespace impl
 		typedef iterator_type                           wrapped_iterator_type; // Use to distinguish if this class is a wrapped iterator
 		typedef Iterator                                pointer;
 		typedef value_type&&                            r_reference;
+	protected:
+		iterator_type mIterator;
+	public:
 
 		move_iterator()
 			: mIterator()
@@ -371,7 +372,7 @@ namespace impl
 			return *this;
 		}
 
-		reference operator[](difference_type n) const
+		r_reference operator[](difference_type n) const
 		{
 			return SG::move(mIterator[n]);
 		}
@@ -468,18 +469,15 @@ namespace impl
 		typename iterator_traits<Iterator>::pointer,
 		typename iterator_traits<Iterator>::reference>
 	{
-	protected:
-		iterator_type mIterator;
 	public:
 		typedef Iterator                                            iterator_type;
 		typedef iterator_type                                       wrapped_iterator_type; // Use to distinguish if this class is a wrapped iterator
 		typedef typename iterator_traits<Iterator>::pointer         pointer;
 		typedef typename iterator_traits<Iterator>::reference       reference;
 		typedef typename iterator_traits<Iterator>::difference_type difference_type;
-		reverse_iterator()
-			: mIterator()
-		{}
-
+	protected:
+		iterator_type mIterator;
+	public:
 		SG_CONSTEXPR reverse_iterator()
 			: mIterator() 
 		{}

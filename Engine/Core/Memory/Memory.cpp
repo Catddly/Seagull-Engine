@@ -41,14 +41,4 @@ namespace SG
 		mi_free(ptr);
 	}
 
-	void* NewNothrow(Size size) noexcept
-	{
-		return mi_new_nothrow(size);
-	}
-
-	void* NewAlignNothrow(Size size, Size alignment) noexcept
-	{
-		return mi_new_aligned_nothrow(size, alignment);
-	}
-
 }

@@ -8,6 +8,7 @@
 #include "Common/Core/Defs.h"
 #include "Common/Base/BasicTypes.h"
 #include "Core/STL/type_traits.h"
+#include "Core/STL/internal/copy_and_move.h"
 
 #include "Common/System/Memory/IMemory.h"
 
@@ -35,6 +36,8 @@ namespace SG
 
 		vector(Size s) noexcept;
 
+		void swap(this_type& vec);
+
 		void       push_back(const T& value);
 		value_type pop_back();
 		template<typename... Args>
@@ -46,9 +49,10 @@ namespace SG
 		pointer       data() noexcept       { return mBegin; }
 		const_pointer data() const noexcept { return mBegin; }
 
-		bool empty() const noexcept { return size() == 0; }
+		bool empty() const noexcept { return mBegin == mEnd; }
 		Size capacity() const noexcept { return mCapacity; }
-		Diff size() const noexcept { return mEnd - mBegin; }
+		Diff size() const noexcept { return Diff(mEnd - mBegin); }
+		//! Just call the destructor of the value_type of the iterator, no memory freed, remain the capacity
 		void clear() noexcept;
 
 		iterator begin() noexcept { return mBegin; }
@@ -68,6 +72,14 @@ namespace SG
 		pointer mEnd;
 		Size    mCapacity;
 	};
+
+	template <typename T>
+	void SG::vector<T>::swap(this_type& vec)
+	{
+		std::swap(mBegin, vec.mBegin);
+		std::swap(mEnd, vec.mEnd);
+		std::swap(mCapacity, vec.mCapacity);
+	}
 
 	// vector default capacity if 8
 	template<typename T>
@@ -101,30 +113,20 @@ namespace SG
 	template<typename T>
 	SG_INLINE vector<T>::vector(const this_type& vec)
 	{
-		mCapacity = vec.mCapacity;
-		mBegin = reinterpret_cast<pointer>(Calloc(mCapacity, sizeof(value_type)));
-		mEnd = mBegin + vec.Size(size());
-		memcpy(mBegin, vec.mBegin, sizeof(value_type) * vec.Size(size()));
+		mEnd = SG::copy_ptr_uninitialzied(vec.mBegin, vec.mEnd, mBegin);
 	}
 
 	template<typename T>
 	SG_INLINE vector<T>::vector(const this_type&& vec) noexcept
 	{
-		mCapacity = vec.mCapacity;
-		mBegin = vec.mBegin;
-		mEnd = vec.mEnd;
-		vec.mBegin = nullptr;
-		vec.mEnd = nullptr;
+		this->swap(vec);
 	}
 
 	template <typename T>
 	void vector<T>::clear() noexcept
 	{
-		Free(mBegin);
-		mBegin = reinterpret_cast<T*>(Calloc(8, sizeof(T)));
-		SG_ASSERT(mBegin && "Failed to allocate memory!");
+		Destruct(mBegin, mEnd);
 		mEnd = mBegin;
-		mCapacity = 8;
 	}
 
 	template<typename T>
@@ -146,11 +148,12 @@ namespace SG
 	SG_INLINE T vector<T>::pop_back()
 	{
 		if (empty())
-			SG_ASSERT(false && "Can't pop_back a empty vector!");
+			SG_ASSERT(false && "Can't pop_back an empty vector!");
 		else
 		{
 			T temp = *(mEnd - 1);
 			--mEnd;
+			(mEnd)->~value_type();
 			return temp;
 		}
 		return T();
@@ -285,9 +288,7 @@ namespace SG
 	vector<T>::operator[](Size index) const
 	{
 #ifdef _DEBUG
-		if (index >= Size(size()) || index < 0)
-			SG_ASSERT(false && "Index over the array border!");
-		else
+		SG_ASSERT(index < Size(size()) && index >= 0 && "Index over the array border!");
 #endif
 		return *(mBegin + index);
 	}

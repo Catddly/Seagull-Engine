@@ -14,7 +14,4 @@ namespace SG
 	SG_COMMON_API void* ReallocAlign(void* ptr, Size newSize, Size alignment) noexcept;
 
 	SG_COMMON_API void  Free(void* ptr) noexcept;
-
-	SG_COMMON_API void* NewNothrow(Size size) noexcept;
-	SG_COMMON_API void* NewAlignNothrow(Size size, Size alignment) noexcept;
 }

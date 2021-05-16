@@ -22,6 +22,8 @@ namespace SG
 
 	using Size = size_t;
 	using Diff = long long;
+	using IntPtr = intptr_t;
+	using UIntPtr = uintptr_t;
 
 #ifdef __cplusplus
 #	ifndef SG_ENUM_CLASS_FLAG

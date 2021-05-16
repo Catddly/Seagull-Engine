@@ -46,6 +46,28 @@ namespace SG
 	template<>
 	struct type_not<false> { static const constexpr bool value = true; };
 
+	template <typename T, typename U> struct is_same : public false_type { };
+	template <typename T>             struct is_same<T, T> : public true_type { };
+	template <class T, class U> SG_CONSTEXPR bool is_same_v = is_same<T, U>::value;
+
+	//! Remove const of type T
+	template<typename T> struct remove_const { typedef T type; };
+	template<typename T> struct remove_const<const T> { typedef T type; };
+	template<typename T> struct remove_const<const T[]> { typedef T type[]; };
+	template<typename T, size_t N> struct remove_const<const T[N]> { typedef T type[N]; };
+	template<typename T> using  remove_const_t = typename remove_const<T>::type;
+
+	//! Remove volatile of type T
+	template<typename T>           struct remove_volatile { typedef T type; };
+	template<typename T>           struct remove_volatile<volatile T> { typedef T type; };
+	template<typename T>           struct remove_volatile<volatile T[]> { typedef T type[]; };
+	template<typename T, size_t N> struct remove_volatile<volatile T[N]> { typedef T type[N]; };
+	template<typename T> using remove_volatile_t = typename remove_volatile<T>::type;
+
+	//! Remove volatile and const of type T
+	template<typename T> struct remove_cv { typedef typename remove_volatile<typename remove_const<T>::type>::type type; };
+	template<typename T> using  remove_cv_t = typename remove_cv<T>::type;
+
 namespace impl 
 {
 	template <typename T> struct is_const_value : public false_type {};
@@ -60,6 +82,151 @@ namespace impl
 	template <typename T> struct is_reference     : public false_type {};
 	template <typename T> struct is_reference<T&> : public true_type {};
 	template<typename T> SG_CONSTEXPR bool is_reference_v = is_reference<T>::value;
+
+	template <typename T> struct is_void : public false_type {};
+
+	template <> struct is_void<void> : public true_type {};
+	template <> struct is_void<void const> : public true_type {};
+	template <> struct is_void<void volatile> : public true_type {};
+	template <> struct is_void<void const volatile> : public true_type {};
+	template <typename T> SG_CONSTEXPR bool is_void_v = is_void<T>::value;
+
+namespace impl
+{
+	template<typename T> struct is_integral_impl : public false_type {};
+	template<> struct is_integral_impl<unsigned char> : public true_type {};
+	template<> struct is_integral_impl<unsigned short> : public true_type {};
+	template<> struct is_integral_impl<unsigned int> : public true_type {};
+	template<> struct is_integral_impl<unsigned long> : public true_type {};
+	template<> struct is_integral_impl<unsigned long long> : public true_type {};
+
+	template<> struct is_integral_impl<signed char> : public true_type {};
+	template<> struct is_integral_impl<signed short> : public true_type {};
+	template<> struct is_integral_impl<signed int> : public true_type {};
+	template<> struct is_integral_impl<signed long> : public true_type {};
+	template<> struct is_integral_impl<signed long long> : public true_type {};
+
+	template<> struct is_integral_impl<bool> : public true_type {};
+	template<> struct is_integral_impl<char> : public true_type {};
+	template<> struct is_integral_impl<wchar_t> : public true_type {};
+}
+
+	template <typename T>
+	struct is_integral : public impl::is_integral_impl<typename remove_cv<T>::type> {};
+	template <class T> SG_CONSTEXPR bool is_integral_v = is_integral<T>::value;
+
+namespace impl
+{
+	template<typename T> struct is_floating_point_impl : public false_type {};
+
+	template<> struct is_floating_point_impl<float> : public true_type {};
+	template<> struct is_floating_point_impl<double> : public true_type {};
+	template<> struct is_floating_point_impl<long double> : public true_type {};
+}
+
+	template <typename T>
+	struct is_floating_point : public impl::is_floating_point_impl<typename remove_cv<T>::type> {};
+	template <class T> SG_CONSTEXPR bool is_floating_point_v = is_floating_point<T>::value;
+
+	template <typename T>
+	struct is_arithmetic : public integral_constant<bool, is_integral<T>::value || is_floating_point<T>::value> {};
+	template<typename T> SG_CONSTEXPR bool is_arithmetic_v = is_arithmetic<T>::value;
+
+	// Core lib helper
+	template<typename T> struct is_enum : public integral_constant<bool, __is_enum(T)> {};
+	template<typename T> SG_CONSTEXPR bool is_enum_v = is_enum<T>::value;
+
+	template <typename T> struct is_null_pointer : public is_same<typename remove_cv<T>::type, std::nullptr_t> {};
+	template<typename T> SG_CONSTEXPR bool is_null_pointer_v = is_null_pointer<T>::value;
+
+	namespace impl
+	{
+		template <typename T> struct is_mem_fun_pointer_value : public false_type {};
+
+		template <typename R, typename T> struct is_mem_fun_pointer_value<R(T::*)()> : public true_type {};
+		template <typename R, typename T> struct is_mem_fun_pointer_value<R(T::*)() const> : public true_type {};
+		template <typename R, typename T> struct is_mem_fun_pointer_value<R(T::*)() volatile> : public true_type {};
+		template <typename R, typename T> struct is_mem_fun_pointer_value<R(T::*)() const volatile> : public true_type {};
+
+		template <typename R, typename T, typename Arg0> struct is_mem_fun_pointer_value<R(T::*)(Arg0)> : public true_type {};
+		template <typename R, typename T, typename Arg0> struct is_mem_fun_pointer_value<R(T::*)(Arg0) const> : public true_type {};
+		template <typename R, typename T, typename Arg0> struct is_mem_fun_pointer_value<R(T::*)(Arg0) volatile> : public true_type {};
+		template <typename R, typename T, typename Arg0> struct is_mem_fun_pointer_value<R(T::*)(Arg0) const volatile> : public true_type {};
+
+		template <typename R, typename T, typename Arg0, typename Arg1> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1)> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1) const> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1) volatile> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1) const volatile> : public true_type {};
+
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2)> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2) const> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2) volatile> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2) const volatile> : public true_type {};
+
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3)> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3) const> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3) volatile> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3) const volatile> : public true_type {};
+
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4)> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4) const> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4) volatile> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4) const volatile> : public true_type {};
+
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5) const> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5) volatile> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5) const volatile> : public true_type {};
+
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) const> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) volatile> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) const volatile> : public true_type {};
+
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7) const> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7) volatile> : public true_type {};
+		template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7) const volatile> : public true_type {};
+	}
+	template <typename T>
+	struct is_member_function_pointer : public integral_constant<bool, impl::is_mem_fun_pointer_value<T>::value> {};
+	template<typename T> SG_CONSTEXPR bool is_member_function_pointer_v = is_member_function_pointer<T>::value;
+
+	template <typename T>
+	struct is_member_pointer : public integral_constant<bool, is_member_function_pointer<T>::value> {};
+	template <typename T, typename U>
+	struct is_member_pointer<U T::*> : public true_type {};
+	template<typename T> SG_CONSTEXPR bool is_member_pointer_v = is_member_pointer<T>::value;
+
+	namespace impl
+	{
+		template <typename T> struct is_pointer_impl : public false_type {};
+
+		template <typename T> struct is_pointer_impl<T*> : public true_type {};
+		template <typename T> struct is_pointer_impl<T* const> : public true_type {};
+		template <typename T> struct is_pointer_impl<T* volatile> : public true_type {};
+		template <typename T> struct is_pointer_impl<T* const volatile> : public true_type {};
+
+		template <typename T>
+		struct is_pointer_value : public type_and<impl::is_pointer_impl<T>::value, type_not<is_member_pointer<T>::value>::value> {};
+	}
+
+	//! If T is a pointer, but not a class member pointer or member function pointer
+	template <typename T>
+	struct is_pointer : public integral_constant<bool, impl::is_pointer_value<T>::value> {};
+	template<typename T> SG_CONSTEXPR bool is_pointer_v = is_pointer<T>::value;
+
+	template <typename T> struct is_scalar : public integral_constant<bool,
+		is_arithmetic<T>::value || is_enum<T>::value || is_pointer<T>::value ||
+		is_member_pointer<T>::value ||
+		is_null_pointer<T>::value>
+	{};
+
+	template <typename T> struct is_scalar<T*> : public true_type {};
+	template <typename T> struct is_scalar<T* const> : public true_type {};
+	template <typename T> struct is_scalar<T* volatile> : public true_type {};
+	template <typename T> struct is_scalar<T* const volatile> : public true_type {};
+	template<typename T> SG_CONSTEXPR bool is_scalar_v = is_scalar<T>::value;
 
 	//! If a type if a function, not include member function
 	template <typename F>
@@ -89,17 +256,10 @@ namespace impl
 	template <typename T>
 	struct add_const { typedef typename impl::add_const_impl<T>::type type; };
 
-	//! remove reference of type T
+	//! Remove reference of type T
 	template<typename T> struct remove_ref     { typedef T type; };
 	template<typename T> struct remove_ref<T&> { typedef T type; };
 	template<typename T> using  remove_ref_t = typename remove_ref<T>::type;
-
-	//! remove const of type T
-	template<typename T> struct remove_const					   { typedef T type; };
-	template<typename T> struct remove_const<const T>			   { typedef T type; };
-	template<typename T> struct remove_const<const T[]>			   { typedef T type[]; };
-	template<typename T, size_t N> struct remove_const<const T[N]> { typedef T type[N]; };
-	template<typename T> using  remove_const_t = typename remove_const<T>::type;
 
 	//! Add left reference to T
 	//! void => void
@@ -129,87 +289,6 @@ namespace impl
 
 	template <typename T>
 	typename add_rvalue_reference<T>::type declval() noexcept;
-
-	template <typename T, typename U> struct is_same : public false_type { };
-	template <typename T>             struct is_same<T, T> : public true_type { };
-	template <class T, class U> SG_CONSTEXPR bool is_same_v = is_same<T, U>::value;
-
-namespace impl
-{
-	template <typename T> struct is_mem_fun_pointer_value : public false_type {};
-
-	template <typename R, typename T> struct is_mem_fun_pointer_value<R(T::*)()> : public true_type {};
-	template <typename R, typename T> struct is_mem_fun_pointer_value<R(T::*)() const> : public true_type {};
-	template <typename R, typename T> struct is_mem_fun_pointer_value<R(T::*)() volatile> : public true_type {};
-	template <typename R, typename T> struct is_mem_fun_pointer_value<R(T::*)() const volatile> : public true_type {};
-
-	template <typename R, typename T, typename Arg0> struct is_mem_fun_pointer_value<R(T::*)(Arg0)> : public true_type {};
-	template <typename R, typename T, typename Arg0> struct is_mem_fun_pointer_value<R(T::*)(Arg0) const> : public true_type {};
-	template <typename R, typename T, typename Arg0> struct is_mem_fun_pointer_value<R(T::*)(Arg0) volatile> : public true_type {};
-	template <typename R, typename T, typename Arg0> struct is_mem_fun_pointer_value<R(T::*)(Arg0) const volatile> : public true_type {};
-
-	template <typename R, typename T, typename Arg0, typename Arg1> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1)> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1) const> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1) volatile> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1) const volatile> : public true_type {};
-
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2)> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2) const> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2) volatile> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2) const volatile> : public true_type {};
-
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3)> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3) const> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3) volatile> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3) const volatile> : public true_type {};
-
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4)> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4) const> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4) volatile> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4) const volatile> : public true_type {};
-
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5) const> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5) volatile> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5) const volatile> : public true_type {};
-
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) const> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) volatile> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6) const volatile> : public true_type {};
-
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7) const> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7) volatile> : public true_type {};
-	template <typename R, typename T, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7> struct is_mem_fun_pointer_value<R(T::*)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7) const volatile> : public true_type {};
-}
-	template <typename T>
-	struct is_member_function_pointer : public integral_constant<bool, impl::is_mem_fun_pointer_value<T>::value> {};
-	template<typename T> SG_CONSTEXPR bool is_member_function_pointer_v = is_member_function_pointer<T>::value;
-
-	template <typename T>
-	struct is_member_pointer : public integral_constant<bool, is_member_function_pointer<T>::value> {};
-	template <typename T, typename U>
-	struct is_member_pointer<U T::*> : public true_type {};
-	template<typename T> SG_CONSTEXPR bool is_member_pointer_v = is_member_pointer<T>::value;
-
-namespace impl
-{
-	template <typename T> struct is_pointer_impl : public false_type {};
-
-	template <typename T> struct is_pointer_impl<T*> : public true_type {};
-	template <typename T> struct is_pointer_impl<T* const> : public true_type {};
-	template <typename T> struct is_pointer_impl<T* volatile> : public true_type {};
-	template <typename T> struct is_pointer_impl<T* const volatile> : public true_type {};
-
-	template <typename T>
-	struct is_pointer_value : public type_and<impl::is_pointer_impl<T>::value, type_not<is_member_pointer<T>::value>::value> {};
-}
-	
-	//! If T is a pointer, but not a class member pointer or member function pointer
-	template <typename T>
-	struct is_pointer : public integral_constant<bool, impl::is_pointer_value<T>::value> {};
-	template<typename T> SG_CONSTEXPR bool is_pointer_v = is_pointer<T>::value;
 
 namespace impl
 {
@@ -245,9 +324,37 @@ namespace impl
 	struct is_trivially_copy_assignable : public is_trivially_assignable<typename add_lvalue_reference<T>::type,
 		typename add_lvalue_reference<typename add_const<T>::type>::type> {};
 
-	template <typename T>
+	template<typename T>
 	struct is_trivially_copyable { static const bool value = __is_trivially_copyable(T); };
 	template <class T> SG_CONSTEXPR bool is_trivially_copyable_v = is_trivially_copyable<T>::value;
+
+namespace impl
+{
+	template <typename T> struct is_hat_type_impl : public false_type {};
+#if defined(__cplusplus_winrt)
+	template <typename T> struct is_hat_type_impl<T^> : public true_type {};
+#endif
+}
+	//! Underlying type of T is a C++/CX '^' type such as: Foo^
+	//! meaning the type is heap allocated and ref-counted
+	template<typename T> struct is_hat_type : public impl::is_hat_type_impl<T> {};
+	template<typename T> SG_CONSTEXPR bool is_hat_type_v = is_hat_type<T>::value;
+
+	//! Check if T is plain old data
+	template<class T> struct is_pod : public integral_constant<bool, (__has_trivial_constructor(T) && __is_pod(T) && !is_hat_type<T>::value)
+		|| is_void<T>::value || is_scalar<T>::value> {};
+	template<typename T> SG_CONSTEXPR bool is_pod_v = is_pod<T>::value;
+
+	template<typename T>
+	struct has_trivial_constructor 
+		: public integral_constant<bool, (__has_trivial_constructor(T) || is_pod<T>::value) && !is_hat_type<T>::value> 
+	{};
+	template<typename T> SG_CONSTEXPR bool has_trivial_constructor_v = has_trivial_constructor<T>::value;
+
+	template<typename T> struct has_trivial_destructor : 
+		public integral_constant<bool, (__has_trivial_destructor(T) || is_pod<T>::value) && !is_hat_type<T>::value> 
+	{};
+	template<typename T> SG_CONSTEXPR bool has_trivial_destructor_v = has_trivial_destructor<T>::value;
 
 	template <bool B, typename T = void> // if unable, then the type will be void
 	struct enable_if {};
@@ -262,16 +369,26 @@ namespace impl
 		return ((typename remove_ref<T>::type&&)val);
 	}
 
+	//! Forward the args by l-reference
 	template<class T>
 	SG_CONSTEXPR T&& forward(typename remove_ref<T>::type& args) noexcept
 	{
 		return static_cast<T&&>(args);
 	}
 
+	//! Forward the args by r_reference
 	template<class T>
 	SG_CONSTEXPR T&& forward(typename remove_ref<T>::type&& args) noexcept
 	{
 		return static_cast<T&&>(args);
+	}
+
+	//! Return the actual address of the object or function referenced by r
+	template<typename T>
+	T* addressof(T& value) noexcept
+	{
+		// const volatile char is the exact one byte, then convert to address
+		return reinterpret_cast<T*>(&const_cast<char&>(reinterpret_cast<const volatile char&>(value)));
 	}
 
 }

@@ -41,3 +41,9 @@
 #define SG_NO_USE(x) (void(x))
 
 #define SG_CONSTEXPR constexpr
+
+#ifdef SG_ALLOW_EXCEPTION
+#	define SG_ENABLE_EXCEPTION 1
+#else
+#	define SG_ENABLE_EXCEPTION 0
+#endif
