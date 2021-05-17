@@ -1,8 +1,8 @@
 #pragma once
 #include "Core/Config.h"
 
-#include <string_view>
 #include "Common/Base/ISingleton.h"
+#include <string_view>
 
 namespace SG
 {

@@ -2,12 +2,11 @@
 
 #include "Common/Base/BasicTypes.h"
 #include "Common/Base/INoInstance.h"
-#include "Common/System/Platform/ISystemTime.h"
+#include "Common/Platform/ISystemTime.h"
 
-// TODO: reSG::move it
-#include <string>
-// TODO: replace to seagull's type_trait
 #include "Core/STL/type_traits.h"
+// TODO: use SG::string, remove it
+#include <string>
 
 namespace SG
 {

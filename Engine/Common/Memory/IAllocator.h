@@ -6,7 +6,6 @@
 #endif
 
 #include "Common/Base/BasicTypes.h"
-#include "Common/Memory/IMemory.h"
 
 namespace SG
 {

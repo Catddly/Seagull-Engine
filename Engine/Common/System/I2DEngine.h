@@ -7,7 +7,7 @@ namespace SG
 {
 	//! @Interface
 	//! Abstraction of the engine
-	struct SG_COMMON_API I3DEngine : public IProcess
+	struct SG_COMMON_API I2DEngine : public IProcess
 	{
 	};
 

@@ -22,9 +22,4 @@ namespace SG
 		SG_LOG_INFO("Engine OnExit()");
 	}
 
-	void CEngine::GetMainThreadId() const
-	{
-		SG_LOG_INFO("Engine GetMainThreadId()");
-	}
-
 }

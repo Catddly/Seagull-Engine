@@ -17,21 +17,21 @@ int main(int argv, char** argc)
 	IApp* app = GetAppInstance();
 	// TODO: replace to seagull's allocator
 	gModules.pLog = New<CLog>();
-	gModules.pEngine = New<CEngine>();
+	gModules.p3DEngine = New<CEngine>();
 	gModules.pLog->SetFormat("[%y:%o:%d]-[%h:%m:%s]-[%t]");
 
-	gModules.pEngine->OnInit();
+	gModules.p3DEngine->OnInit();
 	app->OnInit();
 
 	char buf[] = "@ILLmew";
 	SG_LOG_INFO("Welcome To Seagull Engine! %s", buf);
 
-	gModules.pEngine->OnUpdate();
+	gModules.p3DEngine->OnUpdate();
 	app->OnUpdate();
 
 	app->OnShutdown();
-	gModules.pEngine->OnShutdown();
+	gModules.p3DEngine->OnShutdown();
 
-	Delete(gModules.pEngine);
+	Delete(gModules.p3DEngine);
 	Delete(gModules.pLog);
 }

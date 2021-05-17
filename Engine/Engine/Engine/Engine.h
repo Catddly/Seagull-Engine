@@ -15,9 +15,6 @@ namespace SG
 		virtual void OnUpdate() override;
 		//! Engine core shutdown
 		virtual void OnShutdown() override;
-
-		//! Get the thread id of engine thread
-		virtual void GetMainThreadId() const override;
 	};
 
 }

@@ -28,6 +28,8 @@ Open the solution file, build the whole solution and you are ready to go!
 - Easy to use Editor  
 - 2D Renderer branch for 2D games
 
+Also see ISSUE.md to gain more details.
+
 ## Dependencies
 
 If you have got some errors on compiling the shaders, please install VulkanSDK(at least version 1.2 or higher)
