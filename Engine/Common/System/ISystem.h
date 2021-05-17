@@ -4,7 +4,7 @@
 namespace SG
 {
 
-	struct IEngine;
+	struct I3DEngine;
 	struct ILog;
 
 	//! @Interface 
@@ -12,7 +12,7 @@ namespace SG
 	//! We can dynamically change its implementation of modules
 	struct ISystemModules
 	{
-		IEngine* pEngine = nullptr;
+		I3DEngine* pEngine = nullptr;
 		ILog*    pLog = nullptr;
 	};
 

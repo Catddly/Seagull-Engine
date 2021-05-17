@@ -50,13 +50,13 @@ namespace SG
 namespace impl
 {
 	template<class ForwardIterator>
-	SG_INLINE void destruct_impl(ForwardIterator beg, ForwardIterator end, true_type())
+	SG_INLINE void destruct_impl(ForwardIterator beg, ForwardIterator end, true_type)
 	{
 		// has trivial destructor, do nothing
 	}
 
 	template<class ForwardIterator>
-	SG_INLINE void destruct_impl(ForwardIterator beg, ForwardIterator end, false_type())
+	SG_INLINE void destruct_impl(ForwardIterator beg, ForwardIterator end, false_type)
 	{
 		typedef typename iterator_traits<ForwardIterator>::value_type value_type;
 		while (beg != end)
@@ -72,7 +72,7 @@ namespace impl
 	SG_INLINE void Destruct(ForwardIterator beg, ForwardIterator end)
 	{
 		typedef typename iterator_traits<ForwardIterator>::value_type value_type;
-		destruct_impl(beg, end, has_trivial_destructor<value_type>());
+		impl::destruct_impl(beg, end, has_trivial_destructor<value_type>());
 	}
 
 }

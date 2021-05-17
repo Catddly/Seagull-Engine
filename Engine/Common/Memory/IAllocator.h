@@ -6,6 +6,7 @@
 #endif
 
 #include "Common/Base/BasicTypes.h"
+#include "Common/Memory/IMemory.h"
 
 namespace SG
 {
@@ -15,14 +16,12 @@ namespace SG
 
 	//! @Interface
 	//! Abstraction for memory allocation
-	class IAllocator
+	struct IAllocator
 	{
-		explicit IAllocator(const char* name = "seagull");
 		IAllocator(const IAllocator& x);
-		IAllocator(const IAllocator& x, const char* name);
 		virtual ~IAllocator() = default;
 
-		virtual IAllocator& operator=(const IAllocator& x) = 0;
+		virtual IAllocator& operator=(const IAllocator& x) { return *this; }
 
 		virtual void* allocate(Size size) noexcept = 0;
 		virtual void* allocate(Size n, Size alignment, Size alignmentOffset, int flags = 0) noexcept = 0;

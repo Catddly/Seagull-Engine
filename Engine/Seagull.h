@@ -4,7 +4,7 @@
 #include "Common/System/ILog.h"
 #include "Common/User/IApp.h"
 
-#include "Common/System/Platform/ISystemTime.h"
+#include "Common/Platform/ISystemTime.h"
 
 //----------------------------------------------------------
 // Seagull's standard template library

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "Common/System/Memory/IMemory.h"
+#include "Common/Memory/IMemory.h"
 
 #include <mimalloc/include/mimalloc.h>
 

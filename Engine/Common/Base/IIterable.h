@@ -5,6 +5,8 @@
 #pragma once
 #endif
 
+#include "Core/STL/internal/iterator.h"
+
 namespace SG
 {
 
@@ -13,10 +15,11 @@ namespace SG
 	template <typename T>
 	struct IIterable
 	{
-		typedef Size     ptrdiff_t;
+		typedef Diff     difference_type;
 		typedef T*		 iterator;
 		typedef const T* const_iterator;
-		// TODO: add reverse_iterator
+		typedef SG::reverse_iterator<iterator>       reverse_iterator;
+		typedef SG::reverse_iterator<const_iterator> const_reverse_iterator;
 
 		virtual iterator begin() noexcept = 0;
 		virtual const_iterator begin()  const noexcept = 0;
@@ -26,13 +29,13 @@ namespace SG
 		virtual const_iterator end()  const noexcept = 0;
 		virtual const_iterator cend() const noexcept = 0;
 
-		virtual void rbegin()  noexcept = 0;
-		virtual void rbegin()  const noexcept = 0;
-		virtual void crbegin() const noexcept = 0;
+		virtual reverse_iterator rbegin()  noexcept = 0;
+		virtual const_reverse_iterator rbegin()  const noexcept = 0;
+		virtual const_reverse_iterator crbegin() const noexcept = 0;
 
-		virtual void rend()  noexcept = 0;
-		virtual void rend()  const noexcept = 0;
-		virtual void crend() const noexcept = 0;
+		virtual reverse_iterator rend()  noexcept = 0;
+		virtual const_reverse_iterator rend()  const noexcept = 0;
+		virtual const_reverse_iterator crend() const noexcept = 0;
 	};
 
 }

@@ -35,23 +35,16 @@ private:
 		vec.insert(1, 2);
 		vec.emplace_back(14);
 		vec.emplace_back(12);
-		for (auto beg = vec.begin(); beg != vec.end(); ++beg)
-			SG_LOG_DEBUG("%d", *beg);
+		SG_LOG_ITERABLE(ELogLevel::eLOG_LEVEL_DEBUG, vec);
 		SG_LOG_DEBUG("size of vector: %d", vec.size());
 		SG_LOG_DEBUG("capacity of vector: %d", vec.capacity());
 		SG_LOG_DEBUG("%d", vec.pop_back());
-		SG_LOG_DEBUG("size of vector: %d", vec.size());
-		SG_LOG_DEBUG("capacity of vector: %d", vec.capacity());
-		vec.push_back(34);
-		vec.push_back(73);
-		vec.push_back(95);
-		vec.push_back(915);
-		vec.push_back(142);
-		vec.erase(4);
 		SG_LOG_DEBUG("4th of vector: %d", vec[4]);
 		SG_LOG_DEBUG("size of vector: %d", vec.size());
-		SG_LOG_DEBUG("capacity of vector: %d", vec.capacity());
-		SG_LOG_DEBUG("vector empty: %d", vec.empty());
+		vector<UInt32> vec2;
+		vec2 = move(vec);
+		SG_LOG_ITERABLE(ELogLevel::eLOG_LEVEL_INFO, vec2);
+		SG_LOG_ITERABLE_R(ELogLevel::eLOG_LEVEL_INFO, vec2);
 	}
 };
 

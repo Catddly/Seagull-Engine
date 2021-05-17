@@ -6,12 +6,11 @@
 #endif
 
 #include "Common/Core/Defs.h"
+#include "Common/Base/BasicTypes.h"
 #include "Common/Base/INoInstance.h"
 #include "Core/STL/type_traits.h"
 
 namespace SG
-{
-namespace impl
 {
 
 	/// tags of iterator category
@@ -448,7 +447,7 @@ namespace impl
 	struct is_move_iterator<move_iterator<Iterator>> : public true_type {};
 
 	template<class Iterator>
-	SG_CONSTEXPR bool is_move_iterator_v = is_move_iterator::value;
+	SG_CONSTEXPR bool is_move_iterator_v = is_move_iterator<Iterator>::value;
 
 //-------------------------------------------------------------------------------------------------------
 // 	   move_iterator
@@ -634,7 +633,6 @@ namespace impl
 // 	   reverse_iterator
 //-------------------------------------------------------------------------------------------------------
 
-} // namespace impl
 } // namespace SG
 
 #endif // COPY_AND_MOVE_H

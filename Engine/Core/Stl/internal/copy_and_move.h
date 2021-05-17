@@ -93,7 +93,7 @@ namespace impl
 		static T* move_or_copy(const T* beg, const T* end, T* res)
 		{
 			// We could use memcpy here if there's no range overlap, but memcpy is rarely much faster than memmove.
-			return (T*)memmove(res, beg, (Size)((UIntPtr)end - (UIntPtr)beg)) + (end - beg);
+			return (T*)::memmove(res, beg, (Size)((UIntPtr)end - (UIntPtr)beg)) + (end - beg);
 		}
 	};
 
@@ -123,6 +123,12 @@ namespace impl
 	{
 		// Have to convert to OutputIterator because result.base() could be a T*
 		return OutputIterator(move_and_copy_chooser<isMove>(unwrap_iterator(beg), unwrap_iterator(end), unwrap_iterator(res))); 
+	}
+
+	template <typename InputIterator, typename OutputIterator>
+	SG_INLINE OutputIterator move(InputIterator beg, InputIterator end, OutputIterator res)
+	{
+		return move_and_copy_unwrapper<true>(unwrap_iterator(beg), unwrap_iterator(end), res);
 	}
 
 	//! Simple unwrap function to unwrap the iterator and check if the InputIterator is a move_iterator
@@ -180,7 +186,7 @@ namespace impl
 	//! This function is for uninitialized type or data to use. (i.e. uninitialized_move for iterators)
 	//! If you don't want to use this, use copy() in "algorithm.h" 
 	template<class Begin, class End, class Result>
-	SG_INLINE Result* copy_ptr_uninitialzied(Begin beg, End end, Result res)
+	SG_INLINE Result copy_ptr_uninitialzied(Begin beg, End end, Result res)
 	{
 		typedef typename iterator_traits<generic_iterator<Result, void>>::value_type value_type;
 		// here we don't know if the Begin, End or Result is iterator,

@@ -1,12 +1,12 @@
 #pragma once
 #include "../Config.h"
 
-#include "Common/System/IEngine.h"
+#include "Common/System/I3DEngine.h"
 
 namespace SG
 {
 
-	class SG_ENGINE_API CEngine final : public IEngine
+	class SG_ENGINE_API CEngine final : public I3DEngine
 	{
 	public:
 		//! Engine core initialization

@@ -7,7 +7,7 @@ namespace SG
 {
 	//! @Interface
 	//! Abstraction of the engine
-	struct SG_COMMON_API IEngine : public IProcess
+	struct SG_COMMON_API I3DEngine : public IProcess
 	{
 		//! Temporary test purpose
 		virtual void GetMainThreadId() const = 0;

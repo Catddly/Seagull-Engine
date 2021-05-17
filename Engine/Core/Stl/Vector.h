@@ -7,31 +7,36 @@
 
 #include "Common/Core/Defs.h"
 #include "Common/Base/BasicTypes.h"
+#include "Common/Base/IIterable.h"
 #include "Core/STL/type_traits.h"
 #include "Core/STL/internal/copy_and_move.h"
 
-#include "Common/System/Memory/IMemory.h"
+#include "Common/Memory/IMemory.h"
 
 namespace SG
 {
 
-	//! Seagull implemented tiny vector
+	//! Seagull implemented tiny vector(no allocator)
 	template <typename T>
-	class vector
+	class vector : public IIterable<T>
 	{
 		typedef vector<T> this_type;
 	public:
 		typedef T  value_type;
 		typedef T& reference;
 		typedef T* pointer;
-		typedef T* iterator;
 		typedef const T& const_reference;
 		typedef const T* const_pointer;
-		typedef const T* const_iterator;
+
+		using IIterable::difference_type;
+		using IIterable::iterator;
+		using IIterable::const_iterator;
+		using IIterable::reverse_iterator;
+		using IIterable::const_reverse_iterator;
 
 		vector() noexcept;
 		vector(const this_type&);
-		vector(const this_type&&) noexcept;
+		vector(this_type&&) noexcept;
 		~vector() noexcept;
 
 		vector(Size s) noexcept;
@@ -52,17 +57,28 @@ namespace SG
 		bool empty() const noexcept { return mBegin == mEnd; }
 		Size capacity() const noexcept { return mCapacity; }
 		Diff size() const noexcept { return Diff(mEnd - mBegin); }
-		//! Just call the destructor of the value_type of the iterator, no memory freed, remain the capacity
+		//! Just call the destructor of the value_type of the iterator, no memory freed, capacity remained
 		void clear() noexcept;
 
-		iterator begin() noexcept { return mBegin; }
-		iterator end()   noexcept { return mEnd; }
-		const_iterator cbegin() const noexcept { return mBegin; }
-		const_iterator cend()   const noexcept { return mEnd; }
+		virtual iterator begin() noexcept override { return mBegin; }
+		virtual const_iterator begin()  const noexcept override { return mBegin; }
+		virtual const_iterator cbegin() const noexcept override { return mBegin; }
+
+		virtual iterator end()   noexcept  override { return mEnd; }
+		virtual const_iterator end()  const noexcept override { return mEnd; }
+		virtual const_iterator cend() const noexcept override { return mEnd; }
+
+		virtual reverse_iterator rbegin()  noexcept override { return reverse_iterator(mEnd); }
+		virtual const_reverse_iterator rbegin()  const noexcept override { return const_reverse_iterator(mEnd); }
+		virtual const_reverse_iterator crbegin() const noexcept override { return const_reverse_iterator(mEnd); }
+
+		virtual reverse_iterator rend()  noexcept override { return reverse_iterator(mBegin); }
+		virtual const_reverse_iterator rend()  const noexcept override { return const_reverse_iterator(mBegin); }
+		virtual const_reverse_iterator crend() const noexcept override { return const_reverse_iterator(mBegin); }
 
 		bool	   operator==(const this_type& rhs) const;
 		this_type  operator=(const this_type& value);
-		this_type  operator=(const this_type&& value);
+		this_type  operator=(this_type&& value);
 		reference        operator[](Size index);
 		const_reference  operator[](Size index) const;
 	protected:
@@ -73,57 +89,61 @@ namespace SG
 		Size    mCapacity;
 	};
 
+	// vector default capacity if 8
+	template<typename T>
+	vector<T>::vector() noexcept
+		:mCapacity(8)
+	{
+		mBegin = reinterpret_cast<pointer>(CallocAlign(8, sizeof(value_type), 8));
+		mEnd = mBegin;
+		SG_ASSERT(mBegin && "Failed to allocate memory!");
+	}
+
+	template<typename T>
+	vector<T>::vector(Size s) noexcept
+	{
+		mCapacity = s / 8 == 0 ? 8 : ((s / 8) + 1) * 8;
+		mBegin = reinterpret_cast<pointer>(CallocAlign(mCapacity, sizeof(value_type), 8));
+		mEnd = mBegin;
+	}
+
+	template<typename T>
+	vector<T>::~vector() noexcept
+	{
+		if (mBegin)
+		{
+			Free(mBegin);
+			mBegin = nullptr;
+			mEnd = mBegin;
+			mCapacity = 0;
+		}
+	}
+
 	template <typename T>
-	void SG::vector<T>::swap(this_type& vec)
+	SG::vector<T>::vector(const this_type& vec)
+		:mBegin(nullptr), mEnd(nullptr), mCapacity(vec.mCapacity)
+	{
+		mBegin = reinterpret_cast<pointer>(Calloc(mCapacity, sizeof(value_type)));
+		mEnd = SG::copy_ptr_uninitialzied(vec.mBegin, vec.mEnd, mBegin);
+	}
+
+	template<typename T>
+	vector<T>::vector(this_type&& vec) noexcept
+		:mBegin(nullptr), mEnd(nullptr), mCapacity(0)
+	{
+		swap(vec);
+	}
+
+	template <typename T>
+	SG_INLINE void SG::vector<T>::swap(this_type& vec)
 	{
 		std::swap(mBegin, vec.mBegin);
 		std::swap(mEnd, vec.mEnd);
 		std::swap(mCapacity, vec.mCapacity);
 	}
 
-	// vector default capacity if 8
-	template<typename T>
-	SG_INLINE vector<T>::vector() noexcept
-		:mCapacity(8)
-	{
-		mBegin = reinterpret_cast<pointer>(Calloc(8, sizeof(value_type)));
-		mEnd = mBegin;
-		SG_ASSERT(mBegin && "Failed to allocate memory!");
-	}
-
-	template<typename T>
-	SG_INLINE vector<T>::vector(Size s) noexcept
-	{
-		mCapacity = s / 8 == 0 ? 8 : ((s / 8) + 1) * 8;
-		mBegin = reinterpret_cast<pointer>(Calloc(mCapacity, sizeof(value_type)));
-		mEnd = mBegin;
-	}
-
-	template<typename T>
-	SG_INLINE vector<T>::~vector() noexcept
-	{
-		if (mBegin)
-		{
-			Free(mBegin);
-			mBegin = nullptr;
-			mEnd = nullptr;
-		}
-	}
-
-	template<typename T>
-	SG_INLINE vector<T>::vector(const this_type& vec)
-	{
-		mEnd = SG::copy_ptr_uninitialzied(vec.mBegin, vec.mEnd, mBegin);
-	}
-
-	template<typename T>
-	SG_INLINE vector<T>::vector(const this_type&& vec) noexcept
-	{
-		this->swap(vec);
-	}
-
 	template <typename T>
-	void vector<T>::clear() noexcept
+	SG_INLINE void vector<T>::clear() noexcept
 	{
 		Destruct(mBegin, mEnd);
 		mEnd = mBegin;
@@ -135,13 +155,13 @@ namespace SG
 		if (Size(size()) < mCapacity)
 		{
 			*(mEnd) = value;
+			++mEnd;
 		}
 		else
 		{
 			double_reserve();
-			*(mEnd) = value;
+			push_back(value);
 		}
-		++mEnd;
 	}
 
 	template<typename T>
@@ -161,19 +181,19 @@ namespace SG
 
 	template<typename T>
 	template<typename... Args>
-	SG_INLINE typename vector<T>::iterator 
+	SG_INLINE typename vector<T>::iterator
 	vector<T>::emplace_back(Args&&... args)
 	{
 		if (Size(size()) <= mCapacity)
 		{
 			*(mEnd) = value_type(SG::forward<Args>(args)...);
+			++mEnd;
 		}
 		else
 		{
 			double_reserve();
-			*(mEnd) = value_type(SG::forward<Args>(args)...);
+			emplace_back(SG::forward<Args>(args)...);
 		}
-		++mEnd;
 		return (mEnd - 1);
 	}
 
@@ -220,15 +240,15 @@ namespace SG
 	template<typename T>
 	SG_INLINE void vector<T>::double_reserve()
 	{
-		Diff s = Size(size());
-		Size capacity = mCapacity >= 256 ? mCapacity + 256 : mCapacity * 2;
-		T* ptr = reinterpret_cast<pointer>(Calloc(capacity, sizeof(value_type)));
-		SG_ASSERT(mBegin && "Failed to allocate memory!");
-		memcpy(ptr, mBegin, sizeof(value_type) * s);
-		Free(mBegin);
+		Diff s = size();
+		Size c= mCapacity >= 256 ? mCapacity + 256 : mCapacity * 2;
+		pointer const ptr = reinterpret_cast<pointer>(Calloc(c, sizeof(value_type)));
+		SG_ASSERT(ptr && "Failed to allocate memory!");
+		mEnd = impl::copy(mBegin, mEnd, ptr);
+		if (mBegin)
+			Free(mBegin);
 		mBegin = ptr;
-		mEnd = mBegin + s;
-		mCapacity = capacity;
+		mCapacity = c;
 	}
 
 	template<typename T>
@@ -238,7 +258,7 @@ namespace SG
 			return false;
 		else
 		{
-			for (Size i = 0; i < Size(size()); i++)
+			for (Size i  override; i < Size(size()); i++)
 			{
 				if (mBegin[i] != rhs.mBegin[i])
 					return false;
@@ -249,27 +269,41 @@ namespace SG
 
 	template<typename T>
 	SG_INLINE typename vector<T>::this_type
-	vector<T>::operator=(const this_type& value)
+	vector<T>::operator=(const this_type& vec)
 	{
-		if (this != &value)
+		if (this != &vec)
 		{
-			mCapacity = value.mCapacity;
-			mBegin = reinterpret_cast<pointer>(Calloc(mCapacity, sizeof(value_type)));
-			mEnd = mBegin + value.Size(size());
-			memcpy(mData, value.mData, sizeof(value_type) * value.Size(size()));
+			auto c = capacity();
+			if (vec.size() > c)
+			{
+				mBegin = reinterpret_cast<pointer>(ReallocAlign(mBegin, vec.capacity() * sizeof(value_type), 8));
+				memcpy(mBegin, vec.mBegin, vec.size() * sizeof(value_type));
+				mEnd = mBegin + vec.size();
+				mCapacity = vec.mCapacity;
+			}
+			else
+			{
+				memcpy(mBegin, vec.mBegin, vec.size() * sizeof(value_type));
+				mEnd = mBegin + vec.size();
+				mCapacity = vec.mCapacity;
+			}
 		}
 		return *this;
 	}
 
 	template<typename T>
 	SG_INLINE typename vector<T>::this_type
-	vector<T>::operator=(const this_type&& value)
+	vector<T>::operator=(this_type&& vec)
 	{
-		mCapacity = vec.mCapacity;
-		mBegin = vec.mBegin;
-		mEnd = vec.mEnd;
-		vec.mBegin = nullptr;
-		vec.mEnd = nullptr;
+		if (this != &vec)
+		{
+			if (mBegin)
+				Free(mBegin);
+			mBegin = nullptr;
+			mEnd = nullptr;
+			mCapacity = 0;
+			swap(vec);
+		}
 		return *this;
 	}
 
