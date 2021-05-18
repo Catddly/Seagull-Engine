@@ -2,7 +2,9 @@
 #include "Core/Config.h"
 
 #include "Common/Base/ISingleton.h"
-#include <string_view>
+
+#include "Core/STL/string_view.h"
+#include <string>
 
 namespace SG
 {
@@ -14,7 +16,7 @@ namespace SG
 		class formatter : ISingleton<formatter>
 		{
 		public:
-			SG_CORE_API static void set_format(std::string_view format);
+			SG_CORE_API static void set_format(string_view format);
 			SG_CORE_API static std::string format();
 		private:
 			std::string mCurrFormat;

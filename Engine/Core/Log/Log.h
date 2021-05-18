@@ -13,7 +13,7 @@ namespace SG
 		//! Log to console
 		virtual void LogToConsole(ELogLevel logLevel, const char* format, ...) const override;
 		//! Set log format
-		virtual void SetFormat(std::string_view format) override { fmt::formatter::set_format(format); }
+		virtual void SetFormat(string_view format) override { fmt::formatter::set_format(format); }
 	private:
 		//! Log information prefix
 		void PrintPrefix() const;

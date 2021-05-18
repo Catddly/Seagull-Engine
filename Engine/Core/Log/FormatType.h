@@ -96,7 +96,7 @@ namespace SG
 		template <typename T>
 		std::string format_type()
 		{
-			SG_COMPILE_ASSERT((std::is_base_of_v<SBaseFormat, T>));
+			SG_COMPILE_ASSERT((SG::is_base_of<SBaseFormat, T>::value));
 			return SG::move(T::GetDescription());
 		}
 	}

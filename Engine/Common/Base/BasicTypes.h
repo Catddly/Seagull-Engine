@@ -17,8 +17,14 @@ namespace SG
 	using UInt32 = uint32_t;
 	using UInt64 = uint64_t;
 
+	using Char  = char;
 	using UChar = unsigned char;
 	using SChar = signed char;
+	using WChar = wchar_t;
+
+	using Char8  = char;
+	using Char16 = char16_t;
+	using Char32 = char32_t;
 
 	using Size = size_t;
 	using Diff = long long;

@@ -243,6 +243,11 @@ namespace impl
 	struct is_class : public integral_constant<bool, __is_class(T)> {}; // use compile helper function to distinguish class
 	template<typename T> SG_CONSTEXPR bool is_class_v = is_class<T>::value;
 
+	//! If type Derived is derived from Base
+	template<class Base, class Derived>
+	struct is_base_of : public integral_constant<bool, __is_base_of(Base, Derived) || is_same<Base, Derived>::value> {};
+	template <typename Base, typename Derived> SG_CONSTEXPR SG_INLINE bool is_base_of_v = is_base_of<Base, Derived>::value;
+
 namespace impl
 {
 	template <typename T, bool = is_const_v<T> || is_reference_v<T> || is_function_v<T>>

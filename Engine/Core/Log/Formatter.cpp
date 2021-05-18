@@ -11,10 +11,10 @@ namespace SG
 	namespace fmt
 	{
 
-		void formatter::set_format(std::string_view format)
+		void formatter::set_format(string_view format)
 		{
 			auto instance = GetInstance();
-			instance->mCurrFormat = format;
+			instance->mCurrFormat = format.data(); // TODO: impl string
 		}
 
 		std::string formatter::format()

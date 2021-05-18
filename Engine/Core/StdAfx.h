@@ -11,3 +11,6 @@
 #include <stdarg.h>
 
 #include <time.h>
+
+#include "Core/STL/string_view.h"
+#include <string>

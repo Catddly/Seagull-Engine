@@ -6,7 +6,7 @@
 #include "Common/Base/IIterable.h"
 
 #include <string>
-#include <string_view>
+#include "Core/STL/string_view.h"
 
 namespace SG
 {
@@ -28,7 +28,7 @@ namespace SG
 		//! Log to console with printf-like format
 		virtual void LogToConsole(ELogLevel logLevel, const char* format, ...) const = 0;
 		//! Set log format
-		virtual void SetFormat(std::string_view format) = 0;
+		virtual void SetFormat(string_view format) = 0;
 
 		// TODO: After file system
 		//void LogToFile(ELogLevel logLevel, ...) const;
