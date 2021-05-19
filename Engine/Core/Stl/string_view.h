@@ -50,8 +50,8 @@ namespace SG
 		SG_CONSTEXPR const_iterator begin()  const noexcept { return mBegin; }
 		SG_CONSTEXPR const_iterator cbegin() const noexcept { return mBegin; }
 
-		SG_CONSTEXPR const_iterator end()  const noexcept { return mEnd; }
-		SG_CONSTEXPR const_iterator cend() const noexcept { return mEnd; }
+		SG_CONSTEXPR const_iterator end()  const noexcept { return mBegin + mCount; }
+		SG_CONSTEXPR const_iterator cend() const noexcept { return mBegin + mCount; }
 
 		SG_CONSTEXPR const_reverse_iterator rbegin()  const noexcept { return const_reverse_iterator(mBegin + mCount); }
 		SG_CONSTEXPR const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(mBegin + mCount); }

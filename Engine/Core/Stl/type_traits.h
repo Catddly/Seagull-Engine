@@ -19,7 +19,7 @@ namespace SG
 		static SG_CONSTEXPR T value = val;
 
 		constexpr value_type operator()() const noexcept { return value; }
-		constexpr operator   value_type() const noexcept { return value; }
+		constexpr operator value_type() const noexcept { return value; }
 	};
 
 	typedef integral_constant<bool, true>  true_type;
@@ -68,18 +68,18 @@ namespace SG
 	template<typename T> struct remove_cv { typedef typename remove_volatile<typename remove_const<T>::type>::type type; };
 	template<typename T> using  remove_cv_t = typename remove_cv<T>::type;
 
-namespace impl 
-{
-	template <typename T> struct is_const_value : public false_type {};
-	template <typename T> struct is_const_value<const T*> : public true_type {};
-	template <typename T> struct is_const_value<const volatile T*> : public true_type {};
-}
+	namespace impl
+	{
+		template <typename T> struct is_const_value : public false_type {};
+		template <typename T> struct is_const_value<const T*> : public true_type {};
+		template <typename T> struct is_const_value<const volatile T*> : public true_type {};
+	}
 
 	template <typename T> struct is_const : public impl::is_const_value<T*> {};
 	template <typename T> struct is_const<T&> : public false_type {};
 	template <class T> SG_CONSTEXPR bool is_const_v = is_const<T>::value;
 
-	template <typename T> struct is_reference     : public false_type {};
+	template <typename T> struct is_reference : public false_type {};
 	template <typename T> struct is_reference<T&> : public true_type {};
 	template<typename T> SG_CONSTEXPR bool is_reference_v = is_reference<T>::value;
 
@@ -91,38 +91,38 @@ namespace impl
 	template <> struct is_void<void const volatile> : public true_type {};
 	template <typename T> SG_CONSTEXPR bool is_void_v = is_void<T>::value;
 
-namespace impl
-{
-	template<typename T> struct is_integral_impl : public false_type {};
-	template<> struct is_integral_impl<unsigned char> : public true_type {};
-	template<> struct is_integral_impl<unsigned short> : public true_type {};
-	template<> struct is_integral_impl<unsigned int> : public true_type {};
-	template<> struct is_integral_impl<unsigned long> : public true_type {};
-	template<> struct is_integral_impl<unsigned long long> : public true_type {};
+	namespace impl
+	{
+		template<typename T> struct is_integral_impl : public false_type {};
+		template<> struct is_integral_impl<unsigned char> : public true_type {};
+		template<> struct is_integral_impl<unsigned short> : public true_type {};
+		template<> struct is_integral_impl<unsigned int> : public true_type {};
+		template<> struct is_integral_impl<unsigned long> : public true_type {};
+		template<> struct is_integral_impl<unsigned long long> : public true_type {};
 
-	template<> struct is_integral_impl<signed char> : public true_type {};
-	template<> struct is_integral_impl<signed short> : public true_type {};
-	template<> struct is_integral_impl<signed int> : public true_type {};
-	template<> struct is_integral_impl<signed long> : public true_type {};
-	template<> struct is_integral_impl<signed long long> : public true_type {};
+		template<> struct is_integral_impl<signed char> : public true_type {};
+		template<> struct is_integral_impl<signed short> : public true_type {};
+		template<> struct is_integral_impl<signed int> : public true_type {};
+		template<> struct is_integral_impl<signed long> : public true_type {};
+		template<> struct is_integral_impl<signed long long> : public true_type {};
 
-	template<> struct is_integral_impl<bool> : public true_type {};
-	template<> struct is_integral_impl<char> : public true_type {};
-	template<> struct is_integral_impl<wchar_t> : public true_type {};
-}
+		template<> struct is_integral_impl<bool> : public true_type {};
+		template<> struct is_integral_impl<char> : public true_type {};
+		template<> struct is_integral_impl<wchar_t> : public true_type {};
+	}
 
 	template <typename T>
 	struct is_integral : public impl::is_integral_impl<typename remove_cv<T>::type> {};
 	template <class T> SG_CONSTEXPR bool is_integral_v = is_integral<T>::value;
 
-namespace impl
-{
-	template<typename T> struct is_floating_point_impl : public false_type {};
+	namespace impl
+	{
+		template<typename T> struct is_floating_point_impl : public false_type {};
 
-	template<> struct is_floating_point_impl<float> : public true_type {};
-	template<> struct is_floating_point_impl<double> : public true_type {};
-	template<> struct is_floating_point_impl<long double> : public true_type {};
-}
+		template<> struct is_floating_point_impl<float> : public true_type {};
+		template<> struct is_floating_point_impl<double> : public true_type {};
+		template<> struct is_floating_point_impl<long double> : public true_type {};
+	}
 
 	template <typename T>
 	struct is_floating_point : public impl::is_floating_point_impl<typename remove_cv<T>::type> {};
@@ -248,21 +248,21 @@ namespace impl
 	struct is_base_of : public integral_constant<bool, __is_base_of(Base, Derived) || is_same<Base, Derived>::value> {};
 	template <typename Base, typename Derived> SG_CONSTEXPR SG_INLINE bool is_base_of_v = is_base_of<Base, Derived>::value;
 
-namespace impl
-{
-	template <typename T, bool = is_const_v<T> || is_reference_v<T> || is_function_v<T>>
-	struct add_const_impl { typedef T type; };
+	namespace impl
+	{
+		template <typename T, bool = is_const_v<T> || is_reference_v<T> || is_function_v<T>>
+		struct add_const_impl { typedef T type; };
 
-	template <typename T>
-	struct add_const_impl<T, false> { typedef const T type; };
-}
+		template <typename T>
+		struct add_const_impl<T, false> { typedef const T type; };
+	}
 
 	//! Add const to T
 	template <typename T>
 	struct add_const { typedef typename impl::add_const_impl<T>::type type; };
 
 	//! Remove reference of type T
-	template<typename T> struct remove_ref     { typedef T type; };
+	template<typename T> struct remove_ref { typedef T type; };
 	template<typename T> struct remove_ref<T&> { typedef T type; };
 	template<typename T> using  remove_ref_t = typename remove_ref<T>::type;
 
@@ -271,11 +271,11 @@ namespace impl
 	//! T    => T&
 	//! T&   => T&
 	//! T&&  => T&
-	template<class T> struct add_lvalue_reference               { typedef T& type; };
-	template<class T> struct add_lvalue_reference<T&>           { typedef T& type; };
-	template<> struct add_lvalue_reference<void>                { typedef void type; };
-	template<> struct add_lvalue_reference<const void>          { typedef const void type; };
-	template<> struct add_lvalue_reference<volatile void>       { typedef volatile void type; };
+	template<class T> struct add_lvalue_reference { typedef T& type; };
+	template<class T> struct add_lvalue_reference<T&> { typedef T& type; };
+	template<> struct add_lvalue_reference<void> { typedef void type; };
+	template<> struct add_lvalue_reference<const void> { typedef const void type; };
+	template<> struct add_lvalue_reference<volatile void> { typedef volatile void type; };
 	template<> struct add_lvalue_reference<const volatile void> { typedef const volatile void type; };
 	template<typename T> using add_lvalue_reference_t = typename add_lvalue_reference<T>::type;
 
@@ -284,31 +284,31 @@ namespace impl
 	//! T    => T&&
 	//! T&   => T&
 	//! T&&  => T&&
-	template <typename T> struct add_rvalue_reference                      { typedef T&& type; };
-	template <typename T> struct add_rvalue_reference<T&>                  { typedef T& type; };
-	template <>           struct add_rvalue_reference<void>                { typedef void type; };
-	template <>           struct add_rvalue_reference<const void>          { typedef const void type; };
-	template <>           struct add_rvalue_reference<volatile void>       { typedef volatile void type; };
+	template <typename T> struct add_rvalue_reference { typedef T&& type; };
+	template <typename T> struct add_rvalue_reference<T&> { typedef T& type; };
+	template <>           struct add_rvalue_reference<void> { typedef void type; };
+	template <>           struct add_rvalue_reference<const void> { typedef const void type; };
+	template <>           struct add_rvalue_reference<volatile void> { typedef volatile void type; };
 	template <>           struct add_rvalue_reference<const volatile void> { typedef const volatile void type; };
 	template <typename T> using add_rvalue_reference_t = typename add_rvalue_reference<T>::type;
 
 	template <typename T>
 	typename add_rvalue_reference<T>::type declval() noexcept;
 
-namespace impl
-{
-	template<typename T, typename U>
-	struct is_assignable_impl
+	namespace impl
 	{
-		template<typename, typename>
-		static no_type is(...);
+		template<typename T, typename U>
+		struct is_assignable_impl
+		{
+			template<typename, typename>
+			static no_type is(...);
 
-		template<typename T1, typename U1>
-		static decltype(declval<T1>() = declval<U1>(), yes_type()) is(int);
+			template<typename T1, typename U1>
+			static decltype(declval<T1>() = declval<U1>(), yes_type()) is(int);
 
-		static const bool value = (sizeof(is<T, U>(0)) == sizeof(yes_type));
-	};
-}
+			static const bool value = (sizeof(is<T, U>(0)) == sizeof(yes_type));
+		};
+	}
 
 	template<typename T, typename U>
 	struct is_assignable : public integral_constant<bool, impl::is_assignable_impl<T, U>::value> {};
@@ -333,13 +333,13 @@ namespace impl
 	struct is_trivially_copyable { static const bool value = __is_trivially_copyable(T); };
 	template <class T> SG_CONSTEXPR bool is_trivially_copyable_v = is_trivially_copyable<T>::value;
 
-namespace impl
-{
-	template <typename T> struct is_hat_type_impl : public false_type {};
+	namespace impl
+	{
+		template <typename T> struct is_hat_type_impl : public false_type {};
 #if defined(__cplusplus_winrt)
-	template <typename T> struct is_hat_type_impl<T^> : public true_type {};
+		template <typename T> struct is_hat_type_impl<T^> : public true_type {};
 #endif
-}
+	}
 	//! Underlying type of T is a C++/CX '^' type such as: Foo^
 	//! meaning the type is heap allocated and ref-counted
 	template<typename T> struct is_hat_type : public impl::is_hat_type_impl<T> {};
@@ -351,13 +351,13 @@ namespace impl
 	template<typename T> SG_CONSTEXPR bool is_pod_v = is_pod<T>::value;
 
 	template<typename T>
-	struct has_trivial_constructor 
-		: public integral_constant<bool, (__has_trivial_constructor(T) || is_pod<T>::value) && !is_hat_type<T>::value> 
+	struct has_trivial_constructor
+		: public integral_constant<bool, (__has_trivial_constructor(T) || is_pod<T>::value) && !is_hat_type<T>::value>
 	{};
 	template<typename T> SG_CONSTEXPR bool has_trivial_constructor_v = has_trivial_constructor<T>::value;
 
-	template<typename T> struct has_trivial_destructor : 
-		public integral_constant<bool, (__has_trivial_destructor(T) || is_pod<T>::value) && !is_hat_type<T>::value> 
+	template<typename T> struct has_trivial_destructor :
+		public integral_constant<bool, (__has_trivial_destructor(T) || is_pod<T>::value) && !is_hat_type<T>::value>
 	{};
 	template<typename T> SG_CONSTEXPR bool has_trivial_destructor_v = has_trivial_destructor<T>::value;
 
@@ -367,6 +367,22 @@ namespace impl
 	struct enable_if<true, T> { typedef T type; };
 	template <bool B, typename T = void>
 	using  enable_if_t = typename enable_if<B, T>::type;
+
+	template<class Arr>
+	struct rank         : public integral_constant<size_t, 0> {};
+	template<class Arr>
+	struct rank<Arr[]>  : public integral_constant<size_t, 1> {};
+	template<class Arr, size_t N>
+	struct rank<Arr[N]> : public integral_constant<size_t, 1 + rank<Arr>::value> {};
+	template<class Arr> SG_CONSTEXPR int rank_v = rank<Arr>::value;
+
+	template<class Arr>
+	struct size_of_array         : public integral_constant<size_t, 1> {};
+	template<class Arr>
+	struct size_of_array<Arr[]>  : public integral_constant<size_t, sizeof(Arr)> {};
+	template<class Arr, size_t N>
+	struct size_of_array<Arr[N]> : public integral_constant<size_t, N * size_of_array<Arr>::value> {};
+	template<class Arr> SG_CONSTEXPR int size_of_array_v = size_of_array<Arr>::value;
 
 	template<class T>
 	SG_CONSTEXPR typename remove_ref<T>::type&& move(T&& val) noexcept

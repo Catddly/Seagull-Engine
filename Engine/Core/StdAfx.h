@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Common/Core/Defs.h"
+#include "Common/Base/BasicTypes.h"
+
 #ifdef SG_PLATFORM_WINDOWS
 #	ifndef WIN32_LEAN_AND_MEAN
 #		define WIN32_LEAN_AND_MEAN

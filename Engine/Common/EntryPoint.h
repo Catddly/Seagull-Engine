@@ -17,7 +17,7 @@ int main(int argv, char** argc)
 	IApp* app = GetAppInstance();
 	// TODO: replace to seagull's allocator
 	gModules.pLog = New<CLog>();
-	gModules.pLog->SetFormat("[%y:%o:%d]-[%h:%m:%s]-[%t]"sv);
+	gModules.pLog->SetFormat("[%y:%o:%d]-[%h:%m:%s]"sv);
 
 	app->OnInit();
 

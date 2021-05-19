@@ -11,6 +11,8 @@
 //----------------------------------------------------------
 #include "Core/STL/type_traits.h"
 #include "Core/STL/vector.h"
+#include "Core/STL/string_view.h"
+#include "Core/STL/span.h"
 #include "Core/STL/algorithm.h"
 
 //----------------------------------------------------------

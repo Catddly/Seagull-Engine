@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #include "Formatter.h"
 
-#include "Common/Core/Defs.h"
-#include "Common/Base/BasicTypes.h"
 #include "Core/STL/type_traits.h"
 #include "FormatType.h"
 

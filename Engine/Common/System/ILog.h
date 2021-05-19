@@ -78,7 +78,7 @@ namespace impl
 #define SG_LOG_ERROR(...) SG::gModules.pLog->LogToConsole(SG::ELogLevel::eLOG_LEVEL_ERROR,    __VA_ARGS__);
 #define SG_LOG_CRIT(...)  SG::gModules.pLog->LogToConsole(SG::ELogLevel::eLOG_LEVEL_CRITICLE, __VA_ARGS__);
 
-#define SG_LOG_ITERABLE(LEVEL, ITERABLE)   SG::gModules.pLog->LogToConsole(LEVEL, impl::ParseIterable(&ITERABLE, false).c_str());
-#define SG_LOG_ITERABLE_R(LEVEL, ITERABLE) SG::gModules.pLog->LogToConsole(LEVEL, impl::ParseIterable(&ITERABLE, true).c_str());
+#define SG_LOG_ITERABLE(LEVEL, ITERABLE)   SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::ParseIterable(&ITERABLE, false).c_str());
+#define SG_LOG_ITERABLE_R(LEVEL, ITERABLE) SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::ParseIterable(&ITERABLE, true).c_str());
 
 }
