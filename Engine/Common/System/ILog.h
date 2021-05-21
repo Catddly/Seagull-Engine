@@ -41,7 +41,7 @@ namespace impl
 {
 
 	template<class T>
-	static std::string ParseIterable(IIterable<T>* v, bool reverse)
+	static std::string PrintIterable(IIterable<T>* v, bool reverse)
 	{
 		std::string s = "";
 		s += "[";
@@ -50,7 +50,7 @@ namespace impl
 			for (auto beg = v->begin(); beg != (v->end() - 1); ++beg)
 			{
 				s += std::to_string(*beg);
-				s += ", ";
+				s += " ";
 			}
 			s += std::to_string(*(v->end() - 1));
 		}
@@ -59,12 +59,39 @@ namespace impl
 			for (auto beg = v->rbegin(); beg != (v->rend() - 1); ++beg)
 			{
 				s += std::to_string(*beg);
-				s += ", ";
+				s += " ";
 			}
 			s += std::to_string(*(v->rend() - 1));
 		}
 		s += "]";
 		return SG::move(s);
+	}
+
+	template<class T>
+	static std::string PrintIterator(T* beg, T* end, bool reverse)
+	{
+		std::string str = "[";
+		if (!reverse)
+		{
+			for (; beg != end - 1; beg++)
+			{
+				str += std::to_string(*beg);
+				str += " ";
+			}
+			str += std::to_string(*(end - 1));
+		}
+		else
+		{
+			--end;
+			for (; end != beg; end--)
+			{
+				str += std::to_string(*end);
+				str += " ";
+			}
+			str += std::to_string(*(beg));
+		}
+		str += "]";
+		return SG::move(str);
 	}
 
 }
@@ -78,7 +105,10 @@ namespace impl
 #define SG_LOG_ERROR(...) SG::gModules.pLog->LogToConsole(SG::ELogLevel::eLOG_LEVEL_ERROR,    __VA_ARGS__);
 #define SG_LOG_CRIT(...)  SG::gModules.pLog->LogToConsole(SG::ELogLevel::eLOG_LEVEL_CRITICLE, __VA_ARGS__);
 
-#define SG_LOG_ITERABLE(LEVEL, ITERABLE)   SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::ParseIterable(&ITERABLE, false).c_str());
-#define SG_LOG_ITERABLE_R(LEVEL, ITERABLE) SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::ParseIterable(&ITERABLE, true).c_str());
+#define SG_LOG_ITERABLE(LEVEL, ITERABLE)   SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterable(&ITERABLE, false).c_str());
+#define SG_LOG_ITERABLE_R(LEVEL, ITERABLE) SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterable(&ITERABLE, true).c_str());
+
+#define SG_LOG_ITERATOR(LEVEL, BEG, END)   SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, false).c_str());
+#define SG_LOG_ITERATOR_R(LEVEL, BEG, END) SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, true).c_str());
 
 }

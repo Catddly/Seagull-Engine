@@ -78,7 +78,7 @@ namespace SG
 
 		bool	   operator==(const this_type& rhs) const;
 		this_type  operator=(const this_type& value);
-		this_type  operator=(this_type&& value);
+		this_type  operator=(this_type&& value) noexcept;
 		reference        operator[](Size index);
 		const_reference  operator[](Size index) const;
 	protected:
@@ -293,7 +293,7 @@ namespace SG
 
 	template<typename T>
 	SG_INLINE typename vector<T>::this_type
-	vector<T>::operator=(this_type&& vec)
+	vector<T>::operator=(this_type&& vec) noexcept
 	{
 		if (this != &vec)
 		{

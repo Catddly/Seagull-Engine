@@ -62,15 +62,15 @@ private:
 
 	void SpanTest(SG::span<int> s)
 	{
-		std::string str = "[";
-		for (auto beg = s.begin(); beg != s.end() - 1; beg++)
-		{
-			str += std::to_string(*beg);
-			str += " ";
-		}
-		str += *(s.end() - 1);
-		str += "]";
-		SG_LOG_DEBUG("Array is %s", str.c_str());
+		using namespace SG;
+		SG_LOG_ITERATOR(ELogLevel::eLOG_LEVEL_DEBUG, s.begin(), s.end());
+		SG_LOG_ITERATOR_R(ELogLevel::eLOG_LEVEL_DEBUG, s.begin(), s.end());
+		auto view = s.subspan(2, 2);
+		SG_LOG_ITERATOR(ELogLevel::eLOG_LEVEL_DEBUG, view.begin(), view.end());
+		auto viewF = s.first(3);
+		auto viewL = s.last(3);
+		SG_LOG_ITERATOR(ELogLevel::eLOG_LEVEL_DEBUG, viewF.begin(), viewF.end());
+		SG_LOG_ITERATOR(ELogLevel::eLOG_LEVEL_DEBUG, viewL.begin(), viewL.end());
 	}
 };
 

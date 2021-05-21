@@ -125,10 +125,10 @@ namespace SG
 	{
 		inline namespace string_view_literals
 		{
-			SG_CONSTEXPR SG_INLINE string_view    operator""sv(const Char*  str,  Size len) noexcept { return {str, len}; }
-			SG_CONSTEXPR SG_INLINE wstring_view   operator""sv(const WChar* str,  Size len) noexcept { return {str, len}; }
-			SG_CONSTEXPR SG_INLINE u16string_view operator""sv(const Char16* str, Size len) noexcept { return {str, len}; }
-			SG_CONSTEXPR SG_INLINE u32string_view operator""sv(const Char32* str, Size len) noexcept { return {str, len}; }
+			SG_CONSTEXPR SG_INLINE string_view    operator ""sv(const Char*  str,  Size len) noexcept { return {str, len}; }
+			SG_CONSTEXPR SG_INLINE wstring_view   operator ""sv(const WChar* str,  Size len) noexcept { return {str, len}; }
+			SG_CONSTEXPR SG_INLINE u16string_view operator ""sv(const Char16* str, Size len) noexcept { return {str, len}; }
+			SG_CONSTEXPR SG_INLINE u32string_view operator ""sv(const Char32* str, Size len) noexcept { return {str, len}; }
 		}
 	}
 
