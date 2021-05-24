@@ -2,7 +2,7 @@
 
 class MyApp : public SG::IApp
 {
-public:	
+public:
 	virtual void OnInit() override
 	{
 		SG_LOG_INFO("User OnInit()");

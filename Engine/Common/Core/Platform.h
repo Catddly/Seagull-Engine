@@ -7,5 +7,5 @@
 #elif  SG_PLATFORM_LINUX
 #	include "Platform.Linux.h"
 #else
-#	error "Unsupported platform yet"
+#	error "Unsupported platform"
 #endif

@@ -6,6 +6,7 @@
 #endif
 
 #include "Common/Core/Defs.h"
+#include "Common/Core/Platform.h"
 #include "Common/Base/BasicTypes.h"
 #include "Common/Base/IIterable.h"
 
@@ -87,14 +88,14 @@ namespace SG
 		};
 
 		// Masks used to determine if we are in SSO or Heap
-#ifdef SG_SYSTEM_BIG_ENDIAN
-		// Big Endian use LSB, unless we want to reorder struct layouts on endianness, Bit is set when we are in Heap
-		static constexpr size_type kHeapMask = 0x1;
-		static constexpr size_type kSSOMask = 0x1;
+#ifdef SG_LITTLE_ENDIAN
+	    // Little Endian use MSB
+		SG_CONSTEXPR static size_type kHeapMask = ~(size_type(~size_type(0)) >> 1); // 1000 0000 0000 0000b (the MSB for 8 byte)
+		SG_CONSTEXPR static size_type kSSOMask  = 0x80;                             // 1000 0000b (the MSB for 4 byte)
 #else
-		// Little Endian use MSB (use top bit )
-		SG_CONSTEXPR static size_type kHeapMask = ~(size_type(~size_type(0)) >> 1);
-		SG_CONSTEXPR static size_type kSSOMask = 0x80; // 1000 0000b
+		// Big Endian use LSB, unless we want to reorder struct layouts on endianness, Bit is set when we are in Heap.
+		SG_CONSTEXPR static size_type kHeapMask = 0x1;
+		SG_CONSTEXPR static size_type kSSOMask  = 0x1;
 #endif
 
 		SG_COMPILE_ASSERT(sizeof(SSOLayout) == sizeof(HeapLayout), "heap and sso layout structures must be the same size");
@@ -102,7 +103,7 @@ namespace SG
 
 		//! The Implementation of SSO(Short String Optimization)
 		//! SSO reuses the existing string class to hold the string data which is short enough
-		//! to fit therefore aviding the frequent heap allocation.
+		//! to fit therefore avoiding the frequent heap allocation.
 		//! The number of characters stored in the string SSO buffer is variable and depends on the string character width. 
 		//! This implementation favors a consistent string size than increasing the size of 
 		//! the string local data to accommodate a consistent number of characters despite character width.
