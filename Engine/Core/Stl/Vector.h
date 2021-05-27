@@ -327,7 +327,7 @@ namespace SG
 		return *(mBegin + index);
 	}
 
-	// global function
+	// global swap function
 	template <typename T>
 	SG_INLINE void swap(vector<T>& a, vector<T>& b) noexcept(noexcept(a.swap(b)))
 	{

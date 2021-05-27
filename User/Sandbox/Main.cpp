@@ -48,6 +48,8 @@ private:
 		//vec2 = move(vec);
 		vec2.push_back(3);
 		vec2.push_back(5);
+		SG::swap(vec, vec2);
+
 		SG_LOG_ITERABLE(ELogLevel::eLOG_LEVEL_DEBUG, vec2);
 		SG_LOG_ITERABLE_R(ELogLevel::eLOG_LEVEL_DEBUG, vec2);
 
@@ -73,6 +75,10 @@ private:
 		auto viewL = s.last(3);
 		SG_LOG_ITERATOR(ELogLevel::eLOG_LEVEL_DEBUG, viewF.begin(), viewF.end());
 		SG_LOG_ITERATOR(ELogLevel::eLOG_LEVEL_DEBUG, viewL.begin(), viewL.end());
+	}
+
+	void StringTest()
+	{
 	}
 };
 

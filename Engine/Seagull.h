@@ -9,11 +9,12 @@
 //----------------------------------------------------------
 // Seagull's standard template library
 //----------------------------------------------------------
-#include "Core/STL/type_traits.h"
-#include "Core/STL/vector.h"
-#include "Core/STL/string_view.h"
-#include "Core/STL/span.h"
-#include "Core/STL/algorithm.h"
+#include "Core/Stl/type_traits.h"
+#include "Core/Stl/vector.h"
+#include "Core/Stl/string_view.h"
+#include "Core/Stl/string.h"
+#include "Core/Stl/span.h"
+#include "Core/Stl/algorithm.h"
 
 //----------------------------------------------------------
 // EntryPoint
