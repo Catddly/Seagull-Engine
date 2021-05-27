@@ -301,7 +301,8 @@ namespace SG
 		}
 		else
 		{
-			// manually swap
+			// manually swap, avoid to use std::swap,
+			// because it will reversely call T::swap()
 			const this_type temp(*this);
 			*this = x;
 			x = temp;
