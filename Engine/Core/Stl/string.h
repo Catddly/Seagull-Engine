@@ -52,12 +52,12 @@ namespace SG
 		//! This is for buffer cache hit rate.
 		//! If T's size of byte if more than sizeof(char), add the rest of the byte
 		//! as padding to ensure the memory is consistent
-		template<clsas CharT, size_t = sizeof(T)>
+		template<class CharT, size_t = sizeof(T)>
 		struct SSOPadding
 		{
 			char padding[sizeof(T) - sizeof(char)];
 		};
-		template<clsas CharT>
+		template<class CharT>
 		struct SSOPadding<CharT, 1> // when the char type is 1 bite(char), no padding
 		{
 			// template specialization to remove the padding structure to avoid warnings on zero length arrays
@@ -129,8 +129,8 @@ namespace SG
 
 			//! We are using heap when the bit is set.
 			//! Easier to conceptualize checking IsHeap instead of IsSSO
-			SG_INLINE bool IsHeap() const noexcept { return !!(sso.mRemainingSizeField.mRemainingSize & ssoMask) };
-			SG_INLINE bool IsSSO()  const noexcept { return !IsHeap() };
+			SG_INLINE bool IsHeap() const noexcept { return !!(sso.mRemainingSizeField.mRemainingSize & ssoMask); };
+			SG_INLINE bool IsSSO()  const noexcept { return !IsHeap(); };
 
 			// get sso buffer on stack
 			SG_INLINE value_type*       SSOBufferPtr() noexcept { return sso.mData; }
@@ -303,19 +303,19 @@ namespace SG
 		virtual const_iterator cend() const noexcept override { return mDataLayout.EndPtr(); }
 
 		virtual reverse_iterator rbegin()  noexcept override             { return reverse_iterator(mDataLayout.EndPtr()); }
-		virtual const_reverse_iterator rbegin()  const noexcept override { return reverse_iterator(mDataLayout.EndPtr()); }
-		virtual const_reverse_iterator crbegin() const noexcept override { return reverse_iterator(mDataLayout.EndPtr()); }
+		virtual const_reverse_iterator rbegin()  const noexcept override { return const_reverse_iterator(mDataLayout.EndPtr()); }
+		virtual const_reverse_iterator crbegin() const noexcept override { return const_reverse_iterator(mDataLayout.EndPtr()); }
 
 		virtual reverse_iterator rend()  noexcept override             { return reverse_iterator(mDataLayout.BeginPtr()); }
-		virtual const_reverse_iterator rend()  const noexcept override { return reverse_iterator(mDataLayout.BeginPtr()); }
-		virtual const_reverse_iterator crend() const noexcept override { return reverse_iterator(mDataLayout.BeginPtr()); }
+		virtual const_reverse_iterator rend()  const noexcept override { return const_reverse_iterator(mDataLayout.BeginPtr()); }
+		virtual const_reverse_iterator crend() const noexcept override { return const_reverse_iterator(mDataLayout.BeginPtr()); }
 	protected:
 		//! Allocate memory depend on SSO or heap
 		void DoAllocate(size_type n);
 		//! Deallocate memory depend on heap (If it is stack, do nothing)
 		void DoDeallocate();
 		//! Safely copy string of chars
-		value_type* CopyCharPtrUninitiazed(value_type* pBeg, value_type* pEnd, value_type* pDst);
+		value_type* CopyCharPtrUninitiazed(const value_type* pBeg, const value_type* pEnd, value_type* pDst);
 		//! DoubleReserved if using heap, otherwise use the SSO_CAPACITY
 		size_type DoubleReserved(size_type currCapacity);
 		//! Expand args and append it to the formatted string
@@ -393,7 +393,7 @@ namespace SG
 		const size_type initializedSize = mDataLayout.GetSize();
 		int returnValue;
 
-
+		return *this;
 	}
 
 	template<class T>
@@ -555,10 +555,10 @@ namespace SG
 
 	template<class T>
 	SG_INLINE typename basic_string<T>::value_type*
-	SG::basic_string<T>::CopyCharPtrUninitiazed(value_type* pBeg, value_type* pEnd, value_type* pDst)
+	SG::basic_string<T>::CopyCharPtrUninitiazed(const value_type* pBeg, const value_type* pEnd, value_type* pDst)
 	{
 		// copy data
-		const s = Size(pEnd - pBeg);
+		const size_type s = size_type(pEnd - pBeg);
 		memmove(pDst, pBeg, s * sizeof(T));
 		return pDst + s;
 	}
@@ -631,8 +631,8 @@ namespace SG
 	SG_INLINE SG::basic_string<T>::basic_string(const value_type* str, size_type n)
 	{
 		DoAllocate(n);
-		CopyCharUninitiazed(str, n, mDataLayout.BeginPtr());
-		mDataLayout.SetSize(s);
+		CopyCharPtrUninitiazed(str, str + n, mDataLayout.BeginPtr());
+		mDataLayout.SetSize(n);
 		(*mDataLayout.EndPtr()) = 0;
 	}
 
