@@ -6,6 +6,7 @@ namespace SG
 {
 	using Float32 = float;
 	using Float64 = double;
+	using LFloat = long double;
 
 	using Int8  = int8_t;
 	using Int16 = int16_t;

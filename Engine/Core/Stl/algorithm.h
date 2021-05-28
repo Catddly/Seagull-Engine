@@ -24,18 +24,44 @@ namespace SG
 		return true;
 	}
 
-	template<class T>
-	SG_CONSTEXPR SG_INLINE typename enable_if<is_scalar_v<T>, T>::type
-	min(const T& lhs, const T& rhs)
+	//template<class T>
+	//SG_CONSTEXPR SG_INLINE T min(T lhs, T rhs)
+	//{
+	//	return lhs < rhs ? lhs : rhs;
+	//}
+
+	//template<class T>
+	//SG_CONSTEXPR SG_INLINE T max(T lhs, T rhs)
+	//{
+	//	return lhs > rhs ? lhs : rhs;
+	//}
+
+	template <typename T>
+	inline SG_CONSTEXPR typename enable_if<is_scalar<T>::value, T>::type
+		max_alt(T a, T b)
 	{
-		return lhs < rhs ? lhs : rhs;
+		return a < b ? b : a;
 	}
 
-	template<class T>
-	SG_CONSTEXPR SG_INLINE typename enable_if<is_scalar_v<T>, T>::type
-	max(const T& lhs, const T& rhs)
+	template <typename T>
+	inline typename enable_if<!is_scalar<T>::value, const T&>::type
+		max_alt(const T& a, const T& b)
 	{
-		return lhs > rhs ? lhs : rhs;
+		return a < b ? b : a;
+	}
+
+	template <typename T>
+	inline SG_CONSTEXPR typename enable_if<is_scalar<T>::value, T>::type
+		min_alt(T a, T b)
+	{
+		return a > b ? b : a;
+	}
+
+	template <typename T>
+	inline typename enable_if<!is_scalar<T>::value, const T&>::type
+		min_alt(const T& a, const T& b)
+	{
+		return a > b ? b : a;
 	}
 
 }

@@ -73,20 +73,20 @@ namespace SG
 	template<typename T>
 	SG_INLINE SG_CONSTEXPR span<T> span<T>::first(size_type count) const
 	{
-		return span{mBegin, min(count, mCount)};
+		return span{mBegin, min_alt(count, mCount)};
 	}
 
 	template<typename T>
 	SG_INLINE SG_CONSTEXPR span<T> span<T>::last(size_type count) const
 	{
-		return span{mBegin + mCount - count, min(count, mCount)};
+		return span{mBegin + mCount - count, min_alt(count, mCount)};
 	}
 
 	template<typename T>
 	SG_INLINE SG_CONSTEXPR span<T> span<T>::subspan(size_type offset, size_type count) const
 	{
 		SG_ASSERT(bound_check(offset) && "Exceed the boundary!");
-		return span{mBegin + offset, min(mCount - offset, count)};
+		return span{mBegin + offset, min_alt(mCount - offset, count)};
 	}
 
 	template<typename T>

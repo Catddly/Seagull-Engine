@@ -9,15 +9,17 @@
 #include "Common/Core/Platform.h"
 #include "Common/Base/BasicTypes.h"
 #include "Common/Base/IIterable.h"
+#include "Common/Memory/IMemory.h"
 
 #include "utility.h"
+#include "algorithm.h"
 #include "string_view.h"
+#include "internal/vs_printf.h"
+
+#include <cstdarg>
 
 namespace SG
 {
-
-	/// redirect to sprintf functions
-
 
 	template<class T>
 	class basic_string : public IIterable<T>
@@ -71,7 +73,7 @@ namespace SG
 		{
 			//! The capacity of SSO
 			//! (e.g. for string, HeapLayout is 24 bytes, so SSO_CAPACITY is 23)
-			//! the max size of SSO_CAPACITY is 23 bytes
+			//! the max_alt size of SSO_CAPACITY is 23 bytes
 			SG_CONSTEXPR static size_type SSO_CAPACITY = (sizeof(HeapLayout) - sizeof(char)) / sizeof(value_type);
 			
 			// mSize must correspond to the last byte of HeapLayout.mCapacity, so we don't want the compiler to insert
@@ -103,8 +105,8 @@ namespace SG
 		SG_CONSTEXPR static size_type ssoMask  = 0x1;
 #endif
 
-		SG_COMPILE_ASSERT(sizeof(SSOLayout)  == sizeof(HeapLayout), "heap and sso layout structures must be the same size");
-		SG_COMPILE_ASSERT(sizeof(HeapLayout) == sizeof(RawDataLayout), "heap and raw layout structures must be the same size");
+		SG_COMPILE_ASSERT(sizeof(SSOLayout)  == sizeof(HeapLayout) && "heap and sso layout structures must be the same size");
+		SG_COMPILE_ASSERT(sizeof(HeapLayout) == sizeof(RawDataLayout) && "heap and raw layout structures must be the same size");
 
 		//! The Implementation of SSO(Short String Optimization)
 		//! SSO reuses the existing string class to hold the string data which is short enough
@@ -136,7 +138,7 @@ namespace SG
 			SG_INLINE value_type*       SSOBufferPtr() noexcept { return sso.mData; }
 			SG_INLINE const value_type* SSOBufferPtr() const noexcept { return sso.mData; }
 
-			//! Max of SSO_CAPACITY is 23 bytes (which is 0001 0111b), which has two LSB bits set (little endian),
+			//! max_alt of SSO_CAPACITY is 23 bytes (which is 0001 0111b), which has two LSB bits set (little endian),
 			//! but on bit endian we still use LSB to denote heap, 23 bytes is (1101 0100b), so shift 2.
 			SG_INLINE size_type GetSSOSize() const noexcept 
 			{
@@ -232,7 +234,7 @@ namespace SG
 		struct CtorDoNotInitialize {};
 
 		basic_string() = default;
-		explicit basic_string(const value_type* str);
+		basic_string(const value_type* str);
 		basic_string(const value_type* str, size_type n);
 		basic_string(const value_type* pBeg, const value_type* pEnd);
 		basic_string(CtorDoNotInitialize, size_type n);
@@ -288,8 +290,10 @@ namespace SG
 
 		// main append
 		this_type& append(const value_type* pBeg, const value_type* pEnd);
+		this_type& append(const value_type* pBeg);
 		this_type& append(size_type n, value_type c);
 
+		void resize(size_type n);
 		void reserve(size_type n);
 		//! Reset the capacity to n
 		void set_capacity(size_type n = npos);
@@ -345,16 +349,16 @@ namespace SG
 					const size_type oldCap = mDataLayout.GetHeapCapacity();
 
 					mDataLayout.ResetToSSO(); // clear up the memory
-					CopyCharUninitiazed(oldBegPtr, oldBegPtr + n, mDataLayout.BeginPtr());
+					CopyCharPtrUninitiazed(oldBegPtr, oldBegPtr + n, mDataLayout.BeginPtr());
 					mDataLayout.SetSSOSize(n);
 					Free(oldBegPtr); // free the heap allocated memory
 					return;
 				}
 				
 				// may be SSO to heap or heap to heap
-				pointer newBegPtr = DoAllocate(n + 1);
+				pointer newBegPtr = reinterpret_cast<pointer>(Malloc(n + 1));
 				const size_type oldSize = mDataLayout.GetSize();
-				pointer newEndPtr = CopyCharUninitiazed(mDataLayout.BeginPtr(), mDataLayout.EndPtr(), newBegPtr);
+				pointer newEndPtr = CopyCharPtrUninitiazed(mDataLayout.BeginPtr(), mDataLayout.EndPtr(), newBegPtr);
 				*newEndPtr = 0;
 				// deallocate memory depend on it is heap or SSO
 				DoDeallocate();
@@ -374,9 +378,23 @@ namespace SG
 	template<class T>
 	SG_INLINE void SG::basic_string<T>::reserve(size_type n)
 	{
-		n = max(n, mDataLayout.GetSize());
+		n = max_alt(n, mDataLayout.GetSize());
 		if (n > capacity())
 			set_capacity(n);
+	}
+	
+	template<class T>
+	SG_INLINE void SG::basic_string<T>::resize(size_type n)
+	{
+		const size_type currSize = mDataLayout.GetSize();
+		if (n < currSize)
+			erase(mDataLayout.BeginPtr() + n, mDataLayout.EndPtr());
+		else if (n > currSize)
+		{
+			// for build-in types, value_type() is same as (value_type(0))
+			// for compound types, it will call the default ctor
+			append(n - currSize, value_type());
+		}
 	}
 
 	template<class T>
@@ -391,7 +409,21 @@ namespace SG
 	SG::basic_string<T>::AppendSprintfVaList(const value_type* format, va_list args)
 	{
 		const size_type initializedSize = mDataLayout.GetSize();
-		int returnValue;
+		int appendedSize;
+
+		appendedSize = Vsnprintf(nullptr, 0, format, args); // return the length of the appended string
+		
+		if (appendedSize > 0)
+		{
+			resize(initializedSize + appendedSize);
+			// actual append the expend formatted string to the data
+			appendedSize = Vsnprintf(mDataLayout.BeginPtr() + initializedSize, (size_type)(appendedSize + 1ull), format, args);
+		}
+
+		if (appendedSize >= 0)
+		{
+			mDataLayout.SetSize(initializedSize + appendedSize);
+		}
 
 		return *this;
 	}
@@ -402,17 +434,17 @@ namespace SG
 	{
 		if (pBeg != pEnd)
 		{
-			const size_type appendSize = size_type(pBeg - pEnd);
+			const size_type appendSize = size_type(pEnd - pBeg);
 			const size_type currSize = mDataLayout.GetSize();
 			const size_type cap = capacity();
 
 			if (appendSize + currSize > cap) // do heap reallocation
 			{
-				const size_type newCapacity = SG::max(DoubleReserved(cap), currSize + appendSize);
+				const size_type newCapacity = SG::max_alt(DoubleReserved(cap), currSize + appendSize);
 
-				pointer newBegPtr = DoAllocate(newCapacity);
-				auto newEndPtr = CopyCharUninitiazed(mDataLayout.BeginPtr(), mDataLayout.EndPtr(), newBegPtr); // copy the origin part
-				newEndPtr = CopyCharUninitiazed(pBeg, pEnd, newEndPtr); // copy the appended part
+				pointer newBegPtr = reinterpret_cast<pointer>(Malloc(newCapacity * sizeof(value_type)));
+				auto newEndPtr = CopyCharPtrUninitiazed(mDataLayout.BeginPtr(), mDataLayout.EndPtr(), newBegPtr); // copy the origin part
+				newEndPtr = CopyCharPtrUninitiazed(pBeg, pEnd, newEndPtr); // copy the appended part
 				*newEndPtr = 0;
 
 				DoDeallocate();
@@ -422,12 +454,19 @@ namespace SG
 			}
 			else // no need to allocate on heap
 			{
-				pointer newEndPtr = CopyCharUninitiazed(pBeg, pEnd, mDataLayout.BeginPtr());
+				pointer newEndPtr = CopyCharPtrUninitiazed(pBeg, pEnd, mDataLayout.EndPtr());
 				*newEndPtr = 0;
 				mDataLayout.SetSize(currSize + appendSize);
 			}
 		}
 		return *this;
+	}
+
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::this_type&
+	SG::basic_string<T>::append(const value_type* pBeg)
+	{
+		return append(pBeg, pBeg + len_of_char(pBeg));
 	}
 
 	template<class T>
@@ -438,7 +477,7 @@ namespace SG
 		const size_type cap = capacity();
 
 		if (oldSize + n > cap)
-			reserve(max(DoubleReserved(cap), oldSize + n));
+			reserve(max_alt(DoubleReserved(cap), oldSize + n));
 
 		if (n > 0)
 		{
@@ -446,6 +485,7 @@ namespace SG
 			*newEndPtr = 0;
 			mDataLayout.SetSize(oldSize + n);
 		}
+		return *this;
 	}
 
 	template<class T>
@@ -593,7 +633,9 @@ namespace SG
 	template<class T>
 	SG_INLINE SG::basic_string<T>::basic_string(CtorDoNotInitialize, size_type n)
 	{
-
+		DoAllocate(n);
+		// no set mDataLayout.SetSize(n) here, just have the memory ready
+		*mDataLayout.EndPtr() = 0;
 	}
 
 	template<class T>
@@ -604,6 +646,7 @@ namespace SG
 
 		va_list args;
 		va_start(args, pFormat);
+		AppendSprintfVaList(pFormat, args);
 		va_end(args);
 	}
 
@@ -612,7 +655,7 @@ namespace SG
 	{
 		const size_type strSize = size_type(pEnd - pBeg);
 		DoAllocate(strSize);
-		CopyCharUninitiazed(pBeg, pEnd, mDataLayout.BeginPtr());
+		CopyCharPtrUninitiazed(pBeg, pEnd, mDataLayout.BeginPtr());
 		mDataLayout.SetSize(s);
 		(*mDataLayout.EndPtr()) = 0;
 	}
@@ -622,8 +665,8 @@ namespace SG
 	{
 		const size_type strSize = len_of_char(str);
 		DoAllocate(strSize);
-		CopyCharUninitiazed(str, str + strSize, mDataLayout.BeginPtr());
-		mDataLayout.SetSize(s);
+		CopyCharPtrUninitiazed(str, str + strSize, mDataLayout.BeginPtr());
+		mDataLayout.SetSize(strSize);
 		(*mDataLayout.EndPtr()) = 0;
 	}
 
@@ -653,7 +696,7 @@ namespace SG
 		auto pEnd = x.mDataLayout.EndPtr();
 		const size_type strSize = size_type(pEnd - pBeg);
 		DoAllocate(strSize);
-		CopyCharUninitiazed(pBeg, pEnd, mDataLayout.BeginPtr());
+		CopyCharPtrUninitiazed(pBeg, pEnd, mDataLayout.BeginPtr());
 		mDataLayout.SetSize(s);
 		(*mDataLayout.EndPtr()) = 0;
 	}
@@ -665,7 +708,7 @@ namespace SG
 		auto pEnd = x.mDataLayout.BeginPtr() + position + min(n, x.mDataLayout.GetSize() - position);
 		const size_type strSize = size_type(pEnd - pBeg);
 		DoAllocate(strSize);
-		CopyCharUninitiazed(pBeg, pEnd, mDataLayout.BeginPtr());
+		CopyCharPtrUninitiazed(pBeg, pEnd, mDataLayout.BeginPtr());
 		mDataLayout.SetSize(s);
 		(*mDataLayout.EndPtr()) = 0;
 	}
@@ -775,17 +818,35 @@ namespace SG
 	typedef basic_string<Char32> u32string;
 
 	/// to_string() fucntions, users can define thiers
-	SG_INLINE string to_string(int num);
+	SG_INLINE string to_string(Int32 num) { return string{string::CtorSprintf(), "%d", num}; }
+	SG_INLINE string to_string(long num) { return string{string::CtorSprintf(), "%ld", num}; }
+	SG_INLINE string to_string(Int64 num) { return string{string::CtorSprintf(), "%lld", num}; }
+	SG_INLINE string to_string(UInt32 num) { return string{string::CtorSprintf(), "%u", num}; }
+	SG_INLINE string to_string(unsigned long num) { return string{string::CtorSprintf(), "%lu", num}; }
+	SG_INLINE string to_string(UInt64 num) { return string{string::CtorSprintf(), "%llu", num}; }
+	SG_INLINE string to_string(Float32 num) { return string{string::CtorSprintf(), "%f", num}; }
+	SG_INLINE string to_string(Float64 num) { return string{string::CtorSprintf(), "%f", num}; }
+	SG_INLINE string to_string(LFloat num) { return string{string::CtorSprintf(), "%Lf", num}; }
+
+	SG_INLINE wstring to_wstring(Int32 num) { return wstring{ wstring::CtorSprintf(), L"%d", num }; }
+	SG_INLINE wstring to_wstring(long num) { return wstring{ wstring::CtorSprintf(), L"%ld", num }; }
+	SG_INLINE wstring to_wstring(Int64 num) { return wstring{ wstring::CtorSprintf(), L"%lld", num }; }
+	SG_INLINE wstring to_wstring(UInt32 num) { return wstring{ wstring::CtorSprintf(), L"%u", num }; }
+	SG_INLINE wstring to_wstring(unsigned long num) { return wstring{ wstring::CtorSprintf(), L"%lu", num }; }
+	SG_INLINE wstring to_wstring(UInt64 num) { return wstring{ wstring::CtorSprintf(), L"%llu", num }; }
+	SG_INLINE wstring to_wstring(Float32 num) { return wstring{ wstring::CtorSprintf(), L"%f", num }; }
+	SG_INLINE wstring to_wstring(Float64 num) { return wstring{ wstring::CtorSprintf(), L"%f", num }; }
+	SG_INLINE wstring to_wstring(LFloat num) { return wstring{ wstring::CtorSprintf(), L"%Lf", num }; }
 
 	// inline namespace literals
 	inline namespace literals
 	{
 		inline namespace string_view_literals
 		{
-			SG_INLINE string    operator ""s(const Char * str, Size len) noexcept { return { str, string::size_type(len) }; }
-			SG_INLINE wstring   operator ""s(const WChar * str, Size len) noexcept { return { str, wstring::size_type(len) }; }
-			SG_INLINE u16string operator ""s(const Char16 * str, Size len) noexcept { return { str, u16string::size_type(len) }; }
-			SG_INLINE u32string operator ""s(const Char32 * str, Size len) noexcept { return { str, u32string::size_type(len) }; }
+			SG_INLINE string    operator ""s(const Char* str, Size len) noexcept { return { str, string::size_type(len) }; }
+			SG_INLINE wstring   operator ""s(const WChar* str, Size len) noexcept { return { str, wstring::size_type(len) }; }
+			SG_INLINE u16string operator ""s(const Char16* str, Size len) noexcept { return { str, u16string::size_type(len) }; }
+			SG_INLINE u32string operator ""s(const Char32* str, Size len) noexcept { return { str, u32string::size_type(len) }; }
 		}
 	}
 

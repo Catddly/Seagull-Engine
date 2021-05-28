@@ -7,6 +7,7 @@
 
 #include <string>
 #include "Core/STL/string_view.h"
+#include "Core/STL/string.h"
 
 namespace SG
 {
@@ -41,27 +42,27 @@ namespace impl
 {
 
 	template<class T>
-	static std::string PrintIterable(IIterable<T>* v, bool reverse)
+	static string PrintIterable(IIterable<T>* v, bool reverse)
 	{
-		std::string s = "";
+		string s = "";
 		s += "[";
 		if (!reverse)
 		{
 			for (auto beg = v->begin(); beg != (v->end() - 1); ++beg)
 			{
-				s += std::to_string(*beg);
+				s += to_string(*beg);
 				s += " ";
 			}
-			s += std::to_string(*(v->end() - 1));
+			s += to_string(*(v->end() - 1));
 		}
 		else
 		{
 			for (auto beg = v->rbegin(); beg != (v->rend() - 1); ++beg)
 			{
-				s += std::to_string(*beg);
+				s += to_string(*beg);
 				s += " ";
 			}
-			s += std::to_string(*(v->rend() - 1));
+			s += to_string(*(v->rend() - 1));
 		}
 		s += "]";
 		return SG::move(s);

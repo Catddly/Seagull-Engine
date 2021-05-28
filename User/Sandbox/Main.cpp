@@ -20,6 +20,8 @@ public:
 
 		int arr[] = { 2, 6, 4, 8, 6 };
 		SpanTest(arr);
+
+		StringTest();
 	}
 
 	virtual void OnShutdown() override
@@ -30,6 +32,7 @@ private:
 	void VectorTest()
 	{
 		using namespace SG;
+		SG_LOG_DEBUG("--------------------------VectorTest()--------------------------");
 		vector<UInt32> vec;
 		SG_LOG_DEBUG("vector empty: %d", vec.empty());
 		vec.push_back(6);
@@ -62,11 +65,13 @@ private:
 		//SG_LOG_DEBUG("Size of arr is %d", size_of_array<double[2][4][2]>::value);
 		//SG_LOG_DEBUG("Size of arr is %d", size_of_array<char[4]>::value);
 		//SG_LOG_DEBUG("Size of arr is %d", size_of_array<int>::value);
+		SG_LOG_DEBUG("--------------------------VectorTest()--------------------------");
 	}
 
 	void SpanTest(SG::span<int> s)
 	{
 		using namespace SG;
+		SG_LOG_DEBUG("---------------------------SpanTest()---------------------------");
 		SG_LOG_ITERATOR(ELogLevel::eLOG_LEVEL_DEBUG, s.begin(), s.end());
 		SG_LOG_ITERATOR_R(ELogLevel::eLOG_LEVEL_DEBUG, s.begin(), s.end());
 		auto view = s.subspan(2, 2);
@@ -75,10 +80,23 @@ private:
 		auto viewL = s.last(3);
 		SG_LOG_ITERATOR(ELogLevel::eLOG_LEVEL_DEBUG, viewF.begin(), viewF.end());
 		SG_LOG_ITERATOR(ELogLevel::eLOG_LEVEL_DEBUG, viewL.begin(), viewL.end());
+		SG_LOG_DEBUG("---------------------------SpanTest()---------------------------");
 	}
 
 	void StringTest()
 	{
+		using namespace SG;
+		SG_LOG_DEBUG("--------------------------StringTest()--------------------------");
+		string str = "Hello, ";
+		SG_LOG_DEBUG("%s", str.c_str());
+		str += "World!";
+		SG_LOG_DEBUG("%s", str.c_str());
+		str.append(" @ILLmew");
+		SG_LOG_DEBUG("%s", str.c_str());
+		SG_LOG_ITERABLE(ELogLevel::eLOG_LEVEL_DEBUG, str);
+		str.append(" long long long long long string!");
+		SG_LOG_DEBUG("%s", str.c_str());
+		SG_LOG_DEBUG("--------------------------StringTest()--------------------------");
 	}
 };
 
