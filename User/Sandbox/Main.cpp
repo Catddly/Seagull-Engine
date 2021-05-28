@@ -91,11 +91,20 @@ private:
 		SG_LOG_DEBUG("%s", str.c_str());
 		str += "World!";
 		SG_LOG_DEBUG("%s", str.c_str());
-		str.append(" @ILLmew");
-		SG_LOG_DEBUG("%s", str.c_str());
 		SG_LOG_ITERABLE(ELogLevel::eLOG_LEVEL_DEBUG, str);
-		str.append(" long long long long long string!");
+		str.append(" This is a long long long long long string!");
 		SG_LOG_DEBUG("%s", str.c_str());
+		SG_LOG_DEBUG("%s", str.substr(0, 13).c_str());
+		string str2("short string!");
+		swap(str, str2);
+		SG_LOG_DEBUG("%s", str.c_str());
+		str2.assign("Hello!");
+		SG_LOG_DEBUG("%s", str2.c_str());
+		SG_LOG_DEBUG("Is the same? %d", str == str2);
+		string str3(str2);
+		SG_LOG_DEBUG("Is the same? %d", str3 == str2);
+		str3 = str2 + " Fuck!";
+		SG_LOG_DEBUG("%s", str3.c_str());
 		SG_LOG_DEBUG("--------------------------StringTest()--------------------------");
 	}
 };

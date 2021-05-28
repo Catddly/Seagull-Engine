@@ -9,59 +9,61 @@
 namespace SG
 {
 
+	//! If the content in begin1 to end1 is equal to begin2 (compile-time)
 	template<class Iter1, class Iter2>
 	SG_CONSTEXPR SG_INLINE bool 
 	equal(Iter1 begin1, Iter1 end1, Iter2 begin2)
 	{
-		while (true)
-		{
-			if (*begin1 != *begin2)
+		for (; begin1 != end1; ++begin1, ++begin2)
+			if (!(*begin1 == *begin2))
 				return false;
-			++begin1; ++begin2;
-			if (begin1 == end1)
-				break;
-		}
 		return true;
 	}
 
-	//template<class T>
-	//SG_CONSTEXPR SG_INLINE T min(T lhs, T rhs)
-	//{
-	//	return lhs < rhs ? lhs : rhs;
-	//}
-
-	//template<class T>
-	//SG_CONSTEXPR SG_INLINE T max(T lhs, T rhs)
-	//{
-	//	return lhs > rhs ? lhs : rhs;
-	//}
-
-	template <typename T>
-	inline SG_CONSTEXPR typename enable_if<is_scalar<T>::value, T>::type
-		max_alt(T a, T b)
+	//! If the content in begin1 to end1 is equal to begin2 (runtime)
+	template<class Iter1, class Iter2, class ComparaFunc>
+	SG_INLINE bool equal(Iter1 begin1, Iter1 end1, Iter2 begin2, ComparaFunc func)
 	{
-		return a < b ? b : a;
+		for (; begin1 != end1; ++begin1, ++begin2)
+			if (!func(*begin1, *begin2))
+				return false;
+		return true;
 	}
 
+	//! Find the bigger value between lhs and rhs. (compile-time)
+	//! Use smax to avoid collusion to MSVC's max.
 	template <typename T>
-	inline typename enable_if<!is_scalar<T>::value, const T&>::type
-		max_alt(const T& a, const T& b)
+	SG_INLINE SG_CONSTEXPR typename enable_if<is_scalar<T>::value, T>::type
+	smax(T lhs, T rhs)
 	{
-		return a < b ? b : a;
+		return lhs < rhs ? rhs : lhs;
 	}
 
+	//! Find the bigger value between lhs and rhs. (runtime)
+	//! Use smax to avoid collusion to MSVC's max.
 	template <typename T>
-	inline SG_CONSTEXPR typename enable_if<is_scalar<T>::value, T>::type
-		min_alt(T a, T b)
+	SG_INLINE typename enable_if<!is_scalar<T>::value, const T&>::type
+	smax(const T& lhs, const T& rhs)
 	{
-		return a > b ? b : a;
+		return lhs < rhs ? rhs : lhs;
 	}
 
+	//! Find the smaller value between lhs and rhs. (compile-time)
+	//! Use smin to avoid collusion to MSVC's min.
 	template <typename T>
-	inline typename enable_if<!is_scalar<T>::value, const T&>::type
-		min_alt(const T& a, const T& b)
+	SG_INLINE SG_CONSTEXPR typename enable_if<is_scalar<T>::value, T>::type
+	smin(T lhs, T rhs)
 	{
-		return a > b ? b : a;
+		return lhs > rhs ? rhs : lhs;
+	}
+
+	//! Find the smaller value between lhs and rhs. (runtime)
+	//! Use smin to avoid collusion to MSVC's min.
+	template <typename T>
+	SG_INLINE typename enable_if<!is_scalar<T>::value, const T&>::type
+	smin(const T& a, const T& b)
+	{
+		return lhs > rhs ? rhs : lhs;
 	}
 
 }

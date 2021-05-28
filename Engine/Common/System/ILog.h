@@ -5,7 +5,6 @@
 #include "Common/System/ISystem.h"
 #include "Common/Base/IIterable.h"
 
-#include <string>
 #include "Core/STL/string_view.h"
 #include "Core/STL/string.h"
 
@@ -69,27 +68,27 @@ namespace impl
 	}
 
 	template<class T>
-	static std::string PrintIterator(T* beg, T* end, bool reverse)
+	static string PrintIterator(T* beg, T* end, bool reverse)
 	{
-		std::string str = "[";
+		string str = "[";
 		if (!reverse)
 		{
 			for (; beg != end - 1; beg++)
 			{
-				str += std::to_string(*beg);
+				str += to_string(*beg);
 				str += " ";
 			}
-			str += std::to_string(*(end - 1));
+			str += to_string(*(end - 1));
 		}
 		else
 		{
 			--end;
 			for (; end != beg; end--)
 			{
-				str += std::to_string(*end);
+				str += to_string(*end);
 				str += " ";
 			}
-			str += std::to_string(*(beg));
+			str += to_string(*(beg));
 		}
 		str += "]";
 		return SG::move(str);

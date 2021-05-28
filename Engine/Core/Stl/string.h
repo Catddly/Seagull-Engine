@@ -73,7 +73,7 @@ namespace SG
 		{
 			//! The capacity of SSO
 			//! (e.g. for string, HeapLayout is 24 bytes, so SSO_CAPACITY is 23)
-			//! the max_alt size of SSO_CAPACITY is 23 bytes
+			//! the max size of SSO_CAPACITY is 23 bytes
 			SG_CONSTEXPR static size_type SSO_CAPACITY = (sizeof(HeapLayout) - sizeof(char)) / sizeof(value_type);
 			
 			// mSize must correspond to the last byte of HeapLayout.mCapacity, so we don't want the compiler to insert
@@ -138,7 +138,7 @@ namespace SG
 			SG_INLINE value_type*       SSOBufferPtr() noexcept { return sso.mData; }
 			SG_INLINE const value_type* SSOBufferPtr() const noexcept { return sso.mData; }
 
-			//! max_alt of SSO_CAPACITY is 23 bytes (which is 0001 0111b), which has two LSB bits set (little endian),
+			//! max of SSO_CAPACITY is 23 bytes (which is 0001 0111b), which has two LSB bits set (little endian),
 			//! but on bit endian we still use LSB to denote heap, 23 bytes is (1101 0100b), so shift 2.
 			SG_INLINE size_type GetSSOSize() const noexcept 
 			{
@@ -239,7 +239,7 @@ namespace SG
 		basic_string(const value_type* pBeg, const value_type* pEnd);
 		basic_string(CtorDoNotInitialize, size_type n);
 		basic_string(CtorSprintf, const value_type* pFormat, ...);
-		~basic_string() = default;
+		~basic_string();
 		// copy ctor
 		basic_string(const this_type& x);
 		basic_string(const this_type& x, size_type position, size_type n = npos);
@@ -266,7 +266,7 @@ namespace SG
 		this_type& operator=(const this_type& x);
 		this_type& operator=(view_type v);
 		this_type& operator=(this_type&& x);
-		this_type& operator=(this_type c);
+		this_type& operator=(value_type c);
 
 		reference       operator[](size_type n);
 		const_reference operator[](size_type n) const;
@@ -284,6 +284,10 @@ namespace SG
 		this_type& assign(const value_type* str);
 		this_type& assign(const value_type* str, size_type n);
 		this_type& assign(size_type n, value_type c);
+
+		// main insert
+		iterator   insert(const_iterator p, const value_type* pBegin, const value_type* pEnd);
+		this_type& insert(size_type position, const value_type* p);
 		
 		// main erase
 		iterator erase(const_iterator pBegin, const_iterator pEnd);
@@ -291,6 +295,7 @@ namespace SG
 		// main append
 		this_type& append(const value_type* pBeg, const value_type* pEnd);
 		this_type& append(const value_type* pBeg);
+		this_type& append(const this_type& x);
 		this_type& append(size_type n, value_type c);
 
 		void resize(size_type n);
@@ -356,7 +361,7 @@ namespace SG
 				}
 				
 				// may be SSO to heap or heap to heap
-				pointer newBegPtr = reinterpret_cast<pointer>(Malloc(n + 1));
+				pointer newBegPtr = reinterpret_cast<pointer>(Malloc((n + 1) * sizeof(value_type)));
 				const size_type oldSize = mDataLayout.GetSize();
 				pointer newEndPtr = CopyCharPtrUninitiazed(mDataLayout.BeginPtr(), mDataLayout.EndPtr(), newBegPtr);
 				*newEndPtr = 0;
@@ -378,7 +383,7 @@ namespace SG
 	template<class T>
 	SG_INLINE void SG::basic_string<T>::reserve(size_type n)
 	{
-		n = max_alt(n, mDataLayout.GetSize());
+		n = smax(n, mDataLayout.GetSize());
 		if (n > capacity())
 			set_capacity(n);
 	}
@@ -440,9 +445,9 @@ namespace SG
 
 			if (appendSize + currSize > cap) // do heap reallocation
 			{
-				const size_type newCapacity = SG::max_alt(DoubleReserved(cap), currSize + appendSize);
+				const size_type newCapacity = SG::smax(DoubleReserved(cap), currSize + appendSize);
 
-				pointer newBegPtr = reinterpret_cast<pointer>(Malloc(newCapacity * sizeof(value_type)));
+				pointer newBegPtr = reinterpret_cast<pointer>(Malloc((newCapacity + 1) * sizeof(value_type)));
 				auto newEndPtr = CopyCharPtrUninitiazed(mDataLayout.BeginPtr(), mDataLayout.EndPtr(), newBegPtr); // copy the origin part
 				newEndPtr = CopyCharPtrUninitiazed(pBeg, pEnd, newEndPtr); // copy the appended part
 				*newEndPtr = 0;
@@ -477,7 +482,7 @@ namespace SG
 		const size_type cap = capacity();
 
 		if (oldSize + n > cap)
-			reserve(max_alt(DoubleReserved(cap), oldSize + n));
+			reserve(smax(DoubleReserved(cap), oldSize + n));
 
 		if (n > 0)
 		{
@@ -486,6 +491,13 @@ namespace SG
 			mDataLayout.SetSize(oldSize + n);
 		}
 		return *this;
+	}
+
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::this_type& 
+	SG::basic_string<T>::append(const this_type& x)
+	{
+		return append(x.mDataLayout.BeginPtr(), x.mDataLayout.EndPtr());
 	}
 
 	template<class T>
@@ -538,7 +550,7 @@ namespace SG
 	SG_INLINE typename SG::basic_string<T>::this_type& 
 	SG::basic_string<T>::assign(const value_type* pBegin, const value_type* pEnd)
 	{
-		const size_type n = size_type(pBegin - pEnd);
+		const size_type n = size_type(pEnd - pBegin);
 		if (n <= mDataLayout.GetSize()) // delete the rest part of the origin data
 		{
 			memmove(mDataLayout.BeginPtr(), pBegin, n * sizeof(value_type));
@@ -550,6 +562,92 @@ namespace SG
 			append(pBegin + mDataLayout.GetSize(), pEnd);
 		}
 		return *this;
+	}
+
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::iterator 
+	SG::basic_string<T>::insert(const_iterator ptr, const value_type* pBegin, const value_type* pEnd)
+	{
+		const difference_type beginPos = (ptr - mDataLayout.BeginPtr()); // restore the begin pointer's offset
+		SG_ASSERT(ptr >= mDataLayout.BeginPtr() && ptr < mDataLayout.EndPtr() && "Invalid pointer position!");
+		const size_type insertSize = size_type(pEnd - pBegin);
+		
+		if (insertSize != 0)
+		{
+			bool bIsCapacitySufficient = (mDataLayout.GetRemainingCapacity() >= n);
+			bool bIsSourceFromSelf = ((pEnd >= mDataLayout.BeginPtr()) && (pBegin <= mDataLayout.EndPtr()));
+
+			if (bIsSourceFromSelf && mDataLayout.IsSSO()) // on stack data inside itself
+			{
+				// because the source is from self and it is a SSO string,
+				// so stackStringTemp is a SSO string to.
+				const this_type stackStringTemp(pBegin, pEnd);
+				// may be there will be 1 or 2 allocations happened, 
+				// so we recursively call insert to insert the copied data to *this.
+				return insert(ptr, stackStringTemp.data(), stackStringTemp.data() + stackStringTemp.size());
+			}
+
+			if (bIsCapacitySufficient && !bIsSourceFromSelf) // have enough capacity to copy the data
+			{
+				const size_type leftSize = size_type(mDataLayout.EndPtr() - ptr);
+
+				// if there are enough characters between begin + pos and end
+				if (leftSize >= insertSize) // enough
+				{
+					const size_type currSize = mDataLayout.GetSize();
+					CopyCharPtrUninitiazed((mDataLayout.EndPtr() - insertSize) + 1, mDataLayout.EndPtr() + 1, mDataLayout.EndPtr() + 1); // copy the last part of the string to the end
+					mDataLayout.SetSize(currSize + insertSize);
+					memmove(const_cast<value_type*>(ptr) + insertSize, ptr, (size_type)((leftSize - insertSize) + 1) * sizeof(value_type));
+					memmove(const_cast<value_type*>(ptr), pBegin, (size_type)(insertSize) * sizeof(value_type));
+				}
+				else // not enough
+				{
+					pointer oldEndPtr = mDataLayout.EndPtr();
+					const value_type* const pMid = pBegin + (leftSize + 1);
+
+					CopyCharPtrUninitiazed(pMid, pEnd, mDataLayout.EndPtr() + 1);
+					mDataLayout.SetSize(mDataLayout.GetSize() + (insertSize - leftSize));
+
+					const size_type currSize = mDataLayout.GetSize();
+					CopyCharPtrUninitiazed(p, oldEndPtr + 1, mDataLayout.EndPtr());
+					mDataLayout.SetSize(currSize + insertSize);
+
+					CopyCharPtrUninitiazed(pBegin, pMid, const_cast<value_type*>(p));
+				}
+			}
+			else // we need to reallocate
+			{
+				const size_type currSize = mDataLayout.GetSize();
+				const size_type cap = capacity();
+				size_type nLength;
+
+				if (bIsCapacitySufficient) // If bCapacityIsSufficient is true, then bSourceIsFromSelf must be true.
+					nLength = currSize + n;
+				else
+					nLength = smax(DoubleReserved(cap), (currSize + n));
+
+				pointer newBegPtr = reinterpret_cast<pointer>(Malloc((nLength + 1) * sizeof(value_type)));
+
+				pointer newEndPtr = CopyCharPtrUninitiazed(mDataLayout.BeginPtr(), p, newBegPtr);
+				newEndPtr = CopyCharPtrUninitiazed(pBegin, pEnd, newEndPtr);
+				newEndPtr = CopyCharPtrUninitiazed(p, mDataLayout.EndPtr(), newEndPtr);
+				*newEndPtr = 0;
+
+				DoDeallocate();
+				mDataLayout.SetHeapBeginPtr(newBegPtr);
+				mDataLayout.SetHeapCapacity(nLength);
+				mDataLayout.SetHeapSize(currSize + n);
+			}
+		}
+
+		return *this;
+	}
+
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::this_type& 
+	SG::basic_string<T>::insert(size_type position, const value_type* p)
+	{
+		return insert(mDataLayout.BeginPtr() + position, p, p + len_of_char(p));
 	}
 
 	template<class T>
@@ -573,7 +671,7 @@ namespace SG
 	SG::basic_string<T>::substr(size_type pos, size_type n) const
 	{
 		SG_ASSERT(pos < mDataLayout.GetSize() && pos >= 0);
-		return basic_string(mDataLayout.BeginPtr() + pos, min(n, mDataLayout.GetSize() - pos));
+		return basic_string(mDataLayout.BeginPtr() + pos, smin(n, mDataLayout.GetSize() - pos));
 	}
 
 	template<class T>
@@ -609,7 +707,7 @@ namespace SG
 		// memory allocation
 		if (n > SSOLayout::SSO_CAPACITY) // this is not a SSO, allocate on heap
 		{
-			auto ptr = reinterpret_cast<pointer>(Malloc(n + 1));
+			auto ptr = reinterpret_cast<pointer>(Malloc((n + 1) * sizeof(value_type)));
 			mDataLayout.SetHeapBeginPtr(ptr);
 			mDataLayout.SetHeapCapacity(n);
 			mDataLayout.SetHeapSize(0);
@@ -697,7 +795,7 @@ namespace SG
 		const size_type strSize = size_type(pEnd - pBeg);
 		DoAllocate(strSize);
 		CopyCharPtrUninitiazed(pBeg, pEnd, mDataLayout.BeginPtr());
-		mDataLayout.SetSize(s);
+		mDataLayout.SetSize(strSize);
 		(*mDataLayout.EndPtr()) = 0;
 	}
 
@@ -719,6 +817,12 @@ namespace SG
 		mDataLayout = SG::move(x.mDataLayout);
 		x.mDataLayout.ResetToSSO();
 		x.mDataLayout.SetSSOSize(0);
+	}
+
+	template<class T>
+	SG_INLINE SG::basic_string<T>::~basic_string()
+	{
+		DoDeallocate();
 	}
 
 	template<class T>
@@ -752,7 +856,7 @@ namespace SG
 
 	template<class T>
 	SG_INLINE typename SG::basic_string<T>::this_type&
-	SG::basic_string<T>::operator=(this_type c)
+	SG::basic_string<T>::operator=(value_type c)
 	{
 		return assign(c, 1);
 	}
@@ -801,6 +905,205 @@ namespace SG
 	}
 
 	/// global operators
+	template <typename T>
+	SG_INLINE bool operator==(const typename basic_string<T>::reverse_iterator& r1,
+		const typename basic_string<T>::reverse_iterator& r2)
+	{
+		return r1.mIterator == r2.mIterator;
+	}
+
+	template <typename T>
+	SG_INLINE bool operator!=(const typename basic_string<T>::reverse_iterator& r1,
+		const typename basic_string<T>::reverse_iterator& r2)
+	{
+		return r1.mIterator != r2.mIterator;
+	}
+
+	template <typename T>
+	basic_string<T> operator+(const basic_string<T>& a, const basic_string<T>& b)
+	{
+		typedef typename basic_string<T>::CtorDoNotInitialize CtorDoNotInitialize;
+		CtorDoNotInitialize cDNI; // GCC 2.x forces us to declare a named temporary like this.
+		basic_string<T> result(cDNI, a.size() + b.size()); // no size assignment, just allocate the memory
+		result.append(a);
+		result.append(b);
+		return result;
+	}
+	template <typename T>
+	basic_string<T> operator+(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
+	{
+		typedef typename basic_string<T>::CtorDoNotInitialize CtorDoNotInitialize;
+		CtorDoNotInitialize cDNI; // GCC 2.x forces us to declare a named temporary like this.
+		const typename basic_string<T>::size_type n = (typename basic_string<T>::size_type)len_of_char(p);
+		basic_string<T> result(cDNI, n + b.size());
+		result.append(p, p + n);
+		result.append(b);
+		return result;
+	}
+	template <typename T>
+	basic_string<T> operator+(typename basic_string<T>::value_type c, const basic_string<T>& b)
+	{
+		typedef typename basic_string<T>::CtorDoNotInitialize CtorDoNotInitialize;
+		CtorDoNotInitialize cDNI; // GCC 2.x forces us to declare a named temporary like this.
+		basic_string<T> result(cDNI, 1 + b.size());
+		result.push_back(c);
+		result.append(b);
+		return result;
+	}
+	template <typename T>
+	basic_string<T> operator+(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
+	{
+		typedef typename basic_string<T>::CtorDoNotInitialize CtorDoNotInitialize;
+		CtorDoNotInitialize cDNI; // GCC 2.x forces us to declare a named temporary like this.
+		const typename basic_string<T>::size_type n = (typename basic_string<T>::size_type)len_of_char(p);
+		basic_string<T> result(cDNI, a.size() + n);
+		result.append(a);
+		result.append(p, p + n);
+		return result;
+	}
+	template <typename T>
+	basic_string<T> operator+(const basic_string<T>& a, typename basic_string<T>::value_type c)
+	{
+		typedef typename basic_string<T>::CtorDoNotInitialize CtorDoNotInitialize;
+		CtorDoNotInitialize cDNI; // GCC 2.x forces us to declare a named temporary like this.
+		basic_string<T> result(cDNI, a.size() + 1);
+		result.append(a);
+		result.push_back(c);
+		return result;
+	}
+	template <typename T>
+	basic_string<T> operator+(basic_string<T>&& a, basic_string<T>&& b)
+	{
+		a.append(b); // b is right value, && + & is &.
+		return SG::move(a);
+	}
+	template <typename T>
+	basic_string<T> operator+(basic_string<T>&& a, const basic_string<T>& b)
+	{
+		a.append(b);
+		return SG::move(a);
+	}
+	template <typename T>
+	basic_string<T> operator+(const typename basic_string<T>::value_type* p, basic_string<T>&& b)
+	{
+		b.insert(0, p);
+		return SG::move(b);
+	}
+	template <typename T>
+	basic_string<T> operator+(basic_string<T>&& a, const typename basic_string<T>::value_type* p)
+	{
+		a.append(p);
+		return SG::move(a);
+	}
+	template <typename T>
+	basic_string<T> operator+(basic_string<T>&& a, typename basic_string<T>::value_type c)
+	{
+		a.push_back(c);
+		return SG::move(a);
+	}
+
+	template <typename T>
+	SG_INLINE bool operator==(const basic_string<T>& a, const basic_string<T>& b)
+	{
+		return ((a.size() == b.size()) && (memcmp(a.data(), b.data(), (Size)a.size() * sizeof(typename basic_string<T>::value_type)) == 0));
+	}
+	template <typename T>
+	SG_INLINE bool operator==(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
+	{
+		typedef typename basic_string<T>::size_type size_type;
+		const size_type n = (size_type)len_of_char(p);
+		return ((n == b.size()) && (memcmp(p, b.data(), (size_t)n * sizeof(*p)) == 0));
+	}
+	template <typename T>
+	SG_INLINE bool operator==(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
+	{
+		typedef typename basic_string<T>::size_type size_type;
+		const size_type n = (size_type)len_of_char(p);
+		return ((a.size() == n) && (memcmp(a.data(), p, (size_t)n * sizeof(*p)) == 0));
+	}
+	template <typename T>
+	SG_INLINE bool operator!=(const basic_string<T>& a, const basic_string<T>& b)
+	{
+		return !(a == b);
+	}
+	template <typename T>
+	SG_INLINE bool operator!=(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
+	{
+		return !(p == b);
+	}
+	template <typename T>
+	SG_INLINE bool operator!=(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
+	{
+		return !(a == p);
+	}
+
+	//template <typename T>
+	//SG_INLINE bool operator<(const basic_string<T>& a, const basic_string<T>& b)
+	//{
+	//	return basic_string<T>::compare(a.begin(), a.end(), b.begin(), b.end()) < 0;
+	//}
+	//template <typename T>
+	//SG_INLINE bool operator<(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
+	//{
+	//	typedef typename basic_string<T>::size_type size_type;
+	//	const size_type n = (size_type)CharStrlen(p);
+	//	return basic_string<T>::compare(p, p + n, b.begin(), b.end()) < 0;
+	//}
+	//template <typename T>
+	//SG_INLINE bool operator<(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
+	//{
+	//	typedef typename basic_string<T>::size_type size_type;
+	//	const size_type n = (size_type)CharStrlen(p);
+	//	return basic_string<T>::compare(a.begin(), a.end(), p, p + n) < 0;
+	//}
+
+	//template <typename T>
+	//SG_INLINE bool operator>(const basic_string<T>& a, const basic_string<T>& b)
+	//{
+	//	return b < a;
+	//}
+	//template <typename T>
+	//SG_INLINE bool operator>(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
+	//{
+	//	return b < p;
+	//}
+	//template <typename T>
+	//SG_INLINE bool operator>(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
+	//{
+	//	return p < a;
+	//}
+
+	//template <typename T>
+	//SG_INLINE bool operator<=(const basic_string<T>& a, const basic_string<T>& b)
+	//{
+	//	return !(b < a);
+	//}
+	//template <typename T>
+	//SG_INLINE bool operator<=(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
+	//{
+	//	return !(b < p);
+	//}
+	//template <typename T>
+	//SG_INLINE bool operator<=(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
+	//{
+	//	return !(p < a);
+	//}
+
+	//template <typename T>
+	//SG_INLINE bool operator>=(const basic_string<T>& a, const basic_string<T>& b)
+	//{
+	//	return !(a < b);
+	//}
+	//template <typename T>
+	//SG_INLINE bool operator>=(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
+	//{
+	//	return !(p < b);
+	//}
+	//template <typename T>
+	//SG_INLINE bool operator>=(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
+	//{
+	//	return !(a < p);
+	//}
 
 	/// global swap function
 	template <typename T>
