@@ -384,6 +384,20 @@ namespace SG
 	struct size_of_array<Arr[N]> : public integral_constant<size_t, N * size_of_array<Arr>::value> {};
 	template<class Arr> SG_CONSTEXPR int size_of_array_v = size_of_array<Arr>::value;
 
+	template<typename T> struct make_unsigned { typedef T type; };
+
+	template<> struct make_unsigned<signed char>            { typedef unsigned char            type; };
+	template<> struct make_unsigned<const signed char>      { typedef const unsigned char      type; };
+	template<> struct make_unsigned<signed short>           { typedef unsigned short           type; };
+	template<> struct make_unsigned<const signed short>     { typedef const unsigned short     type; };
+	template<> struct make_unsigned<signed int>             { typedef unsigned int             type; };
+	template<> struct make_unsigned<const signed int>       { typedef const unsigned int       type; };
+	template<> struct make_unsigned<signed long>            { typedef unsigned long            type; };
+	template<> struct make_unsigned<const signed long>      { typedef const unsigned long      type; };
+	template<> struct make_unsigned<signed long long>       { typedef unsigned long long       type; };
+	template<> struct make_unsigned<const signed long long> { typedef const unsigned long long type; };
+	template<typename T> using make_unsigned_t = typename make_unsigned<T>::type;
+
 	template<class T>
 	SG_CONSTEXPR typename remove_ref<T>::type&& move(T&& val) noexcept
 	{

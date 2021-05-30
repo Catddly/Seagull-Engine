@@ -14,7 +14,7 @@ namespace SG
 {
 
 	template<class T>
-	SG_INLINE Size len_of_char(const T* ptr)
+	SG_INLINE Size len_of_char_str(const T* ptr)
 	{
 		const auto* pCurrent = ptr;
 		while (pCurrent && *pCurrent)

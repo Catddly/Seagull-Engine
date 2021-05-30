@@ -18,7 +18,7 @@ namespace SG
 		std::string formatter::format()
 		{
 			auto instance = GetInstance();
-			auto& currFormat = instance->mCurrFormat;
+			std::string& currFormat = instance->mCurrFormat;
 
 			if (currFormat == "")
 				return "";

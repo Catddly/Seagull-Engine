@@ -4,7 +4,7 @@
 //! to avoid some user-side problems
 
 #include "Common/System/ISystem.h"
-#include "Engine/Engine/Engine.h"
+
 #include "Core/Log/Log.h"
 #include "Common/User/IApp.h"
 
@@ -16,6 +16,7 @@ int main(int argv, char** argc)
 	extern IApp* GetAppInstance();
 	IApp* app = GetAppInstance();
 	// TODO: replace to seagull's allocator
+
 	gModules.pLog = New<CLog>();
 	gModules.pLog->SetFormat("[%y:%o:%d]-[%h:%m:%s]"sv);
 

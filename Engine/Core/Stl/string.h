@@ -298,10 +298,22 @@ namespace SG
 		this_type& append(const this_type& x);
 		this_type& append(size_type n, value_type c);
 
+		// main compare
+		static int compare(const value_type* pBeg1, const value_type* pEnd1, const value_type* pBeg2, const value_type* pEnd2);
+
+		// main find
+		size_type find(const value_type* ptr, size_type pos, size_type n) const;
+		size_type find(value_type c, size_type pos) const noexcept;
+
+		//size_type find_first_of(const value_type* p, size_type position, size_type n) const;
+		size_type find_first_of(value_type c, size_type position) const noexcept;
+
 		void resize(size_type n);
 		void reserve(size_type n);
 		//! Reset the capacity to n
 		void set_capacity(size_type n = npos);
+
+		void push_back(value_type c);
 
 		virtual iterator begin() noexcept override               { return mDataLayout.BeginPtr(); }
 		virtual const_iterator begin()  const noexcept override  { return mDataLayout.BeginPtr(); }
@@ -330,6 +342,13 @@ namespace SG
 		//! Expand args and append it to the formatted string
 		this_type& AppendSprintfVaList(const value_type* format, va_list args);
 	};
+
+	template<class T>
+	SG_INLINE void SG::basic_string<T>::clear() noexcept
+	{
+		mDataLayout.SetSize(0);
+		*mDataLayout.BeginPtr() = value_type(0);
+	}
 
 	template<class T>
 	SG_INLINE void SG::basic_string<T>::set_capacity(size_type n /*= npos*/)
@@ -433,6 +452,61 @@ namespace SG
 		return *this;
 	}
 
+	template <typename T>
+	SG_INLINE void basic_string<T>::push_back(value_type c)
+	{
+		append((size_type)1, c);
+	}
+
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::size_type 
+	SG::basic_string<T>::find(const value_type* ptr, size_type pos, size_type n) const
+	{
+		if ((pos + n) <= mDataLayout.GetSize() && (npos - n) >= pos) // if pos is valid
+		{
+			const value_type* const ptr = search(mDataLayout.BeginPtr() + pos, mDataLayout.EndPtr(), ptr, ptr + n);
+			if ((ptr != mDataLayout.EndPtr()) || (n == 0))
+				return (size_type)(ptr - mDataLayout.BeginPtr());
+		}
+		return npos;
+	}
+
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::size_type 
+	SG::basic_string<T>::find(value_type c, size_type pos) const noexcept
+	{
+		if (pos < mDataLayout.GetSize()) // if the position is valid
+		{
+			const const_iterator pResult = SG::find(mDataLayout.BeginPtr() + pos, mDataLayout.EndPtr(), c);
+
+			if (pResult != mDataLayout.EndPtr())
+				return (size_type)(pResult - mDataLayout.BeginPtr());
+		}
+		return npos;
+	}
+
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::size_type 
+	SG::basic_string<T>::find_first_of(value_type c, size_type pos) const noexcept
+	{
+		return basic_string<T>::find(c, pos);
+	}
+
+	//template<class T>
+	//SG_INLINE typename SG::basic_string<T>::size_type 
+	//SG::basic_string<T>::find_first_of(const value_type* p, size_type position, size_type n) const
+	//{
+	//	if (position < mDataLayout.GetSize())
+	//	{
+	//		const value_type* const pBegin = mDataLayout.BeginPtr() + position;
+	//		const const_iterator pResult = CharTypeStringFindFirstOf(pBegin, mDataLayout.EndPtr(), p, p + n);
+
+	//		if (pResult != mDataLayout.EndPtr())
+	//			return (size_type)(pResult - mDataLayout.BeginPtr());
+	//	}
+	//	return npos;
+	//}
+
 	template<class T>
 	SG_INLINE typename SG::basic_string<T>::this_type&
 	SG::basic_string<T>::append(const value_type* pBeg, const value_type* pEnd)
@@ -471,7 +545,7 @@ namespace SG
 	SG_INLINE typename SG::basic_string<T>::this_type&
 	SG::basic_string<T>::append(const value_type* pBeg)
 	{
-		return append(pBeg, pBeg + len_of_char(pBeg));
+		return append(pBeg, pBeg + len_of_char_str(pBeg));
 	}
 
 	template<class T>
@@ -501,6 +575,25 @@ namespace SG
 	}
 
 	template<class T>
+	SG_INLINE int SG::basic_string<T>::compare(const value_type* pBeg1, const value_type* pEnd1, const value_type* pBeg2, const value_type* pEnd2)
+	{
+		const difference_type n1 = pEnd1 - pBeg1;
+		const difference_type n2 = pEnd2 - pBeg2;
+		const size_type nMin = (size_type)SG::smin(n1, n2);
+
+		const int res = SG::compare(pBeg1, pBeg2, nMin);
+
+		if (res != 0)
+			return res;
+		else if (n1 < n2) // if the common part of the string is same, compare the length of the string
+			return -1;
+		else if (n1 > n2)
+			return 1;
+		else
+			return 0;
+	}
+
+	template<class T>
 	SG_INLINE typename SG::basic_string<T>::this_type&
 	SG::basic_string<T>::assign(const this_type& rhs)
 	{
@@ -519,7 +612,7 @@ namespace SG
 	SG_INLINE typename SG::basic_string<T>::this_type&
 	SG::basic_string<T>::assign(const value_type* str)
 	{
-		return assign(str, str + len_of_char(str));
+		return assign(str, str + len_of_char_str(str));
 	}
 
 	template<class T>
@@ -647,7 +740,7 @@ namespace SG
 	SG_INLINE typename SG::basic_string<T>::this_type& 
 	SG::basic_string<T>::insert(size_type position, const value_type* p)
 	{
-		return insert(mDataLayout.BeginPtr() + position, p, p + len_of_char(p));
+		return insert(mDataLayout.BeginPtr() + position, p, p + len_of_char_str(p));
 	}
 
 	template<class T>
@@ -739,7 +832,7 @@ namespace SG
 	template<class T>
 	SG_INLINE SG::basic_string<T>::basic_string(CtorSprintf, const value_type* pFormat, ...)
 	{
-		const size_type size = (size_type)len_of_char(pFormat);
+		const size_type size = (size_type)len_of_char_str(pFormat);
 		DoAllocate(size);
 
 		va_list args;
@@ -761,7 +854,7 @@ namespace SG
 	template<class T>
 	SG_INLINE SG::basic_string<T>::basic_string(const value_type* str)
 	{
-		const size_type strSize = len_of_char(str);
+		const size_type strSize = len_of_char_str(str);
 		DoAllocate(strSize);
 		CopyCharPtrUninitiazed(str, str + strSize, mDataLayout.BeginPtr());
 		mDataLayout.SetSize(strSize);
@@ -829,7 +922,7 @@ namespace SG
 	SG_INLINE typename SG::basic_string<T>::this_type&
 	SG::basic_string<T>::operator=(const value_type* str)
 	{
-		return assign(str, str + len_of_char(str));
+		return assign(str, str + len_of_char_str(str));
 	}
 
 	template<class T>
@@ -894,7 +987,7 @@ namespace SG
 	SG_INLINE typename SG::basic_string<T>::this_type&
 	SG::basic_string<T>::operator+=(const value_type* str)
 	{
-		return append(str, str + len_of_char(str));
+		return append(str, str + len_of_char_str(str));
 	}
 
 	template<class T>
@@ -934,7 +1027,7 @@ namespace SG
 	{
 		typedef typename basic_string<T>::CtorDoNotInitialize CtorDoNotInitialize;
 		CtorDoNotInitialize cDNI; // GCC 2.x forces us to declare a named temporary like this.
-		const typename basic_string<T>::size_type n = (typename basic_string<T>::size_type)len_of_char(p);
+		const typename basic_string<T>::size_type n = (typename basic_string<T>::size_type)len_of_char_str(p);
 		basic_string<T> result(cDNI, n + b.size());
 		result.append(p, p + n);
 		result.append(b);
@@ -955,7 +1048,7 @@ namespace SG
 	{
 		typedef typename basic_string<T>::CtorDoNotInitialize CtorDoNotInitialize;
 		CtorDoNotInitialize cDNI; // GCC 2.x forces us to declare a named temporary like this.
-		const typename basic_string<T>::size_type n = (typename basic_string<T>::size_type)len_of_char(p);
+		const typename basic_string<T>::size_type n = (typename basic_string<T>::size_type)len_of_char_str(p);
 		basic_string<T> result(cDNI, a.size() + n);
 		result.append(a);
 		result.append(p, p + n);
@@ -1011,14 +1104,14 @@ namespace SG
 	SG_INLINE bool operator==(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
 	{
 		typedef typename basic_string<T>::size_type size_type;
-		const size_type n = (size_type)len_of_char(p);
+		const size_type n = (size_type)len_of_char_str(p);
 		return ((n == b.size()) && (memcmp(p, b.data(), (size_t)n * sizeof(*p)) == 0));
 	}
 	template <typename T>
 	SG_INLINE bool operator==(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
 	{
 		typedef typename basic_string<T>::size_type size_type;
-		const size_type n = (size_type)len_of_char(p);
+		const size_type n = (size_type)len_of_char_str(p);
 		return ((a.size() == n) && (memcmp(a.data(), p, (size_t)n * sizeof(*p)) == 0));
 	}
 	template <typename T>
@@ -1037,73 +1130,73 @@ namespace SG
 		return !(a == p);
 	}
 
-	//template <typename T>
-	//SG_INLINE bool operator<(const basic_string<T>& a, const basic_string<T>& b)
-	//{
-	//	return basic_string<T>::compare(a.begin(), a.end(), b.begin(), b.end()) < 0;
-	//}
-	//template <typename T>
-	//SG_INLINE bool operator<(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
-	//{
-	//	typedef typename basic_string<T>::size_type size_type;
-	//	const size_type n = (size_type)CharStrlen(p);
-	//	return basic_string<T>::compare(p, p + n, b.begin(), b.end()) < 0;
-	//}
-	//template <typename T>
-	//SG_INLINE bool operator<(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
-	//{
-	//	typedef typename basic_string<T>::size_type size_type;
-	//	const size_type n = (size_type)CharStrlen(p);
-	//	return basic_string<T>::compare(a.begin(), a.end(), p, p + n) < 0;
-	//}
+	template <typename T>
+	SG_INLINE bool operator<(const basic_string<T>& a, const basic_string<T>& b)
+	{
+		return basic_string<T>::compare(a.begin(), a.end(), b.begin(), b.end()) < 0;
+	}
+	template <typename T>
+	SG_INLINE bool operator<(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
+	{
+		typedef typename basic_string<T>::size_type size_type;
+		const size_type n = (size_type)len_of_char_str(p);
+		return basic_string<T>::compare(p, p + n, b.begin(), b.end()) < 0;
+	}
+	template <typename T>
+	SG_INLINE bool operator<(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
+	{
+		typedef typename basic_string<T>::size_type size_type;
+		const size_type n = (size_type)len_of_char_str(p);
+		return basic_string<T>::compare(a.begin(), a.end(), p, p + n) < 0;
+	}
 
-	//template <typename T>
-	//SG_INLINE bool operator>(const basic_string<T>& a, const basic_string<T>& b)
-	//{
-	//	return b < a;
-	//}
-	//template <typename T>
-	//SG_INLINE bool operator>(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
-	//{
-	//	return b < p;
-	//}
-	//template <typename T>
-	//SG_INLINE bool operator>(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
-	//{
-	//	return p < a;
-	//}
+	template <typename T>
+	SG_INLINE bool operator>(const basic_string<T>& a, const basic_string<T>& b)
+	{
+		return b < a;
+	}
+	template <typename T>
+	SG_INLINE bool operator>(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
+	{
+		return b < p;
+	}
+	template <typename T>
+	SG_INLINE bool operator>(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
+	{
+		return p < a;
+	}
 
-	//template <typename T>
-	//SG_INLINE bool operator<=(const basic_string<T>& a, const basic_string<T>& b)
-	//{
-	//	return !(b < a);
-	//}
-	//template <typename T>
-	//SG_INLINE bool operator<=(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
-	//{
-	//	return !(b < p);
-	//}
-	//template <typename T>
-	//SG_INLINE bool operator<=(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
-	//{
-	//	return !(p < a);
-	//}
+	template <typename T>
+	SG_INLINE bool operator<=(const basic_string<T>& a, const basic_string<T>& b)
+	{
+		return !(b < a);
+	}
+	template <typename T>
+	SG_INLINE bool operator<=(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
+	{
+		return !(b < p);
+	}
+	template <typename T>
+	SG_INLINE bool operator<=(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
+	{
+		return !(p < a);
+	}
 
-	//template <typename T>
-	//SG_INLINE bool operator>=(const basic_string<T>& a, const basic_string<T>& b)
-	//{
-	//	return !(a < b);
-	//}
-	//template <typename T>
-	//SG_INLINE bool operator>=(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
-	//{
-	//	return !(p < b);
-	//}
-	//template <typename T>
-	//SG_INLINE bool operator>=(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
-	//{
-	//	return !(a < p);
-	//}
+	template <typename T>
+	SG_INLINE bool operator>=(const basic_string<T>& a, const basic_string<T>& b)
+	{
+		return !(a < b);
+	}
+	template <typename T>
+	SG_INLINE bool operator>=(const typename basic_string<T>::value_type* p, const basic_string<T>& b)
+	{
+		return !(p < b);
+	}
+	template <typename T>
+	SG_INLINE bool operator>=(const basic_string<T>& a, const typename basic_string<T>::value_type* p)
+	{
+		return !(a < p);
+	}
 
 	/// global swap function
 	template <typename T>
@@ -1141,7 +1234,7 @@ namespace SG
 	SG_INLINE wstring to_wstring(Float64 num) { return wstring{ wstring::CtorSprintf(), L"%f", num }; }
 	SG_INLINE wstring to_wstring(LFloat num) { return wstring{ wstring::CtorSprintf(), L"%Lf", num }; }
 
-	// inline namespace literals
+	SG_DISABLE_MSVC_WARNING(4455) // disable warning: 'operator ""s': literal suffix identifiers that do not start with an underscore are reserved.
 	inline namespace literals
 	{
 		inline namespace string_view_literals
@@ -1152,7 +1245,7 @@ namespace SG
 			SG_INLINE u32string operator ""s(const Char32* str, Size len) noexcept { return { str, u32string::size_type(len) }; }
 		}
 	}
-
+	SG_RESTORE_MSVC_WARNING()
 }
 
 #endif // STRING_H

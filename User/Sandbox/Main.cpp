@@ -100,11 +100,17 @@ private:
 		SG_LOG_DEBUG("%s", str.c_str());
 		str2.assign("Hello!");
 		SG_LOG_DEBUG("%s", str2.c_str());
-		SG_LOG_DEBUG("Is the same? %d", str == str2);
 		string str3(str2);
-		SG_LOG_DEBUG("Is the same? %d", str3 == str2);
 		str3 = str2 + " Fuck!";
-		SG_LOG_DEBUG("%s", str3.c_str());
+		string str4(str);
+		SG_LOG_DEBUG("str is %s", str.c_str());
+		SG_LOG_DEBUG("str2 is %s", str2.c_str());
+		SG_LOG_DEBUG("str3 is %s", str3.c_str());
+		SG_LOG_DEBUG("str4 is %s", str4.c_str());
+		SG_LOG_DEBUG("Is the same? %d", str == str2);
+		SG_LOG_DEBUG("Is the same? %d", str4 == str);
+		SG_LOG_DEBUG("Is str3 > str2? %d", str3 > str2);
+		SG_LOG_DEBUG("Is str > str4? %d", str < str4);
 		SG_LOG_DEBUG("--------------------------StringTest()--------------------------");
 	}
 };

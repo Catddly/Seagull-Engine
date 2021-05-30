@@ -1,4 +1,4 @@
-project "SEngine"
+project "S3DEngine"
     kind "SharedLib"
     language "C++"
     cppdialect "C++17"

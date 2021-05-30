@@ -4,8 +4,9 @@
 #include "Common/Base/INoInstance.h"
 #include "Common/Platform/ISystemTime.h"
 
+//#include "Core/STL/std::string.h"
 #include "Core/STL/type_traits.h"
-// TODO: use SG::string, remove it
+// TODO: use SG::std::string, remove it
 #include <string>
 
 namespace SG

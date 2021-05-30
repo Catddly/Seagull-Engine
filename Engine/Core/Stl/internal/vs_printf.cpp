@@ -1,12 +1,14 @@
 #include "StdAfx.h"
 #include "vs_printf.h"
 
+#ifndef SG_USER_CUSTOM_VS_PRINTF // use c sprintf
+#	include <cwchar>
+#endif
+
 namespace SG
 {
 
 #ifndef SG_USER_CUSTOM_VS_PRINTF // use c sprintf
-#include <stdio.h>
-#include <cwchar>
 	int Vsnprintf(Char8* SG_RESTRICT pDst, Size n, const Char8* SG_RESTRICT format, va_list args)
 	{
 		return vsnprintf(pDst, n, format, args);

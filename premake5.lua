@@ -24,7 +24,7 @@ IncludeDir = { }
 group "Seagull Engine"
 
     include "Engine/Common/"
-    include "Engine/Engine/"
+    include "Engine/3DEngine/"
     include "Engine/Core/"
     include "Engine/Utility/"
     include "Engine/Renderer/"
@@ -79,7 +79,7 @@ group "User"
         links
         {
             "mimalloc",
-            "SEngine",
+            "S3DEngine",
             "SCore",
         }
 

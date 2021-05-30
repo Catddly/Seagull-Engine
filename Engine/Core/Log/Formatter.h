@@ -3,7 +3,8 @@
 
 #include "Common/Base/ISingleton.h"
 
-#include "Core/STL/string_view.h"
+#include "Core/STL/string.h"
+//#include "Core/STL/string_view.h"
 #include <string>
 
 namespace SG

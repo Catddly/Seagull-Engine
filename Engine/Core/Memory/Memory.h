@@ -13,13 +13,15 @@ namespace SG
 		return new (ptr)T(SG::forward<Args>(args)...);
 	}
 
-	template <typename T, typename... Args> T* New(Args&&... args)
+	template <typename T, typename... Args> 
+	T* New(Args&&... args)
 	{
 		T* ptr = reinterpret_cast<T*>(Malloc(sizeof(T)));
 		return PlacementNew<T>(ptr, SG::forward<Args>(args)...);
 	}
 
-	template <typename T, typename... Args> T* NewAlign(Size alignment, Args&&... args)
+	template <typename T, typename... Args> 
+	T* NewAlign(Size alignment, Args&&... args)
 	{
 		T* ptr = reinterpret_cast<T*>(MallocAlign(sizeof(T), alignment));
 		return PlacementNew<T>(ptr, SG::forward<Args>(args)...);

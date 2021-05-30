@@ -59,3 +59,18 @@
 #		define SG_RESTRICT
 #	endif
 #endif
+
+#ifdef SG_COMPILER_MSVC
+#	define SG_DISABLE_MSVC_WARNING(CODE) \
+		__pragma(warning(push))          \
+		__pragma(warning(disable:CODE))
+#else
+#	define SG_DISABLE_MSVC_WARNING(CODE)
+#endif
+
+#ifdef SG_COMPILER_MSVC
+#	define SG_RESTORE_MSVC_WARNING() \
+		__pragma(warning(pop))
+#else
+#	define SG_RESTORE_MSVC_WARNING()
+#endif
