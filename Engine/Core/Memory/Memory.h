@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Common/Core/Defs.h"
-#include "Common/Memory/IMemory.h"
 #include "Core/STL/type_traits.h"
+
+#include "Common/Memory/IMemory.h"
 
 namespace SG
 {

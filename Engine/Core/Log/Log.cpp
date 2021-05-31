@@ -8,7 +8,7 @@ namespace SG
 
 	char CLog::sBuffer[SG_LOG_BUFFER_SIZE] = { 0 };
 
-	void CLog::LogToConsole(ELogLevel logLevel, const char* format, ...) const
+	void CLog::LogToConsole(ELogLevel logLevel, const char* format, ...)
 	{
 		UInt32 offset = 0;
 
@@ -55,9 +55,9 @@ namespace SG
 		}
 	}
 
-	void CLog::PrintPrefix() const
+	void CLog::PrintPrefix()
 	{
-		printf("%s ", fmt::formatter::format().c_str());
+		printf("%s ", mFormatter.GetFormattedString().c_str());
 	}
 
 }

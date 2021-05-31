@@ -22,20 +22,19 @@ namespace SG
 		return (Size)(pCurrent - ptr);
 	}
 
+	SG_INLINE Char8* assign_char_n(Char8* pDst, Size n, const Char8 c)
+	{
+		if (n != 0)
+			memset(pDst, (UInt8)c, (Size)n);
+		return pDst + n;
+	}
+
 	template<class T>
 	SG_INLINE T* assign_char_n(T* pDst, Size n, T c)
 	{
 		const T* const pEnd = pDst + n;
 		while (pDst < pEnd)
 			*(pDst++) = c;
-		return pDst + n;
-	}
-
-	template<>
-	SG_INLINE Char8* assign_char_n<Char8>(Char8* pDst, Size n, Char8 c)
-	{
-		if (n != 0)
-			return (Char8*)memset(pDst, c, n * sizeof(Char8));
 		return pDst + n;
 	}
 

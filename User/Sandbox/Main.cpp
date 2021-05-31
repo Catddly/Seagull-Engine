@@ -107,10 +107,19 @@ private:
 		SG_LOG_DEBUG("str2 is %s", str2.c_str());
 		SG_LOG_DEBUG("str3 is %s", str3.c_str());
 		SG_LOG_DEBUG("str4 is %s", str4.c_str());
+
 		SG_LOG_DEBUG("Is the same? %d", str == str2);
 		SG_LOG_DEBUG("Is the same? %d", str4 == str);
 		SG_LOG_DEBUG("Is str3 > str2? %d", str3 > str2);
 		SG_LOG_DEBUG("Is str > str4? %d", str < str4);
+
+		SG_LOG_DEBUG("First 'l' of str2: %d", str2.find_first_of('l', 0));
+		SG_LOG_DEBUG("First 'l' of str2: %d", str2.find_first_of('lo', 0));
+		SG_LOG_DEBUG("Find 'F' of str3: %d", str3.find('F'));
+		str3.push_back('F');
+		SG_LOG_DEBUG("%s", str3.c_str());
+		str3.append(str);
+		SG_LOG_DEBUG("%s", str3.c_str());
 		SG_LOG_DEBUG("--------------------------StringTest()--------------------------");
 	}
 };

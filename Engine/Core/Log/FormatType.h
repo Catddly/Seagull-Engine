@@ -4,10 +4,8 @@
 #include "Common/Base/INoInstance.h"
 #include "Common/Platform/ISystemTime.h"
 
-//#include "Core/STL/std::string.h"
-#include "Core/STL/type_traits.h"
-// TODO: use SG::std::string, remove it
-#include <string>
+#include "Core/Stl/type_traits.h"
+#include "Core/Stl/string.h"
 
 namespace SG
 {
@@ -17,28 +15,28 @@ namespace SG
 		//! dummy struct for complete type
 		struct SBaseFormat : private INoInstance
 		{
-			static std::string GetDescription() { return ""; }
+			static string GetDescription() { return ""; }
 		};
 		//! Time format
 		struct STimeFormat : public SBaseFormat
 		{
-			static std::string GetDescription() { return ""; }
+			static string GetDescription() { return ""; }
 		};
 		//! Year of the system (%y)
 		struct STimeYearFormat : public STimeFormat
 		{
-			static std::string GetDescription() 
+			static string GetDescription() 
 			{
-				auto str = std::to_string(GetSystemTimeYear());
+				auto str = to_string(GetSystemTimeYear());
 				return SG::move(str);
 			}
 		};
 		//! Month of the system (%o)
 		struct STimeMonthFormat : public STimeFormat
 		{
-			static std::string GetDescription()
+			static string GetDescription()
 			{
-				auto str = std::to_string(GetSystemTimeMonth());
+				auto str = SG::to_string(GetSystemTimeMonth());
 				str = str.size() == 1 ? '0' + str : str;
 				return SG::move(str);
 			}
@@ -46,9 +44,9 @@ namespace SG
 		//! Day of the system (%d)
 		struct STimeDayFormat : public STimeFormat
 		{
-			static std::string GetDescription()
+			static string GetDescription()
 			{
-				auto str = std::to_string(GetSystemTimeDay());
+				auto str = SG::to_string(GetSystemTimeDay());
 				str = str.size() == 1 ? '0' + str : str;
 				return SG::move(str);
 			}
@@ -56,9 +54,9 @@ namespace SG
 		//! Hour in 24-hour system (%h)
 		struct STimeHourFormat : public STimeFormat
 		{
-			static std::string GetDescription()
+			static string GetDescription()
 			{
-				auto str = std::to_string(GetSystemTimeHour());
+				auto str = SG::to_string(GetSystemTimeHour());
 				str = str.size() == 1 ? '0' + str : str;
 				return SG::move(str);
 			}
@@ -66,19 +64,20 @@ namespace SG
 		//! Minute in 60-minute system (%m)
 		struct STimeMinuteFormat : public STimeFormat
 		{
-			static std::string GetDescription()
+			static string GetDescription()
 			{
-				auto str = std::to_string(GetSystemTimeMinute());
-				str = str.size() == 1 ? '0' + str : str;
+				auto str = SG::to_string(GetSystemTimeMinute());
+				if (str.size() == 1)
+					str = str.size() == 1 ? '0' + str : str;
 				return SG::move(str);
 			}
 		};
 		//! Second in 60-second system (%s)
 		struct STimeSecondFormat : public STimeFormat
 		{
-			static std::string GetDescription()
+			static string GetDescription()
 			{
-				auto str = std::to_string(GetSystemTimeSecond());
+				auto str = SG::to_string(GetSystemTimeSecond());
 				str = str.size() == 1 ? '0' + str : str;
 				return SG::move(str);
 			}
@@ -86,16 +85,16 @@ namespace SG
 
 		struct SThreadFormat : public SBaseFormat
 		{
-			std::string threadName;
-			Size        threadId;
-			static std::string GetDescription()
+			string threadName;
+			Size   threadId;
+			static string GetDescription()
 			{
 				return "!Thread!";
 			}
 		};
 
 		template <typename T>
-		std::string format_type()
+		string format_type()
 		{
 			SG_COMPILE_ASSERT((SG::is_base_of<SBaseFormat, T>::value));
 			return SG::move(T::GetDescription());

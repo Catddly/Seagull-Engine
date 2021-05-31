@@ -1,23 +1,23 @@
 #include "StdAfx.h"
-#include "Engine.h"
+#include "3DEngine.h"
 
 #include "Common/System/ISystem.h"
-#include "Core/Log/Log.h"
+#include "Common/System/ILog.h"
 
 namespace SG
 {
 
-	void CEngine::OnInit()
+	void C3DEngine::OnInit()
 	{
 		SG_LOG_INFO("Engine OnInit()");
 	}
 
-	void CEngine::OnUpdate()
+	void C3DEngine::OnUpdate()
 	{
 		SG_LOG_INFO("Engine OnUpdate()");
 	}
 
-	void CEngine::OnShutdown()
+	void C3DEngine::OnShutdown()
 	{
 		SG_LOG_INFO("Engine OnExit()");
 	}

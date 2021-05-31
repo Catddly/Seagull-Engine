@@ -6,7 +6,7 @@
 namespace SG
 {
 
-	class SG_ENGINE_API CEngine final : public I3DEngine
+	class SG_ENGINE_API C3DEngine final : public I3DEngine
 	{
 	public:
 		//! Engine core initialization

@@ -32,7 +32,7 @@ project "SCore"
 
     links
     {
-        "mimalloc",
+        "mimalloc-static",
     }
 
     filter "system:windows"

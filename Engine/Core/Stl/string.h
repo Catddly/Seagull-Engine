@@ -16,6 +16,7 @@
 #include "string_view.h"
 #include "internal/vs_printf.h"
 
+#include <utility>
 #include <cstdarg>
 
 namespace SG
@@ -216,8 +217,8 @@ namespace SG
 
 			// use the RawDataLayout structure, we can easily do modification to the memory
 			SG_INLINE void Copy(Layout& dst, const Layout& src) noexcept { dst.raw = src.raw; }
-			SG_INLINE void Move(Layout& dst, Layout& src) noexcept { std::swap(dst.raw, src.raw); }
-			SG_INLINE void Swap(Layout& a, Layout& b) noexcept     { std::swap(a.raw, b.raw); }
+			SG_INLINE void Move(Layout& dst, Layout& src) noexcept       { std::swap(dst.raw, src.raw); }
+			SG_INLINE void Swap(Layout& a, Layout& b) noexcept           { std::swap(a.raw, b.raw); }
 
 			//! Reset all the layout memory
 			SG_INLINE void ResetToSSO() noexcept { memset(&raw, 0, sizeof(RawDataLayout)); }
@@ -233,7 +234,7 @@ namespace SG
 		//! no size initialization
 		struct CtorDoNotInitialize {};
 
-		basic_string() = default;
+		basic_string() { mDataLayout.ResetToSSO(); mDataLayout.SetSSOSize(0); };
 		basic_string(const value_type* str);
 		basic_string(const value_type* str, size_type n);
 		basic_string(const value_type* pBeg, const value_type* pEnd);
@@ -303,10 +304,15 @@ namespace SG
 
 		// main find
 		size_type find(const value_type* ptr, size_type pos, size_type n) const;
-		size_type find(value_type c, size_type pos) const noexcept;
+		size_type find(value_type c, size_type pos = 0) const noexcept;
+		size_type find(const value_type* ptr, size_type pos = 0) const;
+		size_type find(const this_type& x, size_type pos = 0) const noexcept;
 
-		//size_type find_first_of(const value_type* p, size_type position, size_type n) const;
-		size_type find_first_of(value_type c, size_type position) const noexcept;
+		// main find_first_of
+		size_type find_first_of(const value_type* ptr, size_type pos, size_type n) const;
+		size_type find_first_of(value_type c, size_type pos = 0) const noexcept;
+		size_type find_first_of(const value_type* ptr, size_type pos = 0) const;
+		size_type find_first_of(const this_type& x, size_type pos = 0) const noexcept;
 
 		void resize(size_type n);
 		void reserve(size_type n);
@@ -331,17 +337,35 @@ namespace SG
 		virtual const_reverse_iterator rend()  const noexcept override { return const_reverse_iterator(mDataLayout.BeginPtr()); }
 		virtual const_reverse_iterator crend() const noexcept override { return const_reverse_iterator(mDataLayout.BeginPtr()); }
 	protected:
-		//! Allocate memory depend on SSO or heap
+		//! Allocate memory depend on SSO or heap.
 		void DoAllocate(size_type n);
-		//! Deallocate memory depend on heap (If it is stack, do nothing)
+		//! Deallocate memory depend on heap (If it is stack, do nothing).
 		void DoDeallocate();
-		//! Safely copy string of chars
+		//! Safely copy string of chars.
 		value_type* CopyCharPtrUninitiazed(const value_type* pBeg, const value_type* pEnd, value_type* pDst);
-		//! DoubleReserved if using heap, otherwise use the SSO_CAPACITY
+		//! DoubleReserved if using heap, otherwise use the SSO_CAPACITY.
 		size_type DoubleReserved(size_type currCapacity);
-		//! Expand args and append it to the formatted string
+		//! Expand args and append it to the formatted string.
 		this_type& AppendSprintfVaList(const value_type* format, va_list args);
+		//! Find first same value of two strings [pBeg1, pEnd1) and [pBeg2, pEnd2).
+		//! Complexity: O(n^2) depend on the length of two strings
+		value_type* CharTypeStringFindFirstOf(const value_type* pBeg1, const value_type* pEnd1, const value_type* pBeg2, const value_type* pEnd2);
 	};
+
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::value_type* 
+	SG::basic_string<T>::CharTypeStringFindFirstOf(const value_type* pBeg1, const value_type* pEnd1, const value_type* pBeg2, const value_type* pEnd2)
+	{
+		for (; pBeg1 != pEnd1; ++pBeg1)
+		{
+			for (const value_type* pTemp = pBeg2; pTemp != pEnd2; ++pTemp)
+			{
+				if (*pBeg1 == *pTemp)
+					return pBeg1;
+			}
+		}
+		return pEnd1;
+	}
 
 	template<class T>
 	SG_INLINE void SG::basic_string<T>::clear() noexcept
@@ -464,7 +488,7 @@ namespace SG
 	{
 		if ((pos + n) <= mDataLayout.GetSize() && (npos - n) >= pos) // if pos is valid
 		{
-			const value_type* const ptr = search(mDataLayout.BeginPtr() + pos, mDataLayout.EndPtr(), ptr, ptr + n);
+			const value_type* const ptr = SG::search(mDataLayout.BeginPtr() + pos, mDataLayout.EndPtr(), ptr, ptr + n);
 			if ((ptr != mDataLayout.EndPtr()) || (n == 0))
 				return (size_type)(ptr - mDataLayout.BeginPtr());
 		}
@@ -487,25 +511,53 @@ namespace SG
 
 	template<class T>
 	SG_INLINE typename SG::basic_string<T>::size_type 
-	SG::basic_string<T>::find_first_of(value_type c, size_type pos) const noexcept
+	SG::basic_string<T>::find(const value_type* ptr, size_type pos /*= 0*/) const
 	{
-		return basic_string<T>::find(c, pos);
+		return find(ptr, pos, (size_type)len_of_char_str(ptr));
 	}
 
-	//template<class T>
-	//SG_INLINE typename SG::basic_string<T>::size_type 
-	//SG::basic_string<T>::find_first_of(const value_type* p, size_type position, size_type n) const
-	//{
-	//	if (position < mDataLayout.GetSize())
-	//	{
-	//		const value_type* const pBegin = mDataLayout.BeginPtr() + position;
-	//		const const_iterator pResult = CharTypeStringFindFirstOf(pBegin, mDataLayout.EndPtr(), p, p + n);
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::size_type 
+	SG::basic_string<T>::find(const this_type& x, size_type pos /*= 0*/) const noexcept
+	{
+		return find(x.mDataLayout.BeginPtr(), position, x.mDataLayout.GetSize());
+	}
 
-	//		if (pResult != mDataLayout.EndPtr())
-	//			return (size_type)(pResult - mDataLayout.BeginPtr());
-	//	}
-	//	return npos;
-	//}
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::size_type 
+	SG::basic_string<T>::find_first_of(value_type c, size_type pos) const noexcept
+	{
+		return find(c, pos);
+	}
+
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::size_type 
+	SG::basic_string<T>::find_first_of(const value_type* ptr, size_type position, size_type n) const
+	{
+		if (pos < mDataLayout.GetSize())
+		{
+			const value_type* const pBeg = mDataLayout.BeginPtr() + pos;
+			const const_iterator pRes = CharTypeStringFindFirstOf(pBeg, mDataLayout.EndPtr(), ptr, ptr + n);
+
+			if (pRes != mDataLayout.EndPtr())
+				return (size_type)(pRes - mDataLayout.BeginPtr());
+		}
+		return npos;
+	}
+
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::size_type 
+	SG::basic_string<T>::find_first_of(const this_type& x, size_type pos /*= 0*/) const noexcept
+	{
+		return find_first_of(x.mDataLayout.BeginPtr(), pos, x.mDataLayout.GetSize());
+	}
+
+	template<class T>
+	SG_INLINE typename SG::basic_string<T>::size_type
+	SG::basic_string<T>::find_first_of(const value_type* ptr, size_type pos /*= 0*/) const
+	{
+		return find_first_of(ptr, pos, (size_type)len_of_char_str(ptr));
+	}
 
 	template<class T>
 	SG_INLINE typename SG::basic_string<T>::this_type&
@@ -556,7 +608,7 @@ namespace SG
 		const size_type cap = capacity();
 
 		if (oldSize + n > cap)
-			reserve(smax(DoubleReserved(cap), oldSize + n));
+			reserve(smax(DoubleReserved(cap), (oldSize + n)));
 
 		if (n > 0)
 		{
@@ -822,7 +874,7 @@ namespace SG
 	}
 
 	template<class T>
-	SG_INLINE SG::basic_string<T>::basic_string(CtorDoNotInitialize, size_type n)
+	SG::basic_string<T>::basic_string(CtorDoNotInitialize, size_type n)
 	{
 		DoAllocate(n);
 		// no set mDataLayout.SetSize(n) here, just have the memory ready
@@ -830,7 +882,7 @@ namespace SG
 	}
 
 	template<class T>
-	SG_INLINE SG::basic_string<T>::basic_string(CtorSprintf, const value_type* pFormat, ...)
+	SG::basic_string<T>::basic_string(CtorSprintf, const value_type* pFormat, ...)
 	{
 		const size_type size = (size_type)len_of_char_str(pFormat);
 		DoAllocate(size);
@@ -893,7 +945,7 @@ namespace SG
 	}
 
 	template<class T>
-	SG_INLINE SG::basic_string<T>::basic_string(const this_type& x, size_type position, size_type n /*= npos*/)
+	SG::basic_string<T>::basic_string(const this_type& x, size_type position, size_type n /*= npos*/)
 	{
 		auto pBeg = x.mDataLayout.BeginPtr() + position;
 		auto pEnd = x.mDataLayout.BeginPtr() + position + min(n, x.mDataLayout.GetSize() - position);
@@ -905,7 +957,7 @@ namespace SG
 	}
 
 	template<class T>
-	SG_INLINE SG::basic_string<T>::basic_string(this_type&& x) noexcept
+	SG::basic_string<T>::basic_string(this_type&& x) noexcept
 	{
 		mDataLayout = SG::move(x.mDataLayout);
 		x.mDataLayout.ResetToSSO();
@@ -1036,9 +1088,9 @@ namespace SG
 	template <typename T>
 	basic_string<T> operator+(typename basic_string<T>::value_type c, const basic_string<T>& b)
 	{
-		typedef typename basic_string<T>::CtorDoNotInitialize CtorDoNotInitialize;
-		CtorDoNotInitialize cDNI; // GCC 2.x forces us to declare a named temporary like this.
-		basic_string<T> result(cDNI, 1 + b.size());
+		//typedef typename basic_string<T>::CtorDoNotInitialize CtorDoNotInitialize;
+		//CtorDoNotInitialize cDNI; // GCC 2.x forces us to declare a named temporary like this.
+		basic_string<T> result(basic_string<T>::CtorDoNotInitialize(), 1 + b.size());
 		result.push_back(c);
 		result.append(b);
 		return result;

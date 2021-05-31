@@ -16,7 +16,7 @@ project "mimalloc"
         "source/alloc-posix.c",
         "source/arena.c",
         "source/bitmap.c",
-        "source/bitmap.h",
+        --"source/bitmap.h",
         "source/heap.c",
         "source/init.c",
         "source/options.c",
@@ -30,8 +30,12 @@ project "mimalloc"
 
     defines
     {
+        "WIN32",
+        "_WINDOWS",
         "MI_SHARED_LIB",
         "MI_SHARED_LIB_EXPORT",
+        "MI_MALLOC_OVERRIDE",
+        "mimalloc_EXPORTS",
     }
 
     includedirs

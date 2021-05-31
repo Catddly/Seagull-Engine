@@ -25,8 +25,10 @@ namespace SG
 	//! Abstraction of the logger
 	struct SG_COMMON_API ILog
 	{
+		virtual ~ILog() = default;
+
 		//! Log to console with printf-like format
-		virtual void LogToConsole(ELogLevel logLevel, const char* format, ...) const = 0;
+		virtual void LogToConsole(ELogLevel logLevel, const char* format, ...) = 0;
 		//! Set log format
 		virtual void SetFormat(string_view format) = 0;
 
