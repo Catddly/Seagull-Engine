@@ -127,8 +127,8 @@ namespace SG
 			Layout() { ResetToSSO(); SetSSOSize(0); } // start as SSO by default
 			Layout(const Layout& other) { Copy(*this, other); }
 			Layout(Layout&& other)      { Move(*this, other); }
-			Layout& operator=(const Layout& other) { Copy(*this, other); return *this; }
-			Layout& operator=(Layout&& other)      { Move(*this, other); return *this; }
+			Layout& operator=(const Layout& other) noexcept { Copy(*this, other); return *this; }
+			Layout& operator=(Layout&& other)      noexcept { Move(*this, other); return *this; }
 
 			//! We are using heap when the bit is set.
 			//! Easier to conceptualize checking IsHeap instead of IsSSO

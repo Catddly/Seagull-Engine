@@ -12,7 +12,7 @@ namespace SG
 		//! %h, %m, %s are system hour, minute and second
 		//! %y, %o, %d are system year, month and day
 		//! %t means thread name
-		class SG_CORE_API CFormatter
+		class CFormatter
 		{
 		public:
 			CFormatter() = default;
