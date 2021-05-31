@@ -266,7 +266,7 @@ namespace SG
 		this_type& operator=(const value_type* p);
 		this_type& operator=(const this_type& x);
 		this_type& operator=(view_type v);
-		this_type& operator=(this_type&& x);
+		this_type& operator=(this_type&& x) noexcept;
 		this_type& operator=(value_type c);
 
 		reference       operator[](size_type n);
@@ -874,16 +874,18 @@ namespace SG
 	}
 
 	template<class T>
-	SG::basic_string<T>::basic_string(CtorDoNotInitialize, size_type n)
+	SG::basic_string<T>::basic_string(CtorDoNotInitialize cdni, size_type n)
 	{
+		SG_NO_USE(cdni);
 		DoAllocate(n);
 		// no set mDataLayout.SetSize(n) here, just have the memory ready
 		*mDataLayout.EndPtr() = 0;
 	}
 
 	template<class T>
-	SG::basic_string<T>::basic_string(CtorSprintf, const value_type* pFormat, ...)
+	SG::basic_string<T>::basic_string(CtorSprintf spf, const value_type* pFormat, ...)
 	{
+		SG_NO_USE(spf);
 		const size_type size = (size_type)len_of_char_str(pFormat);
 		DoAllocate(size);
 
@@ -994,7 +996,7 @@ namespace SG
 
 	template<class T>
 	SG_INLINE typename SG::basic_string<T>::this_type&
-	SG::basic_string<T>::operator=(this_type&& x)
+	SG::basic_string<T>::operator=(this_type&& x) noexcept
 	{
 		return assign(SG::move(x));
 	}
@@ -1088,9 +1090,9 @@ namespace SG
 	template <typename T>
 	basic_string<T> operator+(typename basic_string<T>::value_type c, const basic_string<T>& b)
 	{
-		//typedef typename basic_string<T>::CtorDoNotInitialize CtorDoNotInitialize;
-		//CtorDoNotInitialize cDNI; // GCC 2.x forces us to declare a named temporary like this.
-		basic_string<T> result(basic_string<T>::CtorDoNotInitialize(), 1 + b.size());
+		typedef typename basic_string<T>::CtorDoNotInitialize CtorDoNotInitialize;
+		CtorDoNotInitialize cDNI; // GCC 2.x forces us to declare a named temporary like this.
+		basic_string<T> result(cDNI, 1 + b.size());
 		result.push_back(c);
 		result.append(b);
 		return result;
