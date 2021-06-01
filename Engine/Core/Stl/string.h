@@ -16,7 +16,6 @@
 #include "string_view.h"
 #include "internal/vs_printf.h"
 
-#include <utility>
 #include <cstdarg>
 
 namespace SG
@@ -125,8 +124,8 @@ namespace SG
 			};
 
 			Layout() { ResetToSSO(); SetSSOSize(0); } // start as SSO by default
-			Layout(const Layout& other) { Copy(*this, other); }
-			Layout(Layout&& other)      { Move(*this, other); }
+			Layout(const Layout& other)          { Copy(*this, other); }
+			Layout(Layout&& other)      noexcept { Move(*this, other); }
 			Layout& operator=(const Layout& other) noexcept { Copy(*this, other); return *this; }
 			Layout& operator=(Layout&& other)      noexcept { Move(*this, other); return *this; }
 
@@ -217,8 +216,8 @@ namespace SG
 
 			// use the RawDataLayout structure, we can easily do modification to the memory
 			SG_INLINE void Copy(Layout& dst, const Layout& src) noexcept { dst.raw = src.raw; }
-			SG_INLINE void Move(Layout& dst, Layout& src) noexcept       { std::swap(dst.raw, src.raw); }
-			SG_INLINE void Swap(Layout& a, Layout& b) noexcept           { std::swap(a.raw, b.raw); }
+			SG_INLINE void Move(Layout& dst, Layout& src) noexcept       { SG::swap(dst.raw, src.raw); }
+			SG_INLINE void Swap(Layout& a, Layout& b) noexcept           { SG::swap(a.raw, b.raw); }
 
 			//! Reset all the layout memory
 			SG_INLINE void ResetToSSO() noexcept { memset(&raw, 0, sizeof(RawDataLayout)); }
@@ -234,7 +233,7 @@ namespace SG
 		//! no size initialization
 		struct CtorDoNotInitialize {};
 
-		basic_string() { mDataLayout.ResetToSSO(); mDataLayout.SetSSOSize(0); };
+		basic_string();
 		basic_string(const value_type* str);
 		basic_string(const value_type* str, size_type n);
 		basic_string(const value_type* pBeg, const value_type* pEnd);
@@ -824,7 +823,7 @@ namespace SG
 	{
 		if (mDataLayout.IsSSO() && x.mDataLayout.IsSSO()) // on stack
 		{
-			std::swap(mDataLayout, x.mDataLayout);
+			SG::swap(mDataLayout, x.mDataLayout);
 		}
 		else
 		{
@@ -893,6 +892,13 @@ namespace SG
 		va_start(args, pFormat);
 		AppendSprintfVaList(pFormat, args);
 		va_end(args);
+	}
+
+	template<class T>
+	SG_INLINE SG::basic_string<T>::basic_string()
+	{
+		mDataLayout.ResetToSSO();
+		mDataLayout.SetSSOSize(0);
 	}
 
 	template<class T>
@@ -1288,18 +1294,19 @@ namespace SG
 	SG_INLINE wstring to_wstring(Float64 num) { return wstring{ wstring::CtorSprintf(), L"%f", num }; }
 	SG_INLINE wstring to_wstring(LFloat num) { return wstring{ wstring::CtorSprintf(), L"%Lf", num }; }
 
-	SG_DISABLE_MSVC_WARNING(4455) // disable warning: 'operator ""s': literal suffix identifiers that do not start with an underscore are reserved.
-	inline namespace literals
-	{
-		inline namespace string_view_literals
-		{
-			SG_INLINE string    operator ""s(const Char* str, Size len) noexcept { return { str, string::size_type(len) }; }
-			SG_INLINE wstring   operator ""s(const WChar* str, Size len) noexcept { return { str, wstring::size_type(len) }; }
-			SG_INLINE u16string operator ""s(const Char16* str, Size len) noexcept { return { str, u16string::size_type(len) }; }
-			SG_INLINE u32string operator ""s(const Char32* str, Size len) noexcept { return { str, u32string::size_type(len) }; }
-		}
-	}
-	SG_RESTORE_MSVC_WARNING()
+	//SG_DISABLE_MSVC_WARNING(4455) // disable warning: 'operator ""s': literal suffix identifiers that do not start with an underscore are reserved.
+	//inline namespace literals
+	//{
+	//	inline namespace string_view_literals
+	//	{
+	//		SG_INLINE string    operator ""s(const Char* str, Size len) noexcept { return { str, string::size_type(len) }; }
+	//		SG_INLINE wstring   operator ""s(const WChar* str, Size len) noexcept { return { str, wstring::size_type(len) }; }
+	//		SG_INLINE u16string operator ""s(const Char16* str, Size len) noexcept { return { str, u16string::size_type(len) }; }
+	//		SG_INLINE u32string operator ""s(const Char32* str, Size len) noexcept { return { str, u32string::size_type(len) }; }
+	//	}
+	//}
+	//SG_RESTORE_MSVC_WARNING()
+
 }
 
 #endif // STRING_H

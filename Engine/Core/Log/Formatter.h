@@ -3,7 +3,6 @@
 
 #include "Core/STL/string.h"
 #include "Core/STL/string_view.h"
-#include <string>
 
 namespace SG
 {
@@ -16,7 +15,6 @@ namespace SG
 		{
 		public:
 			CFormatter() = default;
-			explicit CFormatter(string_view format);
 			~CFormatter() = default;
 
 			//! Set the format of the formatter.

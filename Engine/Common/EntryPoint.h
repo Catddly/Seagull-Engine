@@ -6,6 +6,7 @@
 #include "Common/System/ISystem.h"
 #include "Common/User/IApp.h"
 
+// Seagull's internal modules implementation
 #include "Core/Log/Log.h"
 #include "3DEngine/3DEngine/3DEngine.h"
 

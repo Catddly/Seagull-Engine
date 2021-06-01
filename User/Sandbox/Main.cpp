@@ -55,16 +55,6 @@ private:
 
 		SG_LOG_ITERABLE(ELogLevel::eLOG_LEVEL_DEBUG, vec2);
 		SG_LOG_ITERABLE_R(ELogLevel::eLOG_LEVEL_DEBUG, vec2);
-
-		//SG_LOG_DEBUG("Dim of arr is %d", rank_v<int[2][3]>);
-		//SG_LOG_DEBUG("Dim of arr is %d", rank_v<int[2][3][2]>);
-		//SG_LOG_DEBUG("Dim of arr is %d", rank_v<int[2]>);
-		//SG_LOG_DEBUG("Dim of arr is %d", rank_v<int>);
-
-		//SG_LOG_DEBUG("Size of arr is %d", size_of_array<int[2][4]>::value);
-		//SG_LOG_DEBUG("Size of arr is %d", size_of_array<double[2][4][2]>::value);
-		//SG_LOG_DEBUG("Size of arr is %d", size_of_array<char[4]>::value);
-		//SG_LOG_DEBUG("Size of arr is %d", size_of_array<int>::value);
 		SG_LOG_DEBUG("--------------------------VectorTest()--------------------------");
 	}
 

@@ -7,15 +7,14 @@
 
 #include "Common/Core/Defs.h"
 #include "Common/Base/BasicTypes.h"
-#include "Common/Base/INoInstance.h"
-#include "Core/STL/type_traits.h"
+#include "../type_traits.h"
 
 namespace SG
 {
 
 	/// tags of iterator category
-	struct input_iterator_tag  : private INoInstance {};
-	struct output_iterator_tag : private INoInstance {};
+	struct input_iterator_tag  {};
+	struct output_iterator_tag {};
 	//! on one direction, it is iterable
 	struct forward_iterator_tag : public input_iterator_tag {};
 	//! both forward and backward, it is iterable

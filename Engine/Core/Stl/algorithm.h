@@ -150,6 +150,22 @@ namespace SG
 		return first1;
 	}
 
+	template<class T>
+	SG_INLINE void swap(T& lhs, T& rhs)
+	{
+		T temp = SG::move(lhs);
+		lhs = SG::move(rhs);
+		rhs = SG::move(temp);
+	}
+
+	//template <typename T>
+	//inline void swap(T& a, T& b) noexcept(is_nothrow_move_constructible<T>::value && is_nothrow_move_assignable<T>::value)
+	//{
+	//	T temp(SG::move(a));  // EASTL_MOVE uses EASTL::move when available, else is a no-op.
+	//	a = SG::move(b);
+	//	b = SG::move(temp);
+	//}
+
 }
 
 #endif // ALGORITHM_H

@@ -5,13 +5,15 @@
 
 #include "Common/Memory/IMemory.h"
 
+#include <vcruntime_new.h> // for correct placement new operation
+
 namespace SG
 {
 
 	template <typename T, typename... Args>
 	T* PlacementNew(void* ptr, Args&&... args)
 	{
-		return new (ptr)T(SG::forward<Args>(args)...);
+		return ::new (ptr)T(SG::forward<Args>(args)...);
 	}
 
 	template <typename T, typename... Args> 

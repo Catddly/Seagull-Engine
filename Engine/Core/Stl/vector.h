@@ -11,6 +11,8 @@
 #include "Core/STL/type_traits.h"
 #include "Core/STL/internal/copy_and_move.h"
 
+#include "algorithm.h"
+
 #include "Common/Memory/IMemory.h"
 
 namespace SG
@@ -137,9 +139,9 @@ namespace SG
 	template <typename T>
 	SG_INLINE void SG::vector<T>::swap(this_type& vec)
 	{
-		std::swap(mBegin, vec.mBegin);
-		std::swap(mEnd, vec.mEnd);
-		std::swap(mCapacity, vec.mCapacity);
+		SG::swap(mBegin, vec.mBegin);
+		SG::swap(mEnd, vec.mEnd);
+		SG::swap(mCapacity, vec.mCapacity);
 	}
 
 	template <typename T>

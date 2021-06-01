@@ -24,6 +24,7 @@ namespace SG
 
 	typedef integral_constant<bool, true>  true_type;
 	typedef integral_constant<bool, false> false_type;
+	template <bool B> using bool_constant = integral_constant<bool, B>;
 
 	typedef char yes_type;
 	struct       no_type { char pad[8]; };
@@ -297,6 +298,7 @@ namespace SG
 
 	namespace impl
 	{
+		// SFINAE assignment test
 		template<typename T, typename U>
 		struct is_assignable_impl
 		{
@@ -304,7 +306,7 @@ namespace SG
 			static no_type is(...);
 
 			template<typename T1, typename U1>
-			static decltype(declval<T1>() = declval<U1>(), yes_type()) is(int);
+			static decltype(SG::declval<T1>() = SG::declval<U1>(), yes_type()) is(int);
 
 			static const bool value = (sizeof(is<T, U>(0)) == sizeof(yes_type));
 		};
@@ -312,6 +314,18 @@ namespace SG
 
 	template<typename T, typename U>
 	struct is_assignable : public integral_constant<bool, impl::is_assignable_impl<T, U>::value> {};
+
+	// test to assign T&& to T&
+	template<typename T>
+	struct is_move_assignable : public is_assignable<typename add_lvalue_reference<T>::type, typename add_rvalue_reference<T>::type> {};
+
+	// for MSVC is work
+	// TODO: support other compilers
+	template<typename T, typename... Args>
+	struct is_constructible : public bool_constant<__is_constructible(T, Args...)> {};
+
+	template <typename T>
+	struct is_move_constructible : public is_constructible<T, typename add_rvalue_reference<T>::type> {};
 
 	template <bool B, typename T, typename U>
 	struct is_trivially_assignable_impl;

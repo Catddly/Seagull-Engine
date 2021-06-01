@@ -9,10 +9,6 @@ namespace SG
 	namespace fmt
 	{
 
-		CFormatter::CFormatter(string_view format)
-			:mCurrFormat(format)
-		{}
-
 		void CFormatter::SetFormat(string_view format)
 		{
 			mCurrFormat = format;

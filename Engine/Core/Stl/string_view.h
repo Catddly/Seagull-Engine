@@ -6,6 +6,7 @@
 #endif
 
 #include "internal/iterator.h"
+#include "algorithm.h"
 #include "utility.h"
 
 namespace SG
@@ -43,8 +44,8 @@ namespace SG
 
 		SG_CONSTEXPR void swap(basic_string_view& rhs)
 		{
-			std::swap(mBegin, rhs.mBegin);
-			std::swap(mCount, rhs.mCount);
+			SG::swap(mBegin, rhs.mBegin);
+			SG::swap(mCount, rhs.mCount);
 		}
 
 		SG_CONSTEXPR static int compare(const T* pBeg1, const T* pEnd1, const T* pBeg2, const T* pEnd2)
