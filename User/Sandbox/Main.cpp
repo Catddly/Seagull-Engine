@@ -1,5 +1,16 @@
 #include "StdAfx.h"
 
+struct A
+{
+	int a;
+};
+
+struct B
+{
+	A a;
+	double b;
+};
+
 class MyApp : public SG::IApp
 {
 public:
