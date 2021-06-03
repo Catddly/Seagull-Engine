@@ -17,15 +17,12 @@ workspace "Seagull"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDir = { }
 
--- copyfiledir = "\"$(SolutionDir)bin\\" .. outputdir .. "\\%{prj.name}\\$(ProjectName).dll\""
--- copylibdir  = "\"$(ProjectDir)bin\\%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}\\$(ProjectName)\\"
--- copydstdir  = "\"$(SolutionDir)bin\\" .. outputdir .. "\\Sandbox\\\""
-
 group "Seagull Engine"
 
     include "Engine/Common/"
     include "Engine/3DEngine/"
     include "Engine/Core/"
+    include "Engine/System/"
     include "Engine/Utility/"
     include "Engine/Renderer/"
     include "Engine/RendererVulkan/"
@@ -44,10 +41,10 @@ group ""
 group "Tools"
 group ""
 
-group "User"
+group "Runtime"
 
     project "Sandbox"
-        location "User/Sandbox"
+        location "Runtime/Sandbox"
         kind "ConsoleApp"
         language "C++"
         cppdialect "C++17"
@@ -58,19 +55,20 @@ group "User"
         objdir    ("bin-int/" .. outputdir .. "/%{prj.name}")
 
         pchheader "StdAfx.h"
-        pchsource "User/Sandbox/StdAfx.cpp"
+        pchsource "Runtime/Sandbox/StdAfx.cpp"
 
         -- include files
         files
         {
-            "User/%{prj.name}/**.h",
-            "User/%{prj.name}/**.cpp"
+            "Runtime/%{prj.name}/**.h",
+            "Runtime/%{prj.name}/**.cpp"
         }
 
         includedirs
         {
             "Engine/",
             "Libs/",
+            "Libs/eastl/include/",
         }
 
         defines
@@ -79,9 +77,9 @@ group "User"
 
         links
         {
-            "mimalloc-static",
             "S3DEngine",
             "SCore",
+            "SSystem",
         }
 
     filter "system:windows"

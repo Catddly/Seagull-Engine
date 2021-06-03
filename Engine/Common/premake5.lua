@@ -1,5 +1,5 @@
 project "SCommon"
-    kind "SharedLib"
+    kind "Utility"
     language "C++"
     cppdialect "C++17"
     staticruntime "off"
@@ -12,16 +12,13 @@ project "SCommon"
     pchheader "StdAfx.h"
     pchsource "StdAfx.cpp"
 
-    -- include files
     files
     {
-        "**.h",
-        "**.cpp"
+        "**.h"
     }
 
     defines
     {
-        "SG_BUILD_DLL"
     }
 
     includedirs
@@ -40,16 +37,7 @@ project "SCommon"
 filter "configurations:Debug"
     runtime "Debug"
     symbols "on"
-    -- enable if you want to build a dll
-    postbuildcommands
-    {
-        ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\"")
-    }
 
 filter "configurations:Release"
     runtime "Release"
     optimize "on"
-    postbuildcommands
-    {
-        ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\"")
-    }

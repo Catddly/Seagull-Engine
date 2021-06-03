@@ -3,10 +3,9 @@
 
 #include "Common/Base/BasicTypes.h"
 #include "Common/System/ISystem.h"
-#include "Common/Base/IIterable.h"
 
-#include "Core/STL/string_view.h"
-#include "Core/STL/string.h"
+#include <EASTL/string.h>
+#include <EASTL/string_view.h>
 
 namespace SG
 {
@@ -30,7 +29,7 @@ namespace SG
 		//! Log to console with printf-like format
 		virtual void LogToConsole(ELogLevel logLevel, const char* format, ...) = 0;
 		//! Set log format
-		virtual void SetFormat(string_view format) = 0;
+		virtual void SetFormat(eastl::string_view format) = 0;
 
 		// TODO: After file system
 		//void LogToFile(ELogLevel logLevel, ...) const;
@@ -43,57 +42,30 @@ namespace impl
 {
 
 	template<class T>
-	static string PrintIterable(IIterable<T>* v, bool reverse)
+	static eastl::string PrintIterator(T* beg, T* end, bool reverse)
 	{
-		string s = "";
-		s += "[";
-		if (!reverse)
-		{
-			for (auto beg = v->begin(); beg != (v->end() - 1); ++beg)
-			{
-				s += to_string(*beg);
-				s += " ";
-			}
-			s += to_string(*(v->end() - 1));
-		}
-		else
-		{
-			for (auto beg = v->rbegin(); beg != (v->rend() - 1); ++beg)
-			{
-				s += to_string(*beg);
-				s += " ";
-			}
-			s += to_string(*(v->rend() - 1));
-		}
-		s += "]";
-		return SG::move(s);
-	}
-
-	template<class T>
-	static string PrintIterator(T* beg, T* end, bool reverse)
-	{
-		string str = "[";
+		eastl::string str = "[";
 		if (!reverse)
 		{
 			for (; beg != end - 1; beg++)
 			{
-				str += to_string(*beg);
+				str += eastl::to_string(*beg);
 				str += " ";
 			}
-			str += to_string(*(end - 1));
+			str += eastl::to_string(*(end - 1));
 		}
 		else
 		{
 			--end;
 			for (; end != beg; end--)
 			{
-				str += to_string(*end);
+				str += eastl::to_string(*end);
 				str += " ";
 			}
-			str += to_string(*(beg));
+			str += eastl::to_string(*(beg));
 		}
 		str += "]";
-		return SG::move(str);
+		return eastl::move(str);
 	}
 
 }
@@ -107,10 +79,7 @@ namespace impl
 #define SG_LOG_ERROR(...) SG::gModules.pLog->LogToConsole(SG::ELogLevel::eLOG_LEVEL_ERROR,    __VA_ARGS__);
 #define SG_LOG_CRIT(...)  SG::gModules.pLog->LogToConsole(SG::ELogLevel::eLOG_LEVEL_CRITICLE, __VA_ARGS__);
 
-#define SG_LOG_ITERABLE(LEVEL, ITERABLE)   SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterable(&ITERABLE, false).c_str());
-#define SG_LOG_ITERABLE_R(LEVEL, ITERABLE) SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterable(&ITERABLE, true).c_str());
-
-#define SG_LOG_ITERATOR(LEVEL, BEG, END)   SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, false).c_str());
-#define SG_LOG_ITERATOR_R(LEVEL, BEG, END) SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, true).c_str());
+#define SG_LOG_ITERABLE(LEVEL, BEG, END)   SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, false).c_str());
+#define SG_LOG_ITERABLE_R(LEVEL, BEG, END) SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, true).c_str());
 
 }

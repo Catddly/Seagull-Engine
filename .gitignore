@@ -4,6 +4,7 @@ bin/
 bin-int/
 Bin/
 Bin-int/
+Deprecated/
 
 # Prerequisites
 *.d

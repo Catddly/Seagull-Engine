@@ -1,7 +1,7 @@
 project "mimalloc-static"
     kind "StaticLib"
     language "C"
-    staticruntime "on"
+    staticruntime "off"
 
     -- bin/Debug-windows-x64/Seagull Core
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")

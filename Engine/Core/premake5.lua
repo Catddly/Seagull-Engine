@@ -28,6 +28,7 @@ project "SCore"
     {
         "../",
         "../../Libs/",
+        "../../Libs/eastl/include/",
     }
 
     links

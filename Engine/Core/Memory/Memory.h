@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Common/Core/Defs.h"
-#include "Core/STL/type_traits.h"
 
 #include "Common/Memory/IMemory.h"
 
@@ -16,14 +15,14 @@ namespace SG
 		return ::new (ptr)T(SG::forward<Args>(args)...);
 	}
 
-	template <typename T, typename... Args> 
+	template <typename T, typename... Args>
 	T* New(Args&&... args)
 	{
 		T* ptr = reinterpret_cast<T*>(Malloc(sizeof(T)));
 		return PlacementNew<T>(ptr, SG::forward<Args>(args)...);
 	}
 
-	template <typename T, typename... Args> 
+	template <typename T, typename... Args>
 	T* NewAlign(Size alignment, Args&&... args)
 	{
 		T* ptr = reinterpret_cast<T*>(MallocAlign(sizeof(T), alignment));
@@ -52,33 +51,5 @@ namespace SG
 
 	template <typename T> T* MallocT() { Malloc(sizeof(T)); };
 	template <typename T> T* CallocT(Size count) { Calloc(count, sizeof(T)); };
-
-namespace impl
-{
-	template<class ForwardIterator>
-	SG_INLINE void destruct_impl(ForwardIterator beg, ForwardIterator end, true_type)
-	{
-		// has trivial destructor, do nothing
-	}
-
-	template<class ForwardIterator>
-	SG_INLINE void destruct_impl(ForwardIterator beg, ForwardIterator end, false_type)
-	{
-		typedef typename iterator_traits<ForwardIterator>::value_type value_type;
-		while (beg != end)
-		{
-			(*beg).~value_type();
-			++beg;	
-		}
-	}
-}
-
-	//! Call the destructor of [beg, end) if it has a non-trivial destructor
-	template<class ForwardIterator>
-	SG_INLINE void Destruct(ForwardIterator beg, ForwardIterator end)
-	{
-		typedef typename iterator_traits<ForwardIterator>::value_type value_type;
-		impl::destruct_impl(beg, end, has_trivial_destructor<value_type>());
-	}
 
 }

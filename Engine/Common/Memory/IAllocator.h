@@ -15,8 +15,9 @@ namespace SG
 
 	//! @Interface
 	//! Abstraction for memory allocation
-	struct IAllocator
+	struct SG_COMMON_API IAllocator
 	{
+		IAllocator() = default;
 		IAllocator(const IAllocator& x);
 		virtual ~IAllocator() = default;
 

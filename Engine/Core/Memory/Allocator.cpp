@@ -4,6 +4,8 @@
 #include "Common/Core/Defs.h"
 #include "Common/Memory/IMemory.h"
 
+#include <EASTL/allocator.h>
+
 namespace SG
 {
 
@@ -24,6 +26,56 @@ namespace SG
 	{
 		SG_NO_USE(size);
 		Free(ptr);
+	}
+
+	CDefaultAllocator::CDefaultAllocator(const char* pName)
+		: mName(pName)
+	{}
+
+	CDefaultAllocator::CDefaultAllocator(const CDefaultAllocator& x)
+	{
+		*this = x;
+	}
+
+	CDefaultAllocator::CDefaultAllocator(const CDefaultAllocator& x, const char* pName)
+		:mName(pName)
+	{
+		*this = x;
+	}
+
+	const char* CDefaultAllocator::get_name() const
+	{
+		return mName;
+	}
+
+	void CDefaultAllocator::set_name(const char* pName)
+	{
+		mName = pName;
+	}
+
+	inline bool operator==(const CDefaultAllocator& a, const CDefaultAllocator& b)
+	{
+		return a.get_name() == b.get_name();
+	}
+
+	inline bool operator!=(const CDefaultAllocator& a, const CDefaultAllocator& b)
+	{
+		return !(a == b);
+	}
+
+	SG_COMMON_API SG::CDefaultAllocator  gDefaultAllocator;
+	SG_COMMON_API SG::CDefaultAllocator* gpDefaultAllocator = &gDefaultAllocator;
+
+	SG_COMMON_API CDefaultAllocator* GetDefaultAllocator()
+	{
+		return gpDefaultAllocator;
+	}
+
+	SG_COMMON_API CDefaultAllocator* SetDefaultAllocator(CDefaultAllocator* pAllocator)
+	{
+		SG::CDefaultAllocator* const pPrevAllocator = gpDefaultAllocator;
+		gpDefaultAllocator = pAllocator;
+		return pPrevAllocator;
 	}
 
 }
