@@ -16,7 +16,7 @@ namespace SG
 		//! Log to console
 		SG_CORE_API virtual void LogToConsole(ELogLevel logLevel, const char* format, ...) override;
 		//! Set log format
-		SG_CORE_API virtual void SetFormat(eastl::string_view format) override { mFormatter.SetFormat(format); }
+		SG_CORE_API virtual void SetFormat(string_view format) override { mFormatter.SetFormat(format); }
 	private:
 		//! Log information prefix
 		void PrintPrefix();

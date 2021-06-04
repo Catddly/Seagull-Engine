@@ -1,8 +1,8 @@
 #pragma once
 #include "Core/Config.h"
 
-#include <EASTL/string.h>
-#include <EASTL/string_view.h>
+#include "Core/Stl/string.h"
+#include "Core/Stl/string_view.h"
 
 namespace SG
 {
@@ -18,11 +18,11 @@ namespace SG
 			~CFormatter() = default;
 
 			//! Set the format of the formatter.
-			void SetFormat(eastl::string_view format);
+			void SetFormat(string_view format);
 			//! Get the formatted string.
-			eastl::string GetFormattedString();
+			string GetFormattedString();
 		private:
-			eastl::string mCurrFormat;
+			string mCurrFormat;
 		};
 
 	}

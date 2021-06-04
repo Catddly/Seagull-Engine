@@ -4,8 +4,6 @@
 #include "Common/Core/Defs.h"
 #include "Common/Memory/IMemory.h"
 
-#include <EASTL/allocator.h>
-
 namespace SG
 {
 

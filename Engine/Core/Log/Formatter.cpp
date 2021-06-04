@@ -9,23 +9,23 @@ namespace SG
 	namespace fmt
 	{
 
-		void CFormatter::SetFormat(eastl::string_view format)
+		void CFormatter::SetFormat(string_view format)
 		{
 			mCurrFormat = format;
 		}
 
-		eastl::string CFormatter::GetFormattedString()
+		string CFormatter::GetFormattedString()
 		{
 			if (mCurrFormat == "")
 				return "";
 
 			Size currPos = 0;
 			Size markPos = 0;
-			eastl::string resStr;
+			string resStr;
 			while (true)
 			{
 				markPos = mCurrFormat.find_first_of('%', currPos);
-				if (markPos == eastl::string::npos)
+				if (markPos == string::npos)
 					break;
 
 				char mark = mCurrFormat[markPos + 1];
@@ -48,7 +48,7 @@ namespace SG
 			Size end = mCurrFormat.size();
 			resStr += mCurrFormat.substr(currPos, end - currPos);
 
-			return eastl::move(resStr);
+			return move(resStr);
 		}
 
 	}

@@ -33,13 +33,11 @@ namespace SG
 	using UIntPtr = uintptr_t;
 
 #ifdef __cplusplus
-#	ifndef SG_ENUM_CLASS_FLAG
-#		define SG_ENUM_CLASS_FLAG(VALUE_TYPE, ENUM_TYPE)																		 \
-		static inline ENUM_TYPE operator|(ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) | (VALUE_TYPE)(b)); } \
-		static inline ENUM_TYPE operator&(ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) & (VALUE_TYPE)(b)); } \
-		static inline ENUM_TYPE operator|=(ENUM_TYPE& a, ENUM_TYPE b) { return a = (a | b); }                                    \
-		static inline ENUM_TYPE operator&=(ENUM_TYPE& a, ENUM_TYPE b) { return a = (a & b); }
-#	endif
+#	define SG_ENUM_CLASS_FLAG(VALUE_TYPE, ENUM_TYPE)																		 \
+	static inline ENUM_TYPE operator|(ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) | (VALUE_TYPE)(b)); } \
+	static inline ENUM_TYPE operator&(ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) & (VALUE_TYPE)(b)); } \
+	static inline ENUM_TYPE operator|=(ENUM_TYPE& a, ENUM_TYPE b) { return a = (a | b); }                                    \
+	static inline ENUM_TYPE operator&=(ENUM_TYPE& a, ENUM_TYPE b) { return a = (a & b); }
 #endif
 #define SG_HAS_ENUM_FLAG(VALUE, FLAG) static_cast<bool>((VALUE) & (FLAG))
 

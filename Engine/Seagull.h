@@ -16,6 +16,13 @@
 #include "Core/Memory/Memory.h"
 
 //----------------------------------------------------------
+// Standard template library
+//----------------------------------------------------------
+#include "Core/Stl/vector.h"
+#include "Core/Stl/string.h"
+#include "Core/Stl/string_view.h"
+
+//----------------------------------------------------------
 // EntryPoint
 //----------------------------------------------------------
 #include "EntryPoint.h"

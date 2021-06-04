@@ -1,6 +1,9 @@
 #include "StdAfx.h"
 
-#include <EASTL/vector.h>
+namespace SG
+{
+	template<class T> using vector = eastl::vector<T>;
+}
 
 class MyApp : public SG::IApp
 {
@@ -18,7 +21,7 @@ public:
 		SG_LOG_ERROR("Error Test!");
 		SG_LOG_CRIT("Criticle Test!");
 
-		eastl::vector<SG::UInt32> vec = { 8, 9, 5, 4, 2 };
+		SG::vector<SG::UInt32> vec = { 8, 9, 5, 4, 2 };
 		SG_LOG_ITERABLE(SG::ELogLevel::eLOG_LEVEL_DEBUG, vec.begin(), vec.end());
 		SG_LOG_DEBUG("%d", vec.at(2));
 	}
