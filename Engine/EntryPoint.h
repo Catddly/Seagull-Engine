@@ -7,7 +7,7 @@
 #include "Common/User/IApp.h"
 
 // Seagull's internal modules implementation
-#include "System/Log/Log.h"
+#include "Core/Log/Log.h"
 #include "3DEngine/3DEngine/3DEngine.h"
 
 #include "Core/Memory/Memory.h"

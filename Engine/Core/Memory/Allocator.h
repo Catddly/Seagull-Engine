@@ -30,7 +30,7 @@ namespace SG
 #endif
 	};
 
-	SG_COMMON_API bool operator==(const CDefaultAllocator& a, const CDefaultAllocator& b);
+	SG_COMMON_API inline bool operator==(const CDefaultAllocator& a, const CDefaultAllocator& b);
 	SG_COMMON_API inline bool operator!=(const CDefaultAllocator& a, const CDefaultAllocator& b);
 
 	SG_COMMON_API CDefaultAllocator* GetDefaultAllocator();

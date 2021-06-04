@@ -6,15 +6,15 @@
 namespace SG
 {
 
-	class SG_ENGINE_API C3DEngine final : public I3DEngine
+	class C3DEngine final : public I3DEngine
 	{
 	public:
 		//! Engine core initialization
-		virtual void OnInit() override;
+		SG_ENGINE_API virtual void OnInit() override;
 		//! Engine update per frame
-		virtual void OnUpdate() override;
+		SG_ENGINE_API virtual void OnUpdate() override;
 		//! Engine core shutdown
-		virtual void OnShutdown() override;
+		SG_ENGINE_API virtual void OnShutdown() override;
 	};
 
 }

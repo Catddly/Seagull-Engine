@@ -22,7 +22,6 @@ group "Seagull Engine"
     include "Engine/Common/"
     include "Engine/3DEngine/"
     include "Engine/Core/"
-    include "Engine/System/"
     include "Engine/Utility/"
     include "Engine/Renderer/"
     include "Engine/RendererVulkan/"
@@ -79,7 +78,6 @@ group "Runtime"
         {
             "S3DEngine",
             "SCore",
-            "SSystem",
         }
 
     filter "system:windows"

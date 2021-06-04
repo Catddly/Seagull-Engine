@@ -53,12 +53,12 @@ namespace SG
 		mName = pName;
 	}
 
-	inline bool operator==(const CDefaultAllocator& a, const CDefaultAllocator& b)
+	SG_COMMON_API inline bool operator==(const CDefaultAllocator& a, const CDefaultAllocator& b)
 	{
 		return a.get_name() == b.get_name();
 	}
 
-	inline bool operator!=(const CDefaultAllocator& a, const CDefaultAllocator& b)
+	SG_COMMON_API inline bool operator!=(const CDefaultAllocator& a, const CDefaultAllocator& b)
 	{
 		return !(a == b);
 	}

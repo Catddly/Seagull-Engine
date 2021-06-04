@@ -1,10 +1,7 @@
 #pragma once
 
 #include "Common/Core/Defs.h"
-
 #include "Common/Memory/IMemory.h"
-
-#include <vcruntime_new.h> // for correct placement new operation
 
 namespace SG
 {
