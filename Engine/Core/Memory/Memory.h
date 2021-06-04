@@ -3,6 +3,8 @@
 #include "Common/Core/Defs.h"
 #include "Common/Memory/IMemory.h"
 
+#include <vcruntime_new.h>
+
 namespace SG
 {
 

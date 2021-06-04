@@ -1,10 +1,5 @@
 #include "StdAfx.h"
 
-namespace SG
-{
-	template<class T> using vector = eastl::vector<T>;
-}
-
 class MyApp : public SG::IApp
 {
 public:

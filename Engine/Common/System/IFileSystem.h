@@ -1,7 +1,6 @@
 #pragma once
 
-//#include "Common/Base/BasicTypes.h"
-#include "../Base/BasicTypes.h"
+#include "Common/Base/BasicTypes.h"
 
 #include <stdio.h>
 
@@ -12,11 +11,6 @@ namespace SG
 extern "C"
 {
 #endif
-
-	//! Set engine's resource files root directory.
-	//! Default root directory will be the folder where .exe is in.
-	//! @param (filepath) relative path to the .exe
-	void SetRootDirectory(const char* filepath);
 
 	//! Resource directory base on the root directory.
 	typedef enum class EResourceDirectory
@@ -40,6 +34,13 @@ extern "C"
 		eDebug,               //! During development, for debug purpose
 	} EResoureceFilter;
 
+	typedef enum class EFileBaseOffset
+	{
+		eStart,
+		eCurrent,
+		eEOF,
+	} EFileBaseOffset;
+
 	typedef enum class EFileMode
 	{
 		eRead = 0x01,
@@ -62,19 +63,12 @@ extern "C"
 		Size   cursor;
 	} Memory;
 
-	//! C file wrapper
-	typedef struct File
-	{
-		FILE*  pFile;
-		Size   cursor;
-	} File;
-
 	typedef struct FileStream
 	{
 		union
 		{
 			Memory memory;
-			File   file;
+			FILE*  file;
 		};
 		IntPtr    size;
 		EFileMode filemode;
@@ -83,11 +77,37 @@ extern "C"
 	//! Stream operations to manipulate the files in the disk
 	typedef struct IStreamOp
 	{
-		bool (*open)(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut);
-		bool (*close)(FileStream* pStream);
-		Size (*read)(FileStream* pStream, void* pInBuf, Size bufSize);
-		Size (*write)(FileStream* pStream, const void* const pOutBuf, Size bufSize);
+		virtual ~IStreamOp() = default;
+
+		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut) = 0;
+		virtual bool Close(FileStream* pStream) = 0;
+		virtual Size Read(FileStream* pStream, void* pInBuf, Size bufSize) = 0;
+		virtual Size Write(FileStream* pStream, const void* const pOutBuf, Size bufSize) = 0;
+		virtual bool Seek(FileStream* pStream, EFileBaseOffset baseOffset, Size offset) = 0;
+		virtual Size Tell(const FileStream* pStream) = 0;
+		virtual Size FileSize(FileStream* pStream) = 0;
+		virtual bool Flush(FileStream* pStream) = 0;
+		virtual bool IsEndOfFile(const FileStream* pStream) = 0;
 	} IStreamOp;
+
+	//! @Interface
+	//! File system to do io relative job
+	// TODO: add async file request (after the thread system) 
+	struct IFileSystem
+	{
+	public:
+		virtual ~IFileSystem() = default;
+
+		//! Initialize file system
+		virtual void OnInit() = 0;
+		//! Shutdown file system
+		virtual void OnShutdown() = 0;
+
+		//! Set engine's resource files root directory.
+		//! Default root directory will be the folder where .exe is in.
+		//! \param (filepath) relative path to the .exe
+		virtual void SetRootDirectory(const char* filepath) = 0;
+	};
 
 #ifdef __cplusplus
 } // end extern C

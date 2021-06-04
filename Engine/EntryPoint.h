@@ -9,6 +9,7 @@
 // Seagull's internal modules implementation
 #include "Core/Log/Log.h"
 #include "3DEngine/3DEngine/3DEngine.h"
+#include "Core/FileSystem/FileSystem.h"
 
 #include "Core/Memory/Memory.h"
 
@@ -18,10 +19,12 @@ int main(int argv, char** argc)
 	extern IApp* GetAppInstance();
 	IApp* app = GetAppInstance();
 
+	gModules.pFileSystem = New<CFileSystem>();
 	gModules.pLog = New<CLog>();
 	gModules.p3DEngine = New<C3DEngine>();
-	gModules.pLog->SetFormat("[%y:%o:%d]-[%h:%m:%s]");
 
+	gModules.pLog->SetFormat("[%y:%o:%d]-[%h:%m:%s]");
+	gModules.pFileSystem->OnInit();
 	gModules.p3DEngine->OnInit();
 	app->OnInit();
 
@@ -32,6 +35,9 @@ int main(int argv, char** argc)
 
 	app->OnShutdown();
 	gModules.p3DEngine->OnShutdown();
+	gModules.pFileSystem->OnShutdown();
+
 	Delete(gModules.p3DEngine);
 	Delete(gModules.pLog);
+	Delete(gModules.pFileSystem);
 }
