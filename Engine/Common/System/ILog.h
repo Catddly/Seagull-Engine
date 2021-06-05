@@ -4,6 +4,8 @@
 #include "Common/Base/BasicTypes.h"
 #include "Common/System/ISystem.h"
 
+#include "Core/System/SystemManager.h"
+
 #include <EASTL/string.h>
 #include <EASTL/string_view.h>
 
@@ -73,13 +75,13 @@ namespace impl
 #define SG_STR(x) SG_STR_IMPL(x)
 #define SG_STR_IMPL(x) #x
 
-#define SG_LOG_INFO(...)  SG::gModules.pLog->LogToConsole(SG::ELogLevel::eLOG_LEVEL_INFO,     __VA_ARGS__);
-#define SG_LOG_DEBUG(...) SG::gModules.pLog->LogToConsole(SG::ELogLevel::eLOG_LEVEL_DEBUG,    __VA_ARGS__);
-#define SG_LOG_WARN(...)  SG::gModules.pLog->LogToConsole(SG::ELogLevel::eLOG_LEVEL_WARN,     __VA_ARGS__);
-#define SG_LOG_ERROR(...) SG::gModules.pLog->LogToConsole(SG::ELogLevel::eLOG_LEVEL_ERROR,    __VA_ARGS__);
-#define SG_LOG_CRIT(...)  SG::gModules.pLog->LogToConsole(SG::ELogLevel::eLOG_LEVEL_CRITICLE, __VA_ARGS__);
+#define SG_LOG_INFO(...)  SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(SG::ELogLevel::eLOG_LEVEL_INFO,     __VA_ARGS__);
+#define SG_LOG_DEBUG(...) SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(SG::ELogLevel::eLOG_LEVEL_DEBUG,    __VA_ARGS__);
+#define SG_LOG_WARN(...)  SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(SG::ELogLevel::eLOG_LEVEL_WARN,     __VA_ARGS__);
+#define SG_LOG_ERROR(...) SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(SG::ELogLevel::eLOG_LEVEL_ERROR,    __VA_ARGS__);
+#define SG_LOG_CRIT(...)  SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(SG::ELogLevel::eLOG_LEVEL_CRITICLE, __VA_ARGS__);
 
-#define SG_LOG_ITERABLE(LEVEL, BEG, END)   SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, false).c_str());
-#define SG_LOG_ITERABLE_R(LEVEL, BEG, END) SG::gModules.pLog->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, true).c_str());
+#define SG_LOG_ITERABLE(LEVEL, BEG, END)   SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, false).c_str());
+#define SG_LOG_ITERABLE_R(LEVEL, BEG, END) SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, true).c_str());
 
 }

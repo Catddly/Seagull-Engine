@@ -8,9 +8,10 @@ Todo
 
 **Todo-002 [<u>Framework</u>]** Considering not to have EntryPoint.h embedded inside Common.  
 
-**Todo-003 [<u>Core/Stl/type_traits.h</u>]** Move some of the traits to the other file. (e.g. some of the size conduction and data relative to traits_pod.h)  
+**Todo-003 [<u>Common/Core/Defs.h</u>]** Seperate compile identification macros to other files. (e.g. __cplusplus__ version relative to Compilers.h)
 
-**Todo-004 [<u>Common/Core/Defs.h</u>]** Seperate compile identification macros to other files. (e.g. __cplusplus__ version relative to Compilers.h)
+**Todo-004 [<u>Core/FileSystem/FileSystem.cpp</u>]** Move all the set root directory operation to SEnv or something control all the environment variable.
+
 
 Issues
 ----------------

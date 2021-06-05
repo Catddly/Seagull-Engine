@@ -4,8 +4,6 @@
 #include "Core/Stl/string.h"
 #include "Core/Stl/string_view.h"
 
-#include <stdio.h>
-
 namespace SG
 {
 
@@ -13,6 +11,7 @@ namespace SG
 
 	// TODO: maybe we should use a more elegant way to do the convertion
 	const char* gResoureceDirectory[(UInt32)EResourceDirectory::Num_Directory] = {
+		"",
 		"ShaderBin",
 		"ShaderSrc",
 		"Mesh",
@@ -24,6 +23,11 @@ namespace SG
 
 	bool SPlatformStreamOp::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut)
 	{
+		// if the EResourceDirectory folder is exist
+		auto rd = (LPCSTR)gResoureceDirectory[(UInt32)directory];
+		if (!PathIsDirectoryA(rd))
+			CreateDirectoryA(rd, NULL);
+
 		string outDirectory;
 		if (mRootDirectory == "") // use default root directory
 			outDirectory += gResoureceDirectory[(UInt32)directory];
@@ -32,40 +36,42 @@ namespace SG
 			outDirectory += mRootDirectory;
 			outDirectory += gResoureceDirectory[(UInt32)directory];
 		}
-		outDirectory += "/";
+		if (directory != EResourceDirectory::eRoot)
+			outDirectory += "/";
 		outDirectory += filename;
 
-		FILE* pFile = pOut->file;
+		int errorNo;
 		switch (filemode)
 		{
 		case EFileMode::eRead:
-			pFile = fopen(outDirectory.c_str(), "r"); break;
+			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "r"); break;
 		case EFileMode::eRead_Binary:
-			pFile = fopen(outDirectory.c_str(), "rb"); break;
+			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "rb"); break;
 		case EFileMode::eWrite:
-			pFile = fopen(outDirectory.c_str(), "w"); break;
+			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "w"); break;
 		case EFileMode::eWrite_Binary:
-			pFile = fopen(outDirectory.c_str(), "wb"); break;
+			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "wb"); break;
 		case EFileMode::eAppend:
-			pFile = fopen(outDirectory.c_str(), "a"); break;
+			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "a"); break;
 		case EFileMode::eAppend_Binary:
-			pFile = fopen(outDirectory.c_str(), "ab"); break;
+			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "ab"); break;
 		case EFileMode::eRead_Write:
-			pFile = fopen(outDirectory.c_str(), "r+"); break;
+			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "wt+"); break;
 		case EFileMode::eRead_Write_Binary:
-			pFile = fopen(outDirectory.c_str(), "r+b"); break;
+			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "wb+"); break;
 		case EFileMode::eBinary:
-			pFile = fopen(outDirectory.c_str(), "r+b"); break;
+			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "wb+"); break;
 		default:
-			SG_ASSERT(false && "no file mode fit!");
-			break;
+			SG_ASSERT(false && "no file mode fit!"); break;
 		}
 
-		if (pFile == NULL)
+		if (errorNo != 0 || pOut->file == NULL)
+		{
 			return false;
+		}
 
 		pOut->filemode = filemode;
-		pOut->size = FileSize(pOut);
+		return true;
 	}
 
 	bool SPlatformStreamOp::Close(FileStream* pStream)
@@ -90,28 +96,27 @@ namespace SG
 		return fwrite(pOutBuf, bufSize, 1, pStream->file);
 	}
 
-	bool SPlatformStreamOp::Seek(FileStream* pStream, EFileBaseOffset baseOffset, Size offset)
+	bool SPlatformStreamOp::Seek(const FileStream* pStream, EFileBaseOffset baseOffset, Size offset) const
 	{
 		int bOffset = baseOffset == EFileBaseOffset::eStart ? SEEK_SET :
 			baseOffset == EFileBaseOffset::eCurrent ? SEEK_CUR : SEEK_END;
-		int ret = fseek(pStream->file, offset, bOffset);
+		int ret = fseek(pStream->file, (long)offset, bOffset);
 		if (ret == 0)
 			return true;
 		return false;
 	}
 
-	Size SPlatformStreamOp::Tell(const FileStream* pStream)
+	Size SPlatformStreamOp::Tell(const FileStream* pStream) const
 	{
 		return ftell(pStream->file);
 	}
 
-	Size SPlatformStreamOp::FileSize(FileStream* pStream)
+	Size SPlatformStreamOp::FileSize(const FileStream* pStream) const
 	{
 		Size currPos = Tell(pStream);
 		Seek(pStream, EFileBaseOffset::eEOF, 0);
 		Size fileSize = Tell(pStream);
 		Seek(pStream, EFileBaseOffset::eStart, currPos);
-		pStream->size = fileSize;
 		return fileSize;
 	}
 
@@ -123,7 +128,7 @@ namespace SG
 		return false;
 	}
 
-	bool SPlatformStreamOp::IsEndOfFile(const FileStream* pStream)
+	bool SPlatformStreamOp::IsEndOfFile(const FileStream* pStream) const
 	{
 		return feof(pStream->file);
 	}

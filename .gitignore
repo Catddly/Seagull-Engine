@@ -5,6 +5,7 @@ bin-int/
 Bin/
 Bin-int/
 Deprecated/
+Log/
 
 # Prerequisites
 *.d

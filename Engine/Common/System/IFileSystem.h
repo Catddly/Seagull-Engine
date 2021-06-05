@@ -15,7 +15,8 @@ extern "C"
 	//! Resource directory base on the root directory.
 	typedef enum class EResourceDirectory
 	{
-		eShader_Binarires = 0,
+		eRoot = 0,
+		eShader_Binarires,
 		eShader_Sources,
 		eMeshes,
 		eTextures,
@@ -53,6 +54,7 @@ extern "C"
 		eWrite_Binary = eWrite | eBinary,
 		eAppend_Binary = eAppend | eBinary,
 		eRead_Write_Binary = eRead_Write | eBinary,
+		eUndefined = 0xff,
 	} EFileMode;
 	SG_ENUM_CLASS_FLAG(UInt32, EFileMode);
 
@@ -70,9 +72,8 @@ extern "C"
 			Memory memory;
 			FILE*  file;
 		};
-		IntPtr    size;
-		EFileMode filemode;
-	};
+		EFileMode  filemode;
+	} FileStream;
 
 	//! Stream operations to manipulate the files in the disk
 	typedef struct IStreamOp
@@ -83,19 +84,18 @@ extern "C"
 		virtual bool Close(FileStream* pStream) = 0;
 		virtual Size Read(FileStream* pStream, void* pInBuf, Size bufSize) = 0;
 		virtual Size Write(FileStream* pStream, const void* const pOutBuf, Size bufSize) = 0;
-		virtual bool Seek(FileStream* pStream, EFileBaseOffset baseOffset, Size offset) = 0;
-		virtual Size Tell(const FileStream* pStream) = 0;
-		virtual Size FileSize(FileStream* pStream) = 0;
+		virtual bool Seek(const FileStream* pStream, EFileBaseOffset baseOffset, Size offset) const = 0;
+		virtual Size Tell(const FileStream* pStream) const = 0;
+		virtual Size FileSize(const FileStream* pStream) const = 0;
 		virtual bool Flush(FileStream* pStream) = 0;
-		virtual bool IsEndOfFile(const FileStream* pStream) = 0;
+		virtual bool IsEndOfFile(const FileStream* pStream) const = 0;
 	} IStreamOp;
 
+	// TODO: add async file request system to do async file io (after the thread system) 
 	//! @Interface
 	//! File system to do io relative job
-	// TODO: add async file request (after the thread system) 
-	struct IFileSystem
+	typedef struct IFileSystem
 	{
-	public:
 		virtual ~IFileSystem() = default;
 
 		//! Initialize file system
@@ -107,7 +107,17 @@ extern "C"
 		//! Default root directory will be the folder where .exe is in.
 		//! \param (filepath) relative path to the .exe
 		virtual void SetRootDirectory(const char* filepath) = 0;
-	};
+
+		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode) = 0;
+		virtual bool Close() = 0;
+		virtual Size Read(void* pInBuf, Size bufSize) = 0;
+		virtual Size Write(const void* const pOutBuf, Size bufSize) = 0;
+		virtual bool Seek(EFileBaseOffset baseOffset, Size offset) = 0;
+		virtual Size Tell() const = 0;
+		virtual Size FileSize() const = 0;
+		virtual bool Flush() = 0;
+		virtual bool IsEndOfFile() const = 0;
+	} IFileSystem;
 
 #ifdef __cplusplus
 } // end extern C

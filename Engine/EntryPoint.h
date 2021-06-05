@@ -6,11 +6,9 @@
 #include "Common/System/ISystem.h"
 #include "Common/User/IApp.h"
 
-// Seagull's internal modules implementation
-#include "Core/Log/Log.h"
 #include "3DEngine/3DEngine/3DEngine.h"
-#include "Core/FileSystem/FileSystem.h"
 
+#include "Core/System/SystemManager.h"
 #include "Core/Memory/Memory.h"
 
 int main(int argv, char** argc)
@@ -18,26 +16,25 @@ int main(int argv, char** argc)
 	using namespace SG;
 	extern IApp* GetAppInstance();
 	IApp* app = GetAppInstance();
+	ISystemManager* pSystemManager = CSystemManager::GetInstance();
 
-	gModules.pFileSystem = New<CFileSystem>();
-	gModules.pLog = New<CLog>();
-	gModules.p3DEngine = New<C3DEngine>();
+	pSystemManager->TryInitCoreModules();
+	pSystemManager->GetILog()->SetFormat("[%y:%o:%d]-[%h:%m:%s]");
+	pSystemManager->GetIFileSystem()->OnInit();
 
-	gModules.pLog->SetFormat("[%y:%o:%d]-[%h:%m:%s]");
-	gModules.pFileSystem->OnInit();
-	gModules.p3DEngine->OnInit();
-	app->OnInit();
+	pSystemManager->RegisterUserApp(app);
+	I3DEngine* p3DEngine = New<C3DEngine>();
+	pSystemManager->SetI3DEngine(p3DEngine);
+	p3DEngine->OnInit();
 
-	gModules.p3DEngine->OnUpdate();
+	SG_LOG_INFO("Are core modules loaded?: %d", pSystemManager->ValidateCoreModules());
+	SG_LOG_INFO("Are all  modules loaded?: %d", pSystemManager->ValidateAllModules());
+
+	p3DEngine->OnUpdate();
 	char buf[] = "@ILLmew";
 	SG_LOG_INFO("Welcome To Seagull Engine! %s", buf);
-	app->OnUpdate();
+	pSystemManager->Update();
 
-	app->OnShutdown();
-	gModules.p3DEngine->OnShutdown();
-	gModules.pFileSystem->OnShutdown();
-
-	Delete(gModules.p3DEngine);
-	Delete(gModules.pLog);
-	Delete(gModules.pFileSystem);
+	p3DEngine->OnShutdown();
+	pSystemManager->Shutdown();
 }

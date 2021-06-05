@@ -5,4 +5,10 @@
 #	include <windows.h>
 #endif
 
-#include <ctime>
+#include <shlwapi.h> // for win32 directory manipulation
+#pragma comment(lib, "shlwapi.lib")
+
+#include <direct.h> // _chdir()
+
+#include <stdio.h>
+#include <ctime>    // SystemTimeWindows.cpp

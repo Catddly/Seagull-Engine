@@ -28,7 +28,7 @@ namespace SG
 		return PlacementNew<T>(ptr, SG::forward<Args>(args)...);
 	}
 
-	//! Safe memory delete for ptr
+	//! Safe memory deletion for ptr
 	template <typename T> void Delete(T* ptr)
 	{
 		if (ptr)
@@ -38,7 +38,7 @@ namespace SG
 		}
 	}
 
-	//! Safe memory delete for ptr (noexcept)
+	//! Safe memory deletion for ptr (noexcept)
 	template <typename T> void DeleteNothrow(T* ptr) noexcept
 	{
 		if (ptr)

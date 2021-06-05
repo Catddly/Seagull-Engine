@@ -1,9 +1,12 @@
 #pragma once
 
 #include "Common/Config.h"
+#include "Common/Base/BasicTypes.h"
 
 namespace SG
 {
+	struct IApp;
+	struct IProcess;
 
 	struct I3DEngine;
 	struct I2DEngine;
@@ -11,7 +14,7 @@ namespace SG
 	struct IFileSystem;
 
 	//! @Interface 
-	//! All the system component is in here
+	//! All the system components are in here
 	//! We can dynamically change its implementation of modules
 	struct ISystemModules
 	{
@@ -21,9 +24,42 @@ namespace SG
 		IFileSystem* pFileSystem = nullptr;
 	};
 
-	//! All the system modules are placed here
-	//! Before use it you should manually check
-	//! if the module is not a nullptr
-	SG_COMMON_API ISystemModules gModules;
+	//! System Manager to manager all the modules' life cycle
+	//! and usage.
+	//! Core modules are ILog, IFileSystem.
+	//! High level modules are I3DEngine, I2DEngine.
+	struct SG_COMMON_API ISystemManager
+	{
+		virtual ~ISystemManager() = default;
+
+		virtual bool TryInitCoreModules() = 0;
+		virtual void Update() = 0; // do we really want this??
+		virtual void Shutdown() = 0;
+
+		virtual ISystemModules* GetSystemModules() = 0;
+
+		virtual void         SetI3DEngine(I3DEngine* p3DEngine) = 0;
+		virtual I3DEngine*   GetI3DEngine() = 0;
+		virtual void         SetI2DEngine(I2DEngine* p2DEngine) = 0;
+		virtual I2DEngine*   GetI2DEngine() = 0;
+		virtual ILog*        GetILog() = 0;
+		virtual IFileSystem* GetIFileSystem() = 0;
+
+		//! Register a user application.
+		virtual void RegisterUserApp(IApp* pApp) = 0;
+
+		//! Check if all the core modules is loaded.
+		virtual bool ValidateCoreModules() const = 0;
+		//! Check if all the modules is loaded.
+		virtual bool ValidateAllModules() const = 0;
+
+		//! Add an IProcess to system to update.
+		virtual void AddIProcess(IProcess* pProcess) = 0;
+		//! Remove an IProcess from system.
+		virtual void RemoveIProcess(IProcess* pProcess) = 0;
+
+		//! Get current memory usage for all the modules.
+		virtual UInt32 GetTotalMemoryUsage() const = 0;
+	};
 
 }
