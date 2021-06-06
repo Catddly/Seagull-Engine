@@ -9,19 +9,6 @@ namespace SG
 	void CFileSystem::OnInit()
 	{
 		mStreamOp = New<SPlatformStreamOp>();
-		// set root directory to where the .exe file is
-		// TODO: move to SEnv or something control all the environment variable
-		char abPath[SG_MAX_FILE_PATH] = { 0 };
-		GetModuleFileNameA(NULL, abPath, sizeof(abPath));
-		char drivePath[SG_MAX_DRIVE_PATH] = { 0 };
-		char directoryPath[SG_MAX_DIREC_PATH] = { 0 };
-		_splitpath_s(abPath, 
-			drivePath, SG_MAX_DRIVE_PATH, 
-			directoryPath, SG_MAX_DIREC_PATH, NULL, 0, NULL, 0);
-
-		string rootPath(drivePath);
-		rootPath.append(directoryPath);
-		_chdir(rootPath.c_str());
 	}
 
 	void CFileSystem::OnShutdown()

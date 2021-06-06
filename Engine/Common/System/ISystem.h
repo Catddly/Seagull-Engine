@@ -5,7 +5,6 @@
 
 namespace SG
 {
-	struct IApp;
 	struct IProcess;
 
 	struct I3DEngine;
@@ -32,6 +31,7 @@ namespace SG
 	{
 		virtual ~ISystemManager() = default;
 
+		virtual void Init() = 0;
 		virtual bool TryInitCoreModules() = 0;
 		virtual void Update() = 0; // do we really want this??
 		virtual void Shutdown() = 0;
@@ -46,7 +46,7 @@ namespace SG
 		virtual IFileSystem* GetIFileSystem() = 0;
 
 		//! Register a user application.
-		virtual void RegisterUserApp(IApp* pApp) = 0;
+		//virtual void RegisterUserApp(IApp* pApp) = 0;
 
 		//! Check if all the core modules is loaded.
 		virtual bool ValidateCoreModules() const = 0;
@@ -56,10 +56,12 @@ namespace SG
 		//! Add an IProcess to system to update.
 		virtual void AddIProcess(IProcess* pProcess) = 0;
 		//! Remove an IProcess from system.
-		virtual void RemoveIProcess(IProcess* pProcess) = 0;
+		//virtual void RemoveIProcess(IProcess* pProcess) = 0;
 
 		//! Get current memory usage for all the modules.
 		virtual UInt32 GetTotalMemoryUsage() const = 0;
 	};
+
+	SG_COMMON_API ISystemManager* GetSystemManager();
 
 }

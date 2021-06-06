@@ -52,9 +52,9 @@ namespace SG
 		case EFileMode::eWrite_Binary:
 			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "wb"); break;
 		case EFileMode::eAppend:
-			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "a"); break;
+			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "a+"); break;
 		case EFileMode::eAppend_Binary:
-			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "ab"); break;
+			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "a+b"); break;
 		case EFileMode::eRead_Write:
 			errorNo = fopen_s(&pOut->file, outDirectory.c_str(), "wt+"); break;
 		case EFileMode::eRead_Write_Binary:

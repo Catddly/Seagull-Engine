@@ -16,13 +16,14 @@ int main(int argv, char** argc)
 	using namespace SG;
 	extern IApp* GetAppInstance();
 	IApp* app = GetAppInstance();
-	ISystemManager* pSystemManager = CSystemManager::GetInstance();
-
+	auto pSystemManager = GetSystemManager();
+	pSystemManager->Init();
 	pSystemManager->TryInitCoreModules();
-	pSystemManager->GetILog()->SetFormat("[%y:%o:%d]-[%h:%m:%s]");
-	pSystemManager->GetIFileSystem()->OnInit();
 
-	pSystemManager->RegisterUserApp(app);
+	pSystemManager->GetILog()->SetFormat("[%y:%o:%d]-[%h:%m:%s]");
+	// TOOD: other modules should be loaded as dll,
+	// don't use get/set function.
+	pSystemManager->AddIProcess(app);
 	I3DEngine* p3DEngine = New<C3DEngine>();
 	pSystemManager->SetI3DEngine(p3DEngine);
 	p3DEngine->OnInit();

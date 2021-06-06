@@ -6,14 +6,35 @@
 #include "Core/Log/Log.h"
 #include "Core/FileSystem/FileSystem.h"
 
+#include <shlwapi.h> // for win32 directory manipulation
+#pragma comment(lib, "shlwapi.lib")
+
 namespace SG
 {
 	// no implementation yet, just forward declaration
 	class C2DEngine;
 
 	CSystemManager::CSystemManager()
-		: mpUserApp(nullptr)
+		: mpCurrActiveProcess(nullptr), mRootPath("")
 	{}
+
+	void CSystemManager::Init()
+	{
+		// set root directory to where the .exe file is
+		// TODO: move to SEnv or something control all the environment variable
+		char abPath[SG_MAX_FILE_PATH] = { 0 };
+		GetModuleFileNameA(NULL, abPath, sizeof(abPath));
+		char drivePath[SG_MAX_DRIVE_PATH] = { 0 };
+		char directoryPath[SG_MAX_DIREC_PATH] = { 0 };
+		_splitpath_s(abPath,
+			drivePath, SG_MAX_DRIVE_PATH,
+			directoryPath, SG_MAX_DIREC_PATH, NULL, 0, NULL, 0);
+
+		string rootPath(drivePath);
+		rootPath.append(directoryPath);
+		mRootPath = move(rootPath);
+		_chdir(mRootPath.c_str());
+	}
 
 	void CSystemManager::SetI3DEngine(I3DEngine* p3DEngine) { mSystemModules.p3DEngine = p3DEngine; }
 	void CSystemManager::SetI2DEngine(I2DEngine* p2DEngine) { mSystemModules.p2DEngine = p2DEngine; }
@@ -23,12 +44,6 @@ namespace SG
 	SG::I2DEngine*      CSystemManager::GetI2DEngine() { return mSystemModules.p2DEngine; }
 	SG::ILog*           CSystemManager::GetILog() { return mSystemModules.pLog; }
 	SG::IFileSystem*    CSystemManager::GetIFileSystem() { return mSystemModules.pFileSystem; }
-
-	void CSystemManager::RegisterUserApp(IApp* pApp)
-	{
-		mpUserApp = pApp;
-		mpUserApp->OnInit();
-	}
 
 	bool CSystemManager::ValidateCoreModules() const
 	{
@@ -47,12 +62,8 @@ namespace SG
 
 	void CSystemManager::AddIProcess(IProcess* pProcess)
 	{
-		// no implementation yet.
-	}
-
-	void CSystemManager::RemoveIProcess(IProcess* pProcess)
-	{
-		// no implementation yet.
+		mpCurrActiveProcess = pProcess;
+		mpCurrActiveProcess->OnInit();
 	}
 
 	SG::UInt32 CSystemManager::GetTotalMemoryUsage() const
@@ -65,22 +76,31 @@ namespace SG
 	{
 		if (!mSystemModules.pFileSystem) mSystemModules.pFileSystem = New<CFileSystem>();
 		if (!mSystemModules.pLog)        mSystemModules.pLog = New<CLog>();
+		mSystemModules.pFileSystem->OnInit();
+		mSystemModules.pLog->OnInit();
 		return ValidateCoreModules();
 	}
 
 	void CSystemManager::Update()
 	{
-		if (mpUserApp) mpUserApp->OnUpdate();
+		if (mpCurrActiveProcess) mpCurrActiveProcess->OnUpdate();
 	}
 
 	void CSystemManager::Shutdown()
 	{
-		if (mpUserApp) mpUserApp->OnShutdown();
+		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
 
 		Delete(mSystemModules.pLog);
 		Delete(mSystemModules.pFileSystem);
 		mSystemModules.pFileSystem = nullptr;
 		mSystemModules.pLog = nullptr;
 	}
+
+	SG_CORE_API CSystemManager gSystemManager;
+	ISystemManager* GetSystemManager()
+	{
+		return &gSystemManager;
+	}
+
 
 }
