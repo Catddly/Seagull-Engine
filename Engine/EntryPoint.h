@@ -8,7 +8,6 @@
 
 #include "3DEngine/3DEngine/3DEngine.h"
 
-#include "Core/System/SystemManager.h"
 #include "Core/Memory/Memory.h"
 
 int main(int argv, char** argc)
@@ -16,9 +15,9 @@ int main(int argv, char** argc)
 	using namespace SG;
 	extern IApp* GetAppInstance();
 	IApp* app = GetAppInstance();
-	auto pSystemManager = GetSystemManager();
-	pSystemManager->Init();
-	pSystemManager->TryInitCoreModules();
+	ISystemManager* pSystemManager = GetSystemManager();
+	pSystemManager->InitSystemEnv();
+	pSystemManager->InitCoreModules();
 
 	pSystemManager->GetILog()->SetFormat("[%y:%o:%d]-[%h:%m:%s]");
 	// TOOD: other modules should be loaded as dll,

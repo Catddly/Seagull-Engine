@@ -4,6 +4,7 @@
 // System modules
 //----------------------------------------------------------
 #include "Common/System/ISystem.h"
+#include "Common/System/IFileSystem.h"
 #include "Common/System/ILog.h"
 #include "Common/User/IApp.h"
 

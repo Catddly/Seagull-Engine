@@ -4,6 +4,10 @@
 #include "Common/System/ILog.h"
 #include "Formatter.h"
 
+#include "Core/Stl/string.h"
+
+#include <stdarg.h>
+
 namespace SG
 {
 
@@ -11,6 +15,7 @@ namespace SG
 	{
 	public:
 		SG_CORE_API virtual void OnInit() override;
+		SG_CORE_API virtual void OnShutdown() override;
 		//! Set log format
 		SG_CORE_API virtual void SetFormat(string_view format) override { mFormatter.SetFormat(format); }
 		//! Log to console
@@ -21,16 +26,16 @@ namespace SG
 	private:
 		//! Add log information prefix to buffer.
 		//! @return offset of the buffer.
-		int  AddPrefix();
+		int  AddPrefix(char* buf);
 		void Flush();
 	private:
 		enum { SG_MAX_LOG_BUFFER_SIZE = 2048 };
 
-		static char sBuffer[SG_MAX_LOG_BUFFER_SIZE];
-		static UInt32 sBufferSize;
+		static char sTempBuffer[SG_MAX_LOG_BUFFER_SIZE / 4];
+		static string sBuffer;
+		static int sBufferSize;
 
 		ELogMode mLogMode = ELogMode::eLog_Mode_Default;
-
 		fmt::CFormatter mFormatter;
 	};
 

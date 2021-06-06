@@ -6,9 +6,6 @@
 #include "Core/Log/Log.h"
 #include "Core/FileSystem/FileSystem.h"
 
-#include <shlwapi.h> // for win32 directory manipulation
-#pragma comment(lib, "shlwapi.lib")
-
 namespace SG
 {
 	// no implementation yet, just forward declaration
@@ -18,7 +15,7 @@ namespace SG
 		: mpCurrActiveProcess(nullptr), mRootPath("")
 	{}
 
-	void CSystemManager::Init()
+	void CSystemManager::InitSystemEnv()
 	{
 		// set root directory to where the .exe file is
 		// TODO: move to SEnv or something control all the environment variable
@@ -72,7 +69,7 @@ namespace SG
 		return 0;
 	}
 
-	bool CSystemManager::TryInitCoreModules()
+	bool CSystemManager::InitCoreModules()
 	{
 		if (!mSystemModules.pFileSystem) mSystemModules.pFileSystem = New<CFileSystem>();
 		if (!mSystemModules.pLog)        mSystemModules.pLog = New<CLog>();
@@ -90,6 +87,7 @@ namespace SG
 	{
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
 
+		mSystemModules.pLog->OnShutdown();
 		Delete(mSystemModules.pLog);
 		Delete(mSystemModules.pFileSystem);
 		mSystemModules.pFileSystem = nullptr;

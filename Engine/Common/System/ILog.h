@@ -37,6 +37,7 @@ namespace SG
 		virtual ~ILog() = default;
 		//! Initialize the logger.
 		virtual void OnInit() = 0;
+		virtual void OnShutdown() = 0;
 		//! Set log format.
 		virtual void SetFormat(eastl::string_view format) = 0;
 		//! Log to console with printf-like format.

@@ -27,12 +27,12 @@ namespace SG
 	//! and usage.
 	//! Core modules are ILog, IFileSystem.
 	//! High level modules are I3DEngine, I2DEngine.
-	struct SG_COMMON_API ISystemManager
+	struct ISystemManager
 	{
 		virtual ~ISystemManager() = default;
 
-		virtual void Init() = 0;
-		virtual bool TryInitCoreModules() = 0;
+		virtual void InitSystemEnv() = 0;
+		virtual bool InitCoreModules() = 0;
 		virtual void Update() = 0; // do we really want this??
 		virtual void Shutdown() = 0;
 
