@@ -5,6 +5,9 @@
 
 #include "Common/System/ISystem.h"
 #include "Common/User/IApp.h"
+#include "Common/System/ILog.h"
+
+#include "Common/Platform/IOSWindow.h"
 
 #include "3DEngine/3DEngine/3DEngine.h"
 
@@ -18,8 +21,8 @@ int main(int argv, char** argc)
 	ISystemManager* pSystemManager = GetSystemManager();
 	pSystemManager->InitSystemEnv();
 	pSystemManager->InitCoreModules();
-
 	pSystemManager->GetILog()->SetFormat("[%y:%o:%d]-[%h:%m:%s]");
+
 	// TOOD: other modules should be loaded as dll,
 	// don't use get/set function.
 	pSystemManager->AddIProcess(app);

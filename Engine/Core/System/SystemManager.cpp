@@ -17,8 +17,6 @@ namespace SG
 
 	void CSystemManager::InitSystemEnv()
 	{
-		// set root directory to where the .exe file is
-		// TODO: move to SEnv or something control all the environment variable
 		char abPath[SG_MAX_FILE_PATH] = { 0 };
 		GetModuleFileNameA(NULL, abPath, sizeof(abPath));
 		char drivePath[SG_MAX_DRIVE_PATH] = { 0 };
@@ -30,6 +28,7 @@ namespace SG
 		string rootPath(drivePath);
 		rootPath.append(directoryPath);
 		mRootPath = move(rootPath);
+		// set root directory to where the .exe file is
 		_chdir(mRootPath.c_str());
 	}
 
@@ -95,10 +94,7 @@ namespace SG
 	}
 
 	SG_CORE_API CSystemManager gSystemManager;
-	ISystemManager* GetSystemManager()
-	{
-		return &gSystemManager;
-	}
+	ISystemManager* GetSystemManager() { return &gSystemManager; }
 
 
 }

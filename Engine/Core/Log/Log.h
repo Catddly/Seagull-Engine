@@ -25,13 +25,14 @@ namespace SG
 		SG_CORE_API virtual void SetLogMode(ELogMode logMode) override { mLogMode = logMode; }
 	private:
 		//! Add log information prefix to buffer.
+		//! @param  (pBuf) buffer to add to.
 		//! @return offset of the buffer.
-		int  AddPrefix(char* buf);
+		int  AddPrefix(char* pBuf);
 		void Flush();
 	private:
-		enum { SG_MAX_LOG_BUFFER_SIZE = 2048 };
+		enum { SG_MAX_LOG_BUFFER_SIZE = 2048, SG_MAX_TEMP_BUFFER_SIZE = SG_MAX_LOG_BUFFER_SIZE / 8 };
 
-		static char sTempBuffer[SG_MAX_LOG_BUFFER_SIZE / 4];
+		static char sTempBuffer[SG_MAX_TEMP_BUFFER_SIZE];
 		static string sBuffer;
 		static int sBufferSize;
 

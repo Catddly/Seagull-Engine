@@ -6,6 +6,9 @@ public:
 	virtual void OnInit() override
 	{
 		SG_LOG_INFO("User OnInit()");
+		using namespace SG;
+		SWindow mWindow;
+		OpenWindow(L"Test", &mWindow);
 	}
 
 	virtual void OnUpdate() override

@@ -8,7 +8,7 @@
 namespace SG
 {
 
-	char CLog::sTempBuffer[SG_MAX_LOG_BUFFER_SIZE / 4] = { 0 };
+	char CLog::sTempBuffer[SG_MAX_TEMP_BUFFER_SIZE] = { 0 };
 	string CLog::sBuffer;
 	int CLog::sBufferSize = 0;
 
@@ -94,9 +94,9 @@ namespace SG
 		sTempBuffer[0] = { 0 };
 	}
 
-	int CLog::AddPrefix(char* buf)
+	int CLog::AddPrefix(char* pBuf)
 	{
-		return sprintf_s(buf, SG_MAX_LOG_BUFFER_SIZE / 4, "%s ", mFormatter.GetFormattedString().c_str());
+		return sprintf_s(pBuf, SG_MAX_TEMP_BUFFER_SIZE, "%s ", mFormatter.GetFormattedString().c_str());
 	}
 
 	void CLog::LogToFile() const
