@@ -11,6 +11,8 @@ namespace SG
 	// no implementation yet, just forward declaration
 	class C2DEngine;
 
+	CSystemManager* CSystemManager::sInstance = nullptr;
+
 	CSystemManager::CSystemManager()
 		: mpCurrActiveProcess(nullptr), mRootPath("")
 	{}
@@ -91,10 +93,16 @@ namespace SG
 		Delete(mSystemModules.pFileSystem);
 		mSystemModules.pFileSystem = nullptr;
 		mSystemModules.pLog = nullptr;
+
+		if (sInstance)
+			Delete(sInstance);
 	}
 
-	SG_CORE_API CSystemManager gSystemManager;
-	ISystemManager* GetSystemManager() { return &gSystemManager; }
-
+	ISystemManager* CSystemManager::GetInstance()
+	{
+		if (sInstance == nullptr)
+			sInstance = New<CSystemManager>();
+		return sInstance;
+	}
 
 }

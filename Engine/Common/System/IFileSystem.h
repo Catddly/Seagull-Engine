@@ -89,6 +89,9 @@ extern "C"
 		virtual Size FileSize(const FileStream* pStream) const = 0;
 		virtual bool Flush(FileStream* pStream) = 0;
 		virtual bool IsEndOfFile(const FileStream* pStream) const = 0;
+
+		virtual const char* GetRootDirectory() const = 0;
+		virtual void        SetRootDirectory(const char* rootFolder) = 0;
 	} IStreamOp;
 
 	// TODO: add async file request system to do async file io (after the thread system) 
@@ -102,6 +105,9 @@ extern "C"
 		virtual void OnInit() = 0;
 		//! Shutdown file system
 		virtual void OnShutdown() = 0;
+
+		//! User interface to set the stream op to user custom.
+		virtual void SetIStreamOp(IStreamOp* pStreamOp) = 0;
 
 		//! Set engine's resource files root directory.
 		//! Default root directory will be the folder where .exe is in.

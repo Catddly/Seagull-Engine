@@ -5,7 +5,6 @@
 
 namespace SG
 {
-
 	SG_COMMON_API void* Malloc(Size size) noexcept;
 	SG_COMMON_API void* MallocAlign(Size size, Size alignment) noexcept;
 	SG_COMMON_API void* Calloc(Size count, Size size) noexcept;

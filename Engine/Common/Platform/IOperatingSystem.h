@@ -4,6 +4,8 @@
 #include "Common/Base/BasicTypes.h"
 //#include "../../Common/Base/BasicTypes.h"
 
+#include "Core/Stl/vector.h"
+
 namespace SG
 {
 
@@ -73,34 +75,58 @@ namespace SG
 		Float32 y;
 	} Vec2;
 
-	// Operations of window.
-	// To implemented on every platform.
-	//! When we open the window, create it.
-	SG_COMMON_API void OpenWindow(const WChar* name, SWindow* const pWindow);
-	//! When we close the window, destroy it.
-	SG_COMMON_API void CloseWindow(SWindow* const pWindow);
+	//! Operations of window.
+	//! To implemented on every platform.
+	struct IWindowOp
+	{
+		virtual ~IWindowOp() = default;
 
-	SG_COMMON_API void ShowWindow(SWindow* const pWindow);
-	SG_COMMON_API void HideWindow(SWindow* const pWindow);
+		//! When we open the window, create it.
+		virtual void OpenWindow(const WChar* windowName, SWindow* const pWindow) = 0;
+		//! When we close the window, destroy it.
+		virtual void CloseWindow(SWindow* const pWindow) = 0;
 
-	SG_COMMON_API void ResizeWindow(const SRect& rect, SWindow* const pWindow);
-	SG_COMMON_API void ResizeWindow(UInt32 width, UInt32 height, UInt32 center, SWindow* const pWindow);
+		virtual void ShowWindow(SWindow* const pWindow) = 0;
+		virtual void HideWindow(SWindow* const pWindow) = 0;
 
-	SG_COMMON_API void ToggleFullSrceen(SWindow* const pWindow);
-	SG_COMMON_API void Maximized(SWindow* const pWindow);
-	SG_COMMON_API void Minimized(SWindow* const pWindow);
+		virtual void ResizeWindow(const SRect& rect, SWindow* const pWindow) = 0;
+		virtual void ResizeWindow(UInt32 width, UInt32 height, UInt32 center, SWindow* const pWindow) = 0;
 
-	SG_COMMON_API Vec2 GetMousePosAbsolute();
-	SG_COMMON_API Vec2 GetMousePosRelative(SWindow* const pWindow);
+		virtual void ToggleFullSrceen(SWindow* const pWindow) = 0;
+		virtual void Maximized(SWindow* const pWindow) = 0;
+		virtual void Minimized(SWindow* const pWindow) = 0;
+	};
 
-	// Operations of monitor.
-	// To implemented on every platform.
+	//! Operations of mouse.
+	//! To implemented on every platform.
+	struct IMouseOp
+	{
+		virtual ~IMouseOp() = default;
 
-	//! Get the number of monitors currently connected to the computer.
-	SG_COMMON_API int  GetNumMonitors();
-	SG_COMMON_API void CollectMonitorInfo(SMonitor* const pMonitor);
+		virtual Vec2 GetMousePosAbsolute() const = 0;
+		virtual Vec2 GetMousePosRelative(SWindow* const pWindow) const = 0;
+	};
 
-	SG_COMMON_API Vec2 GetDpiScale();
-	SG_COMMON_API void GetCurrentWindowMonitor(SMonitor* const pMonitor, SWindow* const pWindow);
+	//! Operations of monitor.
+	//! To implemented on every platform.
+	struct IMonitorOp
+	{
+		virtual ~IMonitorOp() = default;
+
+		//! Get the number of monitors currently connected to the computer.
+		virtual int  GetNumMonitors() const = 0;
+		virtual void CollectMonitorInfo(SMonitor* const pMonitor) = 0;
+
+		virtual Vec2 GetDpiScale() const = 0;
+		virtual void GetCurrentWindowMonitor(SMonitor* const pMonitor, SWindow* const pWindow) = 0;
+	};
+
+	struct IOperatingSystem
+	{
+		virtual ~IOperatingSystem() = default;
+
+		virtual void OnInit() = 0;
+		virtual void OnShutdown() = 0;
+	};
 
 }

@@ -50,7 +50,11 @@ namespace SG
 
 		//! Get current memory usage for all the modules.
 		SG_CORE_API virtual UInt32 GetTotalMemoryUsage() const override;
+
+		SG_CORE_API static ISystemManager* GetInstance();
 	private:
+		static CSystemManager* sInstance;
+
 		enum {
 			SG_MAX_FILE_PATH = 200,
 			SG_MAX_DRIVE_PATH = 5,
@@ -58,7 +62,6 @@ namespace SG
 			SG_MAX_EXT_PATH = 10,
 			SG_MAX_DIREC_PATH = SG_MAX_FILE_PATH - SG_MAX_DRIVE_PATH - SG_MAX_FILE_NAME - SG_MAX_EXT_PATH,
 		};
-
 		string mRootPath;
 
 		ISystemModules mSystemModules;

@@ -14,7 +14,7 @@ namespace SG
 
 	void CLog::OnInit()
 	{
-		ISystemManager* pSysMgr = GetSystemManager();
+		ISystemManager* pSysMgr = CSystemManager::GetInstance();
 		IFileSystem* pFs = pSysMgr->GetIFileSystem();
 		if (pFs->Open(EResourceDirectory::eLog, "log.txt", EFileMode::eWrite)) // reopen to clean up the log file
 		{
@@ -101,7 +101,7 @@ namespace SG
 
 	void CLog::LogToFile() const
 	{
-		ISystemManager* pSysMgr = GetSystemManager();
+		ISystemManager* pSysMgr = CSystemManager::GetInstance();
 		IFileSystem* pFs = pSysMgr->GetIFileSystem();
 
 		if (pFs->Open(EResourceDirectory::eLog, "log.txt", EFileMode::eAppend))

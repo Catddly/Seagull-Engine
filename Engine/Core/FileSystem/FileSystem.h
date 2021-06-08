@@ -15,6 +15,8 @@ namespace SG
 		SG_CORE_API virtual void OnInit() override;
 		SG_CORE_API virtual void OnShutdown() override;
 
+		SG_CORE_API virtual void SetIStreamOp(IStreamOp* pStreamOp);
+
 		SG_CORE_API virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode) override;
 		SG_CORE_API virtual bool Close() override;
 		SG_CORE_API virtual Size Read(void* pInBuf, Size bufSize) override;
@@ -28,7 +30,7 @@ namespace SG
 		SG_CORE_API virtual void SetRootDirectory(const char* filepath) override;
 	private:
 		// platform implementation of stream operations
-		SPlatformStreamOp* mStreamOp = nullptr;
+		IStreamOp* mStreamOp = nullptr;
 		FileStream mStream;
 	};
 

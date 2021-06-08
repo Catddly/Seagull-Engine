@@ -8,7 +8,7 @@ namespace SG
 
 	void CFileSystem::OnInit()
 	{
-		mStreamOp = New<SPlatformStreamOp>();
+		mStreamOp = New<SWindowsStreamOp>();
 	}
 
 	void CFileSystem::OnShutdown()
@@ -18,7 +18,7 @@ namespace SG
 
 	void CFileSystem::SetRootDirectory(const char* filepath)
 	{
-		mStreamOp->mRootDirectory = filepath;
+		mStreamOp->SetRootDirectory(filepath);
 	}
 
 	bool CFileSystem::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode)
@@ -64,6 +64,12 @@ namespace SG
 	bool CFileSystem::IsEndOfFile() const
 	{
 		return mStreamOp->IsEndOfFile(&mStream);
+	}
+
+	void CFileSystem::SetIStreamOp(IStreamOp* pStreamOp)
+	{
+		if (pStreamOp != nullptr)
+			mStreamOp = pStreamOp;
 	}
 
 }

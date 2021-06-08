@@ -62,6 +62,4 @@ namespace SG
 		virtual UInt32 GetTotalMemoryUsage() const = 0;
 	};
 
-	SG_COMMON_API ISystemManager* GetSystemManager();
-
 }

@@ -7,18 +7,19 @@
 #include "Common/User/IApp.h"
 #include "Common/System/ILog.h"
 
-#include "Common/Platform/IOSWindow.h"
-
 #include "3DEngine/3DEngine/3DEngine.h"
+#include "Core/System/SystemManager.h"
 
 #include "Core/Memory/Memory.h"
+
+#include <windows.h>
 
 int main(int argv, char** argc)
 {
 	using namespace SG;
 	extern IApp* GetAppInstance();
 	IApp* app = GetAppInstance();
-	ISystemManager* pSystemManager = GetSystemManager();
+	ISystemManager* pSystemManager = CSystemManager::GetInstance();
 	pSystemManager->InitSystemEnv();
 	pSystemManager->InitCoreModules();
 	pSystemManager->GetILog()->SetFormat("[%y:%o:%d]-[%h:%m:%s]");
@@ -37,6 +38,8 @@ int main(int argv, char** argc)
 	char buf[] = "@ILLmew";
 	SG_LOG_INFO("Welcome To Seagull Engine! %s", buf);
 	pSystemManager->Update();
+
+	//OpenWindow(L"Test", &gWindow);
 
 	p3DEngine->OnShutdown();
 	pSystemManager->Shutdown();

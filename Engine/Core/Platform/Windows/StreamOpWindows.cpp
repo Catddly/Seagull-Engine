@@ -21,7 +21,7 @@ namespace SG
 		"Script"
 	};
 
-	bool SPlatformStreamOp::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut)
+	bool SWindowsStreamOp::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut)
 	{
 		// if the EResourceDirectory folder is exist
 		auto rd = (LPCSTR)gResoureceDirectory[(UInt32)directory];
@@ -74,7 +74,7 @@ namespace SG
 		return true;
 	}
 
-	bool SPlatformStreamOp::Close(FileStream* pStream)
+	bool SWindowsStreamOp::Close(FileStream* pStream)
 	{
 		FILE* pFile = pStream->file;
 		if (pFile)
@@ -86,17 +86,17 @@ namespace SG
 			return false;
 	}
 
-	Size SPlatformStreamOp::Read(FileStream* pStream, void* pInBuf, Size bufSize)
+	Size SWindowsStreamOp::Read(FileStream* pStream, void* pInBuf, Size bufSize)
 	{
 		return fread(pInBuf, bufSize, 1, pStream->file);
 	}
 
-	Size SPlatformStreamOp::Write(FileStream* pStream, const void* const pOutBuf, Size bufSize)
+	Size SWindowsStreamOp::Write(FileStream* pStream, const void* const pOutBuf, Size bufSize)
 	{
 		return fwrite(pOutBuf, bufSize, 1, pStream->file);
 	}
 
-	bool SPlatformStreamOp::Seek(const FileStream* pStream, EFileBaseOffset baseOffset, Size offset) const
+	bool SWindowsStreamOp::Seek(const FileStream* pStream, EFileBaseOffset baseOffset, Size offset) const
 	{
 		int bOffset = baseOffset == EFileBaseOffset::eStart ? SEEK_SET :
 			baseOffset == EFileBaseOffset::eCurrent ? SEEK_CUR : SEEK_END;
@@ -106,12 +106,12 @@ namespace SG
 		return false;
 	}
 
-	Size SPlatformStreamOp::Tell(const FileStream* pStream) const
+	Size SWindowsStreamOp::Tell(const FileStream* pStream) const
 	{
 		return ftell(pStream->file);
 	}
 
-	Size SPlatformStreamOp::FileSize(const FileStream* pStream) const
+	Size SWindowsStreamOp::FileSize(const FileStream* pStream) const
 	{
 		Size currPos = Tell(pStream);
 		Seek(pStream, EFileBaseOffset::eEOF, 0);
@@ -120,7 +120,7 @@ namespace SG
 		return fileSize;
 	}
 
-	bool SPlatformStreamOp::Flush(FileStream* pStream)
+	bool SWindowsStreamOp::Flush(FileStream* pStream)
 	{
 		int ret = fflush(pStream->file);
 		if (ret == 0)
@@ -128,7 +128,7 @@ namespace SG
 		return false;
 	}
 
-	bool SPlatformStreamOp::IsEndOfFile(const FileStream* pStream) const
+	bool SWindowsStreamOp::IsEndOfFile(const FileStream* pStream) const
 	{
 		return feof(pStream->file);
 	}
