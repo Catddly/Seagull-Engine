@@ -12,8 +12,6 @@
 
 #include "Core/Memory/Memory.h"
 
-#include <windows.h>
-
 int main(int argv, char** argc)
 {
 	using namespace SG;
@@ -22,7 +20,6 @@ int main(int argv, char** argc)
 	ISystemManager* pSystemManager = CSystemManager::GetInstance();
 	pSystemManager->InitSystemEnv();
 	pSystemManager->InitCoreModules();
-	pSystemManager->GetILog()->SetFormat("[%y:%o:%d]-[%h:%m:%s]");
 
 	// TOOD: other modules should be loaded as dll,
 	// don't use get/set function.

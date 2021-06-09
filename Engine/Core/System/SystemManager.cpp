@@ -5,6 +5,7 @@
 
 #include "Core/Log/Log.h"
 #include "Core/FileSystem/FileSystem.h"
+#include "Core/Platform/OperatingSystem.h"
 
 namespace SG
 {
@@ -42,11 +43,13 @@ namespace SG
 	SG::I2DEngine*      CSystemManager::GetI2DEngine() { return mSystemModules.p2DEngine; }
 	SG::ILog*           CSystemManager::GetILog() { return mSystemModules.pLog; }
 	SG::IFileSystem*    CSystemManager::GetIFileSystem() { return mSystemModules.pFileSystem; }
+	SG::IOperatingSystem* CSystemManager::GetIOS() { return mSystemModules.pOS; }
 
 	bool CSystemManager::ValidateCoreModules() const
 	{
 		bool isReady = (mSystemModules.pLog != nullptr) &&
-			(mSystemModules.pFileSystem != nullptr);
+			(mSystemModules.pFileSystem != nullptr) &&
+			(mSystemModules.pOS != nullptr);
 		return isReady;
 	}
 
@@ -74,8 +77,10 @@ namespace SG
 	{
 		if (!mSystemModules.pFileSystem) mSystemModules.pFileSystem = New<CFileSystem>();
 		if (!mSystemModules.pLog)        mSystemModules.pLog = New<CLog>();
+		if (!mSystemModules.pOS)         mSystemModules.pOS = New<COperatingSystem>();
 		mSystemModules.pFileSystem->OnInit();
 		mSystemModules.pLog->OnInit();
+		mSystemModules.pOS->OnInit();
 		return ValidateCoreModules();
 	}
 
@@ -88,9 +93,12 @@ namespace SG
 	{
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
 
+		mSystemModules.pOS->OnShutdown();
 		mSystemModules.pLog->OnShutdown();
+		Delete(mSystemModules.pOS);
 		Delete(mSystemModules.pLog);
 		Delete(mSystemModules.pFileSystem);
+		mSystemModules.pOS = nullptr;
 		mSystemModules.pFileSystem = nullptr;
 		mSystemModules.pLog = nullptr;
 

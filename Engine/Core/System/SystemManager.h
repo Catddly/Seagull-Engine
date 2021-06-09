@@ -7,6 +7,7 @@
 #include "Common/System/I2DEngine.h"
 #include "Common/System/I3DEngine.h"
 #include "Common/System/IFileSystem.h"
+#include "Common/Platform/IOperatingSystem.h"
 
 #include "Common/User/IApp.h"
 
@@ -37,6 +38,7 @@ namespace SG
 
 		SG_CORE_API virtual ILog* GetILog() override;
 		SG_CORE_API virtual IFileSystem* GetIFileSystem() override;
+		SG_CORE_API virtual IOperatingSystem* GetIOS() override;
 
 		//! Check if all the core modules is loaded.
 		SG_CORE_API virtual bool ValidateCoreModules() const override;

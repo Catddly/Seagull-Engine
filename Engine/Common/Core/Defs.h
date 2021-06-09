@@ -1,8 +1,10 @@
 #pragma once
 
+#include "Compilers.h"
 #include <stdint.h>
 
-#include "Compilers.h"
+#define SG_ENGINE_WNAME L"Seagull Engine"
+#define SG_ENGINE_NAME   "Seagull Engine"
 
 #if   INTPTR_MAX == 0x7FFFFFFFFFFFFFFFLL
 #	define SG_PTR_SIZE 8

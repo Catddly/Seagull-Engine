@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "WindowOpWindows.h"
+#include "Common/Platform/IOperatingSystem.h"
 
 #include "Common/Core/Defs.h"
 #include "Common/System/ILog.h"
@@ -11,12 +11,118 @@
 #	include <windows.h>
 #endif
 
-#include <WinUser.h>
-
 namespace SG
 {
 #ifdef SG_PLATFORM_WINDOWS
+	///////////////////////////////////////////////////////////////////////////
+	///  global functions of operating system
+	///////////////////////////////////////////////////////////////////////////
+	/// monitor functions
+	int GetNumMonitors()
+	{
+		int numDevices = 0;
+		while (true)
+		{
+			DISPLAY_DEVICE device;
+			memset(&device, 0, sizeof(PDISPLAY_DEVICE));
+			device.cb = sizeof(device);
+			bool ret = ::EnumDisplayDevices(NULL, numDevices, &device, 0); 
+			if (ret) // if the device is existed
+			{
+				++numDevices;
+			}
+			else
+			{
+				break;
+			}
+		}
+		return numDevices;
+	}
 
+	bool CollectMonitorInfo(UInt32 index, SMonitor* const pMonitor)
+	{
+		DISPLAY_DEVICE device = {};
+		bool ret = ::EnumDisplayDevices(NULL, index, &device, 0);
+		if (!ret) // no monitor exist
+			return false;
+
+		SG_LOG_INFO("(%d)Device Name: %s", index, device.DeviceName);
+		::EnumDisplayDevices(device.DeviceName, index, &device, 0);
+		SG_LOG_INFO("(%d)Monitor Name: %s", index, device.DeviceName);
+
+		HMONITOR handle = (HMONITOR)pMonitor->handle;
+		MONITORINFOEX info = {};
+		info.cbSize = sizeof(MONITORINFOEX);
+		::GetMonitorInfo(handle, &info);
+		pMonitor->monitorRect = { info.rcMonitor.left, info.rcMonitor.top, info.rcMonitor.right, info.rcMonitor.bottom };
+		pMonitor->workRect = { info.rcWork.left, info.rcWork.top, info.rcWork.right, info.rcWork.bottom };
+		pMonitor->resolution = { GetRectWidth(pMonitor->monitorRect), GetRectHeight(pMonitor->monitorRect) };
+
+		Vec2 dpi = GetDpiScale();
+		pMonitor->dpiX = (UInt32)dpi.x;
+		pMonitor->dpiY = (UInt32)dpi.y;
+		return true;
+	}
+
+	Vec2 GetDpiScale()
+	{
+		HDC hdc = ::GetDC(NULL);
+		const float dpiScale = 96.0f; // TODO: maybe this can be set somewhere
+		Vec2 dpi;
+		if (hdc)
+		{
+			dpi.x = static_cast<UINT>(::GetDeviceCaps(hdc, LOGPIXELSX)) / dpiScale;
+			dpi.y = static_cast<UINT>(::GetDeviceCaps(hdc, LOGPIXELSY)) / dpiScale;
+		}
+		else
+		{
+			float systemDpi = ::GetDpiForSystem() / 96.0f;
+			dpi.x = systemDpi;
+			dpi.y = systemDpi;
+		}
+		::ReleaseDC(NULL, hdc);
+		return dpi;
+	}
+
+	bool GetWindowMonitorIndex(const vector<SMonitor>& monitors, SWindow* const pWindow)
+	{
+		HMONITOR monitor = ::MonitorFromWindow((HWND)pWindow->handle, MONITOR_DEFAULTTOPRIMARY);
+		for (int i = 0; i < monitors.size(); i++)
+		{
+			if ((HMONITOR)monitors[i].handle == monitor)
+			{
+				pWindow->monitorIndex = i;
+				return true;
+			}
+		}
+		pWindow->monitorIndex = -1;
+		return false;
+	}
+
+	void GetWindowMonitor(SMonitor* const pMonitor, SWindow* const pWindow)
+	{
+		HMONITOR monitor = ::MonitorFromWindow((HWND)pWindow->handle, MONITOR_DEFAULTTOPRIMARY);
+		pMonitor->handle = monitor;
+		CollectMonitorInfo(0, pMonitor);
+	}
+
+	/// mouse functions
+	SG::Vec2 GetMousePosAbsolute()
+	{
+		POINT pos;
+		::GetCursorPos(&pos);
+		return { (float)pos.x, (float)pos.y };
+	}
+
+	SG::Vec2 GetMousePosRelative(SWindow* const pWindow)
+	{
+		POINT pos;
+		::GetCursorPos(&pos);
+		ClientToScreen((HWND)pWindow->handle, &pos);
+		return { (float)pos.x, (float)pos.y };
+	}
+
+	/// window functions
 	static void AdjustWindow(SWindow* const pWindow)
 	{
 		HWND handle = (HWND)pWindow->handle;
@@ -26,13 +132,13 @@ namespace SG
 			::GetWindowRect(handle, currRect);
 			// save as windowed rect
 			pWindow->windowedRect = { currRect->left, currRect->top, currRect->right, currRect->bottom };
-			
+
 			// set borderless window
 			::SetWindowLong(handle, GWL_STYLE, WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN /* no child window draw inside parent*/ |
 				WS_CLIPSIBLINGS | WS_THICKFRAME);
 
 			SMonitor monitorInfo = {};
-			//GetCurrentWindowMonitor(&monitorInfo, pWindow);
+			GetWindowMonitor(&monitorInfo, pWindow);
 			pWindow->fullscreenRect = monitorInfo.monitorRect;
 			::SetWindowPos(handle, HWND_NOTOPMOST,
 				pWindow->fullscreenRect.left, pWindow->fullscreenRect.top,
@@ -64,7 +170,7 @@ namespace SG
 		return ::DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
-	void CWindowsStreamOp::OpenWindow(const WChar* name, SWindow* const pWindow)
+	void OpenWindow(const WChar* name, SWindow* const pWindow)
 	{
 		WNDCLASSEX wc;
 		HINSTANCE instance = (HINSTANCE)GetModuleHandle(NULL);
@@ -79,7 +185,7 @@ namespace SG
 		wc.hCursor = LoadCursor(0, IDC_ARROW);
 		wc.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
 		wc.lpszMenuName = 0;
-		wc.lpszClassName = L"Seagull Engine";
+		wc.lpszClassName = SG_ENGINE_WNAME;
 
 		if (!RegisterClassEx(&wc))
 		{
@@ -104,7 +210,7 @@ namespace SG
 		::AdjustWindowRectEx(&rect, dwStyle, FALSE, dwExStyle);
 
 		// TODO: replace resolution to recommended resolution.
-		hwnd = CreateWindowEx(dwExStyle, L"Seagull Engine",
+		hwnd = CreateWindowEx(dwExStyle, SG_ENGINE_WNAME,
 			name, dwStyle, 0, 0,
 			1920, 1080, NULL, NULL,
 			instance, 0);
@@ -118,27 +224,27 @@ namespace SG
 		::UpdateWindow((HWND)pWindow->handle);
 	}
 
-	void CWindowsStreamOp::CloseWindow(SWindow* const pWindow)
+	void CloseWindow(SWindow* const pWindow)
 	{
 		DestroyWindow((HWND)pWindow->handle);
 		pWindow->handle = nullptr;
 	}
 
-	void CWindowsStreamOp::ShowWindow(SWindow* const pWindow)
+	void ShowWindow(SWindow* const pWindow)
 	{
 		::ShowWindow((HWND)pWindow->handle, SW_SHOW);
 	}
 
-	void CWindowsStreamOp::HideWindow(SWindow* const pWindow)
+	void HideWindow(SWindow* const pWindow)
 	{
 		::ShowWindow((HWND)pWindow->handle, SW_HIDE);
 	}
 
-	void CWindowsStreamOp::ResizeWindow(const SRect& rect, SWindow* const pWindow)
+	void ResizeWindow(const SRect& rect, SWindow* const pWindow)
 	{
 		if (pWindow->bIsFullScreen)
 		{
-			if (rect != pWindow->fullscreenRect) 
+			if (rect != pWindow->fullscreenRect)
 			{
 				pWindow->bIsFullScreen = false;
 				pWindow->windowedRect = rect;
@@ -152,29 +258,32 @@ namespace SG
 		}
 	}
 
-	void CWindowsStreamOp::ResizeWindow(UInt32 width, UInt32 height, UInt32 center, SWindow* const pWindow)
+	void ResizeWindow(UInt32 width, UInt32 height, UInt32 center, SWindow* const pWindow)
 	{
 		SRect rect = { (Int32)center - (Int32)width / 2, (Int32)center - (Int32)height / 2, (Int32)center + (Int32)width / 2, (Int32)center + (Int32)width / 2 };
 		ResizeWindow(rect, pWindow);
 	}
 
-	void CWindowsStreamOp::ToggleFullSrceen(SWindow* const pWindow)
+	void ToggleFullSrceen(SWindow* const pWindow)
 	{
 		pWindow->bIsFullScreen = !pWindow->bIsFullScreen;
 		AdjustWindow(pWindow);
 	}
 
-	void CWindowsStreamOp::Maximized(SWindow* const pWindow)
+	void Maximized(SWindow* const pWindow)
 	{
 		pWindow->bIsMaximized = true;
 		::ShowWindow((HWND)pWindow->handle, SW_MAXIMIZE);
 	}
 
-	void CWindowsStreamOp::Minimized(SWindow* const pWindow)
+	void Minimized(SWindow* const pWindow)
 	{
 		pWindow->bIsMinimized = true;
 		::ShowWindow((HWND)pWindow->handle, SW_MINIMIZE);
 	}
 
-#endif // SG_PLATFORM_WINDOWS
+	///////////////////////////////////////////////////////////////////////////
+	///  global functions of operating system
+	///////////////////////////////////////////////////////////////////////////
+#endif
 }

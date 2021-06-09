@@ -14,6 +14,7 @@ namespace SG
 
 	void CLog::OnInit()
 	{
+		SetFormat("[%y:%o:%d]-[%h:%m:%s]"); // default format.
 		ISystemManager* pSysMgr = CSystemManager::GetInstance();
 		IFileSystem* pFs = pSysMgr->GetIFileSystem();
 		if (pFs->Open(EResourceDirectory::eLog, "log.txt", EFileMode::eWrite)) // reopen to clean up the log file

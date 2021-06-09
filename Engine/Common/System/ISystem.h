@@ -11,16 +11,18 @@ namespace SG
 	struct I2DEngine;
 	struct ILog;
 	struct IFileSystem;
+	struct IOperatingSystem;
 
 	//! @Interface 
 	//! All the system components are in here
 	//! We can dynamically change its implementation of modules
 	struct ISystemModules
 	{
-		I3DEngine*   p3DEngine = nullptr;
-		I2DEngine*   p2DEngine = nullptr;
-		ILog*        pLog = nullptr;
-		IFileSystem* pFileSystem = nullptr;
+		I3DEngine*        p3DEngine = nullptr;
+		I2DEngine*        p2DEngine = nullptr;
+		ILog*             pLog = nullptr;
+		IFileSystem*      pFileSystem = nullptr;
+		IOperatingSystem* pOS = nullptr;
 	};
 
 	//! System Manager to manager all the modules' life cycle
@@ -44,6 +46,7 @@ namespace SG
 		virtual I2DEngine*   GetI2DEngine() = 0;
 		virtual ILog*        GetILog() = 0;
 		virtual IFileSystem* GetIFileSystem() = 0;
+		virtual IOperatingSystem* GetIOS() = 0;
 
 		//! Register a user application.
 		//virtual void RegisterUserApp(IApp* pApp) = 0;

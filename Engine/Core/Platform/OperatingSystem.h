@@ -10,10 +10,9 @@ namespace SG
 	public:
 		virtual void OnInit() override;
 		virtual void OnShutdown() override;
-
 	private:
-		SWindow          mMainWindow;
-		vector<SMonitor> mMonitors;
+		SWindow           mMainWindow = {};
+		vector<SMonitor>  mMonitors;
 	};
 
 }
