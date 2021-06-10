@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common/Platform/IOperatingSystem.h"
+#include "Common/Platform/IDeviceManager.h"
 
 namespace SG
 {
@@ -11,8 +12,8 @@ namespace SG
 		virtual void OnInit() override;
 		virtual void OnShutdown() override;
 	private:
-		SWindow           mMainWindow = {};
-		vector<SMonitor>  mMonitors;
+		SWindow           mMainWindow    = {};
+		IDeviceManager*   mDeviceManager = nullptr;
 	};
 
 }

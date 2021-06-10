@@ -51,24 +51,6 @@ namespace SG
 		bool         bIsBorderlessWindow;
 	} SWindow;
 
-	//! Resolution in pixel.
-	typedef struct SResolution
-	{
-		UInt32 width;
-		UInt32 height;
-	} SResolution;
-
-	//! Monitor information.
-	typedef struct SMonitor
-	{
-		SResolution resolution;
-		SRect       monitorRect;
-		SRect       workRect;
-		UInt32      dpiX;
-		UInt32      dpiY;
-		wstring     name;
-	} SMonitor;
-
 	//! Temporary! Need to replace to math system's Vec2.
 	typedef struct Vec2
 	{
@@ -111,10 +93,10 @@ namespace SG
 	/// To implemented on every platform.
 	//! Get the information of the monitors.
 	//! @return all the informations of monitors currently active.
-	SG_COMMON_API vector<SMonitor> CollectMonitorInfos();
-	SG_COMMON_API Vec2 GetDpiScale();
+	//SG_COMMON_API vector<SMonitor> CollectMonitorInfos();
+	SG_COMMON_API Vec2 GetCurrDpiScale();
 
-	// TODO: maybe put this on a message bus to transfer all the os messages.
+	//// TODO: maybe put this on a message bus to transfer all the os messages.
 	SG_COMMON_API EOsMessage PeekOSMessage();
 
 	struct IOperatingSystem

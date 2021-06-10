@@ -17,84 +17,8 @@ namespace SG
 	///////////////////////////////////////////////////////////////////////////
 	///  global functions of operating system
 	///////////////////////////////////////////////////////////////////////////
-	/// monitor functions
-	static BOOL _MonitorCallback(HMONITOR monitor, HDC hdc, LPRECT pRect, LPARAM pUser)
-	{
-		SMonitor* pMonitor = (SMonitor*)pUser;
 
-		MONITORINFOEXW info = {};
-		info.cbSize = sizeof(info);
-		::GetMonitorInfoW(monitor, &info);
-
-		pMonitor->monitorRect = { info.rcMonitor.left, info.rcMonitor.top, info.rcMonitor.right, info.rcMonitor.bottom };
-		pMonitor->workRect    = { info.rcWork.left, info.rcWork.top, info.rcWork.right, info.rcWork.bottom };
-		pMonitor->resolution  = { GetRectWidth(pMonitor->monitorRect), GetRectHeight(pMonitor->monitorRect) };
-		return TRUE;
-	}
-
-	vector<SMonitor> CollectMonitorInfos()
-	{
-		int monitorCount = 0;
-		DISPLAY_DEVICEW adapter = {};
-		adapter.cb = sizeof(adapter);
-		for (int adapterIndex = 0;; ++adapterIndex)
-		{
-			if (!EnumDisplayDevicesW(NULL, adapterIndex, &adapter, 0)) // if the adapter exists
-				break;
-			if (!(adapter.StateFlags & DISPLAY_DEVICE_ACTIVE))
-				continue;
-
-			for (int displayIndex = 0;; displayIndex++)
-			{
-				DISPLAY_DEVICEW display;
-				display.cb = sizeof(display);
-
-				if (!EnumDisplayDevicesW(adapter.DeviceName, displayIndex, &display, 0)) // if the monitor exists
-					break;
-				++monitorCount;
-			}
-		}
-
-		vector<SMonitor> monitors(monitorCount);
-		int monitorIndex = 0;
-		if (monitorCount)
-		{
-			DISPLAY_DEVICEW adapter = {};
-			adapter.cb = sizeof(adapter);
-			for (int adapterIndex = 0;; ++adapterIndex)
-			{
-				if (!EnumDisplayDevicesW(NULL, adapterIndex, &adapter, 0)) // if the adapter exists
-					break;
-				if (!(adapter.StateFlags & DISPLAY_DEVICE_ACTIVE))
-					continue;
-
-				for (int displayIndex = 0;; displayIndex++)
-				{
-					DISPLAY_DEVICEW display;
-					display.cb = sizeof(display);
-
-					if (!EnumDisplayDevicesW(adapter.DeviceName, displayIndex, &display, 0)) // if the monitor exists
-						break;
-
-					SMonitor* pMonitor = &monitors[monitorIndex++];
-					pMonitor->name = display.DeviceString;
-					SG_LOG_INFO("Monitor%d detected: %ws", monitorIndex, pMonitor->name.c_str());
-					::EnumDisplayMonitors(NULL, NULL, _MonitorCallback, (LPARAM)(pMonitor));
-					SG_LOG_INFO("         resolution: (%d, %d)", pMonitor->resolution.width, pMonitor->resolution.height);
-					Vec2 dpi = GetDpiScale();
-					pMonitor->dpiX = (UInt32)dpi.x;
-					pMonitor->dpiY = (UInt32)dpi.y;
-				}
-			}
-		}
-		else
-		{
-			SG_LOG_WARN("No monitor is active or discovered!");
-		}
-		return move(monitors);
-	}
-
-	Vec2 GetDpiScale()
+	Vec2 GetCurrDpiScale()
 	{
 		HDC hdc = ::GetDC(NULL);
 		const float dpiScale = 96.0f; // TODO: maybe this can be set somewhere
@@ -145,9 +69,9 @@ namespace SG
 			::SetWindowLong(handle, GWL_STYLE, WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN /* no child window draw inside parent*/ |
 				WS_CLIPSIBLINGS | WS_THICKFRAME);
 
-			SMonitor monitorInfo = {};
+			//SMonitor monitorInfo = {};
 			//GetWindowMonitor(&monitorInfo, pWindow); // TODO: encapsulate monitor information collecting.
-			pWindow->fullscreenRect = { 0, 0, 2560, 1440 };
+			pWindow->fullscreenRect = { 500, 500, 2560, 1440 };
 			::SetWindowPos(handle, HWND_NOTOPMOST,
 				pWindow->fullscreenRect.left, pWindow->fullscreenRect.top,
 				GetRectWidth(pWindow->fullscreenRect), GetRectHeight(pWindow->fullscreenRect), SWP_FRAMECHANGED | SWP_NOACTIVATE);
@@ -220,7 +144,7 @@ namespace SG
 			}
 		}
 
-		RECT rect = { 0, 0, 1920, 1080 };
+		RECT rect = { (2560 - 1920) / 2, (1440 - 1080) / 2, 1920, 1080 };
 		HWND hwnd = NULL;
 		DWORD dwExStyle = WS_EX_ACCEPTFILES; // accept drag files.
 		DWORD dwStyle = WS_OVERLAPPEDWINDOW;
@@ -228,7 +152,7 @@ namespace SG
 
 		// TODO: replace resolution to recommended resolution.
 		hwnd = CreateWindowEx(dwExStyle, SG_ENGINE_WNAME,
-			name, dwStyle, 0, 0,
+			name, dwStyle, (2560 - 1920) / 2, (1440 - 1080) / 2,
 			1920, 1080, NULL, NULL,
 			instance, 0);
 
