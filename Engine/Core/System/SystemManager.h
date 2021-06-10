@@ -40,6 +40,8 @@ namespace SG
 		SG_CORE_API virtual IFileSystem* GetIFileSystem() override;
 		SG_CORE_API virtual IOperatingSystem* GetIOS() override;
 
+		SG_CORE_API virtual bool SystemMainLoop() override;
+
 		//! Check if all the core modules is loaded.
 		SG_CORE_API virtual bool ValidateCoreModules() const override;
 		//! Check if all the modules is loaded.

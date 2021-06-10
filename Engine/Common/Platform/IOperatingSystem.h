@@ -1,16 +1,16 @@
 #pragma once
 
 #include "Common/Config.h"
-#include "Common/Base/BasicTypes.h"
-//#include "../../Common/Base/BasicTypes.h"
+//#include "Common/Base/BasicTypes.h"
+#include "../../Common/Base/BasicTypes.h"
 
 #include "Core/Stl/vector.h"
+#include "Core/Stl/string.h"
 
 namespace SG
 {
 
 	typedef void* WindowHandle;
-	typedef void* MonitorHandle;
 
 	//! Rectangle to indicate an area on screen.
 	typedef struct SRect
@@ -61,12 +61,12 @@ namespace SG
 	//! Monitor information.
 	typedef struct SMonitor
 	{
-		MonitorHandle handle;
 		SResolution resolution;
-		SRect  monitorRect;
-		SRect  workRect;
-		UInt32 dpiX;
-		UInt32 dpiY;
+		SRect       monitorRect;
+		SRect       workRect;
+		UInt32      dpiX;
+		UInt32      dpiY;
+		wstring     name;
 	} SMonitor;
 
 	//! Temporary! Need to replace to math system's Vec2.
@@ -76,14 +76,20 @@ namespace SG
 		Float32 y;
 	} Vec2;
 
+	typedef enum class EOsMessage
+	{
+		eNull = 0,
+		eQuit,
+	} EOsMessage;
+
 	/// Operations of window.
 	/// To implemented on every platform.
 	//! When we open the window, create it.
 	SG_COMMON_API void OpenWindow(const WChar* windowName, SWindow* const pWindow);
 	//! When we close the window, destroy it.
 	SG_COMMON_API void CloseWindow(SWindow* const pWindow);
-	//! Collect the infomation of current window.
-	//! @param (pWindow) the window to collect infomations. make sure pWindow->handle is not a nullptr.
+	//! Collect the information of current window.
+	//! @param (pWindow) the window to collect informations. make sure pWindow->handle is not a nullptr.
 	//SG_COMMON_API void CollectWindowInfo(SWindow* const pWindow);
 
 	SG_COMMON_API void ShowWindow(SWindow* const pWindow);
@@ -103,24 +109,13 @@ namespace SG
 
 	/// Operations of monitor.
 	/// To implemented on every platform.
-	//! Get the number of monitors currently connected to the computer.
-	SG_COMMON_API int  GetNumMonitors();
-	//! Get the infomation of the monitor.
-	//! @param (index) index of the monitor.
-	//! @param (pMonitor) empty monitor to pass in to get the infomation.
-	//! @return whether the index of monitor is exist. 
-	SG_COMMON_API bool CollectMonitorInfo(UInt32 index, SMonitor* const pMonitor);
-
+	//! Get the information of the monitors.
+	//! @return all the informations of monitors currently active.
+	SG_COMMON_API vector<SMonitor> CollectMonitorInfos();
 	SG_COMMON_API Vec2 GetDpiScale();
-	//! Get the index of monitor which the window currently is on.
-	//! @param (monitors) all monitors infomation.
-	//! @param (pWindow) window to locate.
-	//! @return return true if the monitor exists.
-	SG_COMMON_API bool GetWindowMonitorIndex(const vector<SMonitor>& monitors, SWindow* const pWindow);
-	//! Get the monitor infomation which the window currently is on.
-	//! @param (pMonitor) monitor infomations to return.
-	//! @param (pWindow) which window to get.
-	SG_COMMON_API void GetWindowMonitor(SMonitor* const pMonitor, SWindow* const pWindow);
+
+	// TODO: maybe put this on a message bus to transfer all the os messages.
+	SG_COMMON_API EOsMessage PeekOSMessage();
 
 	struct IOperatingSystem
 	{

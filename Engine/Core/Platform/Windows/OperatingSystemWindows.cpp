@@ -18,50 +18,80 @@ namespace SG
 	///  global functions of operating system
 	///////////////////////////////////////////////////////////////////////////
 	/// monitor functions
-	int GetNumMonitors()
+	static BOOL _MonitorCallback(HMONITOR monitor, HDC hdc, LPRECT pRect, LPARAM pUser)
 	{
-		int numDevices = 0;
-		while (true)
-		{
-			DISPLAY_DEVICE device;
-			memset(&device, 0, sizeof(PDISPLAY_DEVICE));
-			device.cb = sizeof(device);
-			bool ret = ::EnumDisplayDevices(NULL, numDevices, &device, 0); 
-			if (ret) // if the device is existed
-			{
-				++numDevices;
-			}
-			else
-			{
-				break;
-			}
-		}
-		return numDevices;
+		SMonitor* pMonitor = (SMonitor*)pUser;
+
+		MONITORINFOEXW info = {};
+		info.cbSize = sizeof(info);
+		::GetMonitorInfoW(monitor, &info);
+
+		pMonitor->monitorRect = { info.rcMonitor.left, info.rcMonitor.top, info.rcMonitor.right, info.rcMonitor.bottom };
+		pMonitor->workRect    = { info.rcWork.left, info.rcWork.top, info.rcWork.right, info.rcWork.bottom };
+		pMonitor->resolution  = { GetRectWidth(pMonitor->monitorRect), GetRectHeight(pMonitor->monitorRect) };
+		return TRUE;
 	}
 
-	bool CollectMonitorInfo(UInt32 index, SMonitor* const pMonitor)
+	vector<SMonitor> CollectMonitorInfos()
 	{
-		DISPLAY_DEVICE device = {};
-		bool ret = ::EnumDisplayDevices(NULL, index, &device, 0);
-		if (!ret) // no monitor exist
-			return false;
+		int monitorCount = 0;
+		DISPLAY_DEVICEW adapter = {};
+		adapter.cb = sizeof(adapter);
+		for (int adapterIndex = 0;; ++adapterIndex)
+		{
+			if (!EnumDisplayDevicesW(NULL, adapterIndex, &adapter, 0)) // if the adapter exists
+				break;
+			if (!(adapter.StateFlags & DISPLAY_DEVICE_ACTIVE))
+				continue;
 
-		SG_LOG_INFO("(%d)Device Name: %s", index, device.DeviceName);
-		::EnumDisplayDevices(device.DeviceName, index, &device, 0);
-		SG_LOG_INFO("(%d)Monitor Name: %s", index, device.DeviceName);
+			for (int displayIndex = 0;; displayIndex++)
+			{
+				DISPLAY_DEVICEW display;
+				display.cb = sizeof(display);
 
-		HMONITOR handle = (HMONITOR)pMonitor->handle;
-		MONITORINFOEX info = {};
-		info.cbSize = sizeof(MONITORINFOEX);
-		::GetMonitorInfo(handle, &info);
-		pMonitor->monitorRect = { info.rcMonitor.left, info.rcMonitor.top, info.rcMonitor.right, info.rcMonitor.bottom };
-		pMonitor->workRect = { info.rcWork.left, info.rcWork.top, info.rcWork.right, info.rcWork.bottom };
-		pMonitor->resolution = { GetRectWidth(pMonitor->monitorRect), GetRectHeight(pMonitor->monitorRect) };
+				if (!EnumDisplayDevicesW(adapter.DeviceName, displayIndex, &display, 0)) // if the monitor exists
+					break;
+				++monitorCount;
+			}
+		}
 
-		Vec2 dpi = GetDpiScale();
-		pMonitor->dpiX = (UInt32)dpi.x;
-		pMonitor->dpiY = (UInt32)dpi.y;
-		return true;
+		vector<SMonitor> monitors(monitorCount);
+		int monitorIndex = 0;
+		if (monitorCount)
+		{
+			DISPLAY_DEVICEW adapter = {};
+			adapter.cb = sizeof(adapter);
+			for (int adapterIndex = 0;; ++adapterIndex)
+			{
+				if (!EnumDisplayDevicesW(NULL, adapterIndex, &adapter, 0)) // if the adapter exists
+					break;
+				if (!(adapter.StateFlags & DISPLAY_DEVICE_ACTIVE))
+					continue;
+
+				for (int displayIndex = 0;; displayIndex++)
+				{
+					DISPLAY_DEVICEW display;
+					display.cb = sizeof(display);
+
+					if (!EnumDisplayDevicesW(adapter.DeviceName, displayIndex, &display, 0)) // if the monitor exists
+						break;
+
+					SMonitor* pMonitor = &monitors[monitorIndex++];
+					pMonitor->name = display.DeviceString;
+					SG_LOG_INFO("Monitor%d detected: %ws", monitorIndex, pMonitor->name.c_str());
+					::EnumDisplayMonitors(NULL, NULL, _MonitorCallback, (LPARAM)(pMonitor));
+					SG_LOG_INFO("         resolution: (%d, %d)", pMonitor->resolution.width, pMonitor->resolution.height);
+					Vec2 dpi = GetDpiScale();
+					pMonitor->dpiX = (UInt32)dpi.x;
+					pMonitor->dpiY = (UInt32)dpi.y;
+				}
+			}
+		}
+		else
+		{
+			SG_LOG_WARN("No monitor is active or discovered!");
+		}
+		return move(monitors);
 	}
 
 	Vec2 GetDpiScale()
@@ -82,28 +112,6 @@ namespace SG
 		}
 		::ReleaseDC(NULL, hdc);
 		return dpi;
-	}
-
-	bool GetWindowMonitorIndex(const vector<SMonitor>& monitors, SWindow* const pWindow)
-	{
-		HMONITOR monitor = ::MonitorFromWindow((HWND)pWindow->handle, MONITOR_DEFAULTTOPRIMARY);
-		for (int i = 0; i < monitors.size(); i++)
-		{
-			if ((HMONITOR)monitors[i].handle == monitor)
-			{
-				pWindow->monitorIndex = i;
-				return true;
-			}
-		}
-		pWindow->monitorIndex = -1;
-		return false;
-	}
-
-	void GetWindowMonitor(SMonitor* const pMonitor, SWindow* const pWindow)
-	{
-		HMONITOR monitor = ::MonitorFromWindow((HWND)pWindow->handle, MONITOR_DEFAULTTOPRIMARY);
-		pMonitor->handle = monitor;
-		CollectMonitorInfo(0, pMonitor);
 	}
 
 	/// mouse functions
@@ -138,8 +146,8 @@ namespace SG
 				WS_CLIPSIBLINGS | WS_THICKFRAME);
 
 			SMonitor monitorInfo = {};
-			GetWindowMonitor(&monitorInfo, pWindow);
-			pWindow->fullscreenRect = monitorInfo.monitorRect;
+			//GetWindowMonitor(&monitorInfo, pWindow); // TODO: encapsulate monitor information collecting.
+			pWindow->fullscreenRect = { 0, 0, 2560, 1440 };
 			::SetWindowPos(handle, HWND_NOTOPMOST,
 				pWindow->fullscreenRect.left, pWindow->fullscreenRect.top,
 				GetRectWidth(pWindow->fullscreenRect), GetRectHeight(pWindow->fullscreenRect), SWP_FRAMECHANGED | SWP_NOACTIVATE);
@@ -167,6 +175,15 @@ namespace SG
 
 	LRESULT CALLBACK WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
+		switch (msg)
+		{
+		case WM_DESTROY:
+		case WM_CLOSE:
+		{
+			PostQuitMessage(0);
+			break;
+		}
+		}
 		return ::DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
@@ -183,7 +200,7 @@ namespace SG
 		wc.hIcon = LoadIcon(0, IDI_APPLICATION);
 		wc.hIconSm = LoadIcon(0, IDI_APPLICATION);
 		wc.hCursor = LoadCursor(0, IDC_ARROW);
-		wc.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
+		wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 		wc.lpszMenuName = 0;
 		wc.lpszClassName = SG_ENGINE_WNAME;
 
@@ -280,6 +297,21 @@ namespace SG
 	{
 		pWindow->bIsMinimized = true;
 		::ShowWindow((HWND)pWindow->handle, SW_MINIMIZE);
+	}
+
+	EOsMessage PeekOSMessage()
+	{
+		MSG msg = {};
+		EOsMessage osMeg = EOsMessage::eNull;
+		while (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			::TranslateMessage(&msg);
+			::DispatchMessage(&msg);
+
+			if (WM_CLOSE == msg.message || WM_QUIT == msg.message)
+				osMeg = EOsMessage::eQuit;
+		}
+		return osMeg;
 	}
 
 	///////////////////////////////////////////////////////////////////////////

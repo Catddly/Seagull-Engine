@@ -31,12 +31,9 @@ int main(int argv, char** argc)
 	SG_LOG_INFO("Are core modules loaded?: %d", pSystemManager->ValidateCoreModules());
 	SG_LOG_INFO("Are all  modules loaded?: %d", pSystemManager->ValidateAllModules());
 
-	p3DEngine->OnUpdate();
 	char buf[] = "@ILLmew";
 	SG_LOG_INFO("Welcome To Seagull Engine! %s", buf);
-	pSystemManager->Update();
-
-	//OpenWindow(L"Test", &gWindow);
+	pSystemManager->SystemMainLoop();
 
 	p3DEngine->OnShutdown();
 	pSystemManager->Shutdown();

@@ -14,7 +14,7 @@ namespace SG
 
 	void C3DEngine::OnUpdate()
 	{
-		SG_LOG_INFO("Engine OnUpdate()");
+		//SG_LOG_INFO("Engine OnUpdate()");
 	}
 
 	void C3DEngine::OnShutdown()

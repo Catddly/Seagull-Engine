@@ -86,6 +86,8 @@ namespace SG
 
 	void CSystemManager::Update()
 	{
+		if (mSystemModules.p3DEngine) mSystemModules.p3DEngine->OnUpdate();
+		if (mSystemModules.p2DEngine) mSystemModules.p2DEngine->OnUpdate();
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnUpdate();
 	}
 
@@ -111,6 +113,23 @@ namespace SG
 		if (sInstance == nullptr)
 			sInstance = New<CSystemManager>();
 		return sInstance;
+	}
+
+	bool CSystemManager::SystemMainLoop()
+	{
+		bool bIsSafeQuit = true;
+		bool bIsExit = false;
+		while (!bIsExit)
+		{
+			EOsMessage msg = EOsMessage::eNull;
+			msg = PeekOSMessage();
+			if (msg == EOsMessage::eQuit)
+				bIsExit = true;
+
+			// TODO: remove the Update() interface.
+			Update();
+		}
+		return bIsSafeQuit;
 	}
 
 }

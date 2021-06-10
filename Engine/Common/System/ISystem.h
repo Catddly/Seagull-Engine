@@ -48,6 +48,10 @@ namespace SG
 		virtual IFileSystem* GetIFileSystem() = 0;
 		virtual IOperatingSystem* GetIOS() = 0;
 
+		//! System main game loop.
+		//! @return true if the loop exits safely, otherwise it is false.
+		virtual bool SystemMainLoop() = 0;
+
 		//! Register a user application.
 		//virtual void RegisterUserApp(IApp* pApp) = 0;
 

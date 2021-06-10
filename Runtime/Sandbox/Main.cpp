@@ -6,10 +6,6 @@ public:
 	virtual void OnInit() override
 	{
 		SG_LOG_INFO("User OnInit()");
-	}
-
-	virtual void OnUpdate() override
-	{
 		SG_LOG_INFO("User OnUpdate()");
 		SG_LOG_DEBUG("Debug Test!");
 		SG_LOG_WARN("Warn Test!");
@@ -19,6 +15,11 @@ public:
 		SG::vector<SG::UInt32> vec = { 8, 9, 5, 4, 2 };
 		SG_LOG_ITERABLE(SG::ELogLevel::eLog_Level_Debug, vec.begin(), vec.end());
 		SG_LOG_DEBUG("%d", vec.at(2));
+	}
+
+	virtual void OnUpdate() override
+	{
+		//SG_LOG_DEBUG("User OnUpdate()");
 	}
 
 	virtual void OnShutdown() override
