@@ -19,7 +19,6 @@ public:
 
 	virtual void OnUpdate() override
 	{
-		//SG_LOG_DEBUG("User OnUpdate()");
 	}
 
 	virtual void OnShutdown() override

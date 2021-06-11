@@ -12,6 +12,7 @@
 // Platform specification modules
 //----------------------------------------------------------
 #include "Common/Platform/ISystemTime.h"
+#include "Common/Platform/IOperatingSystem.h"
 
 #include "Common/Memory/IMemory.h"
 #include "Core/Memory/Memory.h"

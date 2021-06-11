@@ -2,6 +2,7 @@
 
 #include "Common/Platform/IOperatingSystem.h"
 #include "Common/Platform/IDeviceManager.h"
+#include "Common/Platform/IWindowManager.h"
 
 namespace SG
 {
@@ -12,8 +13,9 @@ namespace SG
 		virtual void OnInit() override;
 		virtual void OnShutdown() override;
 	private:
-		SWindow           mMainWindow    = {};
+		SWindow           mMainWindow = {};
 		IDeviceManager*   mDeviceManager = nullptr;
+		IWindowManager*   mWindowManager = nullptr;
 	};
 
 }

@@ -8,33 +8,22 @@
 namespace SG
 {
 
-	//! Resolution in pixel.
-	typedef struct SResolution
-	{
-		UInt32 width;
-		UInt32 height;
-
-		bool operator==(const SResolution& rhs)
-		{
-			return width == rhs.width && height == rhs.height;
-		}
-		bool operator!=(const SResolution& rhs)
-		{
-			return !operator==(rhs);
-		}
-	} SResolution;
+	/// Physical res and Logical res.
+	/// Physical res is the actual resolution, logical res will be affected
+	/// by the scalar of the monitor. 
+	/// (Right click on the desktop->Display Setting->Zoom and Layout, you can see the scalar)
 
 	//! Monitor information.
 	typedef struct SMonitor
 	{
-		vector<SResolution> resolutions;
-		SResolution         defaultResolution;
-		SRect               monitorRect;
-		SRect               workRect;
-		wstring             name;
-		wstring             adapterName;
-		UInt32              index;
-		bool                bIsPrimary;
+		vector<SResolution> resolutions;       //! All the supported resolution.
+		SResolution         defaultResolution; //! Physical resolution.
+		SRect               monitorRect;       //! Window Rect of the monitor. (in logical resolution).
+		SRect               workRect;          //! Workd Rect of the monitor.
+		wstring             name;              //! Name of the monitor.
+		wstring             adapterName;       //! Adapter name of the monitor.
+		UInt32              index;             //! Index of all the monitors.
+		bool                bIsPrimary;        //! Is this monitor a primary monitor.
 	} SMonitor;
 
 	//! Adapter information.
@@ -47,6 +36,7 @@ namespace SG
 		bool    bIsActive;
 	} SAdapter;
 
+	struct SWindow;
 
 	struct IDeviceManager
 	{

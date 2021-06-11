@@ -1,6 +1,7 @@
 #include "StdAfx.h"
-#include "DeviceManager.h"
+#include "WindowsDeviceManager.h"
 
+#include "Common/Platform/IWindowManager.h"
 #include "Common/System/ILog.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
@@ -24,17 +25,17 @@ namespace SG
 		return TRUE;
 	}
 
-	void CDeviceManager::OnInit()
+	void CWindowsDeviceManager::OnInit()
 	{
 		CollectInfos();
 	}
 
-	void CDeviceManager::OnShutdown()
+	void CWindowsDeviceManager::OnShutdown()
 	{
 
 	}
 
-	void CDeviceManager::CollectInfos()
+	void CWindowsDeviceManager::CollectInfos()
 	{
 		// count the monitors
 		int monitorCount = 0;
@@ -151,7 +152,7 @@ namespace SG
 		}
 	}
 
-	SG::SMonitor* CDeviceManager::GetCurrWindowMonitor(SWindow* const pWindow)
+	SG::SMonitor* CWindowsDeviceManager::GetCurrWindowMonitor(SWindow* const pWindow)
 	{
 		HMONITOR currMonitor = {};
 		currMonitor = ::MonitorFromWindow((HWND)pWindow->handle, MONITOR_DEFAULTTOPRIMARY);
@@ -169,7 +170,7 @@ namespace SG
 		return nullptr;
 	}
 
-	SG::SMonitor* CDeviceManager::GetMonitor(UInt32 index)
+	SG::SMonitor* CWindowsDeviceManager::GetMonitor(UInt32 index)
 	{
 		for (auto& e : mMonitors)
 		{
@@ -179,7 +180,7 @@ namespace SG
 		return nullptr;
 	}
 
-	SG::SMonitor* CDeviceManager::GetPrimaryMonitor()
+	SG::SMonitor* CWindowsDeviceManager::GetPrimaryMonitor()
 	{
 		for (auto& e : mMonitors)
 		{

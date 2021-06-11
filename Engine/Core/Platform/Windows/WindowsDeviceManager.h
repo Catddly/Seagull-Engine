@@ -5,7 +5,7 @@
 namespace SG
 {
 
-	class CDeviceManager : public IDeviceManager
+	class CWindowsDeviceManager : public IDeviceManager
 	{
 	public:
 		virtual void OnInit() override;
