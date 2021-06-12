@@ -15,7 +15,6 @@
 #include "Common/Platform/IOperatingSystem.h"
 
 #include "Common/Memory/IMemory.h"
-#include "Core/Memory/Memory.h"
 
 //----------------------------------------------------------
 // Standard template library

@@ -30,5 +30,5 @@ private:
 
 SG::IApp* SG::GetAppInstance()
 {
-	return New<MyApp>();
+	return new MyApp;
 }

@@ -12,6 +12,8 @@
 namespace SG
 {
 
+	CWindowsDeviceManager* CWindowsDeviceManager::sInstance = nullptr;
+
 	static BOOL CALLBACK _EnumMonitorCallback(HMONITOR monitor, HDC hdc, LPRECT pRect, LPARAM pUser)
 	{
 		SMonitor* pMonitor = (SMonitor*)pUser;
@@ -32,7 +34,8 @@ namespace SG
 
 	void CWindowsDeviceManager::OnShutdown()
 	{
-
+		if (sInstance)
+			delete sInstance;
 	}
 
 	void CWindowsDeviceManager::CollectInfos()
@@ -188,6 +191,13 @@ namespace SG
 				return &e;
 		}
 		return nullptr;
+	}
+
+	SG::CWindowsDeviceManager* CWindowsDeviceManager::GetInstance()
+	{
+		if (!sInstance) 
+			sInstance = new CWindowsDeviceManager;
+		return sInstance;
 	}
 
 }

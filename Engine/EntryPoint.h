@@ -10,7 +10,7 @@
 #include "3DEngine/3DEngine/3DEngine.h"
 #include "Core/System/SystemManager.h"
 
-#include "Core/Memory/Memory.h"
+#include "Common/Memory/IMemory.h"
 
 int main(int argv, char** argc)
 {
@@ -24,7 +24,7 @@ int main(int argv, char** argc)
 	// TOOD: other modules should be loaded as dll,
 	// don't use get/set function.
 	pSystemManager->AddIProcess(app);
-	I3DEngine* p3DEngine = New<C3DEngine>();
+	I3DEngine* p3DEngine = new C3DEngine;
 	pSystemManager->SetI3DEngine(p3DEngine);
 	p3DEngine->OnInit();
 
@@ -36,5 +36,6 @@ int main(int argv, char** argc)
 	pSystemManager->SystemMainLoop();
 
 	p3DEngine->OnShutdown();
+	delete p3DEngine;
 	pSystemManager->Shutdown();
 }

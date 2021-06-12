@@ -4,16 +4,14 @@
 #include "Core/Platform/Windows/WindowsDeviceManager.h"
 #include "Core/Platform/Windows/WindowsWindowManager.h"
 
-#include "Core/Memory/Memory.h"
-
 namespace SG
 {
 
 	void COperatingSystem::OnInit()
 	{
 #ifdef SG_PLATFORM_WINDOWS
-		mDeviceManager = New<CWindowsDeviceManager>();
-		mWindowManager = New<CWindowsWindowManager>();
+		mDeviceManager = CWindowsDeviceManager::GetInstance();
+		mWindowManager = CWindowsWindowManager::GetInstance();
 #endif
 		mDeviceManager->OnInit();
 		mWindowManager->OnInit(mDeviceManager->GetPrimaryMonitor());
@@ -24,8 +22,6 @@ namespace SG
 	{
 		mWindowManager->OnShutdown();
 		mDeviceManager->OnShutdown();
-		Delete(mWindowManager);
-		Delete(mDeviceManager);
 	}
 
 }

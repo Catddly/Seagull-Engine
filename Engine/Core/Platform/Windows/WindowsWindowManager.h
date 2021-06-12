@@ -9,6 +9,8 @@ namespace SG
 	class CWindowsWindowManager : public IWindowManager
 	{
 	public:
+		~CWindowsWindowManager() = default;
+
 		virtual void OnInit(SMonitor* const pMonitor) override;
 		virtual void OnShutdown() override;
 
@@ -27,11 +29,17 @@ namespace SG
 
 		virtual Vec2 GetMousePosAbsolute() const override;
 		virtual Vec2 GetMousePosRelative(SWindow* const pWindow) const override;
-	private:
+
+		static CWindowsWindowManager* GetInstance();
+	protected:
+		CWindowsWindowManager() = default;
+
 		void AdjustWindow(SWindow* const pWindow, SMonitor* const pMonitor);
 		SRect GetRecommandedWindowRect(SMonitor* const pMonitor);
 	private:
 		SMonitor* mpCurrMonitor = nullptr;
+
+		static CWindowsWindowManager* sInstance;
 	};
 
 }

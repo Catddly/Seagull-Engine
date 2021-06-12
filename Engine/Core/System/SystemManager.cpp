@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #include "SystemManager.h"
 
-#include "Core/Memory/Memory.h"
-
 #include "Core/Log/Log.h"
 #include "Core/FileSystem/FileSystem.h"
 #include "Core/Platform/OperatingSystem.h"
@@ -13,10 +11,6 @@ namespace SG
 	class C2DEngine;
 
 	CSystemManager* CSystemManager::sInstance = nullptr;
-
-	CSystemManager::CSystemManager()
-		: mpCurrActiveProcess(nullptr), mRootPath("")
-	{}
 
 	void CSystemManager::InitSystemEnv()
 	{
@@ -75,9 +69,9 @@ namespace SG
 
 	bool CSystemManager::InitCoreModules()
 	{
-		if (!mSystemModules.pFileSystem) mSystemModules.pFileSystem = New<CFileSystem>();
-		if (!mSystemModules.pLog)        mSystemModules.pLog = New<CLog>();
-		if (!mSystemModules.pOS)         mSystemModules.pOS = New<COperatingSystem>();
+		if (!mSystemModules.pFileSystem) mSystemModules.pFileSystem = new CFileSystem;
+		if (!mSystemModules.pLog)        mSystemModules.pLog = new CLog;
+		if (!mSystemModules.pOS)         mSystemModules.pOS = new COperatingSystem;
 		mSystemModules.pFileSystem->OnInit();
 		mSystemModules.pLog->OnInit();
 		mSystemModules.pOS->OnInit();
@@ -97,21 +91,22 @@ namespace SG
 
 		mSystemModules.pOS->OnShutdown();
 		mSystemModules.pLog->OnShutdown();
-		Delete(mSystemModules.pOS);
-		Delete(mSystemModules.pLog);
-		Delete(mSystemModules.pFileSystem);
+		mSystemModules.pFileSystem->OnShutdown();
+		delete mSystemModules.pOS;
+		delete mSystemModules.pLog;
+		delete mSystemModules.pFileSystem;
 		mSystemModules.pOS = nullptr;
 		mSystemModules.pFileSystem = nullptr;
 		mSystemModules.pLog = nullptr;
 
 		if (sInstance)
-			Delete(sInstance);
+			delete sInstance;
 	}
 
-	ISystemManager* CSystemManager::GetInstance()
+	CSystemManager* CSystemManager::GetInstance()
 	{
 		if (sInstance == nullptr)
-			sInstance = New<CSystemManager>();
+			sInstance = new CSystemManager;
 		return sInstance;
 	}
 
@@ -131,5 +126,9 @@ namespace SG
 		}
 		return bIsSafeQuit;
 	}
+
+	CSystemManager::CSystemManager()
+		: mpCurrActiveProcess(nullptr), mRootPath("")
+	{}
 
 }

@@ -9,6 +9,7 @@ namespace SG
 	//! Abstraction of the engine
 	struct SG_COMMON_API I3DEngine : public IProcess
 	{
+		virtual ~I3DEngine() = default;
 	};
 
 }

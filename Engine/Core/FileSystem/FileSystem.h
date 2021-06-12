@@ -4,8 +4,6 @@
 #include "Common/System/IFileSystem.h"
 #include "Core/FileSystem/PlatformStreamOp.h"
 
-#include "Core/Memory/Memory.h"
-
 namespace SG
 {
 

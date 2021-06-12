@@ -3,17 +3,19 @@
 
 #include "Core/Stl/string.h"
 
+#include "Common/Memory/IMemory.h"
+
 namespace SG
 {
 
 	void CFileSystem::OnInit()
 	{
-		mStreamOp = New<SWindowsStreamOp>();
+		mStreamOp = new SWindowsStreamOp;
 	}
 
 	void CFileSystem::OnShutdown()
 	{
-		Delete(mStreamOp);
+		delete mStreamOp;
 	}
 
 	void CFileSystem::SetRootDirectory(const char* filepath)

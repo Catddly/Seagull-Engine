@@ -13,6 +13,8 @@
 namespace SG
 {
 
+	CWindowsWindowManager* CWindowsWindowManager::sInstance = nullptr;
+
 	// default window process callback
 	static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
@@ -121,6 +123,8 @@ namespace SG
 
 	void CWindowsWindowManager::OnShutdown()
 	{
+		if (sInstance)
+			delete sInstance;
 	}
 
 	void CWindowsWindowManager::OpenWindow(const WChar* windowName, SWindow* const pWindow)
@@ -220,6 +224,13 @@ namespace SG
 		::GetCursorPos(&pos);
 		ClientToScreen((HWND)pWindow->handle, &pos);
 		return { (float)pos.x, (float)pos.y };
+	}
+
+	SG::CWindowsWindowManager* CWindowsWindowManager::GetInstance()
+	{
+		if (!sInstance) 
+			sInstance = new CWindowsWindowManager;
+		return sInstance;
 	}
 
 }

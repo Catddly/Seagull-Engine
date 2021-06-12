@@ -19,7 +19,6 @@ namespace SG
 	class CSystemManager final : public ISystemManager
 	{
 	public:
-		CSystemManager();
 		~CSystemManager() = default;
 
 		SG_CORE_API virtual void InitSystemEnv() override;
@@ -55,7 +54,9 @@ namespace SG
 		//! Get current memory usage for all the modules.
 		SG_CORE_API virtual UInt32 GetTotalMemoryUsage() const override;
 
-		SG_CORE_API static ISystemManager* GetInstance();
+		SG_CORE_API static CSystemManager* GetInstance();
+	protected:
+		CSystemManager();
 	private:
 		static CSystemManager* sInstance;
 
