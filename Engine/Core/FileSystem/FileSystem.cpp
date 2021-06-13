@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "FileSystem.h"
 
-#include "Core/Stl/string.h"
+#include "Common/Stl/string.h"
 
 #include "Common/Memory/IMemory.h"
 

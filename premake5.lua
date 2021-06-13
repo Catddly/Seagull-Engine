@@ -76,6 +76,7 @@ group "Runtime"
 
         links
         {
+            "mimalloc-static",
             "S3DEngine",
             "SCore",
         }

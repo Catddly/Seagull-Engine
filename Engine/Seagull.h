@@ -19,9 +19,15 @@
 //----------------------------------------------------------
 // Standard template library
 //----------------------------------------------------------
-#include "Core/Stl/vector.h"
-#include "Core/Stl/string.h"
-#include "Core/Stl/string_view.h"
+#include "Common/Stl/vector.h"
+#include "Common/Stl/string.h"
+#include "Common/Stl/string_view.h"
+
+//----------------------------------------------------------
+// Math library
+//----------------------------------------------------------
+#include "Common/Math/Vector.h"
+#include "Common/Math/Matrix.h"
 
 //----------------------------------------------------------
 // EntryPoint

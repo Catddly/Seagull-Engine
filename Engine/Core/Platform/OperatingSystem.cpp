@@ -4,6 +4,8 @@
 #include "Core/Platform/Windows/WindowsDeviceManager.h"
 #include "Core/Platform/Windows/WindowsWindowManager.h"
 
+#include "Common/System/ILog.h"
+
 namespace SG
 {
 
@@ -15,11 +17,12 @@ namespace SG
 #endif
 		mDeviceManager->OnInit();
 		mWindowManager->OnInit(mDeviceManager->GetPrimaryMonitor());
-		mWindowManager->OpenWindow(L"Test", &mMainWindow);
+		mWindowManager->OpenWindow(SG_ENGINE_WNAME, &mMainWindow);
 	}
 
 	void COperatingSystem::OnShutdown()
 	{
+		mWindowManager->CloseWindow(&mMainWindow);
 		mWindowManager->OnShutdown();
 		mDeviceManager->OnShutdown();
 	}

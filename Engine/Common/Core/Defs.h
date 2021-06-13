@@ -35,7 +35,7 @@
 #endif
 
 #ifndef SG_COMPILE_ASSERT
-#	define SG_COMPILE_ASSERT(x) static_assert((x))
+#	define SG_COMPILE_ASSERT(x, MSG) static_assert(x, #MSG)
 #endif
 
 #ifndef SG_ASSERT

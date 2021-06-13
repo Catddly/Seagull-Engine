@@ -11,7 +11,7 @@
 
 #include "Common/User/IApp.h"
 
-#include "Core/Stl/string.h"
+#include "Common/Stl/string.h"
 
 namespace SG
 {

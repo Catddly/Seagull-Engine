@@ -4,7 +4,7 @@
 #include "Common/Base/INoInstance.h"
 #include "Common/Platform/ISystemTime.h"
 
-#include "Core/Stl/string.h"
+#include "Common/Stl/string.h"
 #include <EASTL/type_traits.h>
 
 namespace SG
@@ -96,7 +96,7 @@ namespace SG
 		template <typename T>
 		string format_type()
 		{
-			SG_COMPILE_ASSERT((eastl::is_base_of<SBaseFormat, T>::value));
+			SG_COMPILE_ASSERT((eastl::is_base_of<SBaseFormat, T>::value), "Format type is not base of SBaseForamt");
 			return move(T::GetDescription());
 		}
 	}

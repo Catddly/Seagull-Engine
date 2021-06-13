@@ -1,43 +1,42 @@
 #include "StdAfx.h"
 #include "Common/Memory/IMemory.h"
 
-#include <stdio.h>
 #include <mimalloc/include/mimalloc.h>
 
 // TODO: add memory tracking
 void* operator new(size_t n)
 {
-	printf("Allocate %d\n", n);
+	//printf("Allocate %llu\n", n);
 	return mi_new(n); 
 }
 
 void* operator new(size_t n, const nothrow_t& tag) 
 {
-	printf("Allocate %d\n", n);
+	//printf("Allocate %d\n", n);
 	return mi_new_nothrow(n); 
 }
 
 void* operator new(size_t n, align_val_t align)
 {
-	printf("Allocate %d\n", n);
+	//printf("Allocate %d\n", n);
 	return mi_new_aligned(n, (size_t)align);
 }
 
 void* operator new[](size_t n) 
 {
-	printf("Allocate %d\n", n);
+	//printf("Allocate %d\n", n);
 	return mi_new(n); 
 }
 
 void* operator new[](size_t n, const nothrow_t& tag) 
 {
-	printf("Allocate %d\n", n);
+	//printf("Allocate %d\n", n);
 	return mi_new_nothrow(n); 
 }
 
 void* operator new[](size_t n, align_val_t align)
 {
-	printf("Allocate %d\n", n);
+	//printf("Allocate %d\n", n);
 	return mi_new_aligned(n, (size_t)align);
 }
 

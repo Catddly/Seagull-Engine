@@ -80,6 +80,13 @@ namespace impl
 		return eastl::move(str);
 	}
 
+	template<class T>
+	static eastl::string PrintMathTypes(const T& types)
+	{
+		SG_COMPILE_ASSERT(false, "Please log out a math type!");
+		return eastl::string();
+	}
+
 }
 
 #define SG_STR(x) SG_STR_IMPL(x)
@@ -93,5 +100,7 @@ namespace impl
 
 #define SG_LOG_ITERABLE(LEVEL, BEG, END)   SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, false).c_str());
 #define SG_LOG_ITERABLE_R(LEVEL, BEG, END) SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, true).c_str());
+
+#define SG_LOG_MATH(LEVEL, VAL)            SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintMathTypes(VAL).c_str());
 
 }

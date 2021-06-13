@@ -21,7 +21,7 @@ namespace SG
 		virtual void HideWindow(SWindow* const pWindow) override;
 
 		virtual void ResizeWindow(const SRect& rect, SWindow* const pWindow) override;
-		virtual void ResizeWindow(UInt32 width, UInt32 height, UInt32 center, SWindow* const pWindow) override;
+		virtual void ResizeWindow(UInt32 width, UInt32 height, SWindow* const pWindow) override;
 
 		virtual void ToggleFullSrceen(SWindow* const pWindow) override;
 		virtual void Maximized(SWindow* const pWindow) override;
@@ -34,8 +34,8 @@ namespace SG
 	protected:
 		CWindowsWindowManager() = default;
 
-		void AdjustWindow(SWindow* const pWindow, SMonitor* const pMonitor);
-		SRect GetRecommandedWindowRect(SMonitor* const pMonitor);
+		void AdjustWindow(SWindow* const pWindow);
+		SRect GetRecommandedWindowRect();
 	private:
 		SMonitor* mpCurrMonitor = nullptr;
 

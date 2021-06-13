@@ -4,7 +4,7 @@
 #include "Common/Core/Defs.h"
 #include "Common/System/ILog.h"
 
-#include "Core/Stl/string.h"
+#include "Common/Stl/string.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #	define WIN32_LEAN_AND_MEAN

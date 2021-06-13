@@ -16,10 +16,8 @@ namespace SG
 		SRect        windowedRect;    //! Used to save the size of windowed rect, to restore from fullscreen.
 		Int32        monitorIndex;    //! Index of the monitor where the current window is located.
 		bool         bIsFullScreen;
-		bool         bIsResizable;
 		bool         bIsMaximized;
 		bool         bIsMinimized;
-		bool         bIsBorderlessWindow;
 	} SWindow;
 
 	struct SMonitor;
@@ -42,7 +40,7 @@ namespace SG
 		virtual void HideWindow(SWindow* const pWindow) = 0;
 
 		virtual void ResizeWindow(const SRect& rect, SWindow* const pWindow) = 0;
-		virtual void ResizeWindow(UInt32 width, UInt32 height, UInt32 center, SWindow* const pWindow) = 0;
+		virtual void ResizeWindow(UInt32 width, UInt32 height, SWindow* const pWindow) = 0;
 
 		virtual void ToggleFullSrceen(SWindow* const pWindow) = 0;
 		virtual void Maximized(SWindow* const pWindow) = 0;

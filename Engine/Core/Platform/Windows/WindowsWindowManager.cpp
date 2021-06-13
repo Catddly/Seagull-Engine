@@ -5,11 +5,6 @@
 
 #include <EASTL/utility.h>
 
-#ifndef WIN32_LEAN_AND_MEAN
-#	define WIN32_LEAN_AND_MEAN
-#	include <windows.h>
-#endif
-
 namespace SG
 {
 
@@ -18,6 +13,7 @@ namespace SG
 	// default window process callback
 	static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
+		bool bPropagateOnDef = true;
 		switch (msg)
 		{
 		case WM_DESTROY:
@@ -26,35 +22,37 @@ namespace SG
 			PostQuitMessage(0);
 			break;
 		}
+		//case WM_NCLBUTTONDOWN:   // left mouse down on non-client area
+		//	if (wParam != HTCLOSE) // you can not the drag window, you can only close the window
+		//	{
+		//		bPropagateOnDef = false;
+		//		break;
+		//	}
 		}
-		return ::DefWindowProc(hwnd, msg, wParam, lParam);
+
+		if (bPropagateOnDef)
+			return ::DefWindowProc(hwnd, msg, wParam, lParam);
+		else
+			return 0;
 	}
 
-	void CWindowsWindowManager::AdjustWindow(SWindow* const pWindow, SMonitor* const pMonitor)
+	void CWindowsWindowManager::AdjustWindow(SWindow* const pWindow)
 	{
 		HWND handle = (HWND)pWindow->handle;
 		if (pWindow->bIsFullScreen)
 		{
-			LPRECT currRect = {};
-			::GetWindowRect(handle, currRect);
-			// save as windowed rect
-			pWindow->windowedRect = { currRect->left, currRect->top, currRect->right, currRect->bottom };
-
 			// set borderless window
 			::SetWindowLong(handle, GWL_STYLE, WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN /* no child window draw inside parent*/ |
-				WS_CLIPSIBLINGS | WS_THICKFRAME);
+				WS_CLIPSIBLINGS);
 
-			pWindow->fullscreenRect = pMonitor->monitorRect;
 			::SetWindowPos(handle, HWND_NOTOPMOST,
 				pWindow->fullscreenRect.left, pWindow->fullscreenRect.top,
 				GetRectWidth(pWindow->fullscreenRect), GetRectHeight(pWindow->fullscreenRect), SWP_FRAMECHANGED | SWP_NOACTIVATE);
 		}
 		else
 		{
-			DWORD dwStyle = WS_BORDER | WS_THICKFRAME | WS_VISIBLE;
-			DWORD dwExStyle = WS_EX_ACCEPTFILES; // accept drag files.
-			::SetWindowLong(handle, GWL_STYLE, dwStyle);
-			::SetWindowLong(handle, GWL_EXSTYLE, dwExStyle);
+			::SetWindowLong(handle, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+			::SetWindowLong(handle, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
 
 			::SetWindowPos(handle, HWND_NOTOPMOST,
 				pWindow->windowedRect.left,
@@ -70,17 +68,17 @@ namespace SG
 		}
 	}
 
-	SRect CWindowsWindowManager::GetRecommandedWindowRect(SMonitor* const pMonitor)
+	SRect CWindowsWindowManager::GetRecommandedWindowRect()
 	{
-		const Int32 width =  (Int32)pMonitor->monitorRect.right;
-		const Int32 height = (Int32)pMonitor->monitorRect.bottom;
+		const Int32 width =  (Int32)mpCurrMonitor->monitorRect.right;
+		const Int32 height = (Int32)mpCurrMonitor->monitorRect.bottom;
 		const Int32 shrinkedWidth = width * 4 / 5;
 		const Int32 shrinkedHeight = height * 4 / 5;
 		SRect rect = {
 			(width - shrinkedWidth) / 2,
 			(height- shrinkedHeight) / 2,
-			width * 4 / 5,
-			height * 4 / 5
+			width * 4 / 5 + (width - shrinkedWidth) / 2,
+			height * 4 / 5 + (height - shrinkedHeight) / 2
 		};
 		return eastl::move(rect);
 	}
@@ -132,15 +130,15 @@ namespace SG
 		HINSTANCE instance = (HINSTANCE)::GetModuleHandle(NULL);
 
 		HWND hwnd = NULL;
-		SRect rect = GetRecommandedWindowRect(mpCurrMonitor);
+		SRect rect = GetRecommandedWindowRect();
 		RECT r = { rect.left, rect.top, rect.right, rect.bottom };
 		DWORD dwExStyle = WS_EX_ACCEPTFILES; // accept drag files.
-		DWORD dwStyle = WS_OVERLAPPEDWINDOW;
+		DWORD dwStyle   = WS_OVERLAPPEDWINDOW;
 		::AdjustWindowRectEx(&r, dwStyle, FALSE, dwExStyle);
 
 		hwnd = ::CreateWindowEx(dwExStyle, SG_ENGINE_WNAME,
 			windowName, dwStyle, rect.left, rect.top,
-			rect.right, rect.bottom, NULL, NULL,
+			GetRectWidth(rect), GetRectHeight(rect), NULL, NULL,
 			instance, 0);
 
 		if (hwnd == NULL) // fail to create window
@@ -151,6 +149,9 @@ namespace SG
 
 		ShowWindow(pWindow);
 		::UpdateWindow((HWND)pWindow->handle);
+
+		pWindow->fullscreenRect = mpCurrMonitor->monitorRect;
+		pWindow->windowedRect = rect;
 	}
 
 	void CWindowsWindowManager::CloseWindow(SWindow* const pWindow)
@@ -177,26 +178,33 @@ namespace SG
 			{
 				pWindow->bIsFullScreen = false;
 				pWindow->windowedRect = rect;
-				AdjustWindow(pWindow, mpCurrMonitor);
+				AdjustWindow(pWindow);
 			}
 		}
 		else
 		{
 			pWindow->windowedRect = rect;
-			AdjustWindow(pWindow, mpCurrMonitor);
+			AdjustWindow(pWindow);
 		}
 	}
 
-	void CWindowsWindowManager::ResizeWindow(UInt32 width, UInt32 height, UInt32 center, SWindow* const pWindow)
+	void CWindowsWindowManager::ResizeWindow(UInt32 width, UInt32 height, SWindow* const pWindow)
 	{
-		SRect rect = { (Int32)center - (Int32)width / 2, (Int32)center - (Int32)height / 2, (Int32)center + (Int32)width / 2, (Int32)center + (Int32)width / 2 };
+		const Int32 w = (Int32)mpCurrMonitor->monitorRect.right;
+		const Int32 h = (Int32)mpCurrMonitor->monitorRect.bottom;
+		SRect rect = {
+			(w - width) / 2,
+			(h - height) / 2,
+			width + (w - width) / 2,
+			height + (h - height) / 2
+		};
 		ResizeWindow(rect, pWindow);
 	}
 
 	void CWindowsWindowManager::ToggleFullSrceen(SWindow* const pWindow)
 	{
 		pWindow->bIsFullScreen = !pWindow->bIsFullScreen;
-		AdjustWindow(pWindow, mpCurrMonitor);
+		AdjustWindow(pWindow);
 	}
 
 	void CWindowsWindowManager::Maximized(SWindow* const pWindow)

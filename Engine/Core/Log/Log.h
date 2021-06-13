@@ -4,7 +4,7 @@
 #include "Common/System/ILog.h"
 #include "Formatter.h"
 
-#include "Core/Stl/string.h"
+#include "Common/Stl/string.h"
 
 #include <stdarg.h>
 

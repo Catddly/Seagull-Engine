@@ -4,11 +4,6 @@
 #include "Common/Platform/IWindowManager.h"
 #include "Common/System/ILog.h"
 
-#ifndef WIN32_LEAN_AND_MEAN
-#	define WIN32_LEAN_AND_MEAN
-#	include <windows.h>
-#endif
-
 namespace SG
 {
 

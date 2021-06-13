@@ -1,8 +1,8 @@
 #include "StdAfx.h"
 #include "Core/FileSystem/PlatformStreamOp.h"
 
-#include "Core/Stl/string.h"
-#include "Core/Stl/string_view.h"
+#include "Common/Stl/string.h"
+#include "Common/Stl/string_view.h"
 
 namespace SG
 {

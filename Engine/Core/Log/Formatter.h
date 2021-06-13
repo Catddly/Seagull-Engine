@@ -1,8 +1,8 @@
 #pragma once
 #include "Core/Config.h"
 
-#include "Core/Stl/string.h"
-#include "Core/Stl/string_view.h"
+#include "Common/Stl/string.h"
+#include "Common/Stl/string_view.h"
 
 namespace SG
 {

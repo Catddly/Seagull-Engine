@@ -2,15 +2,11 @@ project "SCommon"
     kind "Utility"
     language "C++"
     cppdialect "C++17"
-    staticruntime "off"
 
     -- bin/Debug-windows-x64/Seagull Core
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     -- bin-int/Debug-windows-x64/Seagull Core
     objdir    ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-    pchheader "StdAfx.h"
-    pchsource "StdAfx.cpp"
 
     files
     {
@@ -24,6 +20,7 @@ project "SCommon"
     includedirs
     {
         "../",
+        "../../Libs/",
     }
 
     links

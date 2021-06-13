@@ -2,8 +2,8 @@
 
 #include "IOperatingSystem.h"
 
-#include "Core/Stl/vector.h"
-#include "Core/Stl/string.h"
+#include "Common/Stl/vector.h"
+#include "Common/Stl/string.h"
 
 namespace SG
 {
