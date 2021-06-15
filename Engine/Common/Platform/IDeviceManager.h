@@ -5,6 +5,8 @@
 #include "Common/Stl/vector.h"
 #include "Common/Stl/string.h"
 
+#include "Common/Math/Vector.h"
+
 namespace SG
 {
 
@@ -54,6 +56,8 @@ namespace SG
 		virtual SMonitor* GetMonitor(UInt32 index) = 0;
 		//! Get the primary monitor.
 		virtual SMonitor* GetPrimaryMonitor() = 0;
+		//! Get current monitor's dpi scale
+		virtual Vector2f  GetDpiScale() const = 0;
 	};
 
 }

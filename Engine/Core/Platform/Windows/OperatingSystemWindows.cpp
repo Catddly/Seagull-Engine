@@ -18,25 +18,27 @@ namespace SG
 	///  global functions of operating system
 	///////////////////////////////////////////////////////////////////////////
 
-	Vec2 GetCurrDpiScale()
-	{
-		HDC hdc = ::GetDC(NULL);
-		const float dpiScale = 96.0f; // TODO: maybe this can be set somewhere
-		Vec2 dpi;
-		if (hdc)
-		{
-			dpi.x = static_cast<UINT>(::GetDeviceCaps(hdc, LOGPIXELSX)) / dpiScale;
-			dpi.y = static_cast<UINT>(::GetDeviceCaps(hdc, LOGPIXELSY)) / dpiScale;
-		}
-		else
-		{
-			float systemDpi = ::GetDpiForSystem() / 96.0f;
-			dpi.x = systemDpi;
-			dpi.y = systemDpi;
-		}
-		::ReleaseDC(NULL, hdc);
-		return dpi;
-	}
+	//Vector2f GetCurrDpiScale()
+	//{
+	//	HDC hdc = ::GetDC(NULL);
+	//	const float dpiScale = 96.0f; // TODO: maybe this can be set somewhere
+	//	Vector2f dpi;
+	//	if (hdc)
+	//	{
+	//		//dpi.x = (float)::GetDeviceCaps(hdc, LOGPIXELSX) / dpiScale;
+	//		//dpi.y = (float)::GetDeviceCaps(hdc, LOGPIXELSY) / dpiScale;			
+	//		dpi[0] = (float)::GetDeviceCaps(hdc, LOGPIXELSX) / dpiScale;
+	//		dpi[1] = (float)::GetDeviceCaps(hdc, LOGPIXELSY) / dpiScale;
+	//	}
+	//	else
+	//	{
+	//		float systemDpi = ::GetDpiForSystem() / 96.0f;
+	//		dpi[0] = systemDpi;
+	//		dpi[1] = systemDpi;
+	//	}
+	//	::ReleaseDC(NULL, hdc);
+	//	return eastl::move(dpi);
+	//}
 
 	EOsMessage PeekOSMessage()
 	{

@@ -1,7 +1,9 @@
 #pragma once
 
-#include "../../Common/Base/BasicTypes.h"
+#include "Common/Base/BasicTypes.h"
 #include "IOperatingSystem.h"
+
+#include "Common/Math/Vector.h"
 
 namespace SG
 {
@@ -46,8 +48,8 @@ namespace SG
 		virtual void Maximized(SWindow* const pWindow) = 0;
 		virtual void Minimized(SWindow* const pWindow) = 0;
 
-		virtual Vec2 GetMousePosAbsolute() const = 0;
-		virtual Vec2 GetMousePosRelative(SWindow* const pWindow) const = 0;
+		virtual Vector2f GetMousePosAbsolute() const = 0;
+		virtual Vector2f GetMousePosRelative(SWindow* const pWindow) const = 0;
 	};
 
 }

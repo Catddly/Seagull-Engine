@@ -28,8 +28,8 @@ int main(int argv, char** argc)
 	pSystemManager->SetI3DEngine(p3DEngine);
 	p3DEngine->OnInit();
 
-	SG_LOG_INFO("Are core modules loaded?: %d", pSystemManager->ValidateCoreModules());
-	SG_LOG_INFO("Are all  modules loaded?: %d", pSystemManager->ValidateAllModules());
+	SG_LOG_IF(ELogLevel::eLog_Level_Info, "Are core modules loaded: ", pSystemManager->ValidateCoreModules());
+	SG_LOG_IF(ELogLevel::eLog_Level_Info, "Are all  modules loaded: ", pSystemManager->ValidateAllModules());
 
 	char buf[] = "@ILLmew";
 	SG_LOG_INFO("Welcome To Seagull Engine! %s", buf);

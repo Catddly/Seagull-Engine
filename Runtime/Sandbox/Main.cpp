@@ -1,7 +1,5 @@
 #include "StdAfx.h"
 
-#include <iostream>
-
 class MyApp : public SG::IApp
 {
 public:
@@ -14,11 +12,7 @@ public:
 		SG_LOG_ERROR("Error Test!");
 		SG_LOG_CRIT("Criticle Test!");
 
-		SG::vector<SG::UInt32> vec = { 8, 9, 5, 4, 2 };
-		SG_LOG_ITERABLE(SG::ELogLevel::eLog_Level_Debug, vec.begin(), vec.end());
-		SG_LOG_DEBUG("%d", vec.at(2));
-
-		MathTest();
+		//MathTest();
 	}
 
 	virtual void OnUpdate() override
@@ -43,13 +37,17 @@ private:
 		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, mat3i);
 		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, mat4i);
 
+		Vector2f vec2f = Vector2f::Identity();
 		Vector3f vec3f = Vector3f::Identity();
 		Vector4f vec4f = Vector4f::Identity();
+		Vector2i vec2i = Vector2i::Identity();
 		Vector3i vec3i = Vector3i::Identity();
 		Vector4i vec4i = Vector4i::Identity();
 
+		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec2f);
 		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec3f);
 		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec4f);
+		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec2i);
 		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec3i);
 		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec4i);
 	}

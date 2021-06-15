@@ -9,16 +9,6 @@ namespace SG
 	// Get the time stamp of current platform
 	// For platform abstraction usage
 
-	//enum class ETimeType
-	//{
-	//	eYear,
-	//	eMonth,
-	//	eDay,
-	//	eHour,
-	//	eMinute,
-	//	eSecond,
-	//};
-	
 	//! Get low-res system time in hour
 	SG_COMMON_API Size GetSystemTimeHour();
 	//! Get low-res system time in minute

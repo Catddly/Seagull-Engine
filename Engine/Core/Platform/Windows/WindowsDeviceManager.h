@@ -17,6 +17,7 @@ namespace SG
 		virtual SMonitor* GetCurrWindowMonitor(SWindow* const pWindow) override;
 		virtual SMonitor* GetMonitor(UInt32 index) override;
 		virtual SMonitor* GetPrimaryMonitor() override;
+		virtual Vector2f  GetDpiScale() const override;
 
 		static CWindowsDeviceManager* GetInstance();
 	protected:

@@ -87,6 +87,16 @@ namespace impl
 		return eastl::string();
 	}
 
+	static eastl::string PrintIf(const char* msg, bool val)
+	{
+		eastl::string temp(msg);
+		if (val)
+			temp += " Yes";
+		else
+			temp += " No";
+		return eastl::move(temp);
+	}
+
 }
 
 #define SG_STR(x) SG_STR_IMPL(x)
@@ -102,5 +112,7 @@ namespace impl
 #define SG_LOG_ITERABLE_R(LEVEL, BEG, END) SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, true).c_str());
 
 #define SG_LOG_MATH(LEVEL, VAL)            SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintMathTypes(VAL).c_str());
+
+#define SG_LOG_IF(LEVEL, MSG, VAL)         SG::CSystemManager::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintIf(MSG, VAL).c_str());
 
 }

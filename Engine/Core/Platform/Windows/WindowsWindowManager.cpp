@@ -193,10 +193,10 @@ namespace SG
 		const Int32 w = (Int32)mpCurrMonitor->monitorRect.right;
 		const Int32 h = (Int32)mpCurrMonitor->monitorRect.bottom;
 		SRect rect = {
-			(w - width) / 2,
-			(h - height) / 2,
-			width + (w - width) / 2,
-			height + (h - height) / 2
+			(w - (Int32)width) / 2,
+			(h - (Int32)height) / 2,
+			(Int32)width + (w - (Int32)width) / 2,
+			(Int32)height + (h - (Int32)height) / 2
 		};
 		ResizeWindow(rect, pWindow);
 	}
@@ -219,19 +219,25 @@ namespace SG
 		::ShowWindow((HWND)pWindow->handle, SW_MINIMIZE);
 	}
 
-	Vec2 CWindowsWindowManager::GetMousePosAbsolute() const
+	Vector2f CWindowsWindowManager::GetMousePosAbsolute() const
 	{
 		POINT pos = {};
 		::GetCursorPos(&pos);
-		return { (float)pos.x, (float)pos.y };
+		Vector2f position;
+		position[0] = (float)pos.x;
+		position[1] = (float)pos.y;
+		return eastl::move(position);
 	}
 
-	Vec2 CWindowsWindowManager::GetMousePosRelative(SWindow* const pWindow) const
+	Vector2f CWindowsWindowManager::GetMousePosRelative(SWindow* const pWindow) const
 	{
 		POINT pos = {};
 		::GetCursorPos(&pos);
 		ClientToScreen((HWND)pWindow->handle, &pos);
-		return { (float)pos.x, (float)pos.y };
+		Vector2f position;
+		position[0] = (float)pos.x;
+		position[1] = (float)pos.y;
+		return eastl::move(position);
 	}
 
 	SG::CWindowsWindowManager* CWindowsWindowManager::GetInstance()

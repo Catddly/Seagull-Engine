@@ -144,7 +144,7 @@ namespace SG
 				if (bIsRepeat)
 					continue;
 
-				SG_LOG_INFO("   resolution: (%d, %d)", res.width, res.height);
+				//SG_LOG_INFO("   resolution: (%d, %d)", res.width, res.height);
 				pMonitor->resolutions.emplace_back(res);
 			}
 		}
@@ -186,6 +186,28 @@ namespace SG
 				return &e;
 		}
 		return nullptr;
+	}
+
+	SG::Vector2f CWindowsDeviceManager::GetDpiScale() const
+	{
+		HDC hdc = ::GetDC(NULL);
+		const float dpiScale = 96.0f; // TODO: maybe this can be set somewhere
+		Vector2f dpi;
+		if (hdc)
+		{
+			//dpi.x = (float)::GetDeviceCaps(hdc, LOGPIXELSX) / dpiScale;
+			//dpi.y = (float)::GetDeviceCaps(hdc, LOGPIXELSY) / dpiScale;			
+			dpi[0] = (float)::GetDeviceCaps(hdc, LOGPIXELSX) / dpiScale;
+			dpi[1] = (float)::GetDeviceCaps(hdc, LOGPIXELSY) / dpiScale;
+		}
+		else
+		{
+			float systemDpi = ::GetDpiForSystem() / 96.0f;
+			dpi[0] = systemDpi;
+			dpi[1] = systemDpi;
+		}
+		::ReleaseDC(NULL, hdc);
+		return eastl::move(dpi);
 	}
 
 	SG::CWindowsDeviceManager* CWindowsDeviceManager::GetInstance()

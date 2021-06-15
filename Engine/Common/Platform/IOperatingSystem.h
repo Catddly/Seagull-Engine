@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Common/Config.h"
-//#include "Common/Base/BasicTypes.h"
-#include "../../Common/Base/BasicTypes.h"
+#include "Common/Base/BasicTypes.h"
 
 namespace SG
 {
@@ -29,13 +28,6 @@ namespace SG
 		}
 	} SResolution;
 
-	//! Temporary! Need to replace to math system's Vec2.
-	typedef struct Vec2
-	{
-		Float32 x;
-		Float32 y;
-	} Vec2;
-
 	//! Rectangle to indicate an area on screen.
 	typedef struct SRect
 	{
@@ -43,7 +35,7 @@ namespace SG
 		Int32 top;
 		Int32 right;
 		Int32 bottom;
-		// TODO: support math system.
+
 		bool operator==(const SRect& rhs) const noexcept
 		{
 			return left == rhs.left && top == rhs.top &&
@@ -60,7 +52,6 @@ namespace SG
 	//! Helper function to get the height of the SRect.
 	static inline UInt32 GetRectHeight(const SRect& rect) { return rect.bottom - rect.top; }
 
-	SG_COMMON_API Vec2 GetCurrDpiScale();
 	// TODO: maybe put this on a message bus to transfer all the os messages.
 	SG_COMMON_API EOsMessage PeekOSMessage();
 

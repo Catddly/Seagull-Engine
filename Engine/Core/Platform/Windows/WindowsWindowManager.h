@@ -27,8 +27,8 @@ namespace SG
 		virtual void Maximized(SWindow* const pWindow) override;
 		virtual void Minimized(SWindow* const pWindow) override;
 
-		virtual Vec2 GetMousePosAbsolute() const override;
-		virtual Vec2 GetMousePosRelative(SWindow* const pWindow) const override;
+		virtual Vector2f GetMousePosAbsolute() const override;
+		virtual Vector2f GetMousePosRelative(SWindow* const pWindow) const override;
 
 		static CWindowsWindowManager* GetInstance();
 	protected:
