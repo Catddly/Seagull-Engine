@@ -32,7 +32,7 @@ namespace SG
 	void CSystemManager::SetI3DEngine(I3DEngine* p3DEngine) { mSystemModules.p3DEngine = p3DEngine; }
 	void CSystemManager::SetI2DEngine(I2DEngine* p2DEngine) { mSystemModules.p2DEngine = p2DEngine; }
 
-	SG::ISystemModules* CSystemManager::GetSystemModules() { return &mSystemModules; }
+	SG::SSystemModules* CSystemManager::GetSystemModules() { return &mSystemModules; }
 	SG::I3DEngine*      CSystemManager::GetI3DEngine() { return mSystemModules.p3DEngine; }
 	SG::I2DEngine*      CSystemManager::GetI2DEngine() { return mSystemModules.p2DEngine; }
 	SG::ILog*           CSystemManager::GetILog() { return mSystemModules.pLog; }

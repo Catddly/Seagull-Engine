@@ -91,9 +91,9 @@ namespace impl
 	{
 		eastl::string temp(msg);
 		if (val)
-			temp += " Yes";
+			temp += "Yes";
 		else
-			temp += " No";
+			temp += "No";
 		return eastl::move(temp);
 	}
 

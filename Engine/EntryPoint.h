@@ -31,8 +31,7 @@ int main(int argv, char** argc)
 	SG_LOG_IF(ELogLevel::eLog_Level_Info, "Are core modules loaded: ", pSystemManager->ValidateCoreModules());
 	SG_LOG_IF(ELogLevel::eLog_Level_Info, "Are all  modules loaded: ", pSystemManager->ValidateAllModules());
 
-	char buf[] = "@ILLmew";
-	SG_LOG_INFO("Welcome To Seagull Engine! %s", buf);
+	SG_LOG_INFO("Welcome To Seagull Engine!");
 	pSystemManager->SystemMainLoop();
 
 	p3DEngine->OnShutdown();

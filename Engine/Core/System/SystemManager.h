@@ -2,6 +2,7 @@
 
 #include "Core/Config.h"
 #include "Common/System/ISystem.h"
+#include "Common/Platform/IThread.h"
 
 #include "Common/System/ILog.h"
 #include "Common/System/I2DEngine.h"
@@ -26,7 +27,7 @@ namespace SG
 		SG_CORE_API virtual void Update() override; // do we really want this??
 		SG_CORE_API virtual void Shutdown() override;
 
-		SG_CORE_API virtual ISystemModules* GetSystemModules() override;
+		SG_CORE_API virtual SSystemModules* GetSystemModules() override;
 
 		// TOOD: other modules should be loaded as dll,
 		// don't use get/set function.
@@ -67,10 +68,11 @@ namespace SG
 			SG_MAX_EXT_PATH = 10,
 			SG_MAX_DIREC_PATH = SG_MAX_FILE_PATH - SG_MAX_DRIVE_PATH - SG_MAX_FILE_NAME - SG_MAX_EXT_PATH,
 		};
-		string mRootPath;
+		string  mRootPath;
+		SThread mMainThread;
 
-		ISystemModules mSystemModules;
-		IProcess* mpCurrActiveProcess;
+		SSystemModules mSystemModules;
+		IProcess*      mpCurrActiveProcess;
 	};
 
 

@@ -16,7 +16,7 @@ namespace SG
 	//! @Interface 
 	//! All the system components are in here
 	//! We can dynamically change its implementation of modules
-	struct ISystemModules
+	struct SSystemModules
 	{
 		I3DEngine*        p3DEngine = nullptr;
 		I2DEngine*        p2DEngine = nullptr;
@@ -38,7 +38,7 @@ namespace SG
 		virtual void Update() = 0; // do we really want this??
 		virtual void Shutdown() = 0;
 
-		virtual ISystemModules* GetSystemModules() = 0;
+		virtual SSystemModules* GetSystemModules() = 0;
 
 		virtual void         SetI3DEngine(I3DEngine* p3DEngine) = 0;
 		virtual I3DEngine*   GetI3DEngine() = 0;
