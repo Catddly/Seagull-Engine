@@ -30,9 +30,12 @@ int main(int argv, char** argc)
 
 	SG_LOG_IF(ELogLevel::eLog_Level_Info, "Are core modules loaded: ", pSystemManager->ValidateCoreModules());
 	SG_LOG_IF(ELogLevel::eLog_Level_Info, "Are all  modules loaded: ", pSystemManager->ValidateAllModules());
-
 	SG_LOG_INFO("Welcome To Seagull Engine!");
-	pSystemManager->SystemMainLoop();
+
+	if (pSystemManager->SystemMainLoop())
+		SG_LOG_INFO("Exit game loop successfully");
+	else
+		SG_LOG_ERROR("Failed to exit game loop");
 
 	p3DEngine->OnShutdown();
 	delete p3DEngine;

@@ -3,6 +3,7 @@
 #include "Common/Base/BasicTypes.h"
 #include "Common/Base/INoInstance.h"
 #include "Common/Platform/ISystemTime.h"
+#include "Common/Thread/IThread.h"
 
 #include "Common/Stl/string.h"
 #include <EASTL/type_traits.h>
@@ -89,7 +90,7 @@ namespace SG
 			Size   threadId;
 			static string GetDescription()
 			{
-				return "!Thread!";
+				return GetCurrThreadName();
 			}
 		};
 

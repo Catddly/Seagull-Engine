@@ -35,7 +35,7 @@ namespace SG
 
 		virtual void InitSystemEnv() = 0;
 		virtual bool InitCoreModules() = 0;
-		virtual void Update() = 0; // do we really want this??
+		//virtual void Update() = 0; // do we really want this??
 		virtual void Shutdown() = 0;
 
 		virtual SSystemModules* GetSystemModules() = 0;

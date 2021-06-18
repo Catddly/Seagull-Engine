@@ -18,28 +18,6 @@ namespace SG
 	///  global functions of operating system
 	///////////////////////////////////////////////////////////////////////////
 
-	//Vector2f GetCurrDpiScale()
-	//{
-	//	HDC hdc = ::GetDC(NULL);
-	//	const float dpiScale = 96.0f; // TODO: maybe this can be set somewhere
-	//	Vector2f dpi;
-	//	if (hdc)
-	//	{
-	//		//dpi.x = (float)::GetDeviceCaps(hdc, LOGPIXELSX) / dpiScale;
-	//		//dpi.y = (float)::GetDeviceCaps(hdc, LOGPIXELSY) / dpiScale;			
-	//		dpi[0] = (float)::GetDeviceCaps(hdc, LOGPIXELSX) / dpiScale;
-	//		dpi[1] = (float)::GetDeviceCaps(hdc, LOGPIXELSY) / dpiScale;
-	//	}
-	//	else
-	//	{
-	//		float systemDpi = ::GetDpiForSystem() / 96.0f;
-	//		dpi[0] = systemDpi;
-	//		dpi[1] = systemDpi;
-	//	}
-	//	::ReleaseDC(NULL, hdc);
-	//	return eastl::move(dpi);
-	//}
-
 	EOsMessage PeekOSMessage()
 	{
 		MSG msg = {};

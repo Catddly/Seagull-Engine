@@ -2,7 +2,7 @@
 
 #include "Core/Config.h"
 #include "Common/System/ISystem.h"
-#include "Common/Platform/IThread.h"
+#include "Common/Thread/IThread.h"
 
 #include "Common/System/ILog.h"
 #include "Common/System/I2DEngine.h"
@@ -24,7 +24,6 @@ namespace SG
 
 		SG_CORE_API virtual void InitSystemEnv() override;
 		SG_CORE_API virtual bool InitCoreModules() override;
-		SG_CORE_API virtual void Update() override; // do we really want this??
 		SG_CORE_API virtual void Shutdown() override;
 
 		SG_CORE_API virtual SSystemModules* GetSystemModules() override;
@@ -58,6 +57,8 @@ namespace SG
 		SG_CORE_API static CSystemManager* GetInstance();
 	protected:
 		CSystemManager();
+	private:
+		void Update(); // do we really want this??
 	private:
 		static CSystemManager* sInstance;
 

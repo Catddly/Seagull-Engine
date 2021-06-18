@@ -6,13 +6,9 @@ public:
 	virtual void OnInit() override
 	{
 		SG_LOG_INFO("User OnInit()");
-		SG_LOG_INFO("User OnUpdate()");
-		SG_LOG_DEBUG("Debug Test!");
-		SG_LOG_WARN("Warn Test!");
-		SG_LOG_ERROR("Error Test!");
-		SG_LOG_CRIT("Criticle Test!");
 
 		//MathTest();
+		ThreadTest();
 	}
 
 	virtual void OnUpdate() override
@@ -22,6 +18,18 @@ public:
 	virtual void OnShutdown() override
 	{
 		SG_LOG_INFO("User OnExit()");
+	}
+private:
+	static void _ThreadFunc(void* pUser)
+	{
+		using namespace SG;
+		SetCurrThreadName("Worker Thread");
+		{
+			CMutexLock lck(sMutex);
+			++sCounter;
+			SG_LOG_DEBUG("Current thread id: %d, counter: %d", 
+				GetCurrThreadID(), sCounter);
+		}
 	}
 private:
 	void MathTest()
@@ -51,7 +59,29 @@ private:
 		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec3i);
 		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec4i);
 	}
+
+	void ThreadTest()
+	{
+		using namespace SG;
+		SG_LOG_DEBUG("Current CPU cores: (%d)", GetNumCPUCores());
+		SThread threads[3] = {};
+		for (int i = 0; i < 3; i++)
+		{
+			CreThread(&threads[i], _ThreadFunc, nullptr);
+		}
+
+		for (int i = 0; i < 3; i++)
+		{
+			JoinThread(&threads[i]);
+		}
+	}
+private:
+	static SG::CWindowsMutex sMutex;
+	static SG::UInt32        sCounter;
 };
+
+SG::CWindowsMutex MyApp::sMutex;
+SG::UInt32        MyApp::sCounter = 0;
 
 SG::IApp* SG::GetAppInstance()
 {

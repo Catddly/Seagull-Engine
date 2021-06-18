@@ -7,7 +7,7 @@
 
 namespace SG
 {
-	// no implementation yet, just forward declaration
+	// no implementation yet, just use a forward declaration
 	class C2DEngine;
 
 	CSystemManager* CSystemManager::sInstance = nullptr;
@@ -27,6 +27,13 @@ namespace SG
 		mRootPath = move(rootPath);
 		// set root directory to where the .exe file is
 		_chdir(mRootPath.c_str());
+
+		// set current thread to main thread
+		SetCurrThreadName("Main Thread");
+		mMainThread.id = GetCurrThreadID();
+		mMainThread.pFunc = nullptr;
+		mMainThread.pHandle = nullptr;
+		mMainThread.pUser = nullptr;
 	}
 
 	void CSystemManager::SetI3DEngine(I3DEngine* p3DEngine) { mSystemModules.p3DEngine = p3DEngine; }
