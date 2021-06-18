@@ -1,14 +1,16 @@
 #include "StdAfx.h"
-#include "WindowsWindowManager.h"
+#include "Common/Platform/WindowManager.h"
+
+#include "Common/Platform/IDeviceManager.h"
+#include "Common/Platform/Window.h"
 
 #include "Common/System/ILog.h"
+#include "Common/Memory/IMemory.h"
 
 #include <EASTL/utility.h>
 
 namespace SG
 {
-
-	CWindowsWindowManager* CWindowsWindowManager::sInstance = nullptr;
 
 	// default window process callback
 	static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -36,56 +38,8 @@ namespace SG
 			return 0;
 	}
 
-	void CWindowsWindowManager::AdjustWindow(SWindow* const pWindow)
+	void WindowManager::OnInit(SMonitor* const pMonitor)
 	{
-		HWND handle = (HWND)pWindow->handle;
-		if (pWindow->bIsFullScreen)
-		{
-			// set borderless window
-			::SetWindowLong(handle, GWL_STYLE, WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN /* no child window draw inside parent*/ |
-				WS_CLIPSIBLINGS);
-
-			::SetWindowPos(handle, HWND_NOTOPMOST,
-				pWindow->fullscreenRect.left, pWindow->fullscreenRect.top,
-				GetRectWidth(pWindow->fullscreenRect), GetRectHeight(pWindow->fullscreenRect), SWP_FRAMECHANGED | SWP_NOACTIVATE);
-		}
-		else
-		{
-			::SetWindowLong(handle, GWL_STYLE, WS_OVERLAPPEDWINDOW);
-			::SetWindowLong(handle, GWL_EXSTYLE, WS_EX_ACCEPTFILES);
-
-			::SetWindowPos(handle, HWND_NOTOPMOST,
-				pWindow->windowedRect.left,
-				pWindow->windowedRect.top,
-				GetRectWidth(pWindow->windowedRect),
-				GetRectHeight(pWindow->windowedRect),
-				SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
-
-			if (pWindow->bIsMaximized)
-				::ShowWindow(handle, SW_MAXIMIZE);
-			else
-				::ShowWindow(handle, SW_NORMAL);
-		}
-	}
-
-	SRect CWindowsWindowManager::GetRecommandedWindowRect()
-	{
-		const Int32 width =  (Int32)mpCurrMonitor->monitorRect.right;
-		const Int32 height = (Int32)mpCurrMonitor->monitorRect.bottom;
-		const Int32 shrinkedWidth = width * 4 / 5;
-		const Int32 shrinkedHeight = height * 4 / 5;
-		SRect rect = {
-			(width - shrinkedWidth) / 2,
-			(height- shrinkedHeight) / 2,
-			width * 4 / 5 + (width - shrinkedWidth) / 2,
-			height * 4 / 5 + (height - shrinkedHeight) / 2
-		};
-		return eastl::move(rect);
-	}
-
-	void CWindowsWindowManager::OnInit(SMonitor* const pMonitor)
-	{
-		mpCurrMonitor = pMonitor;
 		// register a window class
 		WNDCLASSEX wc;
 		HINSTANCE instance = (HINSTANCE)::GetModuleHandle(NULL);
@@ -95,7 +49,7 @@ namespace SG
 		wc.cbClsExtra = 0;
 		wc.cbWndExtra = 0;
 		wc.hInstance = instance;
-		wc.hIcon = ::LoadIcon(0, IDI_APPLICATION);
+		wc.hIcon   = ::LoadIcon(0, IDI_APPLICATION);
 		wc.hIconSm = ::LoadIcon(0, IDI_APPLICATION);
 		wc.hCursor = ::LoadCursor(0, IDC_ARROW);
 		wc.hbrBackground = (HBRUSH)::GetStockObject(BLACK_BRUSH);
@@ -117,134 +71,13 @@ namespace SG
 				return;
 			}
 		}
+
+		mMainWindow = new Window(pMonitor, L"Seagull Engine");
 	}
 
-	void CWindowsWindowManager::OnShutdown()
+	void WindowManager::OnShutdown()
 	{
-		if (sInstance)
-			delete sInstance;
-	}
-
-	void CWindowsWindowManager::OpenWindow(const WChar* windowName, SWindow* const pWindow)
-	{
-		HINSTANCE instance = (HINSTANCE)::GetModuleHandle(NULL);
-
-		HWND hwnd = NULL;
-		SRect rect = GetRecommandedWindowRect();
-		RECT r = { rect.left, rect.top, rect.right, rect.bottom };
-		DWORD dwExStyle = WS_EX_ACCEPTFILES; // accept drag files.
-		DWORD dwStyle   = WS_OVERLAPPEDWINDOW;
-		::AdjustWindowRectEx(&r, dwStyle, FALSE, dwExStyle);
-
-		hwnd = ::CreateWindowEx(dwExStyle, SG_ENGINE_WNAME,
-			windowName, dwStyle, rect.left, rect.top,
-			GetRectWidth(rect), GetRectHeight(rect), NULL, NULL,
-			instance, 0);
-
-		if (hwnd == NULL) // fail to create window
-			SG_ASSERT(false && "Failed to create window!");
-
-		pWindow->handle = hwnd;
-		pWindow->monitorIndex = mpCurrMonitor->index;
-
-		ShowWindow(pWindow);
-		::UpdateWindow((HWND)pWindow->handle);
-
-		pWindow->fullscreenRect = mpCurrMonitor->monitorRect;
-		pWindow->windowedRect = rect;
-	}
-
-	void CWindowsWindowManager::CloseWindow(SWindow* const pWindow)
-	{
-		::DestroyWindow((HWND)pWindow->handle);
-		pWindow->handle = nullptr;
-	}
-
-	void CWindowsWindowManager::ShowWindow(SWindow* const pWindow)
-	{
-		::ShowWindow((HWND)pWindow->handle, SW_SHOW);
-	}
-
-	void CWindowsWindowManager::HideWindow(SWindow* const pWindow)
-	{
-		::ShowWindow((HWND)pWindow->handle, SW_HIDE);
-	}
-
-	void CWindowsWindowManager::ResizeWindow(const SRect& rect, SWindow* const pWindow)
-	{
-		if (pWindow->bIsFullScreen)
-		{
-			if (rect != pWindow->fullscreenRect)
-			{
-				pWindow->bIsFullScreen = false;
-				pWindow->windowedRect = rect;
-				AdjustWindow(pWindow);
-			}
-		}
-		else
-		{
-			pWindow->windowedRect = rect;
-			AdjustWindow(pWindow);
-		}
-	}
-
-	void CWindowsWindowManager::ResizeWindow(UInt32 width, UInt32 height, SWindow* const pWindow)
-	{
-		const Int32 w = (Int32)mpCurrMonitor->monitorRect.right;
-		const Int32 h = (Int32)mpCurrMonitor->monitorRect.bottom;
-		SRect rect = {
-			(w - (Int32)width) / 2,
-			(h - (Int32)height) / 2,
-			(Int32)width + (w - (Int32)width) / 2,
-			(Int32)height + (h - (Int32)height) / 2
-		};
-		ResizeWindow(rect, pWindow);
-	}
-
-	void CWindowsWindowManager::ToggleFullSrceen(SWindow* const pWindow)
-	{
-		pWindow->bIsFullScreen = !pWindow->bIsFullScreen;
-		AdjustWindow(pWindow);
-	}
-
-	void CWindowsWindowManager::Maximized(SWindow* const pWindow)
-	{
-		pWindow->bIsMaximized = true;
-		::ShowWindow((HWND)pWindow->handle, SW_MAXIMIZE);
-	}
-
-	void CWindowsWindowManager::Minimized(SWindow* const pWindow)
-	{
-		pWindow->bIsMinimized = true;
-		::ShowWindow((HWND)pWindow->handle, SW_MINIMIZE);
-	}
-
-	Vector2f CWindowsWindowManager::GetMousePosAbsolute() const
-	{
-		POINT pos = {};
-		::GetCursorPos(&pos);
-		Vector2f position;
-		position[0] = (float)pos.x;
-		position[1] = (float)pos.y;
-		return eastl::move(position);
-	}
-
-	Vector2f CWindowsWindowManager::GetMousePosRelative(SWindow* const pWindow) const
-	{
-		POINT pos = {};
-		::GetCursorPos(&pos);
-		ClientToScreen((HWND)pWindow->handle, &pos);
-		Vector2f position;
-		position[0] = (float)pos.x;
-		position[1] = (float)pos.y;
-		return eastl::move(position);
-	}
-
-	SG::CWindowsWindowManager* CWindowsWindowManager::GetInstance()
-	{
-		if (!sInstance) 
-			sInstance = new CWindowsWindowManager;
-		return sInstance;
+		delete mMainWindow;
 	}
 
 }

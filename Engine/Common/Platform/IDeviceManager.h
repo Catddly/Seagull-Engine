@@ -21,7 +21,7 @@ namespace SG
 		vector<SResolution> resolutions;       //! All the supported resolution.
 		SResolution         defaultResolution; //! Physical resolution.
 		SRect               monitorRect;       //! Window Rect of the monitor. (in logical resolution).
-		SRect               workRect;          //! Workd Rect of the monitor.
+		SRect               workRect;          //! Work rect of the monitor.
 		wstring             name;              //! Name of the monitor.
 		wstring             adapterName;       //! Adapter name of the monitor.
 		UInt32              index;             //! Index of all the monitors.
@@ -38,8 +38,7 @@ namespace SG
 		bool    bIsActive;
 	} SAdapter;
 
-	struct SWindow;
-
+	class Window;
 	struct IDeviceManager
 	{
 		virtual ~IDeviceManager() = default;
@@ -50,8 +49,6 @@ namespace SG
 
 		//! Collect all the informations of the monitors and the adapters currently active.
 		virtual void      CollectInfos() = 0;
-		//! Get the index of the monitor where current window is on.
-		virtual SMonitor* GetCurrWindowMonitor(SWindow* const pWindow) = 0;
 		//! Get the information of monitor by index.
 		virtual SMonitor* GetMonitor(UInt32 index) = 0;
 		//! Get the primary monitor.

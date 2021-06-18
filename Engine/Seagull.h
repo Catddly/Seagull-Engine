@@ -15,7 +15,6 @@
 #include "Common/Platform/IOperatingSystem.h"
 
 #include "Common/Thread/IThread.h"
-#include "Core/Platform/Windows/WindowsMutex.h"
 
 #include "Common/Memory/IMemory.h"
 

@@ -1,11 +1,11 @@
 #pragma once
 
 #ifdef SG_PLATFORM_WINDOWS
-#	include "Platform.Windows.h"
+#	include "Platform_Windows.h"
 #elif  SG_PLATFORM_MAC
-#	include "Platform.Mac.h"
+#	include "Platform_Mac.h"
 #elif  SG_PLATFORM_LINUX
-#	include "Platform.Linux.h"
+#	include "Platform_Linux.h"
 #else
 #	error "Unsupported platform"
 #endif

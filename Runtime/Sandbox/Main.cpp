@@ -25,7 +25,7 @@ private:
 		using namespace SG;
 		SetCurrThreadName("Worker Thread");
 		{
-			CMutexLock lck(sMutex);
+			ScopeLock lck(sMutex);
 			++sCounter;
 			SG_LOG_DEBUG("Current thread id: %d, counter: %d", 
 				GetCurrThreadID(), sCounter);
@@ -63,25 +63,26 @@ private:
 	void ThreadTest()
 	{
 		using namespace SG;
-		SG_LOG_DEBUG("Current CPU cores: (%d)", GetNumCPUCores());
-		SThread threads[3] = {};
-		for (int i = 0; i < 3; i++)
+		UInt32 numCores = GetNumCPUCores();
+		SG_LOG_DEBUG("Current CPU cores: (%d)", numCores);
+		Thread threads[8] = {};
+		for (int i = 0; i < 8; i++)
 		{
 			CreThread(&threads[i], _ThreadFunc, nullptr);
 		}
 
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < 8; i++)
 		{
 			JoinThread(&threads[i]);
 		}
 	}
 private:
-	static SG::CWindowsMutex sMutex;
-	static SG::UInt32        sCounter;
+	static SG::Mutex  sMutex;
+	static SG::UInt32 sCounter;
 };
 
-SG::CWindowsMutex MyApp::sMutex;
-SG::UInt32        MyApp::sCounter = 0;
+SG::Mutex  MyApp::sMutex;
+SG::UInt32 MyApp::sCounter = 0;
 
 SG::IApp* SG::GetAppInstance()
 {

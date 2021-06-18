@@ -1,12 +1,8 @@
 #include "StdAfx.h"
 
+#include "Common/Core/Defs.h"
 #include "Common/Thread/IThread.h"
 #include "Common/Memory/IMemory.h"
-
-#ifndef WIN32_LEAN_AND_MEAN
-#	define WIN32_LEAN_AND_MEAN
-#	include <windows.h>
-#endif
 
 namespace SG
 {
@@ -15,14 +11,14 @@ namespace SG
 	//! Use to forward thread's job.
 	static DWORD WINAPI _ThreadFuncForward(void* pUser)
 	{
-		SThread* pThread = reinterpret_cast<SThread*>(pUser);
+		Thread* pThread = reinterpret_cast<Thread*>(pUser);
 		pThread->pFunc(pThread->pUser);
 		return 0;
 	}
 
 	static char* _CurrThreadName()
 	{
-		__declspec(thread) static char threadName[64] = "NULL";
+		SG_THREAD_LOCAL static char threadName[32] = "NULL";
 		return threadName;
 	}
 
@@ -33,10 +29,10 @@ namespace SG
 
 	void SetCurrThreadName(const char* name)
 	{
-		strcpy_s(_CurrThreadName(), 64, name);
+		strcpy_s(_CurrThreadName(), 32, name);
 	}
 
-	bool CreThread(SThread* pThread, ThreadFunc func, void* pUser)
+	bool CreThread(Thread* pThread, ThreadFunc func, void* pUser)
 	{
 		HANDLE pHandle = ::CreateThread(0, 0, _ThreadFuncForward, pThread, 0, 0);
 		if (!pHandle)
@@ -51,7 +47,7 @@ namespace SG
 		}
 	}
 
-	void RestoreThread(SThread* pThread)
+	void RestoreThread(Thread* pThread)
 	{
 		if (pThread->pHandle)
 		{
@@ -61,12 +57,12 @@ namespace SG
 		}
 	}
 
-	void SusThread(SThread* pThread)
+	void SusThread(Thread* pThread)
 	{
 		::SuspendThread((HANDLE)pThread->pHandle);
 	}
 
-	void JoinThread(SThread* pThread)
+	void JoinThread(Thread* pThread)
 	{
 		::WaitForSingleObject((HANDLE)pThread->pHandle, INFINITE);
 	}
@@ -83,7 +79,7 @@ namespace SG
 		::Sleep((DWORD)ms);
 	}
 
-	bool GetThreadID(SThread* pThread)
+	bool GetThreadID(Thread* pThread)
 	{
 		if (pThread)
 		{
@@ -96,6 +92,50 @@ namespace SG
 	UInt32 GetCurrThreadID()
 	{
 		return (UInt32)::GetCurrentThreadId();
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+	/// Mutex
+	/////////////////////////////////////////////////////////////////////////////////////////
+
+	Mutex::Mutex()
+	{
+		::InitializeCriticalSectionAndSpinCount((CRITICAL_SECTION*)&mHandle, 1500);
+	}
+
+	Mutex::~Mutex()
+	{
+		::DeleteCriticalSection((CRITICAL_SECTION*)&mHandle);
+	}
+
+	void Mutex::Lock()
+	{
+		::EnterCriticalSection((CRITICAL_SECTION*)&mHandle);
+	}
+
+	bool Mutex::TryLock()
+	{
+		return ::TryEnterCriticalSection((CRITICAL_SECTION*)&mHandle);
+	}
+
+	void Mutex::UnLock()
+	{
+		::LeaveCriticalSection((CRITICAL_SECTION*)&mHandle);
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+	/// ScopeLock
+	/////////////////////////////////////////////////////////////////////////////////////////
+
+	ScopeLock::ScopeLock(Mutex& mutex)
+		:mMutex(mutex)
+	{
+		mMutex.Lock();
+	}
+
+	ScopeLock::~ScopeLock()
+	{
+		mMutex.UnLock();
 	}
 
 #endif // SG_PLATFORM_WINDOWS

@@ -13,48 +13,52 @@ extern "C"
 {
 #endif
 
-	typedef struct IMutex
-	{
-		virtual ~IMutex() = default;
-
-		virtual bool OnInit() = 0;
-		virtual void OnDestroy() = 0;
-
-		virtual void Acquire() = 0;
-		virtual bool TryAcquire() = 0;
-		virtual void Release() = 0;
-	} IMutex;
-
 	typedef void*  ThreadHandle;
 	typedef UInt32 ThreadID;
 	typedef void (*ThreadFunc)(void* pUser);
 
-	typedef struct SThread
+	typedef struct Thread
 	{
 		ThreadHandle  pHandle;
 		ThreadFunc    pFunc;
 		void*         pUser;
 		ThreadID      id;
-	} SThread;
+	} Thread;
 
-	SG_COMMON_API bool    CreThread(SThread* pThread, ThreadFunc func, void* pUser);
-	SG_COMMON_API void    RestoreThread(SThread* pThread);
+	SG_COMMON_API bool    CreThread(Thread* pThread, ThreadFunc func, void* pUser);
+	SG_COMMON_API void    RestoreThread(Thread* pThread);
 
-	SG_COMMON_API void    SusThread(SThread* pThread);
-	SG_COMMON_API void    JoinThread(SThread* pThread);
+	SG_COMMON_API void    SusThread(Thread* pThread);
+	SG_COMMON_API void    JoinThread(Thread* pThread);
 
 	SG_COMMON_API UInt32  GetNumCPUCores();
-		//! Thread sleep in miliseconds.
-	SG_COMMON_API void    ThreadSleep(UInt32 ms);
+	SG_COMMON_API void    ThreadSleep(UInt32 ms); 	//!< Thread sleep in milliseconds.
 
-	SG_COMMON_API bool    GetThreadID(SThread* pThread);
+	SG_COMMON_API bool    GetThreadID(Thread* pThread);
 	SG_COMMON_API UInt32  GetCurrThreadID();
 
 	SG_COMMON_API const char* GetCurrThreadName();
-	SG_COMMON_API void SetCurrThreadName(const char* name);
+	SG_COMMON_API void        SetCurrThreadName(const char* name);
 
 #ifdef __cplusplus
 }
 #endif
 
+	class Mutex;
+	class SG_COMMON_API ScopeLock
+	{
+	public:
+		ScopeLock(Mutex& mutex);
+		~ScopeLock();
+
+		ScopeLock(const ScopeLock&) = delete;
+		ScopeLock operator=(const ScopeLock&) = delete;
+	private:
+		Mutex& mMutex;
+	};
 }
+
+
+#ifdef SG_PLATFORM_WINDOWS
+#	include "Common/Thread/IThread_Windows.h"
+#endif

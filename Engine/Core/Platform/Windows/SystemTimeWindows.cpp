@@ -1,10 +1,9 @@
 #include "StdAfx.h"
 #include "Common/Platform/ISystemTime.h"
 
+#ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
-
-#ifdef SG_PLATFORM_WINDOWS
 
 	Size GetSystemTimeHour()
 	{
@@ -54,5 +53,5 @@ namespace SG
 		return BackupTime.tm_mday;
 	}
 
-#endif
 }
+#endif

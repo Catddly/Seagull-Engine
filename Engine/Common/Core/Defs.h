@@ -46,6 +46,8 @@
 
 #define SG_CONSTEXPR constexpr
 
+#define SG_THREAD_LOCAL __declspec(thread)
+
 #ifdef SG_ALLOW_EXCEPTION
 #	define SG_ENABLE_EXCEPTION 1
 #else

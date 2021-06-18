@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common/Platform/IDeviceManager.h"
+#include "Common/Platform/Window.h"
 
 namespace SG
 {
@@ -14,7 +15,6 @@ namespace SG
 		virtual void OnShutdown() override;
 
 		virtual void      CollectInfos() override;
-		virtual SMonitor* GetCurrWindowMonitor(SWindow* const pWindow) override;
 		virtual SMonitor* GetMonitor(UInt32 index) override;
 		virtual SMonitor* GetPrimaryMonitor() override;
 		virtual Vector2f  GetDpiScale() const override;

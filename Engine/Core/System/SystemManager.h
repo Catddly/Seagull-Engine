@@ -58,7 +58,7 @@ namespace SG
 	protected:
 		CSystemManager();
 	private:
-		void Update(); // do we really want this??
+		void Update();
 	private:
 		static CSystemManager* sInstance;
 
@@ -70,7 +70,7 @@ namespace SG
 			SG_MAX_DIREC_PATH = SG_MAX_FILE_PATH - SG_MAX_DRIVE_PATH - SG_MAX_FILE_NAME - SG_MAX_EXT_PATH,
 		};
 		string  mRootPath;
-		SThread mMainThread;
+		Thread  mMainThread;
 
 		SSystemModules mSystemModules;
 		IProcess*      mpCurrActiveProcess;

@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "WindowsDeviceManager.h"
 
-#include "Common/Platform/IWindowManager.h"
 #include "Common/System/ILog.h"
 
 namespace SG
@@ -148,24 +147,6 @@ namespace SG
 				pMonitor->resolutions.emplace_back(res);
 			}
 		}
-	}
-
-	SG::SMonitor* CWindowsDeviceManager::GetCurrWindowMonitor(SWindow* const pWindow)
-	{
-		HMONITOR currMonitor = {};
-		currMonitor = ::MonitorFromWindow((HWND)pWindow->handle, MONITOR_DEFAULTTOPRIMARY);
-		if (currMonitor)
-		{
-			MONITORINFOEXW info;
-			info.cbSize = sizeof(info);
-			::GetMonitorInfoW(currMonitor, &info);
-			for (auto& e : mMonitors)
-			{
-				if (e.adapterName == info.szDevice)
-					return &e;
-			}
-		}
-		return nullptr;
 	}
 
 	SG::SMonitor* CWindowsDeviceManager::GetMonitor(UInt32 index)
