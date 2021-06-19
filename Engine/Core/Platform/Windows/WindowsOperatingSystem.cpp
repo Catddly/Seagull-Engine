@@ -33,6 +33,20 @@ namespace SG
 		return osMeg;
 	}
 
+	void PeekLastOSError()
+	{
+		DWORD errorMessageID = ::GetLastError();
+		if (errorMessageID != ERROR_CLASS_ALREADY_EXISTS)
+		{
+			LPSTR messageBuffer = NULL;
+			Size size = ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+				FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorMessageID,
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+			string message(messageBuffer, size);
+			SG_LOG_ERROR("%s", message.c_str());
+		}
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	///  global functions of operating system
 	///////////////////////////////////////////////////////////////////////////

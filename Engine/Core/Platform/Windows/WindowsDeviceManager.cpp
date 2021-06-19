@@ -1,38 +1,42 @@
 #include "StdAfx.h"
-#include "WindowsDeviceManager.h"
+#include "Common/Platform/DeviceManager.h"
 
+#include "Common/Platform/OsDevices.h"
 #include "Common/System/ILog.h"
 
+#include <windows.h>
+
+#ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
 
-	CWindowsDeviceManager* CWindowsDeviceManager::sInstance = nullptr;
-
-	static BOOL CALLBACK _EnumMonitorCallback(HMONITOR monitor, HDC hdc, LPRECT pRect, LPARAM pUser)
+	// used to avoid using friend function in Monitor.
+	// TODO: have issues on PC having more than one monitor.
+	static Rect tempMonitorRect;
+	static Rect tempWorkRect;
+	static BOOL _EnumMonitorCallback(HMONITOR monitor, HDC hdc, LPRECT pRect, LPARAM pUser)
 	{
-		SMonitor* pMonitor = (SMonitor*)pUser;
+		Monitor* pMonitor = (Monitor*)pUser;
 
 		MONITORINFOEXW info = {};
 		info.cbSize = sizeof(info);
 		::GetMonitorInfoW(monitor, &info);
-
-		pMonitor->monitorRect = { info.rcMonitor.left, info.rcMonitor.top, info.rcMonitor.right, info.rcMonitor.bottom };
-		pMonitor->workRect    = { info.rcWork.left, info.rcWork.top, info.rcWork.right, info.rcWork.bottom };
+	
+		tempMonitorRect = { info.rcMonitor.left, info.rcMonitor.top, info.rcMonitor.right, info.rcMonitor.bottom };
+		tempWorkRect = { info.rcWork.left, info.rcWork.top, info.rcWork.right, info.rcWork.bottom };
 		return TRUE;
 	}
 
-	void CWindowsDeviceManager::OnInit()
+	void CDeviceManager::OnInit()
 	{
 		CollectInfos();
 	}
 
-	void CWindowsDeviceManager::OnShutdown()
+	void CDeviceManager::OnShutdown()
 	{
-		if (sInstance)
-			delete sInstance;
 	}
 
-	void CWindowsDeviceManager::CollectInfos()
+	void CDeviceManager::CollectInfos()
 	{
 		// count the monitors
 		int monitorCount = 0;
@@ -71,9 +75,9 @@ namespace SG
 			{
 				if (!EnumDisplayDevicesW(NULL, adapterIndex, &adapter, 0)) // if the adapter exists
 					break;
-				SAdapter* pAdapter = &mAdapters[adapterIndex];
-				pAdapter->adapterName = adapter.DeviceName;
-				pAdapter->name = adapter.DeviceString;
+				Adapter* pAdapter = &mAdapters[adapterIndex];
+				pAdapter->mName = adapter.DeviceName;
+				pAdapter->mDisplayName = adapter.DeviceString;
 				if (!(adapter.StateFlags & DISPLAY_DEVICE_ACTIVE))
 				{
 					pAdapter->bIsActive = false;
@@ -89,15 +93,17 @@ namespace SG
 					if (!EnumDisplayDevicesW(adapter.DeviceName, displayIndex, &display, 0)) // if the monitor exists
 						break;
 
-					SMonitor* pMonitor = &mMonitors[monitorIndex];
-					pMonitor->adapterName = adapter.DeviceName;
-					pMonitor->name = display.DeviceString;
-					pMonitor->index = monitorIndex;
-					SG_LOG_INFO("Monitor name: %ws", pMonitor->name.c_str());
+					Monitor* pMonitor = &mMonitors[monitorIndex];
+					pMonitor->mAdapterName = adapter.DeviceName;
+					pMonitor->mName = display.DeviceString;
+					pMonitor->mIndex = monitorIndex;
+					SG_LOG_INFO("Monitor name: %ws", pMonitor->mName.c_str());
 					::EnumDisplayMonitors(NULL, NULL, _EnumMonitorCallback, (LPARAM)(pMonitor));
+					pMonitor->mMonitorRect = tempMonitorRect;
+					pMonitor->mWorkRect = tempWorkRect;
 
 					// add the current monitor to the adapter
-					pAdapter->monitors.emplace_back(pMonitor);
+					pAdapter->mMonitors.emplace_back(pMonitor);
 
 					if ((adapter.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)) // if it is the primary monitor
 						pMonitor->bIsPrimary = true;
@@ -117,22 +123,22 @@ namespace SG
 		// collect all the supported resolutions
 		for (auto& e : mMonitors)
 		{
-			SMonitor* pMonitor = &e;
+			Monitor* pMonitor = &e;
 			DEVMODEW devMode = {};
 			devMode.dmSize = sizeof(DEVMODEW);
 			devMode.dmFields = DM_PELSHEIGHT | DM_PELSWIDTH;
 
-			EnumDisplaySettingsW(pMonitor->adapterName.c_str(), ENUM_CURRENT_SETTINGS, &devMode);
-			pMonitor->defaultResolution.width  = devMode.dmPelsWidth;
-			pMonitor->defaultResolution.height = devMode.dmPelsHeight;
+			EnumDisplaySettingsW(pMonitor->mAdapterName.c_str(), ENUM_CURRENT_SETTINGS, &devMode);
+			pMonitor->mDefaultResolution.width  = devMode.dmPelsWidth;
+			pMonitor->mDefaultResolution.height = devMode.dmPelsHeight;
 
 			DWORD currentIndex = 0;
-			while (EnumDisplaySettingsW(pMonitor->adapterName.c_str(), currentIndex++, &devMode))
+			while (EnumDisplaySettingsW(pMonitor->mAdapterName.c_str(), currentIndex++, &devMode))
 			{
-				SResolution res = { devMode.dmPelsWidth, devMode.dmPelsHeight };
+				Resolution res = { devMode.dmPelsWidth, devMode.dmPelsHeight };
 
 				bool bIsRepeat = false;
-				for (auto& e : pMonitor->resolutions) // get rid of the repeat resolution
+				for (auto& e : pMonitor->mResolutions) // get rid of the repeat resolution
 				{
 					if (e == res)
 					{
@@ -144,22 +150,22 @@ namespace SG
 					continue;
 
 				//SG_LOG_INFO("   resolution: (%d, %d)", res.width, res.height);
-				pMonitor->resolutions.emplace_back(res);
+				pMonitor->mResolutions.emplace_back(res);
 			}
 		}
 	}
 
-	SG::SMonitor* CWindowsDeviceManager::GetMonitor(UInt32 index)
+	SG::Monitor* CDeviceManager::GetMonitor(UInt32 index) 
 	{
 		for (auto& e : mMonitors)
 		{
-			if (e.index == index)
+			if (e.mIndex == index)
 				return &e;
 		}
 		return nullptr;
 	}
 
-	SG::SMonitor* CWindowsDeviceManager::GetPrimaryMonitor()
+	SG::Monitor* CDeviceManager::GetPrimaryMonitor()
 	{
 		for (auto& e : mMonitors)
 		{
@@ -169,7 +175,7 @@ namespace SG
 		return nullptr;
 	}
 
-	SG::Vector2f CWindowsDeviceManager::GetDpiScale() const
+	SG::Vector2f CDeviceManager::GetDpiScale() const
 	{
 		HDC hdc = ::GetDC(NULL);
 		const float dpiScale = 96.0f; // TODO: maybe this can be set somewhere
@@ -191,11 +197,5 @@ namespace SG
 		return eastl::move(dpi);
 	}
 
-	SG::CWindowsDeviceManager* CWindowsDeviceManager::GetInstance()
-	{
-		if (!sInstance) 
-			sInstance = new CWindowsDeviceManager;
-		return sInstance;
-	}
-
 }
+#endif // SG_PLATFORM_WINDOWS

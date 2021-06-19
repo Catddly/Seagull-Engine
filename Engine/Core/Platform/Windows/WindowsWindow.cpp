@@ -1,19 +1,19 @@
 #include "StdAfx.h"
 #include "Common/Platform/Window.h"
 
-#include "Common/Platform/IDeviceManager.h"
+#include "Common/Platform/DeviceManager.h"
 
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
 
-	static SRect _GetRecommandedWindowRect(SMonitor* pMonitor)
+	static Rect _GetRecommandedWindowRect(Monitor* pMonitor)
 	{
-		const Int32 width = (Int32)pMonitor->monitorRect.right;
-		const Int32 height = (Int32)pMonitor->monitorRect.bottom;
+		const Int32 width = (Int32)pMonitor->GetMonitorRect().right;
+		const Int32 height = (Int32)pMonitor->GetMonitorRect().bottom;
 		const Int32 shrinkedWidth = width * 4 / 5;
 		const Int32 shrinkedHeight = height * 4 / 5;
-		SRect rect = {
+		Rect rect = {
 			(width - shrinkedWidth) / 2,
 			(height - shrinkedHeight) / 2,
 			width * 4 / 5 + (width - shrinkedWidth) / 2,
@@ -22,13 +22,13 @@ namespace SG
 		return eastl::move(rect);
 	}
 
-	Window::Window(SMonitor* const pMonitor, wstring_view name /*= "Mr No Name"*/)
+	Window::Window(Monitor* const pMonitor, wstring_view name /*= "Mr No Name"*/)
 		:mpCurrMonitor(pMonitor)
 	{
 		HINSTANCE instance = (HINSTANCE)::GetModuleHandle(NULL);
 
 		HWND hwnd = NULL;
-		SRect rect = _GetRecommandedWindowRect(pMonitor);
+		Rect rect = _GetRecommandedWindowRect(pMonitor);
 		RECT r = { rect.left, rect.top, rect.right, rect.bottom };
 		DWORD dwExStyle = WS_EX_ACCEPTFILES; // accept drag files.
 		DWORD dwStyle = WS_OVERLAPPEDWINDOW;
@@ -43,7 +43,7 @@ namespace SG
 			SG_ASSERT(false && "Failed to create window!");
 
 		mHandle = hwnd;
-		mFullscreenRect = mpCurrMonitor->monitorRect;
+		mFullscreenRect = mpCurrMonitor->GetMonitorRect();
 		mWindowedRect = rect;
 
 		ShowWindow();
@@ -97,7 +97,7 @@ namespace SG
 		::ShowWindow((HWND)mHandle, SW_HIDE);
 	}
 
-	void Window::ResizeWindow(const SRect& rect)
+	void Window::ResizeWindow(const Rect& rect)
 	{
 		if (bIsFullScreen)
 		{
@@ -117,9 +117,9 @@ namespace SG
 
 	void Window::ResizeWindow(UInt32 width, UInt32 height)
 	{
-		const Int32 w = (Int32)mpCurrMonitor->monitorRect.right;
-		const Int32 h = (Int32)mpCurrMonitor->monitorRect.bottom;
-		SRect rect = {
+		const Int32 w = (Int32)mpCurrMonitor->GetMonitorRect().right;
+		const Int32 h = (Int32)mpCurrMonitor->GetMonitorRect().bottom;
+		Rect rect = {
 			(w - (Int32)width) / 2,
 			(h - (Int32)height) / 2,
 			(Int32)width + (w - (Int32)width) / 2,

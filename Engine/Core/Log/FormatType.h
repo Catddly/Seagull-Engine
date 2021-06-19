@@ -2,7 +2,7 @@
 
 #include "Common/Base/BasicTypes.h"
 #include "Common/Base/INoInstance.h"
-#include "Common/Platform/ISystemTime.h"
+#include "Common/Platform/SystemTime.h"
 #include "Common/Thread/IThread.h"
 
 #include "Common/Stl/string.h"

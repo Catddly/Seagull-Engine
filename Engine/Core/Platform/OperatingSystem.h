@@ -1,7 +1,9 @@
 #pragma once
+#include "Common/Config.h"
 
 #include "Common/Platform/IOperatingSystem.h"
-#include "Common/Platform/IDeviceManager.h"
+
+#include "Common/Platform/DeviceManager.h"
 #include "Common/Platform/WindowManager.h"
 
 namespace SG
@@ -10,11 +12,14 @@ namespace SG
 	class COperatingSystem : public IOperatingSystem
 	{
 	public:
-		virtual void OnInit() override;
-		virtual void OnShutdown() override;
+		SG_CORE_API virtual void OnInit() override;
+		SG_CORE_API virtual void OnShutdown() override;
+
+		SG_CORE_API virtual Monitor* GetMainMonitor() override;
+		SG_CORE_API virtual Window*  GetMainWindow() override;
 	private:
-		IDeviceManager*   mDeviceManager = nullptr;
-		WindowManager mWindowManager;
+		CDeviceManager mDeviceManager;
+		CWindowManager mWindowManager;
 	};
 
 }

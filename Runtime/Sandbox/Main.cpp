@@ -6,6 +6,7 @@ public:
 	virtual void OnInit() override
 	{
 		SG_LOG_INFO("User OnInit()");
+		using namespace SG;
 
 		//MathTest();
 		ThreadTest();

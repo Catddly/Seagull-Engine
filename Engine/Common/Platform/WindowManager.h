@@ -3,13 +3,15 @@
 namespace SG
 {
 
-	struct SMonitor;
+	class Monitor;
 	class Window;
-	class WindowManager
+	class CWindowManager
 	{
 	public:
-		void OnInit(SMonitor* const pMonitor);
+		void OnInit(Monitor* const pMonitor);
 		void OnShutdown();
+
+		Window* GetMainWindow() const;
 	private:
 		Window* mMainWindow = nullptr;
 	};

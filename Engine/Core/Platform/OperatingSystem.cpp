@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #include "OperatingSystem.h"
 
-#include "Core/Platform/Windows/WindowsDeviceManager.h"
-
 #include "Common/System/ILog.h"
 
 namespace SG
@@ -10,17 +8,24 @@ namespace SG
 
 	void COperatingSystem::OnInit()
 	{
-#ifdef SG_PLATFORM_WINDOWS
-		mDeviceManager = CWindowsDeviceManager::GetInstance();
-#endif
-		mDeviceManager->OnInit();
-		mWindowManager.OnInit(mDeviceManager->GetPrimaryMonitor());
+		mDeviceManager.OnInit();
+		mWindowManager.OnInit(mDeviceManager.GetPrimaryMonitor());
 	}
 
 	void COperatingSystem::OnShutdown()
 	{
 		mWindowManager.OnShutdown();
-		mDeviceManager->OnShutdown();
+		mDeviceManager.OnShutdown();
+	}
+
+	SG::Monitor* COperatingSystem::GetMainMonitor()
+	{
+		return mDeviceManager.GetPrimaryMonitor();
+	}
+
+	SG::Window* COperatingSystem::GetMainWindow()
+	{
+		return mWindowManager.GetMainWindow();
 	}
 
 }

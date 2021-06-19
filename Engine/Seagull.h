@@ -9,14 +9,24 @@
 #include "Common/User/IApp.h"
 
 //----------------------------------------------------------
+// System implementation
+//----------------------------------------------------------
+#include "Core/System/SystemManager.h"
+
+//----------------------------------------------------------
 // Platform specification modules
 //----------------------------------------------------------
-#include "Common/Platform/ISystemTime.h"
 #include "Common/Platform/IOperatingSystem.h"
+#include "Common/Platform/SystemTime.h"
 
 #include "Common/Thread/IThread.h"
-
 #include "Common/Memory/IMemory.h"
+
+//----------------------------------------------------------
+// System data
+//----------------------------------------------------------
+#include "Common/Platform/Window.h"
+#include "Common/Platform/OsDevices.h"
 
 //----------------------------------------------------------
 // Standard template library

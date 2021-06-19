@@ -6,61 +6,70 @@
 namespace SG
 {
 
-	typedef enum class EOsMessage
+	enum class EOsMessage
 	{
 		eNull = 0,
 		eQuit,
-	} EOsMessage;
+	};
 
 	//! Resolution in pixel.
-	typedef struct SResolution
+	struct Resolution
 	{
 		UInt32 width;
 		UInt32 height;
 
-		bool operator==(const SResolution& rhs)
+		bool operator==(const Resolution& rhs)
 		{
 			return width == rhs.width && height == rhs.height;
 		}
-		bool operator!=(const SResolution& rhs)
+		bool operator!=(const Resolution& rhs)
 		{
 			return !operator==(rhs);
 		}
-	} SResolution;
+	};
 
 	//! Rectangle to indicate an area on screen.
-	typedef struct SRect
+	struct Rect
 	{
 		Int32 left;
 		Int32 top;
 		Int32 right;
 		Int32 bottom;
 
-		bool operator==(const SRect& rhs) const noexcept
+		bool operator==(const Rect& rhs) const noexcept
 		{
 			return left == rhs.left && top == rhs.top &&
 				right == rhs.right && bottom == rhs.bottom;
 		}
-		bool operator!=(const SRect& rhs) const noexcept
+		bool operator!=(const Rect& rhs) const noexcept
 		{
 			return !(*this == rhs);
 		}
-	} SRect;
+	};
 
 	//! Helper function to get the width of the SRect.
-	static inline UInt32 GetRectWidth(const SRect& rect) { return rect.right - rect.left; }
+	static inline UInt32 GetRectWidth(const Rect& rect) { return rect.right - rect.left; }
 	//! Helper function to get the height of the SRect.
-	static inline UInt32 GetRectHeight(const SRect& rect) { return rect.bottom - rect.top; }
+	static inline UInt32 GetRectHeight(const Rect& rect) { return rect.bottom - rect.top; }
 
 	// TODO: maybe put this on a message bus to transfer all the os messages.
 	SG_COMMON_API EOsMessage PeekOSMessage();
+	// TODO: return a EOsError as a error handle to propagate on message bus. 
+	SG_COMMON_API void       PeekLastOSError();
 
+	class Monitor;
+	class Window;
 	struct IOperatingSystem
 	{
 		virtual ~IOperatingSystem() = default;
 
 		virtual void OnInit() = 0;
 		virtual void OnShutdown() = 0;
+
+		//! Get the monitor where the window lay on.
+		virtual Monitor* GetMainMonitor() = 0;
+		//! Get the main window.
+		virtual Window*  GetMainWindow() = 0;
 	};
 
 }

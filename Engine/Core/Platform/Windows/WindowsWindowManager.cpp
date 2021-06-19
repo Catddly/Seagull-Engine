@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "Common/Platform/WindowManager.h"
 
-#include "Common/Platform/IDeviceManager.h"
+#include "Common/Platform/DeviceManager.h"
 #include "Common/Platform/Window.h"
 
 #include "Common/System/ILog.h"
@@ -38,7 +38,7 @@ namespace SG
 			return 0;
 	}
 
-	void WindowManager::OnInit(SMonitor* const pMonitor)
+	void CWindowManager::OnInit(Monitor* const pMonitor)
 	{
 		// register a window class
 		WNDCLASSEX wc;
@@ -59,25 +59,20 @@ namespace SG
 		if (!::RegisterClassEx(&wc))
 		{
 			// get the error message, if any.
-			DWORD errorMessageID = ::GetLastError();
-			if (errorMessageID != ERROR_CLASS_ALREADY_EXISTS)
-			{
-				LPSTR messageBuffer = NULL;
-				Size size = ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-					FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorMessageID,
-					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
-				string message(messageBuffer, size);
-				SG_LOG_ERROR("%s", message.c_str());
-				return;
-			}
+			PeekLastOSError();
 		}
 
 		mMainWindow = new Window(pMonitor, L"Seagull Engine");
 	}
 
-	void WindowManager::OnShutdown()
+	void CWindowManager::OnShutdown()
 	{
 		delete mMainWindow;
+	}
+
+	SG::Window* CWindowManager::GetMainWindow() const
+	{
+		return mMainWindow;
 	}
 
 }
