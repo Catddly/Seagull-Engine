@@ -9,7 +9,7 @@ public:
 		using namespace SG;
 
 		//MathTest();
-		ThreadTest();
+		//ThreadTest();
 	}
 
 	virtual void OnUpdate() override

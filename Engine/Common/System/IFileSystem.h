@@ -2,8 +2,6 @@
 
 #include "Common/Base/BasicTypes.h"
 
-#include <stdio.h>
-
 namespace SG
 {
 
@@ -70,7 +68,7 @@ extern "C"
 		union
 		{
 			Memory memory;
-			FILE*  file;
+			void*  file;
 		};
 		EFileMode  filemode;
 	} FileStream;
@@ -89,14 +87,11 @@ extern "C"
 		virtual Size FileSize(const FileStream* pStream) const = 0;
 		virtual bool Flush(FileStream* pStream) = 0;
 		virtual bool IsEndOfFile(const FileStream* pStream) const = 0;
-
-		virtual const char* GetRootDirectory() const = 0;
-		virtual void        SetRootDirectory(const char* rootFolder) = 0;
 	} IStreamOp;
 
 	// TODO: add async file request system to do async file io (after the thread system) 
 	//! @Interface
-	//! File system to do io relative job
+	//! File system
 	typedef struct IFileSystem
 	{
 		virtual ~IFileSystem() = default;
@@ -108,11 +103,6 @@ extern "C"
 
 		//! User interface to set the stream op to user custom.
 		virtual void SetIStreamOp(IStreamOp* pStreamOp) = 0;
-
-		//! Set engine's resource files root directory.
-		//! Default root directory will be the folder where .exe is in.
-		//! \param (filepath) relative path to the .exe
-		virtual void SetRootDirectory(const char* filepath) = 0;
 
 		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode) = 0;
 		virtual bool Close() = 0;

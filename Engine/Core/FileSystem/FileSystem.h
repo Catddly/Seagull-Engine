@@ -2,7 +2,6 @@
 
 #include "Core/Config.h"
 #include "Common/System/IFileSystem.h"
-#include "Core/FileSystem/PlatformStreamOp.h"
 
 namespace SG
 {
@@ -13,7 +12,8 @@ namespace SG
 		SG_CORE_API virtual void OnInit() override;
 		SG_CORE_API virtual void OnShutdown() override;
 
-		SG_CORE_API virtual void SetIStreamOp(IStreamOp* pStreamOp);
+		//! Change file stream operations during runtime, can be modified by user.
+		SG_CORE_API virtual void SetIStreamOp(IStreamOp* pStreamOp) override;
 
 		SG_CORE_API virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode) override;
 		SG_CORE_API virtual bool Close() override;
@@ -24,10 +24,8 @@ namespace SG
 		SG_CORE_API virtual Size FileSize() const override;
 		SG_CORE_API virtual bool Flush() override;
 		SG_CORE_API virtual bool IsEndOfFile() const override;
-
-		SG_CORE_API virtual void SetRootDirectory(const char* filepath) override;
 	private:
-		// platform implementation of stream operations
+		// implementation of stream operations
 		IStreamOp* mStreamOp = nullptr;
 		FileStream mStream;
 	};

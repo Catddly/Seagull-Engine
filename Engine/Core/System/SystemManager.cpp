@@ -15,7 +15,7 @@ namespace SG
 	void CSystemManager::InitSystemEnv()
 	{
 		char abPath[SG_MAX_FILE_PATH] = { 0 };
-		GetModuleFileNameA(NULL, abPath, sizeof(abPath));
+		::GetModuleFileNameA(NULL, abPath, sizeof(abPath));
 		char drivePath[SG_MAX_DRIVE_PATH] = { 0 };
 		char directoryPath[SG_MAX_DIREC_PATH] = { 0 };
 		_splitpath_s(abPath,
@@ -39,12 +39,12 @@ namespace SG
 	void CSystemManager::SetI3DEngine(I3DEngine* p3DEngine) { mSystemModules.p3DEngine = p3DEngine; }
 	void CSystemManager::SetI2DEngine(I2DEngine* p2DEngine) { mSystemModules.p2DEngine = p2DEngine; }
 
-	SG::SSystemModules* CSystemManager::GetSystemModules() { return &mSystemModules; }
-	SG::I3DEngine*      CSystemManager::GetI3DEngine() { return mSystemModules.p3DEngine; }
-	SG::I2DEngine*      CSystemManager::GetI2DEngine() { return mSystemModules.p2DEngine; }
-	SG::ILog*           CSystemManager::GetILog() { return mSystemModules.pLog; }
-	SG::IFileSystem*    CSystemManager::GetIFileSystem() { return mSystemModules.pFileSystem; }
-	SG::IOperatingSystem* CSystemManager::GetIOS() { return mSystemModules.pOS; }
+	SG::SSystemModules*   CSystemManager::GetSystemModules() { return &mSystemModules; }
+	SG::I3DEngine*        CSystemManager::GetI3DEngine()     { return mSystemModules.p3DEngine; }
+	SG::I2DEngine*        CSystemManager::GetI2DEngine()     { return mSystemModules.p2DEngine; }
+	SG::ILog*             CSystemManager::GetILog()          { return mSystemModules.pLog; }
+	SG::IFileSystem*      CSystemManager::GetIFileSystem()   { return mSystemModules.pFileSystem; }
+	SG::IOperatingSystem* CSystemManager::GetIOS()           { return mSystemModules.pOS; }
 
 	bool CSystemManager::ValidateCoreModules() const
 	{
@@ -72,6 +72,12 @@ namespace SG
 	{
 		// no implementation yet.
 		return 0;
+	}
+
+	void CSystemManager::SetRootDirectory(const char* filepath)
+	{
+		mRootPath = filepath;
+		_chdir(filepath);
 	}
 
 	bool CSystemManager::InitCoreModules()
@@ -128,7 +134,6 @@ namespace SG
 			if (msg == EOsMessage::eQuit)
 				bIsExit = true;
 
-			// TODO: remove the Update() interface.
 			Update();
 		}
 		return bIsSafeQuit;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common/Config.h"
+#include "Common/Core/Defs.h"
 #include "Common/Base/BasicTypes.h"
 
 #include "Common/Stl/string.h"
@@ -50,9 +51,8 @@ extern "C"
 	public:
 		ScopeLock(Mutex& mutex);
 		~ScopeLock();
+		SG_CLASS_NO_COPY_ASSIGNABLE(ScopeLock);
 
-		ScopeLock(const ScopeLock&) = delete;
-		ScopeLock operator=(const ScopeLock&) = delete;
 	private:
 		Mutex& mMutex;
 	};

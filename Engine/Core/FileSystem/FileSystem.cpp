@@ -1,26 +1,24 @@
 #include "StdAfx.h"
 #include "FileSystem.h"
 
-#include "Common/Stl/string.h"
-
+#include "Core/Platform/Windows/WindowsStreamOp.h"
 #include "Common/Memory/IMemory.h"
+
+#include "Common/Stl/string.h"
 
 namespace SG
 {
 
 	void CFileSystem::OnInit()
 	{
+#ifdef SG_PLATFORM_WINDOWS
 		mStreamOp = new SWindowsStreamOp;
+#endif
 	}
 
 	void CFileSystem::OnShutdown()
 	{
 		delete mStreamOp;
-	}
-
-	void CFileSystem::SetRootDirectory(const char* filepath)
-	{
-		mStreamOp->SetRootDirectory(filepath);
 	}
 
 	bool CFileSystem::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode)

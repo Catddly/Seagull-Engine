@@ -35,7 +35,7 @@
 #endif
 
 #ifndef SG_COMPILE_ASSERT
-#	define SG_COMPILE_ASSERT(x, MSG) static_assert(x, #MSG)
+#	define SG_COMPILE_ASSERT(x, MSG) do { static_assert(x, #MSG); } while(false)
 #endif
 
 #ifndef SG_ASSERT
@@ -79,6 +79,6 @@
 #	define SG_RESTORE_MSVC_WARNING()
 #endif
 
-// maybe move to another class 
+// maybe move to another file 
 #define SG_CLASS_NO_COPY_ASSIGNABLE(CLASS) CLASS(const CLASS&) = delete; \
 	CLASS operator=(const CLASS&) = delete

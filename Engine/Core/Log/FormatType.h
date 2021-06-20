@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Common/Base/BasicTypes.h"
-#include "Common/Base/INoInstance.h"
 #include "Common/Platform/SystemTime.h"
 #include "Common/Thread/IThread.h"
 
@@ -14,7 +13,7 @@ namespace SG
 	{
 
 		//! dummy struct for complete type
-		struct SBaseFormat : private INoInstance
+		struct SBaseFormat
 		{
 			static string GetDescription() { return ""; }
 		};

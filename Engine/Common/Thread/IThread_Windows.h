@@ -5,7 +5,7 @@
 namespace SG
 {
 
-	struct SCriticalSection
+	struct CriticalSection
 	{
 		void* debugInfo;
 		long  lockCount;
@@ -25,7 +25,7 @@ namespace SG
 		bool TryLock();
 		void UnLock();
 	private:
-		SCriticalSection mHandle;
+		CriticalSection mHandle;
 	};
 
 }

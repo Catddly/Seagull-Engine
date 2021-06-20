@@ -67,6 +67,10 @@ namespace SG
 
 		//! Get current memory usage for all the modules.
 		virtual UInt32 GetTotalMemoryUsage() const = 0;
+		//! Set engine's resource files root directory in absolute path.
+		//! Default root directory will be the folder where .exe is in.
+		//! \param (filepath) relative path to the .exe
+		virtual void   SetRootDirectory(const char* filepath) = 0;
 	};
 
 }
