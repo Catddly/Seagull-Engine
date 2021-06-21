@@ -30,7 +30,6 @@ namespace SG
 
 		// set current thread to main thread
 		SetCurrThreadName("Main Thread");
-		mMainThread.id = GetCurrThreadID();
 		mMainThread.pFunc = nullptr;
 		mMainThread.pHandle = nullptr;
 		mMainThread.pUser = nullptr;

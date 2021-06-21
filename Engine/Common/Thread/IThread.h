@@ -23,20 +23,19 @@ extern "C"
 		ThreadHandle  pHandle;
 		ThreadFunc    pFunc;
 		void*         pUser;
-		ThreadID      id;
 	} Thread;
 
-	SG_COMMON_API bool    CreThread(Thread* pThread, ThreadFunc func, void* pUser);
-	SG_COMMON_API void    RestoreThread(Thread* pThread);
+	SG_COMMON_API bool        ThreadCreate(Thread* pThread, ThreadFunc func, void* pUser);
+	SG_COMMON_API void        ThreadRestore(Thread* pThread);
 
-	SG_COMMON_API void    SusThread(Thread* pThread);
-	SG_COMMON_API void    JoinThread(Thread* pThread);
+	SG_COMMON_API void        ThreadSuspend(Thread* pThread);
+	SG_COMMON_API void        ThreadJoin(Thread* pThread);
 
-	SG_COMMON_API UInt32  GetNumCPUCores();
-	SG_COMMON_API void    ThreadSleep(UInt32 ms); 	//!< Thread sleep in milliseconds.
+	SG_COMMON_API UInt32      GetNumCPUCores();
+	SG_COMMON_API void        ThreadSleep(UInt32 ms); 	//!< Thread sleep in milliseconds.
 
-	SG_COMMON_API bool    GetThreadID(Thread* pThread);
-	SG_COMMON_API UInt32  GetCurrThreadID();
+	SG_COMMON_API UInt32      GetThreadID(Thread* pThread);
+	SG_COMMON_API UInt32      GetCurrThreadID();
 
 	SG_COMMON_API const char* GetCurrThreadName();
 	SG_COMMON_API void        SetCurrThreadName(const char* name);

@@ -1,3 +1,4 @@
+#include "Common/Core/Defs.h"
 #include "Common/Base/BasicTypes.h"
 
 //----------------------------------------------------------

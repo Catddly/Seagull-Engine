@@ -32,3 +32,9 @@
 #else
 #	error "unknown compiler"
 #endif
+
+#if defined(SG_COMPILER_MSVC)
+#	include "Compiler_Windows.h"
+#elif  defined(SG_COMPILER_CLANG)
+#	include "Compiler_Clang.h"
+#endif

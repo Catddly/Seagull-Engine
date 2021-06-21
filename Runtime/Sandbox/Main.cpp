@@ -1,5 +1,19 @@
 #include "StdAfx.h"
 
+SG::ConditionVariable gCv;
+SG::Mutex             gMutex;
+SG::Mutex             gLogMutex;
+void CvThreadFunc(void* pUser)
+{
+	using namespace SG;
+	gCv.Wait(gMutex);
+
+	{
+		ScopeLock lck(gLogMutex);
+		SG_LOG_DEBUG("Func going on!");
+	}
+}
+
 class MyApp : public SG::IApp
 {
 public:
@@ -9,7 +23,7 @@ public:
 		using namespace SG;
 
 		//MathTest();
-		//ThreadTest();
+		ThreadTest();
 	}
 
 	virtual void OnUpdate() override
@@ -26,7 +40,7 @@ private:
 		using namespace SG;
 		SetCurrThreadName("Worker Thread");
 		{
-			ScopeLock lck(sMutex);
+			ScopeLock lck(gLogMutex);
 			++sCounter;
 			SG_LOG_DEBUG("Current thread id: %d, counter: %d", 
 				GetCurrThreadID(), sCounter);
@@ -69,13 +83,20 @@ private:
 		Thread threads[8] = {};
 		for (int i = 0; i < 8; i++)
 		{
-			CreThread(&threads[i], _ThreadFunc, nullptr);
+			ThreadCreate(&threads[i], _ThreadFunc, nullptr);
 		}
+
+		Thread cvThread = {};
+		ThreadCreate(&cvThread, CvThreadFunc, nullptr);
 
 		for (int i = 0; i < 8; i++)
 		{
-			JoinThread(&threads[i]);
+			ThreadJoin(&threads[i]);
 		}
+
+		gCv.NotifyOne();
+
+		ThreadJoin(&cvThread);
 	}
 private:
 	static SG::Mutex  sMutex;

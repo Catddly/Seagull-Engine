@@ -32,7 +32,7 @@ namespace SG
 		strcpy_s(_CurrThreadName(), 32, name);
 	}
 
-	bool CreThread(Thread* pThread, ThreadFunc func, void* pUser)
+	bool ThreadCreate(Thread* pThread, ThreadFunc func, void* pUser)
 	{
 		HANDLE pHandle = ::CreateThread(0, 0, _ThreadFuncForward, pThread, 0, 0);
 		if (!pHandle)
@@ -42,12 +42,11 @@ namespace SG
 			pThread->pUser = pUser;
 			pThread->pHandle = pHandle;
 			pThread->pFunc = func;
-			GetThreadID(pThread);
 			return true;
 		}
 	}
 
-	void RestoreThread(Thread* pThread)
+	void ThreadRestore(Thread* pThread)
 	{
 		if (pThread->pHandle)
 		{
@@ -57,12 +56,12 @@ namespace SG
 		}
 	}
 
-	void SusThread(Thread* pThread)
+	void ThreadSuspend(Thread* pThread)
 	{
 		::SuspendThread((HANDLE)pThread->pHandle);
 	}
 
-	void JoinThread(Thread* pThread)
+	void ThreadJoin(Thread* pThread)
 	{
 		::WaitForSingleObject((HANDLE)pThread->pHandle, INFINITE);
 	}
@@ -79,14 +78,9 @@ namespace SG
 		::Sleep((DWORD)ms);
 	}
 
-	bool GetThreadID(Thread* pThread)
+	UInt32 GetThreadID(Thread* pThread)
 	{
-		if (pThread)
-		{
-			pThread->id = ::GetThreadId((HANDLE)pThread->pHandle);
-			return true;
-		}
-		return false;
+		return ::GetThreadId((HANDLE)pThread->pHandle);
 	}
 
 	UInt32 GetCurrThreadID()
@@ -136,6 +130,50 @@ namespace SG
 	ScopeLock::~ScopeLock()
 	{
 		mMutex.UnLock();
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+	/// ConditionVariable
+	/////////////////////////////////////////////////////////////////////////////////////////
+
+	bool ConditionVariable::Wait(const Mutex& mutex, UInt32 ms)
+	{
+		return ::SleepConditionVariableCS((CONDITION_VARIABLE*)&mHandle, (CRITICAL_SECTION*)&mutex.mHandle, (DWORD)ms);
+	}
+
+	void ConditionVariable::NotifyOne()
+	{
+		::WakeConditionVariable((CONDITION_VARIABLE*)&mHandle);
+	}
+
+	void ConditionVariable::NotifyAll()
+	{
+		::WakeAllConditionVariable((CONDITION_VARIABLE*)&mHandle);
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+	/// Semaphore
+	/////////////////////////////////////////////////////////////////////////////////////////
+
+	Semaphore::Semaphore(int maximunCnt, int initCnt)
+		:mCount(initCnt)
+	{
+		mHandle = (void*)::CreateSemaphore(NULL, initCnt, maximunCnt, NULL);
+	}
+
+	Semaphore::~Semaphore()
+	{
+		::CloseHandle((HANDLE)mHandle);
+	}
+
+	void Semaphore::Acquire()
+	{
+		::WaitForSingleObject((HANDLE)mHandle, INFINITE);
+	}
+
+	void Semaphore::Release()
+	{
+		::ReleaseSemaphore((HANDLE)mHandle, 1, NULL);
 	}
 
 #endif // SG_PLATFORM_WINDOWS

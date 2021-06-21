@@ -1,14 +1,20 @@
 #pragma once
 
 #include "Compilers.h"
-#include <stdint.h>
+#include "Platform.h"
+
+#ifdef _DEBUG
+#	define SG_DEBUG
+#else
+#	define SG_RELEASE
+#endif
 
 #define SG_ENGINE_WNAME L"Seagull Engine"
 #define SG_ENGINE_NAME   "Seagull Engine"
 
-#if   INTPTR_MAX == 0x7FFFFFFFFFFFFFFFLL
+#if   defined(SG_PLATFORM_WIN64)
 #	define SG_PTR_SIZE 8
-#else INTPTR_MAX == 0x7FFFFFFF
+#elif defined(SG_PLATFORM_WIN32)
 #	define SG_PTR_SIZE 4
 #endif
 
@@ -20,18 +26,10 @@
 #	endif
 #endif
 
-#ifdef __cplusplus
-#	define SG_FORCE_INLINE __forceinline
+#ifndef SG_DEBUG
+#	define SG_INLINE inline
 #else
-#	define SG_FORCE_INLINE
-#endif
-
-#define SG_INLINE inline
-
-#ifdef __cplusplus
-#	define SG_ALIGN(x) alignas(x)
-#else
-#	define SG_ALIGN(x)
+#	define SG_INLINE SG_FORCE_INLINE
 #endif
 
 #ifndef SG_COMPILE_ASSERT
