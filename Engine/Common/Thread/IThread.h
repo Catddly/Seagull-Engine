@@ -57,7 +57,6 @@ extern "C"
 	};
 }
 
-
 #ifdef SG_PLATFORM_WINDOWS
 #	include "Common/Thread/IThread_Windows.h"
 #endif

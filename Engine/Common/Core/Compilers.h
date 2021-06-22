@@ -30,7 +30,7 @@
 #	define EA_COMPILER_MSVC16_0  1
 #	endif
 #else
-#	error "unknown compiler"
+#	error Unknown compiler
 #endif
 
 #if defined(SG_COMPILER_MSVC)

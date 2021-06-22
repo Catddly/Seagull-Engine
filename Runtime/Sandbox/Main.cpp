@@ -3,9 +3,11 @@
 SG::ConditionVariable gCv;
 SG::Mutex             gMutex;
 SG::Mutex             gLogMutex;
+SG::Atomic32          gCount;
 void CvThreadFunc(void* pUser)
 {
 	using namespace SG;
+	SetCurrThreadName("Cv Thread");
 	gCv.Wait(gMutex);
 
 	{
@@ -21,6 +23,20 @@ public:
 	{
 		SG_LOG_INFO("User OnInit()");
 		using namespace SG;
+
+		struct MyJob : public SG::IJob<int, double>
+		{
+			virtual void Execute(const int& inData, double& outData) override
+			{
+				outData = (double)inData + 5.99;
+			}
+		};
+
+		MyJob job;
+		int a = 54;
+		double b;
+		job.Execute(a, b);
+		SG_LOG_DEBUG("b is %.2llf", b);
 
 		//MathTest();
 		ThreadTest();
@@ -41,9 +57,8 @@ private:
 		SetCurrThreadName("Worker Thread");
 		{
 			ScopeLock lck(gLogMutex);
-			++sCounter;
 			SG_LOG_DEBUG("Current thread id: %d, counter: %d", 
-				GetCurrThreadID(), sCounter);
+				GetCurrThreadID(), gCount.Increase());
 		}
 	}
 private:
@@ -100,11 +115,9 @@ private:
 	}
 private:
 	static SG::Mutex  sMutex;
-	static SG::UInt32 sCounter;
 };
 
 SG::Mutex  MyApp::sMutex;
-SG::UInt32 MyApp::sCounter = 0;
 
 SG::IApp* SG::GetAppInstance()
 {

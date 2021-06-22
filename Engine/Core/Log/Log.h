@@ -29,12 +29,13 @@ namespace SG
 		//! @return offset of the buffer.
 		int  AddPrefix(char* pBuf);
 		void Flush();
+		void LogOut(ELogLevel logLevel, char* pBuffer);
 	private:
-		enum { SG_MAX_LOG_BUFFER_SIZE = 2048, SG_MAX_TEMP_BUFFER_SIZE = SG_MAX_LOG_BUFFER_SIZE / 8 };
+		enum { SG_MAX_LOG_BUFFER_SIZE = 2048, SG_MAX_TEMP_BUFFER_SIZE = SG_MAX_LOG_BUFFER_SIZE / 8, SG_MAX_SINGLE_LOG_SIZE = 70 };
 
 		static char sTempBuffer[SG_MAX_TEMP_BUFFER_SIZE];
+		static int  sTempBufferSize;
 		static string sBuffer;
-		static int sBufferSize;
 
 		ELogMode mLogMode = ELogMode::eLog_Mode_Default;
 		fmt::CFormatter mFormatter;

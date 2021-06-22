@@ -2,10 +2,9 @@
 
 //! Seagull Engine embedded the entrypoint inside the engine
 //! to avoid some user-side problems
-
+//! 
 #include "Common/System/ISystem.h"
 #include "Common/User/IApp.h"
-#include "Common/System/ILog.h"
 
 #include "3DEngine/3DEngine/3DEngine.h"
 #include "Core/System/SystemManager.h"

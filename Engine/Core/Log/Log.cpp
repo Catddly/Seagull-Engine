@@ -9,8 +9,8 @@ namespace SG
 {
 
 	char CLog::sTempBuffer[SG_MAX_TEMP_BUFFER_SIZE] = { 0 };
+	int  CLog::sTempBufferSize = 0;
 	string CLog::sBuffer;
-	int CLog::sBufferSize = 0;
 
 	void CLog::OnInit()
 	{
@@ -43,55 +43,25 @@ namespace SG
 		}
 
 		va_list args;
-		sBufferSize += AddPrefix(sTempBuffer);
+		sTempBufferSize += AddPrefix(sTempBuffer);
 		va_start(args, format);
-		sBufferSize += vsnprintf(sTempBuffer + sBufferSize, SG_MAX_LOG_BUFFER_SIZE - sBufferSize, format, args);
+		sTempBufferSize += vsnprintf(sTempBuffer + sTempBufferSize, SG_MAX_LOG_BUFFER_SIZE - sTempBufferSize, format, args);
 		va_end(args);
 
 		// end of the log stream buffer
-		sTempBuffer[sBufferSize] = '\n';
-		sTempBuffer[++sBufferSize] = { 0 };
+		sTempBuffer[sTempBufferSize] = '\n';
+		sTempBuffer[++sTempBufferSize] = { 0 };
 		sBuffer.append(sTempBuffer);
 
-		bool isError = SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLog_Level_Error | ELogLevel::eLog_Level_Criticle);
-		FILE* out = isError ? stderr : stdout;
-		HANDLE handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+		LogOut(logLevel, sTempBuffer);
 
-		if (isError)
-		{
-			::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED);
-			fprintf(out, "%s", sTempBuffer);
-			::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-		}
-		else if (SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLog_Level_Warn))
-		{
-			::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN);
-			fprintf(out, "%s", sTempBuffer);
-			::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-		}
-		else if (mLogMode == ELogMode::eLog_Mode_Default || mLogMode == ELogMode::eLog_Mode_No_File)
-		{
-			if (SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLog_Level_Info))
-			{
-				::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-				fprintf(out, "%s", sTempBuffer);
-				::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-			}
-			else if (SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLog_Level_Debug))
-			{
-				::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_GREEN | FOREGROUND_BLUE);
-				fprintf(out, "%s", sTempBuffer);
-				::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-			}
-		}
-
-		if (sBuffer.length() >= SG_MAX_LOG_BUFFER_SIZE - 150)
+		if (sBuffer.length() >= SG_MAX_LOG_BUFFER_SIZE - (SG_MAX_SINGLE_LOG_SIZE * 2))
 		{
 			if (mLogMode == ELogMode::eLog_Mode_Default || mLogMode == ELogMode::eLog_Mode_Quite)
 				LogToFile();
 			Flush();
 		}
-		sBufferSize = 0;
+		sTempBufferSize = 0;
 		sTempBuffer[0] = { 0 };
 	}
 
@@ -115,6 +85,41 @@ namespace SG
 	void CLog::Flush()
 	{
 		sBuffer.clear();
+	}
+
+	void CLog::LogOut(ELogLevel logLevel, char* pBuffer)
+	{
+		bool isError = SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLog_Level_Error | ELogLevel::eLog_Level_Criticle);
+		FILE* out = isError ? stderr : stdout;
+		HANDLE handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+
+		if (isError)
+		{
+			::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED);
+			fprintf(out, "%s", pBuffer);
+			::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+		}
+		else if (SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLog_Level_Warn))
+		{
+			::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN);
+			fprintf(out, "%s", pBuffer);
+			::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+		}
+		else if (mLogMode == ELogMode::eLog_Mode_Default || mLogMode == ELogMode::eLog_Mode_No_File)
+		{
+			if (SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLog_Level_Info))
+			{
+				::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+				fprintf(out, "%s", pBuffer);
+				::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+			}
+			else if (SG_HAS_ENUM_FLAG(logLevel, ELogLevel::eLog_Level_Debug))
+			{
+				::SetConsoleTextAttribute(handle, FOREGROUND_INTENSITY | FOREGROUND_GREEN | FOREGROUND_BLUE);
+				fprintf(out, "%s", pBuffer);
+				::SetConsoleTextAttribute(handle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+			}
+		}
 	}
 
 }
