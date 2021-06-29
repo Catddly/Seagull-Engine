@@ -16,9 +16,13 @@ namespace SG
 
 	struct SJobStatus
 	{
-
+		
 	};
 
+	/// maybe we want a decorator to be a simple wrapper to IJob
+	/// to add some synchronization function to its handle.
+
+	//! Data-oriented structure, per data executable function.
 	template<class InData, class OutData>
 	struct IJob
 	{
