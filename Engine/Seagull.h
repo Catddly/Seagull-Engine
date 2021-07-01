@@ -23,6 +23,8 @@
 #include "Common/Thread/IThread.h"
 #include "Common/Thread/IJobSystem.h"
 
+#include "Common/System/IInput.h"
+
 #include "Common/Memory/IMemory.h"
 
 //----------------------------------------------------------

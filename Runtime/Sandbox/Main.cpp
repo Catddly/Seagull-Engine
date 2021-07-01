@@ -39,11 +39,19 @@ public:
 		SG_LOG_DEBUG("b is %.2llf", b);
 
 		//MathTest();
-		ThreadTest();
+		//ThreadTest();
 	}
 
 	virtual void OnUpdate() override
 	{
+		if (SG::IInput::IsKeyPressed(SG::EKeyCode::eM))
+			SG_LOG_DEBUG("M is pressed");
+		if (SG::IInput::IsKeyPressed(SG::EKeyCode::eA))
+			SG_LOG_DEBUG("A is pressed");
+		if (SG::IInput::IsKeyPressed(SG::EKeyCode::eF1))
+			SG_LOG_DEBUG("F1 is pressed");
+		if (SG::IInput::IsKeyPressed(SG::EKeyCode::eDelete))
+			SG_LOG_DEBUG("Delete is pressed");
 	}
 
 	virtual void OnShutdown() override

@@ -24,6 +24,18 @@ namespace SG
 			PostQuitMessage(0);
 			break;
 		}
+		case WM_KEYDOWN:
+		{
+			//SG_LOG_DEBUG("Keydown (%d)", wParam);
+			break;
+		}
+		case WM_KEYUP:
+		{
+			//SG_LOG_DEBUG("Keyup (%d)", wParam);
+			if (wParam == VK_ESCAPE)
+				PostQuitMessage(0);
+			break;
+		}
 		//case WM_NCLBUTTONDOWN:   // left mouse down on non-client area
 		//	if (wParam != HTCLOSE) // you can not the drag window, you can only close the window
 		//	{

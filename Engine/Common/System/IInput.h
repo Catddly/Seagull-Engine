@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Common/Core/Defs.h"
+#include "Common/Config.h"
+#include "Common/Base/BasicTypes.h"
 
 namespace SG
 {
@@ -19,6 +20,7 @@ namespace SG
 		eControl,
 		eLeftMenu,
 		eRightMenu,
+		eMenu,
 		eBrowserBack,
 		eBrowserForward,
 		eBrowserRefresh,
@@ -26,7 +28,6 @@ namespace SG
 		eBrowserSearch,
 		eBrowserFavorites,
 		eBrowserHome,
-		eMenu,
 		ePause,
 		eCapital,
 		eEscape,
@@ -67,7 +68,7 @@ namespace SG
 		eNumpad9,
 		eMultiply,
 		eAdd,
-		eSeperator,
+		eSeparator,
 		eSubtract,
 		eDecimal,
 		eDivide,
@@ -145,6 +146,40 @@ namespace SG
 		eMouse5,  //!< side-key 0
 		eMouse6,  //!< side-key 1
 		eMouse7,  //!< side-key 2
+
+		KEYCODE_COUNT
+	};
+
+	enum class EKeyState
+	{
+		ePressed,
+		eHold,
+		eRelease,
+	};
+
+	struct IInput
+	{
+		SG_COMMON_API static bool IsKeyPressed(EKeyCode keycode);
+	};
+
+	//! Observer design pattern, can be register by any class which inherits this class.
+	struct IInputListener
+	{
+		virtual ~IInputListener() = default;
+
+		//! Call when there is any input.
+		//! @param (keycode) which key is changing.
+		//! @param (keyState) what is its state.
+		//! @return if you want to propagate this event.
+		virtual bool OnInputUpdate(EKeyCode keycode, EKeyState keyState) = 0;
+	};
+
+	struct IInputSystem
+	{
+		virtual ~IInputSystem() = default;
+
+		virtual void AddListener(IInputListener* pListener) = 0;
+		virtual void MuteListener(IInputListener* pListener) = 0;
 	};
 
 }
