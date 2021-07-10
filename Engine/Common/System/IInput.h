@@ -178,8 +178,11 @@ namespace SG
 	{
 		virtual ~IInputSystem() = default;
 
-		virtual void AddListener(IInputListener* pListener) = 0;
+		virtual void RegisterListener(IInputListener* pListener) = 0;
 		virtual void MuteListener(IInputListener* pListener) = 0;
+		virtual void RemoveListener(IInputListener* pListener) = 0;
+
+		virtual void OnUpdate() = 0;
 	};
 
 }

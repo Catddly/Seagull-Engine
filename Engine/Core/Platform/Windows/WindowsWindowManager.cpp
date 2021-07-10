@@ -57,7 +57,7 @@ namespace SG
 		HINSTANCE instance = (HINSTANCE)::GetModuleHandle(NULL);
 		wc.cbSize = sizeof(WNDCLASSEX);
 		wc.style = CS_HREDRAW | CS_VREDRAW;
-		wc.lpfnWndProc = _WinProc;
+		wc.lpfnWndProc = SG::_WinProc;
 		wc.cbClsExtra = 0;
 		wc.cbWndExtra = 0;
 		wc.hInstance = instance;
@@ -85,6 +85,11 @@ namespace SG
 	SG::Window* CWindowManager::GetMainWindow() const
 	{
 		return mMainWindow;
+	}
+
+	IntPtr CWindowManager::CustomWinProc(void* hwnd, UInt32 msg, UIntPtr wParam, Int64 lParam)
+	{
+		
 	}
 
 }
