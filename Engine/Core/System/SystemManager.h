@@ -37,9 +37,8 @@ namespace SG
 
 		SG_CORE_API virtual ILog* GetILog() override;
 		SG_CORE_API virtual IFileSystem* GetIFileSystem() override;
+		SG_CORE_API virtual IInputSystem* GetIInputSystem() override;
 		SG_CORE_API virtual IOperatingSystem* GetIOS() override;
-
-		SG_CORE_API virtual bool SystemMainLoop() override;
 
 		//! Check if all the core modules is loaded.
 		SG_CORE_API virtual bool ValidateCoreModules() const override;
@@ -58,7 +57,12 @@ namespace SG
 		//! \param (filepath) relative path to the .exe
 		SG_CORE_API void SetRootDirectory(const char* filepath) override;
 
+		//! Force to use ISystemManager as the interface of system manager.
 		SG_CORE_API static CSystemManager* GetInstance();
+
+		//! System main game loop.
+		//! @return true if the loop exits safely, otherwise it is false.
+		SG_CORE_API virtual bool SystemMainLoop() override;
 	protected:
 		CSystemManager();
 	private:

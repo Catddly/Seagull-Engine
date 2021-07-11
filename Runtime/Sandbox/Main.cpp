@@ -16,13 +16,16 @@ void CvThreadFunc(void* pUser)
 	}
 }
 
-class MyApp : public SG::IApp
+class MyApp : public SG::IApp, SG::IInputListener
 {
 public:
 	virtual void OnInit() override
 	{
 		SG_LOG_INFO("User OnInit()");
 		using namespace SG;
+
+		auto* pInputSystem = SG::CSystemManager::GetInstance()->GetIInputSystem();
+		pInputSystem->RegisterListener(this);
 
 		struct MyJob : public SG::IJob<int, double>
 		{
@@ -48,15 +51,32 @@ public:
 			SG_LOG_DEBUG("M is pressed");
 		if (SG::IInput::IsKeyPressed(SG::EKeyCode::eA))
 			SG_LOG_DEBUG("A is pressed");
-		if (SG::IInput::IsKeyPressed(SG::EKeyCode::eF1))
-			SG_LOG_DEBUG("F1 is pressed");
+		//if (SG::IInput::IsKeyPressed(SG::EKeyCode::eF1))
+		//	SG_LOG_DEBUG("F1 is pressed");
 		if (SG::IInput::IsKeyPressed(SG::EKeyCode::eDelete))
-			SG_LOG_DEBUG("Delete is pressed");
+		{
+			auto* pInputSystem = SG::CSystemManager::GetInstance()->GetIInputSystem();
+			pInputSystem->RemoveListener(this);
+		}		
+		if (SG::IInput::IsKeyPressed(SG::EKeyCode::eInsert))
+		{
+			auto* pInputSystem = SG::CSystemManager::GetInstance()->GetIInputSystem();
+			pInputSystem->RegisterListener(this);
+		}
 	}
 
 	virtual void OnShutdown() override
 	{
+		auto* pInputSystem = SG::CSystemManager::GetInstance()->GetIInputSystem();
+		pInputSystem->RemoveListener(this);
+
 		SG_LOG_INFO("User OnExit()");
+	}
+
+	virtual bool OnInputUpdate(SG::EKeyCode keycode, SG::EKeyState keyState) override
+	{
+		SG_LOG_INFO("User input %d (%d)", keycode, keyState);
+		return true;
 	}
 private:
 	static void _ThreadFunc(void* pUser)

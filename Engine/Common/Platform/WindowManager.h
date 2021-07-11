@@ -17,8 +17,6 @@ namespace SG
 
 		Window* GetMainWindow() const;
 	private:
-		static IntPtr __stdcall CustomWinProc(void* hwnd, UInt32 msg, UIntPtr wParam, Int64 lParam);
-	private:
 		Window* mMainWindow = nullptr;
 	};
 

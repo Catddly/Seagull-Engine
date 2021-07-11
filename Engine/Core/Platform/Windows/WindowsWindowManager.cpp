@@ -1,7 +1,9 @@
 #include "StdAfx.h"
 #include "Common/Platform/WindowManager.h"
 
+#include "Common/System/IInput.h"
 #include "Common/Platform/DeviceManager.h"
+#include "Core/System/InputSystem.h"
 #include "Common/Platform/Window.h"
 
 #include "Common/System/ILog.h"
@@ -26,12 +28,12 @@ namespace SG
 		}
 		case WM_KEYDOWN:
 		{
-			//SG_LOG_DEBUG("Keydown (%d)", wParam);
+			CInputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::ePressed);
 			break;
 		}
 		case WM_KEYUP:
 		{
-			//SG_LOG_DEBUG("Keyup (%d)", wParam);
+			CInputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eRelease);
 			if (wParam == VK_ESCAPE)
 				PostQuitMessage(0);
 			break;
@@ -85,11 +87,6 @@ namespace SG
 	SG::Window* CWindowManager::GetMainWindow() const
 	{
 		return mMainWindow;
-	}
-
-	IntPtr CWindowManager::CustomWinProc(void* hwnd, UInt32 msg, UIntPtr wParam, Int64 lParam)
-	{
-		
 	}
 
 }

@@ -1,8 +1,12 @@
 #include "StdAfx.h"
 #include "Core/System/InputSystem.h"
 
+#include "Common/System/ILog.h"
+
 namespace SG
 {
+
+	eastl::vector<eastl::pair<EKeyCode, EKeyState>> CInputSystem::mFrameInputDelta;
 
 	void CInputSystem::RegisterListener(IInputListener* pListener)
 	{
@@ -34,10 +38,20 @@ namespace SG
 
 	void CInputSystem::OnUpdate()
 	{
-		for (auto* e : mpListeners)
+		for (auto& input : mFrameInputDelta)
 		{
-			e->OnInputUpdate(EKeyCode::e0, EKeyState::ePressed);
+			for (auto* e : mpListeners)
+			{
+				if (!e->OnInputUpdate(input.first, input.second))
+					break;
+			}
 		}
+		mFrameInputDelta.clear();
+	}
+
+	void CInputSystem::OnSystemInputEvent(EKeyCode keycode, EKeyState keyState)
+	{
+		mFrameInputDelta.emplace_back(eastl::make_pair(keycode, keyState));
 	}
 
 }

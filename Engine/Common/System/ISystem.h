@@ -11,6 +11,7 @@ namespace SG
 	struct I2DEngine;
 	struct ILog;
 	struct IFileSystem;
+	struct IInputSystem;
 	struct IOperatingSystem;
 
 	//! @Interface 
@@ -20,9 +21,11 @@ namespace SG
 	{
 		I3DEngine*        p3DEngine = nullptr;
 		I2DEngine*        p2DEngine = nullptr;
+
 		ILog*             pLog = nullptr;
 		IFileSystem*      pFileSystem = nullptr;
 		IOperatingSystem* pOS = nullptr;
+		IInputSystem*     pInputSystem = nullptr;
 	};
 
 	//! System Manager to manager all the modules' life cycle
@@ -39,12 +42,13 @@ namespace SG
 
 		virtual SSystemModules* GetSystemModules() = 0;
 
-		virtual void         SetI3DEngine(I3DEngine* p3DEngine) = 0;
-		virtual I3DEngine*   GetI3DEngine() = 0;
-		virtual void         SetI2DEngine(I2DEngine* p2DEngine) = 0;
-		virtual I2DEngine*   GetI2DEngine() = 0;
-		virtual ILog*        GetILog() = 0;
-		virtual IFileSystem* GetIFileSystem() = 0;
+		virtual void          SetI3DEngine(I3DEngine* p3DEngine) = 0;
+		virtual I3DEngine*    GetI3DEngine() = 0;
+		virtual void          SetI2DEngine(I2DEngine* p2DEngine) = 0;
+		virtual I2DEngine*    GetI2DEngine() = 0;
+		virtual ILog*         GetILog() = 0;
+		virtual IFileSystem*  GetIFileSystem() = 0;
+		virtual IInputSystem* GetIInputSystem() = 0;
 		virtual IOperatingSystem* GetIOS() = 0;
 
 		//! System main game loop.

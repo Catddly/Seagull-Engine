@@ -3,6 +3,7 @@
 
 #include "Core/Log/Log.h"
 #include "Core/FileSystem/FileSystem.h"
+#include "Core/System/InputSystem.h"
 #include "Core/Platform/OperatingSystem.h"
 
 namespace SG
@@ -43,13 +44,15 @@ namespace SG
 	SG::I2DEngine*        CSystemManager::GetI2DEngine()     { return mSystemModules.p2DEngine; }
 	SG::ILog*             CSystemManager::GetILog()          { return mSystemModules.pLog; }
 	SG::IFileSystem*      CSystemManager::GetIFileSystem()   { return mSystemModules.pFileSystem; }
+	SG::IInputSystem*     CSystemManager::GetIInputSystem()  { return mSystemModules.pInputSystem; }
 	SG::IOperatingSystem* CSystemManager::GetIOS()           { return mSystemModules.pOS; }
 
 	bool CSystemManager::ValidateCoreModules() const
 	{
 		bool isReady = (mSystemModules.pLog != nullptr) &&
 			(mSystemModules.pFileSystem != nullptr) &&
-			(mSystemModules.pOS != nullptr);
+			(mSystemModules.pOS != nullptr)&&
+			(mSystemModules.pInputSystem != nullptr);
 		return isReady;
 	}
 
@@ -81,9 +84,10 @@ namespace SG
 
 	bool CSystemManager::InitCoreModules()
 	{
-		if (!mSystemModules.pFileSystem) mSystemModules.pFileSystem = new CFileSystem;
-		if (!mSystemModules.pLog)        mSystemModules.pLog = new CLog;
-		if (!mSystemModules.pOS)         mSystemModules.pOS = new COperatingSystem;
+		if (!mSystemModules.pFileSystem)  mSystemModules.pFileSystem = new CFileSystem;
+		if (!mSystemModules.pLog)         mSystemModules.pLog = new CLog;
+		if (!mSystemModules.pOS)          mSystemModules.pOS = new COperatingSystem;
+		if (!mSystemModules.pInputSystem) mSystemModules.pInputSystem = new CInputSystem;
 		mSystemModules.pFileSystem->OnInit();
 		mSystemModules.pLog->OnInit();
 		mSystemModules.pOS->OnInit();
@@ -92,6 +96,7 @@ namespace SG
 
 	void CSystemManager::Update()
 	{
+		if (mSystemModules.pInputSystem) mSystemModules.pInputSystem->OnUpdate();
 		if (mSystemModules.p3DEngine) mSystemModules.p3DEngine->OnUpdate();
 		if (mSystemModules.p2DEngine) mSystemModules.p2DEngine->OnUpdate();
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnUpdate();
@@ -107,9 +112,11 @@ namespace SG
 		delete mSystemModules.pOS;
 		delete mSystemModules.pLog;
 		delete mSystemModules.pFileSystem;
+		delete mSystemModules.pInputSystem;
 		mSystemModules.pOS = nullptr;
 		mSystemModules.pFileSystem = nullptr;
 		mSystemModules.pLog = nullptr;
+		mSystemModules.pInputSystem = nullptr;
 
 		if (sInstance)
 			delete sInstance;
