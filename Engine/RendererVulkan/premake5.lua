@@ -26,7 +26,15 @@ project "SRendererVulkan"
 
     includedirs
     {
-        ""
+        "../",
+        "../../Libs/",
+        "../../Libs/eastl/include/",
+    }
+
+    links
+    {
+        "../../Libs/vulkan/libs/vulkan.lib",
+        "SCore",
     }
 
     filter "system:windows"

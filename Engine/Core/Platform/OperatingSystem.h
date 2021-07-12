@@ -16,7 +16,10 @@ namespace SG
 		SG_CORE_API virtual void OnShutdown() override;
 
 		SG_CORE_API virtual Monitor* GetMainMonitor() override;
+		SG_CORE_API virtual UInt32   GetAdapterCount() override;
+		SG_CORE_API virtual Adapter* GetPrimaryAdapter() override;
 		SG_CORE_API virtual Window*  GetMainWindow() override;
+
 	private:
 		CDeviceManager mDeviceManager;
 		CWindowManager mWindowManager;

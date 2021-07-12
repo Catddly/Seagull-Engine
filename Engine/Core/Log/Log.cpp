@@ -3,7 +3,7 @@
 #include "Common/Base/BasicTypes.h"
 #include "Log.h"
 
-#include "Core/System/SystemManager.h"
+#include "Core/System/System.h"
 
 namespace SG
 {
@@ -15,7 +15,7 @@ namespace SG
 	void CLog::OnInit()
 	{
 		SetFormat("[%y:%o:%d]-[%h:%m:%s]-[%t]"); // default format.
-		ISystemManager* pSysMgr = CSystemManager::GetInstance();
+		ISystem* pSysMgr = System::GetInstance();
 		IFileSystem* pFs = pSysMgr->GetIFileSystem();
 		if (pFs->Open(EResourceDirectory::eLog, "log.txt", EFileMode::eWrite)) // reopen to clean up the log file
 		{
@@ -72,7 +72,7 @@ namespace SG
 
 	void CLog::LogToFile() const
 	{
-		ISystemManager* pSysMgr = CSystemManager::GetInstance();
+		ISystem* pSysMgr = System::GetInstance();
 		IFileSystem* pFs = pSysMgr->GetIFileSystem();
 
 		if (pFs->Open(EResourceDirectory::eLog, "log.txt", EFileMode::eAppend))

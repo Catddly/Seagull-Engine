@@ -59,6 +59,7 @@ namespace SG
 
 	class Monitor;
 	class Window;
+	class Adapter;
 	struct IOperatingSystem
 	{
 		virtual ~IOperatingSystem() = default;
@@ -68,6 +69,8 @@ namespace SG
 
 		//! Get the monitor where the window lay on.
 		virtual Monitor* GetMainMonitor() = 0;
+		virtual UInt32   GetAdapterCount() = 0;
+		virtual Adapter* GetPrimaryAdapter() = 0;
 		//! Get the main window.
 		virtual Window*  GetMainWindow() = 0;
 	};

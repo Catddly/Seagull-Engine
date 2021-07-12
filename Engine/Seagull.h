@@ -12,7 +12,7 @@
 //----------------------------------------------------------
 // System implementation
 //----------------------------------------------------------
-#include "Core/System/SystemManager.h"
+#include "Core/System/System.h"
 
 //----------------------------------------------------------
 // Platform specification modules
@@ -26,6 +26,11 @@
 #include "Common/System/IInput.h"
 
 #include "Common/Memory/IMemory.h"
+
+//----------------------------------------------------------
+// Renderer relative
+//----------------------------------------------------------
+#include "Common/Renderer/IRenderer.h"
 
 //----------------------------------------------------------
 // System data

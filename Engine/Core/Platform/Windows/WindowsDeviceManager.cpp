@@ -67,6 +67,8 @@ namespace SG
 		mMonitors.resize(monitorCount);
 		int monitorIndex = 0;
 		int adapterIndex = 0;
+		wstring prevAdapterDisplayName = L"";
+		mAdapterCount = 0;
 		if (monitorCount)
 		{
 			DISPLAY_DEVICEW adapter = {};
@@ -78,6 +80,11 @@ namespace SG
 				Adapter* pAdapter = &mAdapters[adapterIndex];
 				pAdapter->mName = adapter.DeviceName;
 				pAdapter->mDisplayName = adapter.DeviceString;
+				if (prevAdapterDisplayName != pAdapter->mDisplayName)
+				{
+					++mAdapterCount;
+					prevAdapterDisplayName = pAdapter->mDisplayName;
+				}
 				if (!(adapter.StateFlags & DISPLAY_DEVICE_ACTIVE))
 				{
 					pAdapter->bIsActive = false;
@@ -195,6 +202,21 @@ namespace SG
 		}
 		::ReleaseDC(NULL, hdc);
 		return eastl::move(dpi);
+	}
+
+	SG::UInt32 CDeviceManager::GetAdapterCount() const
+	{
+		return mAdapterCount;
+	}
+
+	SG::Adapter* CDeviceManager::GetPrimaryAdapter()
+	{
+		for (auto& adapter : mAdapters)
+		{
+			if (adapter.bIsActive)
+				return &adapter;
+		}
+		return nullptr;
 	}
 
 }

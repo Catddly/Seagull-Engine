@@ -24,7 +24,7 @@ public:
 		SG_LOG_INFO("User OnInit()");
 		using namespace SG;
 
-		auto* pInputSystem = SG::CSystemManager::GetInstance()->GetIInputSystem();
+		auto* pInputSystem = SG::System::GetInstance()->GetIInputSystem();
 		pInputSystem->RegisterListener(this);
 
 		struct MyJob : public SG::IJob<int, double>
@@ -55,19 +55,19 @@ public:
 		//	SG_LOG_DEBUG("F1 is pressed");
 		if (SG::IInput::IsKeyPressed(SG::EKeyCode::eDelete))
 		{
-			auto* pInputSystem = SG::CSystemManager::GetInstance()->GetIInputSystem();
+			auto* pInputSystem = SG::System::GetInstance()->GetIInputSystem();
 			pInputSystem->RemoveListener(this);
 		}		
 		if (SG::IInput::IsKeyPressed(SG::EKeyCode::eInsert))
 		{
-			auto* pInputSystem = SG::CSystemManager::GetInstance()->GetIInputSystem();
+			auto* pInputSystem = SG::System::GetInstance()->GetIInputSystem();
 			pInputSystem->RegisterListener(this);
 		}
 	}
 
 	virtual void OnShutdown() override
 	{
-		auto* pInputSystem = SG::CSystemManager::GetInstance()->GetIInputSystem();
+		auto* pInputSystem = SG::System::GetInstance()->GetIInputSystem();
 		pInputSystem->RemoveListener(this);
 
 		SG_LOG_INFO("User OnExit()");

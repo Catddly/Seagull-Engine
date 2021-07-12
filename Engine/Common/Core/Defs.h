@@ -12,6 +12,10 @@
 #define SG_ENGINE_WNAME L"Seagull Engine"
 #define SG_ENGINE_NAME   "Seagull Engine"
 
+#define SG_ENGINE_VERSION_MAJOR 0
+#define SG_ENGINE_VERSION_MINOR 2
+#define SG_ENGINE_VERSION_PATCH 0
+
 #if   defined(SG_PLATFORM_X64)
 #	define SG_PTR_SIZE 8
 #else

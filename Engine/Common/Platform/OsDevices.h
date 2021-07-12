@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Common/Config.h"
 #include "Common/Core/Defs.h"
 #include "IOperatingSystem.h"
 
@@ -25,12 +26,12 @@ namespace SG
 		Monitor() = default;
 		~Monitor() = default;
 
-		wstring     GetName() const;
-		wstring     GetAdapterName() const;
-		UInt32      GetIndex() const;
-		Rect        GetMonitorRect() const;
-		Rect        GetWorkRect() const;
-		Resolution  GetDefaultResolution() const;
+		SG_COMMON_API wstring     GetName() const;
+		SG_COMMON_API wstring     GetAdapterName() const;
+		SG_COMMON_API UInt32      GetIndex() const;
+		SG_COMMON_API Rect        GetMonitorRect() const;
+		SG_COMMON_API Rect        GetWorkRect() const;
+		SG_COMMON_API Resolution  GetDefaultResolution() const;
 
 		bool        IsPrimary() const;
 	private:
@@ -39,10 +40,10 @@ namespace SG
 		wstring             mName;              //!< Name of the monitor.
 		wstring             mAdapterName;       //!< Adapter name of the monitor.
 		UInt32              mIndex;             //!< Index of all the monitors.
-		Rect               mMonitorRect;       //!< Window Rect of the monitor. (in logical resolution).
-		Rect               mWorkRect;	        //!< Work rect of the monitor.
-		vector<Resolution> mResolutions;       //!< All the supported resolution.
-		Resolution         mDefaultResolution; //!< Physical resolution.
+		Rect                mMonitorRect;       //!< Window Rect of the monitor. (in logical resolution).
+		Rect                mWorkRect;	        //!< Work rect of the monitor.
+		vector<Resolution>  mResolutions;       //!< All the supported resolution.
+		Resolution          mDefaultResolution; //!< Physical resolution.
 		bool                bIsPrimary;         //!< Is this monitor a primary monitor.
 	};
 
@@ -54,8 +55,8 @@ namespace SG
 		Adapter() = default;
 		~Adapter() = default;
 
-		wstring GetName() const;
-		wstring GetDisplayName() const;
+		SG_COMMON_API wstring GetName() const;
+		SG_COMMON_API wstring GetDisplayName() const;
 
 		bool    IsActive() const;
 	private:

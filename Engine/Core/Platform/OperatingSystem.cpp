@@ -23,6 +23,16 @@ namespace SG
 		return mDeviceManager.GetPrimaryMonitor();
 	}
 
+	UInt32 COperatingSystem::GetAdapterCount()
+	{
+		return mDeviceManager.GetAdapterCount();
+	}
+
+	Adapter* COperatingSystem::GetPrimaryAdapter()
+	{
+		return mDeviceManager.GetPrimaryAdapter();
+	}
+
 	SG::Window* COperatingSystem::GetMainWindow()
 	{
 		return mWindowManager.GetMainWindow();

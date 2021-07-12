@@ -23,7 +23,7 @@ group "Seagull Engine"
     include "Engine/3DEngine/"
     include "Engine/Core/"
     include "Engine/Utility/"
-    include "Engine/Renderer/"
+    -- include "Engine/Renderer/"
     include "Engine/RendererVulkan/"
     include "Engine/Editor/"
     include "Engine/Input/"
@@ -78,6 +78,7 @@ group "Runtime"
         {
             "mimalloc-static",
             "S3DEngine",
+            "SRendererVulkan",
             "SCore",
         }
 

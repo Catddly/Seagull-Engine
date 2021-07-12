@@ -31,7 +31,7 @@ namespace SG
 		void Flush();
 		void LogOut(ELogLevel logLevel, char* pBuffer);
 	private:
-		enum { SG_MAX_LOG_BUFFER_SIZE = 2048, SG_MAX_TEMP_BUFFER_SIZE = SG_MAX_LOG_BUFFER_SIZE / 8, SG_MAX_SINGLE_LOG_SIZE = 70 };
+		enum { SG_MAX_LOG_BUFFER_SIZE = 4096, SG_MAX_TEMP_BUFFER_SIZE = SG_MAX_LOG_BUFFER_SIZE / 4, SG_MAX_SINGLE_LOG_SIZE = 512 };
 
 		static char sTempBuffer[SG_MAX_TEMP_BUFFER_SIZE];
 		static int  sTempBufferSize;

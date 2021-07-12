@@ -3,6 +3,8 @@
 #include "Common/Config.h"
 #include "Common/Base/BasicTypes.h"
 
+#include "Common/Stl/string.h"
+
 namespace SG
 {
 	struct IProcess;
@@ -13,6 +15,8 @@ namespace SG
 	struct IFileSystem;
 	struct IInputSystem;
 	struct IOperatingSystem;
+
+	struct Renderer;
 
 	//! @Interface 
 	//! All the system components are in here
@@ -26,37 +30,42 @@ namespace SG
 		IFileSystem*      pFileSystem = nullptr;
 		IOperatingSystem* pOS = nullptr;
 		IInputSystem*     pInputSystem = nullptr;
+
+		Renderer*         pRenderer = nullptr;
 	};
 
 	//! System Manager to manager all the modules' life cycle
 	//! and usage.
 	//! Core modules are ILog, IFileSystem.
 	//! High level modules are I3DEngine, I2DEngine.
-	struct ISystemManager
+	struct ISystem
 	{
-		virtual ~ISystemManager() = default;
+		virtual ~ISystem() = default;
 
-		virtual void InitSystemEnv() = 0;
+		virtual void OnInit() = 0;
+		virtual void OnShutdown() = 0;
+
 		virtual bool InitCoreModules() = 0;
-		virtual void Shutdown() = 0;
 
-		virtual SSystemModules* GetSystemModules() = 0;
-
-		virtual void          SetI3DEngine(I3DEngine* p3DEngine) = 0;
-		virtual I3DEngine*    GetI3DEngine() = 0;
-		virtual void          SetI2DEngine(I2DEngine* p2DEngine) = 0;
-		virtual I2DEngine*    GetI2DEngine() = 0;
-		virtual ILog*         GetILog() = 0;
-		virtual IFileSystem*  GetIFileSystem() = 0;
-		virtual IInputSystem* GetIInputSystem() = 0;
+		virtual SSystemModules*   GetSystemModules() = 0;
+		virtual void              SetI3DEngine(I3DEngine* p3DEngine) = 0;
+		virtual I3DEngine*        GetI3DEngine() = 0;
+		virtual void              SetI2DEngine(I2DEngine* p2DEngine) = 0;
+		virtual I2DEngine*        GetI2DEngine() = 0;
+		virtual ILog*             GetILog() = 0;
+		virtual IFileSystem*      GetIFileSystem() = 0;
+		virtual IInputSystem*     GetIInputSystem() = 0;
 		virtual IOperatingSystem* GetIOS() = 0;
 
-		//! System main game loop.
-		//! @return true if the loop exits safely, otherwise it is false.
-		virtual bool SystemMainLoop() = 0;
+		virtual void              SetRenderer(Renderer* pRenderer) = 0;
+		virtual Renderer*         GetRenderer() = 0;
 
 		//! Register a user application.
 		//virtual void RegisterUserApp(IApp* pApp) = 0;
+		
+		//! System main game loop.
+		//! @return true if the loop exits safely, otherwise it is false.
+		virtual bool SystemMainLoop() = 0;
 
 		//! Check if all the core modules is loaded.
 		virtual bool ValidateCoreModules() const = 0;

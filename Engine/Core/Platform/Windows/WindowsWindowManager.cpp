@@ -14,6 +14,8 @@
 namespace SG
 {
 
+	static int gPrevKey = -1;
+
 	// default window process callback
 	static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
@@ -28,11 +30,17 @@ namespace SG
 		}
 		case WM_KEYDOWN:
 		{
-			CInputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::ePressed);
+			if (gPrevKey == wParam)
+				CInputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eHold);
+			else
+				CInputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::ePressed);
+			gPrevKey = (int)wParam;
 			break;
 		}
 		case WM_KEYUP:
 		{
+			if (gPrevKey == wParam) // reset
+				gPrevKey = -1;
 			CInputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eRelease);
 			if (wParam == VK_ESCAPE)
 				PostQuitMessage(0);
