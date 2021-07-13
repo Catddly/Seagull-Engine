@@ -12,7 +12,7 @@
 #include "Common/Memory/IMemory.h"
 
 // TODO: replace to runtime binding dll
-#include "RendererVulkan/Renderer/VkRenderer.h"
+#include "RendererVulkan/Renderer/RendererVk.h"
 
 int main(int argv, char** argc)
 {
@@ -30,7 +30,7 @@ int main(int argv, char** argc)
 	pSystemManager->SetI3DEngine(p3DEngine);
 	p3DEngine->OnInit();
 	// TODO: replace to runtime binding dll
-	Renderer*  pRenderer = new VkRenderer;
+	Renderer*  pRenderer = new RendererVk;
 	pSystemManager->SetRenderer(pRenderer);
 	pRenderer->OnInit();
 

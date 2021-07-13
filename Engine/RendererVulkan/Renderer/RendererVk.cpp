@@ -1,12 +1,25 @@
 #include "StdAfx.h"
-#include "VkRenderer.h"
+#include "RendererVk.h"
 
 #include "Common/System/ISystem.h"
 #include "Common/System/ILog.h"
+#include "Common/Memory/IMemory.h"
 #include "Common/Platform/IOperatingSystem.h"
-#include "Common/Platform/OsDevices.h"
+#include "Common/Platform/Window.h"
+
+#include "RendererVulkan/Queue/QueueVk.h"
+#include "RendererVulkan/SwapChain/SwapChainVk.h"
+
+#ifdef SG_PLATFORM_WINDOWS
+#	ifndef WIN32_LEAN_AND_MEAN
+#	define WIN32_LEAN_AND_MEAN
+#	include <windows.h>
+#	endif
+#	include <vulkan/vulkan_win32.h>
+#endif
 
 #include "Common/Stl/vector.h"
+#include <EASTL/set.h>
 
 namespace SG
 {
@@ -48,8 +61,11 @@ namespace SG
 		}
 	}
 
-	bool VkRenderer::OnInit()
+	bool RendererVk::OnInit()
 	{
+		auto* pOS = System::GetInstance()->GetIOS();
+		Window* window = pOS->GetMainWindow();
+
 		bool bIsSuccess = true;
 		if (!CreateInstance())
 		{
@@ -60,18 +76,33 @@ namespace SG
 		SetupDebugMessager();
 		SelectPhysicalDevice();
 
+		mGraphicQueue = new QueueVk(EQueueType::eGraphic, EQueuePriority::eNormal, this);
+
+		CreateLogicalDevice();
+		mGraphicQueue->GetQueueHandle(); // Get the queue from the logical device.
+
+		CreateSurface();
+		auto rect = window->GetCurrRect();
+		mSwapChain = new SwapChainVk(EImageFormat::eSrgb_B8G8R8A8, EPresentMode::eFIFO, { GetRectWidth(rect), GetRectHeight(rect) }, this);
+
 		return bIsSuccess;
 	}
 
-	void VkRenderer::OnShutdown()
+	void RendererVk::OnShutdown()
 	{
+		delete mSwapChain;
+		if (!mbGraphicQueuePresentable)
+			delete mPresentQueue;
+		vkDestroySurfaceKHR(mInstance, mPresentSurface, nullptr);
+		vkDestroyDevice(mLogicalDevice, nullptr);
+		delete mGraphicQueue;
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
 		_DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessager, nullptr);
 #endif
 		vkDestroyInstance(mInstance, nullptr);
 	}
 
-	bool VkRenderer::CreateInstance()
+	bool RendererVk::CreateInstance()
 	{
 		VkApplicationInfo info = {};
 		info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -107,7 +138,7 @@ namespace SG
 		return true;
 	}
 
-	void VkRenderer::ValidateExtensions(VkInstanceCreateInfo* info)
+	void RendererVk::ValidateExtensions(VkInstanceCreateInfo* info)
 	{
 		UInt32 extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -121,6 +152,9 @@ namespace SG
 		mValidateExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 		mValidateExtensions.emplace_back("VK_KHR_surface");
+#ifdef SG_PLATFORM_WINDOWS
+		mValidateExtensions.emplace_back("VK_KHR_win32_surface");
+#endif
 
 		bool bAreAllExtensionValid = true;
 		for (const char* name : mValidateExtensions)
@@ -146,7 +180,7 @@ namespace SG
 		info->ppEnabledExtensionNames = mValidateExtensions.data();
 	}
 
-	void VkRenderer::ValidateLayers(VkInstanceCreateInfo* info)
+	void RendererVk::ValidateLayers(VkInstanceCreateInfo* info)
 	{
 		UInt32 layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -186,7 +220,7 @@ namespace SG
 #endif
 	}
 
-	void VkRenderer::SetupDebugMessager()
+	void RendererVk::SetupDebugMessager()
 	{
 #ifndef SG_ENABLE_VK_VALIDATION_LAYER
 		return; // release mode, don't need the debug messager
@@ -198,7 +232,7 @@ namespace SG
 			SG_ASSERT(false);
 	}
 
-	void VkRenderer::PopulateDebugMsgCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugMessager)
+	void RendererVk::PopulateDebugMsgCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugMessager)
 	{
 		debugMessager.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		debugMessager.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | 
@@ -209,23 +243,116 @@ namespace SG
 		debugMessager.pUserData = nullptr;
 	}
 
-	void VkRenderer::SelectPhysicalDevice()
+	void RendererVk::SelectPhysicalDevice()
 	{
-		auto* pOS = System::GetInstance()->GetIOS();
-		UInt32 deviceCount = pOS->GetAdapterCount();
-		Adapter* adapter = pOS->GetPrimaryAdapter();
-		SG_LOG_DEBUG("Adapter Name (%ws)", adapter->GetDisplayName().c_str());
+		//auto* pOS = System::GetInstance()->GetIOS();
+		//UInt32 deviceCount = pOS->GetAdapterCount();
+		//Adapter* adapter = pOS->GetPrimaryAdapter();
+		//SG_LOG_DEBUG("Adapter Name (%ws)", adapter->GetDisplayName().c_str());
 
 		UInt32 cnt;
 		vkEnumeratePhysicalDevices(mInstance, &cnt, nullptr);
-		vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data());
-		for (auto& device : devices) {
+		vector<VkPhysicalDevice> devices(cnt);
+		vkEnumeratePhysicalDevices(mInstance, &cnt, devices.data());
+		// TODO: add more conditions to choose the best device(adapter)
+		for (auto& device : devices) 
+		{
 			VkPhysicalDeviceProperties deviceProperties;
 			VkPhysicalDeviceFeatures   deviceFeatures;
 			vkGetPhysicalDeviceProperties(device, &deviceProperties);
 			vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-			SG_LOG_DEBUG("VkAdapter Name (%s)", deviceProperties.deviceName);
+			SG_LOG_DEBUG("VkAdapter Name: %s", deviceProperties.deviceName);
+			
+			if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader)
+			{
+				mPhysicalDevice = device;
+				break;
+			}
+		}
+
+	}
+
+	void RendererVk::CreateLogicalDevice()
+	{
+		VkDeviceQueueCreateInfo queueCreateInfo = {};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = mGraphicQueue->GetQueueIndex();
+		queueCreateInfo.queueCount = 1;
+
+		float queuePriority = 1.0f;
+		if (mGraphicQueue->GetPriority() == EQueuePriority::eHigh)
+			queuePriority = 2.0f;
+		else if (mGraphicQueue->GetPriority() == EQueuePriority::eImmediate)
+			queuePriority = 5.0f;
+		queueCreateInfo.pQueuePriorities = &queuePriority;
+
+		VkPhysicalDeviceFeatures deviceFeatures = {};
+
+		UInt32 extensionCount;
+		vkEnumerateDeviceExtensionProperties(mPhysicalDevice, nullptr, &extensionCount, nullptr);
+		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+		vkEnumerateDeviceExtensionProperties(mPhysicalDevice, nullptr, &extensionCount, availableExtensions.data());
+
+		// to support swapchain
+		const vector<const char*> deviceExtensions = {
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		};
+		eastl::set<string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+		for (const auto& extension : availableExtensions) 
+		{
+			requiredExtensions.erase(extension.extensionName);
+			if (requiredExtensions.empty())
+				break;
+		}
+		if (!requiredExtensions.empty())
+			SG_LOG_WARN("Extensions in physical device do not include the ohters in instance");
+
+		VkDeviceCreateInfo createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		createInfo.pQueueCreateInfos = &queueCreateInfo;
+		createInfo.queueCreateInfoCount = 1;
+		createInfo.pEnabledFeatures = &deviceFeatures;
+
+		createInfo.enabledExtensionCount = (UInt32)deviceExtensions.size();;
+		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+#ifdef SG_ENABLE_VK_VALIDATION_LAYER
+		createInfo.enabledLayerCount = (UInt32)mValidateLayers.size();
+		createInfo.ppEnabledLayerNames = mValidateLayers.data();
+#endif
+
+		if (vkCreateDevice(mPhysicalDevice, &createInfo, nullptr, &mLogicalDevice) != VK_SUCCESS)
+			SG_LOG_ERROR("Failed to create logical device");
+	}
+
+	void RendererVk::CreateSurface()
+	{
+		auto* pOS = System::GetInstance()->GetIOS();
+		Window* mainWindow = pOS->GetMainWindow();
+
+#ifdef SG_PLATFORM_WINDOWS
+		VkWin32SurfaceCreateInfoKHR createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		createInfo.hwnd = (HWND)mainWindow->GetHandle();
+		createInfo.hinstance = ::GetModuleHandle(NULL);
+
+		if (vkCreateWin32SurfaceKHR(mInstance, &createInfo, nullptr, &mPresentSurface) != VK_SUCCESS) 
+			SG_LOG_ERROR("Failed to create win32 surface");
+#endif
+
+		VkBool32 presentSupport = false;
+		// check if the graphic queue can do the presentation job
+		vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, mGraphicQueue->GetQueueIndex(), mPresentSurface, &presentSupport);
+		if (!presentSupport)
+		{
+			SG_LOG_ERROR("Current physical device not support surface presentation");
+			mbGraphicQueuePresentable = false;
+			mPresentQueue = new QueueVk(EQueueType::eGraphic, EQueuePriority::eNormal, this);
+		}
+		else
+		{
+			mbGraphicQueuePresentable = true;
+			mPresentQueue = mGraphicQueue;
 		}
 	}
 

@@ -34,6 +34,7 @@ project "SRendererVulkan"
     links
     {
         "../../Libs/vulkan/libs/vulkan.lib",
+        "eastl",
         "SCore",
     }
 

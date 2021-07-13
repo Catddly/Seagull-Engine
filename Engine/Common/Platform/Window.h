@@ -29,7 +29,11 @@ namespace SG
 		SG_COMMON_API void Maximized();
 		SG_COMMON_API void Minimized();
 
+		SG_COMMON_API Rect GetCurrRect() const;
+
 		SG_COMMON_API Vector2f GetMousePosRelative() const;
+
+		SG_COMMON_API WindowHandle GetHandle();
 	private:
 		void AdjustWindow();
 	private:
@@ -38,8 +42,8 @@ namespace SG
 		bool         bIsFullScreen = false;
 		bool         bIsMaximized = false;
 		bool         bIsMinimized = false;
-		Rect        mFullscreenRect;
-		Rect        mWindowedRect;    //! Used to save the size of windowed rect, to restore from full screen.
+		Rect         mFullscreenRect;
+		Rect         mWindowedRect;    //! Used to save the size of windowed rect, to restore from full screen.
 	};
 
 }

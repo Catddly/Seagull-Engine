@@ -1,5 +1,5 @@
-project "SCore"
-    kind "SharedLib"
+project "eastl"
+    kind "StaticLib"
     language "C++"
     cppdialect "C++17"
     staticruntime "off"
@@ -9,32 +9,20 @@ project "SCore"
     -- bin-int/Debug-windows-x64/Seagull Core
     objdir    ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-    pchheader "StdAfx.h"
-    pchsource "StdAfx.cpp"
-
     -- include files
     files
     {
-        "**.h",
-        "**.cpp"
+        "source/**.cpp"
     }
 
     defines
     {
-        "SG_BUILD_DLL",
     }
 
     includedirs
     {
-        "../",
-        "../../Libs/",
-        "../../Libs/eastl/include/",
-    }
-
-    links
-    {
-        "mimalloc-static",
-        "eastl"
+        "include/",
+        "../../Engine/",
     }
 
     filter "system:windows"
@@ -45,15 +33,7 @@ filter "configurations:Debug"
     runtime "Debug"
     symbols "on"
     -- enable if you want to build a dll
-    postbuildcommands
-    {
-        ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\"")
-    }
 
 filter "configurations:Release"
     runtime "Release"
     optimize "on"
-    postbuildcommands
-    {
-        ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\"")
-    }

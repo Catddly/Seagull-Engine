@@ -34,6 +34,7 @@ group "Libs"
 
     include "Libs/mimalloc/"
     include "Libs/mimalloc-static/"
+    include "Libs/eastl/"
 
 group ""
 

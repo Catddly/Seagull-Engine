@@ -157,5 +157,18 @@ namespace SG
 		return eastl::move(position);
 	}
 
+	WindowHandle Window::GetHandle()
+	{
+		return mHandle;
+	}
+
+	Rect Window::GetCurrRect() const
+	{
+		if (bIsFullScreen)
+			return mFullscreenRect;
+		else
+			return mWindowedRect;
+	}
+
 }
 #endif // SG_PLATFORM_WINDOWS
