@@ -19,11 +19,18 @@ namespace SG
 
 	class QueueVk;
 	class SwapChainVk;
-	class SG_ALIGN(64) RendererVk final : public Renderer
+	class RenderContextVk;
+	class RendererVk final : public Renderer
 	{
 	public:
 		SG_RENDERER_VK_API virtual bool OnInit() override;
 		SG_RENDERER_VK_API virtual void OnShutdown() override;
+
+		//SG_RENDERER_VK_API virtual Handle GetRendererInstance() const override;
+		SG_RENDERER_VK_API virtual Queue* GetGraphicQueue() const override;
+		SG_RENDERER_VK_API virtual Queue* GetPresentQueue() const override;
+
+		SG_RENDERER_VK_API virtual RenderContext* GetRenderContext() const override;
 	private:
 		bool CreateInstance();
 		void ValidateExtensions(VkInstanceCreateInfo* info);
@@ -34,9 +41,7 @@ namespace SG
 		void SelectPhysicalDevice(); // TODO: support multi-GPU
 		void CreateLogicalDevice();
 		void CreateSurface();
-	private:
-		friend class QueueVk;
-		friend class SwapChainVk;
+		void CheckForPresentQueue();
 	private:
 		VkInstance mInstance = VK_NULL_HANDLE;
 		vector<const char*> mValidateExtensions;
@@ -44,9 +49,7 @@ namespace SG
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
 		VkDebugUtilsMessengerEXT mDebugMessager = VK_NULL_HANDLE;
 #endif
-		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;        //!< corresponding to the adapter in DeviceManager
-		VkDevice         mLogicalDevice  = VK_NULL_HANDLE;
-		VkSurfaceKHR     mPresentSurface = VK_NULL_HANDLE;
+		RenderContextVk* mpRenderContext = nullptr;
 
 		QueueVk* mGraphicQueue = nullptr;
 		QueueVk* mPresentQueue = nullptr;

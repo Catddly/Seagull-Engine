@@ -3,6 +3,7 @@
 
 #include "Common/System/ILog.h"
 #include "RendererVulkan/Renderer/RendererVk.h"
+#include "RendererVulkan/RenderContext/RenderContextVk.h"
 
 namespace SG
 {
@@ -10,10 +11,12 @@ namespace SG
 	QueueVk::QueueVk(EQueueType type, EQueuePriority priority, RendererVk* pRenderer)
 		:mType(type), mPriority(priority), mpRenderer(pRenderer)
 	{
+		auto physicalDevice = (VkPhysicalDevice)pRenderer->GetRenderContext()->GetPhysicalDeviceHandle();
+
 		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(pRenderer->mPhysicalDevice, &queueFamilyCount, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 		vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(pRenderer->mPhysicalDevice, &queueFamilyCount, queueFamilies.data());
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
 
 		int i = 0;
 		for (const auto& queueFamily : queueFamilies)
@@ -72,8 +75,9 @@ namespace SG
 
 	SG::QueueHandle QueueVk::GetQueueHandle()
 	{
+		auto logicalDevice = (VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle();
 		// lazy creation
-		vkGetDeviceQueue(mpRenderer->mLogicalDevice, mIndex.value(), 0, &mHandle);
+		vkGetDeviceQueue(logicalDevice, mIndex.value(), 0, &mHandle);
 		return mHandle;
 	}
 

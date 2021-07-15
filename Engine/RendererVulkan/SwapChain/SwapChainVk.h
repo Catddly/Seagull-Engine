@@ -9,19 +9,23 @@
 namespace SG
 {
 
-	class RendererVk;
+#define SG_SWAPCHAIN_IMAGE_COUNT 2 // temporary, should be moved to renderer
+
+	struct Renderer;
 	class SwapChainVk final : public SwapChain
 	{
 	public:
-		SwapChainVk(EImageFormat format, EPresentMode presentMode, Resolution res, RendererVk* pRenderer);
+		SwapChainVk(EImageFormat format, EPresentMode presentMode, const Resolution& res, Renderer* pRenderer);
 		~SwapChainVk();
 
+		//virtual Texture* GetTexture() const override;
 	private:
-		RendererVk*    mpRenderer = nullptr;
+		Renderer*      mpRenderer = nullptr;
 		EImageFormat   mFormat = EImageFormat::eNull;
 		EPresentMode   mPresentMode = EPresentMode::eImmediate; // can cause tearing
 		Resolution     mResolution;
-		VkSwapchainKHR mHandle;
+
+		VkSwapchainKHR  mHandle;
 	};
 
 

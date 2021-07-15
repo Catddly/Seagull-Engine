@@ -90,9 +90,12 @@ namespace SG
 		MAX_COUNT,
 	};
 
+	struct Texture;
 	struct SwapChain
 	{
 		virtual ~SwapChain() = default;
+
+		//virtual Texture* GetTexture() const = 0;
 	};
 
 }
