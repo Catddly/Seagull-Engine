@@ -33,7 +33,7 @@ namespace SG
 		virtual bool       IsValid() const = 0;
 		virtual UInt32     GetQueueIndex() const = 0; // maybe we don't want this
 
-		virtual QueueHandle  GetQueueHandle() = 0;
+		virtual QueueHandle  GetNativeHandle() = 0;
 	};
 
 }

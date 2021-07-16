@@ -83,7 +83,7 @@ namespace SG
 		mGraphicQueue = new QueueVk(EQueueType::eGraphic, EQueuePriority::eNormal, this);
 
 		CreateLogicalDevice();
-		mGraphicQueue->GetQueueHandle(); // Get the queue from the logical device.
+		mGraphicQueue->GetNativeHandle(); // Get the queue from the logical device.
 
 		CreateSurface();
 		CheckForPresentQueue();

@@ -1,5 +1,9 @@
 #pragma once
 
+#include "Common/Base/BasicTypes.h"
+
+#include "Common/Render/Renderer.h"
+
 namespace SG
 {
 
@@ -95,7 +99,8 @@ namespace SG
 	{
 		virtual ~SwapChain() = default;
 
-		//virtual Texture* GetTexture() const = 0;
+		virtual Texture*   GetTexture(UInt32 index) const = 0;
+		virtual Handle     GetNativeHandle() const = 0;
 	};
 
 }

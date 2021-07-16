@@ -5,6 +5,8 @@
 namespace SG
 {
 
+#define SG_SWAPCHAIN_IMAGE_COUNT 2 // temporary, should be moved to renderer
+
 	typedef void* Handle;
 
 	struct Queue;

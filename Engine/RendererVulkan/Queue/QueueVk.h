@@ -22,7 +22,7 @@ namespace SG
 		virtual bool       IsValid() const override;
 		virtual UInt32     GetQueueIndex() const override; // maybe we don't want this
 
-		virtual QueueHandle GetQueueHandle() override;
+		virtual QueueHandle GetNativeHandle() override;
 
 		bool operator==(const QueueVk& rhs) const;
 		bool operator!=(const QueueVk& rhs) const;

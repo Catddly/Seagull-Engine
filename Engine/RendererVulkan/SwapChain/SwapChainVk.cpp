@@ -5,6 +5,7 @@
 #include "RendererVulkan/Renderer/RendererVk.h"
 #include "RendererVulkan/Queue/QueueVk.h"
 #include "RendererVulkan/RenderContext/RenderContextVk.h"
+#include "RendererVulkan/Texture/TextureVk.h"
 
 #include "Common/Stl/vector.h"
 #include <EASTL/algorithm.h>
@@ -213,11 +214,36 @@ namespace SG
 
 		if (vkCreateSwapchainKHR((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), &createInfo, nullptr, &mHandle) != VK_SUCCESS)
 			SG_LOG_ERROR("Failed to create swapchain");
+
+		UInt32 imageCnt = SG_SWAPCHAIN_IMAGE_COUNT;
+		vector<VkImage> mVkImages(imageCnt);
+		mImages.resize(imageCnt);
+		vkGetSwapchainImagesKHR((VkDevice)pRenderer->GetRenderContext()->GetLogicalDeviceHandle(),
+			mHandle, &imageCnt, mVkImages.data());
+
+		for (UInt32 i = 0; i < imageCnt; i++)
+		{
+			mImages[i] = new TextureVk(mpRenderer, mResolution, true);
+			mImages[i]->mHandle = mVkImages[i];
+		}
 	}
 
 	SwapChainVk::~SwapChainVk()
 	{
 		vkDestroySwapchainKHR((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), mHandle, nullptr);
+	}
+
+	SG::Texture* SwapChainVk::GetTexture(UInt32 index) const
+	{
+		if (index >= SG_SWAPCHAIN_IMAGE_COUNT)
+			SG_LOG_ERROR("Required texture of swapchain had been out of the coundary");
+
+		return mImages[index];
+	}
+
+	SG::Handle SwapChainVk::GetNativeHandle() const
+	{
+		return mHandle;
 	}
 
 }

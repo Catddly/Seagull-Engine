@@ -73,7 +73,7 @@ namespace SG
 		return mPriority;
 	}
 
-	SG::QueueHandle QueueVk::GetQueueHandle()
+	SG::QueueHandle QueueVk::GetNativeHandle()
 	{
 		auto logicalDevice = (VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle();
 		// lazy creation
