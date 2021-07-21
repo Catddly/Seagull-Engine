@@ -22,11 +22,17 @@ namespace SG
 		bool bPropagateOnDef = true;
 		switch (msg)
 		{
+		// on window destroy and app quit
 		case WM_DESTROY:
 		case WM_CLOSE:
 		{
 			PostQuitMessage(0);
 			break;
+		}
+		// on window move and resize
+		case WM_MOVE:
+		case WM_SIZE:
+		{
 		}
 		case WM_KEYDOWN:
 		{

@@ -3,6 +3,8 @@
 #include "Common/Config.h"
 #include "Common/Base/BasicTypes.h"
 
+#include <eigen/Dense>
+
 namespace SG
 {
 
@@ -60,6 +62,7 @@ namespace SG
 	class Monitor;
 	class Window;
 	class Adapter;
+	typedef Eigen::Matrix<Int32, 2, 1> Vector2i;
 	struct IOperatingSystem
 	{
 		virtual ~IOperatingSystem() = default;
@@ -73,6 +76,10 @@ namespace SG
 		virtual Adapter* GetPrimaryAdapter() = 0;
 		//! Get the main window.
 		virtual Window*  GetMainWindow() = 0;
+
+		virtual Vector2i GetMousePos() const = 0;
+
+		virtual bool     IsMainWindowOutOfScreen() const = 0;
 	};
 
 }

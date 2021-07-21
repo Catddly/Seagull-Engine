@@ -25,7 +25,6 @@ int main(int argv, char** argc)
 
 	// TOOD: other modules should be loaded as dll,
 	// don't use get/set function.
-	pSystemManager->AddIProcess(app);
 	I3DEngine* p3DEngine = new C3DEngine;
 	pSystemManager->SetI3DEngine(p3DEngine);
 	p3DEngine->OnInit();
@@ -33,6 +32,8 @@ int main(int argv, char** argc)
 	Renderer*  pRenderer = new RendererVk;
 	pSystemManager->SetRenderer(pRenderer);
 	pRenderer->OnInit();
+
+	pSystemManager->AddIProcess(app);
 
 	SG_LOG_IF(ELogLevel::eLog_Level_Info, "Are all  modules loaded: ", pSystemManager->ValidateAllModules());
 	SG_LOG_INFO("Welcome To Seagull Engine!");

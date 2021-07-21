@@ -41,28 +41,34 @@ public:
 		job.Execute(a, b);
 		SG_LOG_DEBUG("b is %.2llf", b);
 
+		Renderer* pRenderer = System::GetInstance()->GetRenderer();
+		Queue*    pGraphicQueue = pRenderer->GetGraphicQueue();
+		Queue*    pPresentQueue = pRenderer->GetPresentQueue();
+		SG_LOG_DEBUG("Graphic Queue Index: %d", pGraphicQueue->GetQueueIndex());
+		SG_LOG_DEBUG("Present Queue Index: %d", pPresentQueue->GetQueueIndex());
+
 		//MathTest();
 		//ThreadTest();
+
+		Vector2i veci = { 5, 8 };
 	}
 
 	virtual void OnUpdate() override
 	{
-		//if (SG::IInput::IsKeyPressed(SG::EKeyCode::eM))
-		//	SG_LOG_DEBUG("M is pressed");
-		//if (SG::IInput::IsKeyPressed(SG::EKeyCode::eA))
-		//	SG_LOG_DEBUG("A is pressed");
-		//if (SG::IInput::IsKeyPressed(SG::EKeyCode::eF1))
-		//	SG_LOG_DEBUG("F1 is pressed");
-		//if (SG::IInput::IsKeyPressed(SG::EKeyCode::eDelete))
-		//{
-		//	auto* pInputSystem = SG::System::GetInstance()->GetIInputSystem();
-		//	pInputSystem->RemoveListener(this);
-		//}		
-		//if (SG::IInput::IsKeyPressed(SG::EKeyCode::eInsert))
-		//{
-		//	auto* pInputSystem = SG::System::GetInstance()->GetIInputSystem();
-		//	pInputSystem->RegisterListener(this);
-		//}
+		using namespace SG;
+
+		auto* pOS = System::GetInstance()->GetIOS();
+		Window* pMainWindow = pOS->GetMainWindow();
+		Rect& pWindowRect = pMainWindow->GetCurrRect();
+		Monitor* pMainMOnitor = pOS->GetMainMonitor();
+		Vector2i pos = pMainWindow->GetMousePosRelative();
+		Vector2i pos2 = pOS->GetMousePos();
+		//SG_LOG_DEBUG("Window Rect (%d, %d) (%d, %d)", pWindowRect.left, pWindowRect.top, pWindowRect.right, pWindowRect.bottom);
+		//SG_LOG_DEBUG("Mouse Pos(Relative) (%d, %d)", pos[0], pos[1]);
+		//SG_LOG_DEBUG("Mouse Pos(R - A) (%d, %d)", pos[0] - pos2[0], pos[1] - pos2[1]);
+		//SG_LOG_MATH(ELogLevel::eLog_Level_Debug, pos2);
+
+		SG_LOG_IF(ELogLevel::eLog_Level_Debug, "Is Window Out of screen: ", pOS->IsMainWindowOutOfScreen());
 	}
 
 	virtual void OnShutdown() override

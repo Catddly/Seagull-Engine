@@ -3,14 +3,16 @@
 
 #include "Common/Platform/DeviceManager.h"
 
+#include <windows.h>
+
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
 
 	static Rect _GetRecommandedWindowRect(Monitor* pMonitor)
 	{
-		const Int32 width = (Int32)pMonitor->GetMonitorRect().right;
-		const Int32 height = (Int32)pMonitor->GetMonitorRect().bottom;
+		const Int32 width = (Int32)pMonitor->GetMonitorRect().right - (Int32)pMonitor->GetMonitorRect().left;
+		const Int32 height = (Int32)pMonitor->GetMonitorRect().bottom - (Int32)pMonitor->GetMonitorRect().top;
 		const Int32 shrinkedWidth = width * 4 / 5;
 		const Int32 shrinkedHeight = height * 4 / 5;
 		Rect rect = {
@@ -97,7 +99,7 @@ namespace SG
 		::ShowWindow((HWND)mHandle, SW_HIDE);
 	}
 
-	void Window::ResizeWindow(const Rect& rect)
+	void Window::Resize(const Rect& rect)
 	{
 		if (bIsFullScreen)
 		{
@@ -115,7 +117,7 @@ namespace SG
 		}
 	}
 
-	void Window::ResizeWindow(UInt32 width, UInt32 height)
+	void Window::Resize(UInt32 width, UInt32 height)
 	{
 		const Int32 w = (Int32)mpCurrMonitor->GetMonitorRect().right;
 		const Int32 h = (Int32)mpCurrMonitor->GetMonitorRect().bottom;
@@ -125,7 +127,7 @@ namespace SG
 			(Int32)width + (w - (Int32)width) / 2,
 			(Int32)height + (h - (Int32)height) / 2
 		};
-		ResizeWindow(rect);
+		Resize(rect);
 	}
 
 	void Window::ToggleFullSrceen()
@@ -146,28 +148,34 @@ namespace SG
 		::ShowWindow((HWND)mHandle, SW_MAXIMIZE);
 	}
 
-	SG::Vector2f Window::GetMousePosRelative() const
+	SG::Vector2i Window::GetMousePosRelative() const
 	{
 		POINT pos = {};
 		::GetCursorPos(&pos);
 		ClientToScreen((HWND)mHandle, &pos);
-		Vector2f position;
-		position[0] = (float)pos.x;
-		position[1] = (float)pos.y;
+		Vector2i position = { pos.x, pos.y };
 		return eastl::move(position);
 	}
 
-	WindowHandle Window::GetHandle()
+	WindowHandle Window::GetNativeHandle()
 	{
 		return mHandle;
 	}
 
-	Rect Window::GetCurrRect() const
+	Rect Window::GetCurrRect()
 	{
 		if (bIsFullScreen)
 			return mFullscreenRect;
 		else
+		{
+			RECT rect = {};
+			::GetWindowRect((HWND)mHandle, &rect);
+			mWindowedRect.left   = (Int32)rect.left;
+			mWindowedRect.top    = (Int32)rect.top;
+			mWindowedRect.right  = (Int32)rect.right;
+			mWindowedRect.bottom = (Int32)rect.bottom;
 			return mWindowedRect;
+		}
 	}
 
 }

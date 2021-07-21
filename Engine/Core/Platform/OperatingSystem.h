@@ -6,6 +6,8 @@
 #include "Common/Platform/DeviceManager.h"
 #include "Common/Platform/WindowManager.h"
 
+#include "Common/Math/Vector.h"
+
 namespace SG
 {
 	
@@ -20,8 +22,11 @@ namespace SG
 		SG_CORE_API virtual Adapter* GetPrimaryAdapter() override;
 		SG_CORE_API virtual Window*  GetMainWindow() override;
 
+		SG_CORE_API virtual Vector2i GetMousePos() const override;
+
+		SG_CORE_API virtual bool IsMainWindowOutOfScreen() const override;
 	private:
-		CDeviceManager mDeviceManager;
+		mutable CDeviceManager mDeviceManager;
 		CWindowManager mWindowManager;
 	};
 

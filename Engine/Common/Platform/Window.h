@@ -22,18 +22,18 @@ namespace SG
 		SG_COMMON_API void ShowWindow() const;
 		SG_COMMON_API void HideWindow() const;
 
-		SG_COMMON_API void ResizeWindow(const Rect& rect);
-		SG_COMMON_API void ResizeWindow(UInt32 width, UInt32 height);
+		SG_COMMON_API void Resize(const Rect& rect);
+		SG_COMMON_API void Resize(UInt32 width, UInt32 height);
 
 		SG_COMMON_API void ToggleFullSrceen();
 		SG_COMMON_API void Maximized();
 		SG_COMMON_API void Minimized();
 
-		SG_COMMON_API Rect GetCurrRect() const;
+		SG_COMMON_API Rect GetCurrRect();
 
-		SG_COMMON_API Vector2f GetMousePosRelative() const;
+		SG_COMMON_API Vector2i GetMousePosRelative() const;
 
-		SG_COMMON_API WindowHandle GetHandle();
+		SG_COMMON_API WindowHandle GetNativeHandle();
 	private:
 		void AdjustWindow();
 	private:

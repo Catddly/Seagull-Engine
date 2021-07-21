@@ -20,10 +20,11 @@ namespace SG
 	typedef Eigen::Matrix<Int32, 3, 1>   Vector3i;
 	typedef Eigen::Matrix<Int32, 4, 1>   Vector4i;
 
+	// overload log out functions
 	namespace impl
 	{
 		template<>
-		static eastl::string PrintMathTypes<Vector2f>(const Vector2f& types)
+		static eastl::string PrintMathTypes<SG::Vector2f>(const SG::Vector2f& types)
 		{
 			eastl::string s = "Vector2f:\n";
 			Float32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
@@ -60,7 +61,7 @@ namespace SG
 		}
 
 		template<>
-		static eastl::string PrintMathTypes<Vector3f>(const Vector3f& types)
+		static eastl::string PrintMathTypes<SG::Vector3f>(const SG::Vector3f& types)
 		{
 			eastl::string s = "Vector3f:\n";
 			Float32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
@@ -97,7 +98,7 @@ namespace SG
 		}
 
 		template<>
-		static eastl::string PrintMathTypes<Vector4f>(const Vector4f& types)
+		static eastl::string PrintMathTypes<SG::Vector4f>(const SG::Vector4f& types)
 		{
 			eastl::string s = "Vector4f:\n";
 			Float32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
@@ -134,7 +135,7 @@ namespace SG
 		}
 
 		template<>
-		static eastl::string PrintMathTypes<Vector2i>(const Vector2i& types)
+		static eastl::string PrintMathTypes<SG::Vector2i>(const SG::Vector2i& types)
 		{
 			eastl::string s = "Vector2i:\n";
 			Int32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
@@ -169,7 +170,7 @@ namespace SG
 		}
 
 		template<>
-		static eastl::string PrintMathTypes<Vector3i>(const Vector3i& types)
+		static eastl::string PrintMathTypes<SG::Vector3i>(const SG::Vector3i& types)
 		{
 			eastl::string s = "Vector3i:\n";
 			Int32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
@@ -204,7 +205,7 @@ namespace SG
 		}
 
 		template<>
-		static eastl::string PrintMathTypes<Vector4i>(const Vector4i& types)
+		static eastl::string PrintMathTypes<SG::Vector4i>(const SG::Vector4i& types)
 		{
 			eastl::string s = "Vector4i:\n";
 			Int32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
@@ -238,5 +239,6 @@ namespace SG
 			return eastl::move(s);
 		}
 	}
+
 
 }

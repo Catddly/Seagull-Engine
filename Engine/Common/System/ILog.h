@@ -1,6 +1,5 @@
 #pragma once
 #include "Common/Config.h"
-
 #include "Common/Base/BasicTypes.h"
 
 #include "Core/System/System.h"

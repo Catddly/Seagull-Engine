@@ -338,7 +338,7 @@ namespace SG
 #ifdef SG_PLATFORM_WINDOWS
 		VkWin32SurfaceCreateInfoKHR createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-		createInfo.hwnd = (HWND)mainWindow->GetHandle();
+		createInfo.hwnd = (HWND)mainWindow->GetNativeHandle();
 		createInfo.hinstance = ::GetModuleHandle(NULL);
 	
 		if (vkCreateWin32SurfaceKHR(mInstance, &createInfo, nullptr, &mpRenderContext->mPresentSurface) != VK_SUCCESS)
