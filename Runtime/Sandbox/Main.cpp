@@ -68,7 +68,7 @@ public:
 		//SG_LOG_DEBUG("Mouse Pos(R - A) (%d, %d)", pos[0] - pos2[0], pos[1] - pos2[1]);
 		//SG_LOG_MATH(ELogLevel::eLog_Level_Debug, pos2);
 
-		SG_LOG_IF(ELogLevel::eLog_Level_Debug, "Is Window Out of screen: ", pOS->IsMainWindowOutOfScreen());
+		//SG_LOG_IF(ELogLevel::eLog_Level_Debug, "Is Window Out of screen: ", pOS->IsMainWindowOutOfScreen());
 	}
 
 	virtual void OnShutdown() override
