@@ -6,6 +6,8 @@
 #include "Core/System/InputSystem.h"
 #include "Core/Platform/OperatingSystem.h"
 
+#include <windows.h>
+
 namespace SG
 {
 	// no implementation yet, just use a forward declaration
@@ -102,6 +104,53 @@ namespace SG
 		_chdir(filepath);
 	}
 
+	int System::RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut)
+	{
+#ifdef SG_PLATFORM_WINDOWS
+		STARTUPINFOA        startupInfo;
+		PROCESS_INFORMATION processInfo;
+		memset(&startupInfo, 0, sizeof startupInfo);
+		memset(&processInfo, 0, sizeof processInfo);
+
+		HANDLE stdOut = NULL;
+		if (pOut)
+		{
+			SECURITY_ATTRIBUTES sa;
+			sa.nLength = sizeof(sa);
+			sa.lpSecurityDescriptor = NULL;
+			sa.bInheritHandle = TRUE;
+
+			size_t   pathLength = strlen(pOut) + 1;
+			wchar_t* buffer = (wchar_t*)alloca(pathLength * sizeof(wchar_t));
+			MultiByteToWideChar(CP_UTF8, 0, pOut, (int)pathLength, buffer, (int)pathLength);
+			stdOut = CreateFileW(buffer, GENERIC_ALL, FILE_SHARE_WRITE | FILE_SHARE_READ, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		}
+		startupInfo.cb = sizeof(STARTUPINFO);
+		startupInfo.dwFlags |= STARTF_USESTDHANDLES;
+		startupInfo.hStdOutput = stdOut;
+		startupInfo.hStdError  = stdOut;
+
+		string commandLine = pCommand;
+		for (int i = 0; i < argNum; i++)
+			commandLine += " " + string(ppArgs[i]);
+
+		// create a process
+		if (!CreateProcessA(NULL, (LPSTR)commandLine.c_str(), NULL, NULL, stdOut ? TRUE : FALSE, CREATE_NO_WINDOW, NULL, NULL, &startupInfo, &processInfo))
+			return -1;
+
+		WaitForSingleObject(processInfo.hProcess, INFINITE);
+		DWORD exitCode;
+		GetExitCodeProcess(processInfo.hProcess, &exitCode);
+
+		CloseHandle(processInfo.hProcess);
+		CloseHandle(processInfo.hThread);
+
+		if (stdOut)
+			CloseHandle(stdOut);
+#endif
+		return EXIT_SUCCESS;
+	}
+
 	void System::AddIProcess(IProcess* pProcess)
 	{
 		if (pProcess)
@@ -157,6 +206,22 @@ namespace SG
 		if (mSystemModules.p2DEngine) mSystemModules.p2DEngine->OnUpdate();
 
 		if (mpCurrActiveProcess)      mpCurrActiveProcess->OnUpdate();
+	}
+
+	string System::GetResourceDirectory(EResourceDirectory rd) const
+	{
+		switch (rd)
+		{
+		case EResourceDirectory::eRoot:             return mRootPath;
+		case EResourceDirectory::eShader_Binarires: return mRootPath + "ShaderBin\\";
+		case EResourceDirectory::eShader_Sources:   return mRootPath + "ShaderSrc\\";
+		case EResourceDirectory::eMeshes:           return mRootPath + "Mesh\\";
+		case EResourceDirectory::eTextures:         return mRootPath + "Texture\\";
+		case EResourceDirectory::eFonts:            return mRootPath + "Font\\";
+		case EResourceDirectory::eLog:              return mRootPath + "Log\\";
+		case EResourceDirectory::eScripts:          return mRootPath + "Script\\";
+		default: return "";
+		}
 	}
 
 }

@@ -3,6 +3,8 @@
 #include "Common/Config.h"
 #include "Common/Base/BasicTypes.h"
 
+#include "Common/System/IFileSystem.h"
+
 #include "Common/Stl/string.h"
 
 namespace SG
@@ -82,7 +84,10 @@ namespace SG
 		//! Set engine's resource files root directory in absolute path.
 		//! Default root directory will be the folder where .exe is in.
 		//! \param (filepath) relative path to the .exe
-		virtual void   SetRootDirectory(const char* filepath) = 0;
+		virtual void        SetRootDirectory(const char* filepath) = 0;
+		virtual string      GetResourceDirectory(EResourceDirectory rd) const = 0;
+
+		virtual int         RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut) = 0;
 	};
 
 }

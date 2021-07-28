@@ -214,7 +214,8 @@ namespace SG
 
 		if (vkCreateSwapchainKHR((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), &createInfo, nullptr, &mHandle) != VK_SUCCESS)
 			SG_LOG_ERROR("Failed to create swapchain");
-
+		
+		// fetch image from swapchain
 		UInt32 imageCnt = SG_SWAPCHAIN_IMAGE_COUNT;
 		vector<VkImage> mVkImages(imageCnt);
 		mImages.resize(imageCnt);

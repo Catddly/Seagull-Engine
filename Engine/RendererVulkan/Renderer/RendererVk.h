@@ -20,6 +20,7 @@ namespace SG
 	class QueueVk;
 	class SwapChainVk;
 	class RenderContextVk;
+	class ShaderVk;
 	class RendererVk final : public Renderer
 	{
 	public:
@@ -56,6 +57,10 @@ namespace SG
 		bool     mbGraphicQueuePresentable = false;
 
 		SwapChainVk* mSwapChain = nullptr;
+
+		// TODO: remove, for temporary test
+		ShaderVk* mVertShader = nullptr;
+		ShaderVk* mFragShader = nullptr;
 	};
 
 }

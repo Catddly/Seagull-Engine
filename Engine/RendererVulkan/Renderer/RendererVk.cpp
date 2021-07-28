@@ -11,6 +11,8 @@
 #include "RendererVulkan/SwapChain/SwapChainVk.h"
 #include "RendererVulkan/RenderContext/RenderContextVk.h"
 
+#include "RendererVulkan/Shader/ShaderVk.h"
+
 #include "Common/Stl/vector.h"
 #include <EASTL/set.h>
 
@@ -90,11 +92,17 @@ namespace SG
 		auto rect = window->GetCurrRect();
 		mSwapChain = new SwapChainVk(EImageFormat::eSrgb_B8G8R8A8, EPresentMode::eFIFO, { GetRectWidth(rect), GetRectHeight(rect) }, this);
 
+		mVertShader = new ShaderVk(this, "basic.vert");
+		mFragShader = new ShaderVk(this, "basic.frag");
+
 		return bIsSuccess;
 	}
 
 	void RendererVk::OnShutdown()
 	{
+		delete mVertShader;
+		delete mFragShader;
+
 		delete mSwapChain;
 		if (!mbGraphicQueuePresentable)
 			delete mPresentQueue;

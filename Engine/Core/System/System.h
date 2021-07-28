@@ -60,7 +60,10 @@ namespace SG
 		//! Set engine's resource files root directory in absolute path.
 		//! Default root directory will be the folder where .exe is in.
 		//! \param (filepath) relative path to the .exe
-		SG_CORE_API void SetRootDirectory(const char* filepath) override;
+		SG_CORE_API virtual void        SetRootDirectory(const char* filepath) override;
+		SG_CORE_API virtual string      GetResourceDirectory(EResourceDirectory rd) const override;
+
+		SG_CORE_API virtual int RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut) override;
 
 		//! Force to use ISystemManager as the interface of system manager.
 		SG_CORE_API static System* GetInstance();
