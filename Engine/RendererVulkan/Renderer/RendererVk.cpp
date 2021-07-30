@@ -391,4 +391,9 @@ namespace SG
 		return mpRenderContext;
 	}
 
+	SwapChain* RendererVk::GetSwapChain() const
+	{
+		return mSwapChain;
+	}
+
 }

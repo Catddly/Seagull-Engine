@@ -33,6 +33,8 @@ namespace SG
 		SG_RENDERER_VK_API virtual Queue* GetPresentQueue() const override;
 
 		SG_RENDERER_VK_API virtual RenderContext* GetRenderContext() const override;
+
+		SG_RENDERER_VK_API virtual SwapChain* GetSwapChain() const override;
 	private:
 		bool CreateInstance();
 		void ValidateExtensions(VkInstanceCreateInfo* info);

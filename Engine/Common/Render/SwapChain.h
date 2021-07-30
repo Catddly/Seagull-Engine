@@ -101,6 +101,8 @@ namespace SG
 
 		virtual Texture*   GetTexture(UInt32 index) const = 0;
 		virtual Handle     GetNativeHandle() const = 0;
+
+		virtual EImageFormat GetColorFormat() const = 0;
 	};
 
 }

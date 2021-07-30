@@ -21,6 +21,8 @@ namespace SG
 
 		virtual Texture* GetTexture(UInt32 index) const override;
 		virtual Handle   GetNativeHandle() const override;
+
+		virtual EImageFormat GetColorFormat() const override;
 	private:
 		Renderer*      mpRenderer = nullptr;
 		EImageFormat   mFormat = EImageFormat::eNull;

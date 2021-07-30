@@ -7,6 +7,18 @@ namespace SG
 
 	struct Renderer;
 	struct Shader;
+
+	class RenderPassVk : public RenderPass
+	{
+	public:
+		RenderPassVk(Renderer* pRenderer);
+		~RenderPassVk();
+	private:
+		Renderer* mpRenderer = nullptr;
+
+		VkRenderPass mRenderPass;
+	};
+
 	class PipelineVk : public Pipeline
 	{
 	public:
@@ -14,10 +26,13 @@ namespace SG
 		~PipelineVk();
 
 	private:
-		Renderer* mpRenderer = nullptr;
-		Shader*   mpShader = nullptr;
+		Renderer*   mpRenderer = nullptr;
+		Shader*     mpShader = nullptr;
+		RenderPass* mpRenderpass = nullptr;
 
 		EPipelineType mType;
+
+		VkPipelineLayout mPipelineLayout;
 	};
 
 }

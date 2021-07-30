@@ -247,4 +247,9 @@ namespace SG
 		return mHandle;
 	}
 
+	SG::EImageFormat SwapChainVk::GetColorFormat() const
+	{
+		return mFormat;
+	}
+
 }

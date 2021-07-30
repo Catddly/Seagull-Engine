@@ -11,11 +11,14 @@ namespace SG
 		MAX_COUNT,
 	};
 
+	struct RenderPass
+	{
+		virtual ~RenderPass() = default;
+	};
+
 	struct Pipeline
 	{
 		virtual ~Pipeline() = default;
-
-
 	};
 
 }

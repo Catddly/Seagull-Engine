@@ -11,6 +11,7 @@ namespace SG
 
 	struct Queue;
 	struct RenderContext;
+	struct SwapChain;
 	struct Renderer
 	{
 		virtual ~Renderer() = default;
@@ -24,6 +25,7 @@ namespace SG
 		SG_COMMON_API virtual Queue* GetGraphicQueue() const = 0;
 		SG_COMMON_API virtual Queue* GetPresentQueue() const = 0;
 
+		SG_COMMON_API virtual SwapChain* GetSwapChain() const = 0;
 	};
 
 }
