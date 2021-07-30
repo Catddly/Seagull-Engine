@@ -21,6 +21,7 @@ namespace SG
 	class SwapChainVk;
 	class RenderContextVk;
 	class ShaderVk;
+	class PipelineVk;
 	class RendererVk final : public Renderer
 	{
 	public:
@@ -59,8 +60,8 @@ namespace SG
 		SwapChainVk* mSwapChain = nullptr;
 
 		// TODO: remove, for temporary test
-		ShaderVk* mVertShader = nullptr;
-		ShaderVk* mFragShader = nullptr;
+		ShaderVk*   mBasicShader = nullptr;
+		PipelineVk* mGraphicPipeline = nullptr;
 	};
 
 }

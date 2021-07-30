@@ -4,7 +4,6 @@
 
 #include "Common/Stl/string.h"
 #include "Common/Stl/string_view.h"
-#include <cstddef>
 
 #include <vulkan/vulkan_core.h>
 
@@ -15,8 +14,10 @@ namespace SG
 	class ShaderVk : public Shader
 	{
 	public:
-		ShaderVk(Renderer* pRenderer, string_view filepath);
+		ShaderVk(Renderer* pRenderer, const string* shaderStages, Size numShaderStages);
 		~ShaderVk();
+
+		virtual ShaderStages* GetShaderStages() override;
 	private:
 		//! Compile shader by using glslc.exe from vulkanSDK.
 		//! @param (name) the name of the shader.
@@ -26,15 +27,13 @@ namespace SG
 		//! Read the compiled shader (spirv) from disk.
 		//! @param (filepath) where to get the binary.
 		//! @return true if the binary is exist otherwise false.
-		bool ReadBinaryFromDisk(const char* filepath);
+		bool ReadBinaryFromDisk(const string& name, const string& extension);
+		void CreateVulkanShaderModule(ShaderData* pShaderData);
 	private:
 		Renderer* mpRenderer = nullptr;
 
 		EShaderLanguage mShaderLanguage;
-		std::byte*      mBinary = nullptr;
-		Size            mBinarySize;
-
-		VkShaderModule  mShaderModule;
+		ShaderStages    mShaderStages;
 	};
 
 }

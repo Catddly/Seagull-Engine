@@ -10,6 +10,7 @@
 #include "RendererVulkan/Queue/QueueVk.h"
 #include "RendererVulkan/SwapChain/SwapChainVk.h"
 #include "RendererVulkan/RenderContext/RenderContextVk.h"
+#include "RendererVulkan/Pipeline/PipelineVk.h"
 
 #include "RendererVulkan/Shader/ShaderVk.h"
 
@@ -92,16 +93,18 @@ namespace SG
 		auto rect = window->GetCurrRect();
 		mSwapChain = new SwapChainVk(EImageFormat::eSrgb_B8G8R8A8, EPresentMode::eFIFO, { GetRectWidth(rect), GetRectHeight(rect) }, this);
 
-		mVertShader = new ShaderVk(this, "basic.vert");
-		mFragShader = new ShaderVk(this, "basic.frag");
+		const string stages[] = { "basic-vert.spv", "basic.frag" };
+		mBasicShader = new ShaderVk(this, stages, 2);
+
+		mGraphicPipeline = new PipelineVk(this, mBasicShader, EPipelineType::eGraphic);
 
 		return bIsSuccess;
 	}
 
 	void RendererVk::OnShutdown()
 	{
-		delete mVertShader;
-		delete mFragShader;
+		delete mGraphicPipeline;
+		delete mBasicShader;
 
 		delete mSwapChain;
 		if (!mbGraphicQueuePresentable)
