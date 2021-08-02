@@ -2,6 +2,8 @@
 
 #include "Common/Base/BasicTypes.h"
 
+#include "Common/Platform/IOperatingSystem.h"
+
 #include "Common/Render/Renderer.h"
 
 namespace SG
@@ -101,6 +103,8 @@ namespace SG
 
 		virtual Texture*   GetTexture(UInt32 index) const = 0;
 		virtual Handle     GetNativeHandle() const = 0;
+
+		virtual Resolution GetExtent() const = 0;
 
 		virtual EImageFormat GetColorFormat() const = 0;
 	};

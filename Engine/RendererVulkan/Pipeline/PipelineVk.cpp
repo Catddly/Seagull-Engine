@@ -6,18 +6,28 @@
 #include "Common/System/ILog.h"
 #include "Common/Platform/Window.h"
 #include "Common/Render/RenderContext.h"
+#include "Common/Render/SwapChain.h"
 
 #include "Common/Stl/vector.h"
 
 namespace SG
 {
 
+	//static void CreateGraphicPipeline(Shader* pShader)
+	//{
+	//	auto* shaderStages = pShader->GetShaderStages();
+	//	VkGraphicsPipelineCreateInfo pipelineInfo = {};
+	//	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	//	pipelineInfo.stageCount = 2;
+	//	pipelineInfo.pStages = shaderStages;
+	//}
+
 	PipelineVk::PipelineVk(Renderer* pRenderer, Shader* pShader, EPipelineType type)
 		:mpRenderer(pRenderer), mpShader(pShader), mType(type)
 	{
 		ShaderStages* shaderStages = mpShader->GetShaderStages();
 
-		vector<VkPipelineShaderStageCreateInfo> createInfos;
+		vector<VkPipelineShaderStageCreateInfo> shaderCreateInfos;
 		for (auto beg = shaderStages->begin(); beg != shaderStages->end(); beg++)
 		{
 			VkPipelineShaderStageCreateInfo shaderStageInfo = {};
@@ -35,7 +45,7 @@ namespace SG
 			shaderStageInfo.module = (VkShaderModule)beg->second.pShader;
 			// set to main temporary
 			shaderStageInfo.pName = "main";
-			createInfos.emplace_back(shaderStageInfo);
+			shaderCreateInfos.emplace_back(shaderStageInfo);
 		}
 
 		// no vertex data yet
@@ -51,12 +61,12 @@ namespace SG
 		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-		Window* mainWindow = System::GetInstance()->GetIOS()->GetMainWindow();
-		UInt32 width  = GetRectWidth(mainWindow->GetCurrRect());
-		UInt32 height = GetRectHeight(mainWindow->GetCurrRect());
+		SwapChain* pSwapChain = mpRenderer->GetSwapChain();
+		UInt32 width = pSwapChain->GetExtent().width;
+		UInt32 height = pSwapChain->GetExtent().height;
 		VkViewport viewport = {};
-		viewport.x = (float)mainWindow->GetCurrRect().left;
-		viewport.y = (float)mainWindow->GetCurrRect().top;
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
 		viewport.width = (float)width;
 		viewport.height = (float)height;
 		viewport.minDepth = 0.0f;
@@ -143,11 +153,43 @@ namespace SG
 			SG_LOG_ERROR("Failed to create pipeline layout!");
 			SG_ASSERT(false);
 		}
+		
+		mpRenderpass = new RenderPassVk(mpRenderer);
+
+		VkGraphicsPipelineCreateInfo pipelineInfo = {};
+		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		pipelineInfo.stageCount = (UInt32)shaderCreateInfos.size();
+		pipelineInfo.pStages = shaderCreateInfos.data();
+
+		pipelineInfo.pVertexInputState = &vertexInputInfo;
+		pipelineInfo.pInputAssemblyState = &inputAssembly;
+		pipelineInfo.pViewportState = &viewportState;
+		pipelineInfo.pRasterizationState = &rasterizer;
+		pipelineInfo.pMultisampleState = &multisampling;
+		pipelineInfo.pDepthStencilState = nullptr; // Optional
+		pipelineInfo.pColorBlendState = &colorBlending;
+		pipelineInfo.pDynamicState = &dynamicState; // Optional
+
+		pipelineInfo.layout = mPipelineLayout;
+
+		pipelineInfo.renderPass = (VkRenderPass)mpRenderpass->GetNativeHandle();
+		pipelineInfo.subpass = 0;
+		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
+		pipelineInfo.basePipelineIndex = -1; // Optional
+
+		if (vkCreateGraphicsPipelines((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), 
+			VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &mPipeline) != VK_SUCCESS)
+		{
+			SG_LOG_ERROR("Failed to create pipeline!");
+			SG_ASSERT(false);
+		}
 	}
 
 	PipelineVk::~PipelineVk()
 	{
 		vkDestroyPipelineLayout((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), mPipelineLayout, nullptr);
+		delete mpRenderpass;
+		vkDestroyPipeline((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), mPipeline, nullptr);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,6 +203,7 @@ namespace SG
 		//colorAttachment.format = gImageFormatToVkMap[mpRenderer->GetSwapChain()->GetColorFormat()];
 		// hardcode for temporary usage
 		colorAttachment.format = VK_FORMAT_B8G8R8A8_SRGB;
+
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -195,6 +238,11 @@ namespace SG
 	RenderPassVk::~RenderPassVk()
 	{
 		vkDestroyRenderPass((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), mRenderPass, nullptr);
+	}
+
+	SG::Handle RenderPassVk::GetNativeHandle() const
+	{
+		return mRenderPass;
 	}
 
 }

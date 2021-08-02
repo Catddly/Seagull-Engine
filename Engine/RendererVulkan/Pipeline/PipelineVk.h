@@ -13,6 +13,8 @@ namespace SG
 	public:
 		RenderPassVk(Renderer* pRenderer);
 		~RenderPassVk();
+
+		virtual Handle GetNativeHandle() const override;
 	private:
 		Renderer* mpRenderer = nullptr;
 
@@ -33,6 +35,7 @@ namespace SG
 		EPipelineType mType;
 
 		VkPipelineLayout mPipelineLayout;
+		VkPipeline       mPipeline;
 	};
 
 }

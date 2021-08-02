@@ -13,6 +13,7 @@ namespace SG
 
 	struct Renderer;
 	class  TextureVk;
+	class  FrameBufferVk;
 	class SwapChainVk final : public SwapChain
 	{
 	public:
@@ -22,12 +23,17 @@ namespace SG
 		virtual Texture* GetTexture(UInt32 index) const override;
 		virtual Handle   GetNativeHandle() const override;
 
+		virtual Resolution GetExtent() const override;
+
 		virtual EImageFormat GetColorFormat() const override;
+	private:
+		friend class FrameBufferVk;
 	private:
 		Renderer*      mpRenderer = nullptr;
 		EImageFormat   mFormat = EImageFormat::eNull;
 		EPresentMode   mPresentMode = EPresentMode::eImmediate; // can cause tearing
 		Resolution     mResolution;
+		Resolution     mExtent;
 
 		VkSwapchainKHR     mHandle;
 		vector<TextureVk*> mImages;

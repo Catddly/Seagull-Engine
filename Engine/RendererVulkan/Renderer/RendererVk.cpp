@@ -11,6 +11,7 @@
 #include "RendererVulkan/SwapChain/SwapChainVk.h"
 #include "RendererVulkan/RenderContext/RenderContextVk.h"
 #include "RendererVulkan/Pipeline/PipelineVk.h"
+#include "RendererVulkan/FrameBuffer/FrameBufferVk.h"
 
 #include "RendererVulkan/Shader/ShaderVk.h"
 
@@ -98,11 +99,14 @@ namespace SG
 
 		mGraphicPipeline = new PipelineVk(this, mBasicShader, EPipelineType::eGraphic);
 
+		mFrameBuffer = new FrameBufferVk(this);
+
 		return bIsSuccess;
 	}
 
 	void RendererVk::OnShutdown()
 	{
+		delete mFrameBuffer;
 		delete mGraphicPipeline;
 		delete mBasicShader;
 
