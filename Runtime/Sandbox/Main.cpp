@@ -39,13 +39,13 @@ public:
 		int a = 54;
 		double b;
 		job.Execute(a, b);
-		SG_LOG_DEBUG("b is %.2llf", b);
+		SG_LOG_INFO("b is %.2llf", b);
 
 		Renderer* pRenderer = System::GetInstance()->GetRenderer();
 		Queue*    pGraphicQueue = pRenderer->GetGraphicQueue();
 		Queue*    pPresentQueue = pRenderer->GetPresentQueue();
-		SG_LOG_DEBUG("Graphic Queue Index: %d", pGraphicQueue->GetQueueIndex());
-		SG_LOG_DEBUG("Present Queue Index: %d", pPresentQueue->GetQueueIndex());
+		SG_LOG_INFO("Graphic Queue Index: %d", pGraphicQueue->GetQueueIndex());
+		SG_LOG_INFO("Present Queue Index: %d", pPresentQueue->GetQueueIndex());
 
 		//MathTest();
 		//ThreadTest();

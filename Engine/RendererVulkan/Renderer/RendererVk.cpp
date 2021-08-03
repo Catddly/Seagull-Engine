@@ -154,7 +154,7 @@ namespace SG
 		if (vkCreateInstance(&insInfo, nullptr, &mInstance) != VK_SUCCESS)
 			return false;
 
-		SG_LOG_DEBUG("Successfully initialized the renderer");
+		SG_LOG_INFO("Successfully initialized the renderer");
 		return true;
 	}
 
@@ -164,10 +164,10 @@ namespace SG
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 		vector<VkExtensionProperties> extensions(extensionCount);
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-		SG_LOG_DEBUG("Available extension count (%d)", extensionCount);
-		for (const auto& extension : extensions) {
-			SG_LOG_DEBUG("\t %s", extension.extensionName);
-		}
+		//SG_LOG_DEBUG("Available extension count (%d)", extensionCount);
+		//for (const auto& extension : extensions) {
+		//	SG_LOG_DEBUG("\t %s", extension.extensionName);
+		//}
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
 		mValidateExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
@@ -281,7 +281,7 @@ namespace SG
 			VkPhysicalDeviceFeatures   deviceFeatures;
 			vkGetPhysicalDeviceProperties(device, &deviceProperties);
 			vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-			SG_LOG_DEBUG("VkAdapter Name: %s", deviceProperties.deviceName);
+			//SG_LOG_DEBUG("VkAdapter Name: %s", deviceProperties.deviceName);
 	
 			if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader)
 			{
