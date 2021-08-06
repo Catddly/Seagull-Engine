@@ -8,6 +8,7 @@ Todo
 
 **Todo-002 [<u>Core/FileSystem/FileSystem.cpp</u>]** Move all the set root directory operation to SEnv or something control all the environment variable.
 
+**Todo-002 [<u>Common/System/ISystem.h</u>]** Abstract the modules to core modules and modules, beacause my code need the OCP(Open Closed Principle) and LSP(Liskov Substitution Principle).
 
 Issues
 ----------------

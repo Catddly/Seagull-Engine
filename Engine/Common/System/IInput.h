@@ -539,7 +539,6 @@ namespace SG
 		EKeyCode::eNull,
 		EKeyCode::eNull,
 	};
-
 #endif
 
 	enum class EKeyState

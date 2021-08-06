@@ -6,7 +6,7 @@
 namespace SG
 {
 
-	struct SWindowsStreamOp : public IStreamOp
+	struct SWindowsStreamOp : public IStreamOps
 	{
 		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut) override;
 		virtual bool Close(FileStream* pStream) override;

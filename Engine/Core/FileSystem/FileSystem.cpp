@@ -66,7 +66,7 @@ namespace SG
 		return mStreamOp->IsEndOfFile(&mStream);
 	}
 
-	void CFileSystem::SetIStreamOp(IStreamOp* pStreamOp)
+	void CFileSystem::SetIStreamOp(IStreamOps* pStreamOp)
 	{
 		if (pStreamOp != nullptr)
 			mStreamOp = pStreamOp;

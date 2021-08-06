@@ -74,9 +74,9 @@ extern "C"
 	} FileStream;
 
 	//! Stream operations to manipulate the files in the disk
-	typedef struct IStreamOp
+	typedef struct IStreamOps
 	{
-		virtual ~IStreamOp() = default;
+		virtual ~IStreamOps() = default;
 
 		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut) = 0;
 		virtual bool Close(FileStream* pStream) = 0;
@@ -87,7 +87,7 @@ extern "C"
 		virtual Size FileSize(const FileStream* pStream) const = 0;
 		virtual bool Flush(FileStream* pStream) = 0;
 		virtual bool IsEndOfFile(const FileStream* pStream) const = 0;
-	} IStreamOp;
+	} IStreamOps;
 
 	// TODO: add async file request system to do async file io (after the thread system) 
 	//! @Interface
@@ -102,7 +102,7 @@ extern "C"
 		virtual void OnShutdown() = 0;
 
 		//! User interface to set the stream op to user custom.
-		virtual void SetIStreamOp(IStreamOp* pStreamOp) = 0;
+		virtual void SetIStreamOp(IStreamOps* pStreamOp) = 0;
 
 		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode) = 0;
 		virtual bool Close() = 0;

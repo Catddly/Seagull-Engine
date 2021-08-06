@@ -51,6 +51,9 @@ public:
 		//ThreadTest();
 
 		Vector2i veci = { 5, 8 };
+
+		int* ptr = new int(4);
+		delete ptr;
 	}
 
 	virtual void OnUpdate() override

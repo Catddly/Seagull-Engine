@@ -32,6 +32,8 @@ namespace SG
 	using IntPtr = intptr_t;
 	using UIntPtr = uintptr_t;
 
+	typedef void* Handle;
+
 #ifdef __cplusplus
 #	define SG_ENUM_CLASS_FLAG(VALUE_TYPE, ENUM_TYPE)																		 \
 	static inline ENUM_TYPE operator|(ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) | (VALUE_TYPE)(b)); } \

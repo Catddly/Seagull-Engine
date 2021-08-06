@@ -13,7 +13,7 @@ namespace SG
 		SG_CORE_API virtual void OnShutdown() override;
 
 		//! Change file stream operations during runtime, can be modified by user.
-		SG_CORE_API virtual void SetIStreamOp(IStreamOp* pStreamOp) override;
+		SG_CORE_API virtual void SetIStreamOp(IStreamOps* pStreamOp) override;
 
 		SG_CORE_API virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode) override;
 		SG_CORE_API virtual bool Close() override;
@@ -26,7 +26,7 @@ namespace SG
 		SG_CORE_API virtual bool IsEndOfFile() const override;
 	private:
 		// implementation of stream operations
-		IStreamOp* mStreamOp = nullptr;
+		IStreamOps* mStreamOp = nullptr;
 		FileStream mStream;
 	};
 

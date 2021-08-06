@@ -30,9 +30,7 @@ namespace SG
 		SG_COMMON_API void Minimized();
 
 		SG_COMMON_API Rect GetCurrRect();
-
 		SG_COMMON_API Vector2i GetMousePosRelative() const;
-
 		SG_COMMON_API WindowHandle GetNativeHandle();
 	private:
 		void AdjustWindow();

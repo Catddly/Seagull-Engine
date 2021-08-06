@@ -2,6 +2,7 @@
 #include "Core/Config.h"
 
 #include "Common/System/ILog.h"
+#include "Common/System/IModule.h"
 #include "Formatter.h"
 
 #include "Common/Stl/string.h"
@@ -23,6 +24,8 @@ namespace SG
 		SG_CORE_API virtual void LogToFile() const override;
 
 		SG_CORE_API virtual void SetLogMode(ELogMode logMode) override { mLogMode = logMode; }
+
+		//SG_CORE_API virtual Handle GetModuleHandle() override;
 	private:
 		//! Add log information prefix to buffer.
 		//! @param  (pBuf) buffer to add to.
