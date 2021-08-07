@@ -2,6 +2,8 @@
 
 #include "Common/Base/BasicTypes.h"
 
+#include "Common/System/IModule.h"
+
 namespace SG
 {
 
@@ -92,14 +94,9 @@ extern "C"
 	// TODO: add async file request system to do async file io (after the thread system) 
 	//! @Interface
 	//! File system
-	typedef struct IFileSystem
+	typedef struct IFileSystem : public IModule
 	{
 		virtual ~IFileSystem() = default;
-
-		//! Initialize file system
-		virtual void OnInit() = 0;
-		//! Shutdown file system
-		virtual void OnShutdown() = 0;
 
 		//! User interface to set the stream op to user custom.
 		virtual void SetIStreamOp(IStreamOps* pStreamOp) = 0;

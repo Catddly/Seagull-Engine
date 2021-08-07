@@ -8,6 +8,7 @@
 #include "Common/Stl/string.h"
 #include "Common/Stl/string_view.h"
 #include "Common/Stl/shared_ptr.h"
+#include <EASTL/map.h>
 
 //----------------------------------------------------------
 // Math library

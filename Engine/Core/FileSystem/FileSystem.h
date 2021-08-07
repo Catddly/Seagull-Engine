@@ -24,6 +24,8 @@ namespace SG
 		SG_CORE_API virtual Size FileSize() const override;
 		SG_CORE_API virtual bool Flush() override;
 		SG_CORE_API virtual bool IsEndOfFile() const override;
+
+		SG_CORE_API virtual const char* GetRegisterName() const override { return "FileSystem"; }
 	private:
 		// implementation of stream operations
 		IStreamOps* mStreamOp = nullptr;

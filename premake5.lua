@@ -78,6 +78,7 @@ group "Runtime"
         links
         {
             "mimalloc-static",
+            "eastl",
             "S3DEngine",
             "SRendererVulkan",
             "SCore",

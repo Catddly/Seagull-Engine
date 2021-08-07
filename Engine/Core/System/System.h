@@ -5,8 +5,6 @@
 #include "Common/Thread/IThread.h"
 
 #include "Common/System/ILog.h"
-#include "Common/System/I2DEngine.h"
-#include "Common/System/I3DEngine.h"
 #include "Common/System/IFileSystem.h"
 #include "Common/Platform/IOperatingSystem.h"
 
@@ -17,31 +15,31 @@
 namespace SG
 {
 
-	class System final : public ISystem
+	class CSystem final : public ISystem
 	{
 	public:
-		~System() = default;
+		~CSystem() = default;
 
 		SG_CORE_API virtual void OnInit() override;
 		SG_CORE_API virtual bool InitCoreModules() override;
 		SG_CORE_API virtual void OnShutdown() override;
 
-		SG_CORE_API virtual SSystemModules* GetSystemModules() override;
+		//SG_CORE_API virtual SSystemModules* GetSystemModules() override;
 
 		// TOOD: other modules should be loaded as dll,
 		// don't use get/set function.
-		SG_CORE_API virtual void       SetI3DEngine(I3DEngine* p3DEngine) override;
-		SG_CORE_API virtual I3DEngine* GetI3DEngine() override;
-		SG_CORE_API virtual void       SetI2DEngine(I2DEngine* p3DEngine) override;
-		SG_CORE_API virtual I2DEngine* GetI2DEngine() override;
+		//SG_CORE_API virtual void       SetI3DEngine(I3DEngine* p3DEngine) override;
+		//SG_CORE_API virtual I3DEngine* GetI3DEngine() override;
+		//SG_CORE_API virtual void       SetI2DEngine(I2DEngine* p3DEngine) override;
+		//SG_CORE_API virtual I2DEngine* GetI2DEngine() override;
 
-		SG_CORE_API virtual ILog* GetILog() override;
-		SG_CORE_API virtual IFileSystem* GetIFileSystem() override;
-		SG_CORE_API virtual IInputSystem* GetIInputSystem() override;
-		SG_CORE_API virtual IOperatingSystem* GetIOS() override;
+		template <class T>
+		T GetModule(const char* name) const;
 
-		SG_CORE_API virtual void      SetRenderer(Renderer* pRenderer) override;
-		SG_CORE_API virtual Renderer* GetRenderer() override;
+		SG_CORE_API virtual ILog* GetLogger() const override;
+		SG_CORE_API virtual IFileSystem* GetFileSystem() const override;
+		SG_CORE_API virtual IInputSystem* GetInputSystem() const override;
+		SG_CORE_API virtual IOperatingSystem* GetOS() const override;
 
 		//! Check if all the core modules is loaded.
 		SG_CORE_API virtual bool ValidateCoreModules() const override;
@@ -50,6 +48,7 @@ namespace SG
 
 		SG_CORE_API virtual bool SystemMainLoop() override;
 
+		SG_CORE_API virtual bool RegisterModule(IModule* pModule) override;
 		//! Add an IProcess to system to update.
 		SG_CORE_API virtual void AddIProcess(IProcess* pProcess) override;
 		//! Remove an IProcess from system.
@@ -66,11 +65,11 @@ namespace SG
 		SG_CORE_API virtual int RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut) override;
 
 		//! Force to use ISystemManager as the interface of system manager.
-		SG_CORE_API static System* GetInstance();
+		SG_CORE_API static CSystem* GetInstance();
 	protected:
-		System();
+		CSystem();
 	private:
-		void Update();
+		void OnUpdate();
 	private:
 		enum {
 			SG_MAX_FILE_PATH = 200,
@@ -80,14 +79,19 @@ namespace SG
 			SG_MAX_DIREC_PATH = SG_MAX_FILE_PATH - SG_MAX_DRIVE_PATH - SG_MAX_FILE_NAME - SG_MAX_EXT_PATH,
 		};
 
-		static System* sInstance;
-		SSystemModules mSystemModules;
+		static CSystem* sInstance;
+		//SSystemModules mSystemModules;
+		CModuleManager mModuleManager;
 
 		IProcess* mpCurrActiveProcess;
 		Thread  mMainThread;
 		string  mRootPath;
 	};
 
-
+	template <class T>
+	T SG::CSystem::GetModule(const char* name) const
+	{
+		return mModuleManager.GetModule<T>(name);
+	}
 
 }

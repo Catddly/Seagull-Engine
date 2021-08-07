@@ -68,9 +68,9 @@ namespace SG
 	}
 #endif // SG_ENABLE_VK_VALIDATION_LAYER
 
-	bool RendererVk::OnInit()
+	void RendererVk::OnInit()
 	{
-		auto* pOS = System::GetInstance()->GetIOS();
+		auto* pOS = CSystem::GetInstance()->GetOS();
 		Window* window = pOS->GetMainWindow();
 
 		bool bIsSuccess = true;
@@ -101,7 +101,7 @@ namespace SG
 
 		mFrameBuffer = new FrameBufferVk(this);
 
-		return bIsSuccess;
+		//return bIsSuccess;
 	}
 
 	void RendererVk::OnShutdown()
@@ -347,7 +347,7 @@ namespace SG
 	
 	void RendererVk::CreateSurface()
 	{
-		auto* pOS = System::GetInstance()->GetIOS();
+		auto* pOS = CSystem::GetInstance()->GetOS();
 		Window* mainWindow = pOS->GetMainWindow();
 	
 #ifdef SG_PLATFORM_WINDOWS

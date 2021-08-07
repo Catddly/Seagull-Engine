@@ -25,6 +25,8 @@ namespace SG
 		SG_CORE_API virtual Vector2i GetMousePos() const override;
 
 		SG_CORE_API virtual bool IsMainWindowOutOfScreen() const override;
+
+		SG_CORE_API const char* GetRegisterName() const override { return "OS"; }
 	private:
 		mutable CDeviceManager mDeviceManager;
 		CWindowManager mWindowManager;

@@ -25,6 +25,7 @@ namespace SG
 
 		SG_CORE_API virtual void SetLogMode(ELogMode logMode) override { mLogMode = logMode; }
 
+		SG_CORE_API virtual const char* GetRegisterName() const override { return "Logger"; }
 		//SG_CORE_API virtual Handle GetModuleHandle() override;
 	private:
 		//! Add log information prefix to buffer.

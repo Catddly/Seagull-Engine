@@ -13,9 +13,13 @@ namespace SG
 	// no implementation yet, just use a forward declaration
 	class C2DEngine;
 
-	System* System::sInstance = nullptr;
+	CSystem* CSystem::sInstance = nullptr;
 
-	void System::OnInit()
+	CSystem::CSystem()
+		:mRootPath("")
+	{}
+
+	void CSystem::OnInit()
 	{
 		char abPath[SG_MAX_FILE_PATH] = { 0 };
 		::GetModuleFileNameA(NULL, abPath, sizeof(abPath));
@@ -41,70 +45,39 @@ namespace SG
 			SG_LOG_ERROR("Failed to initialized core modules");
 	}
 
-	void System::OnShutdown()
+	void CSystem::OnShutdown()
 	{
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
-
-		mSystemModules.pOS->OnShutdown();
-		mSystemModules.pLog->OnShutdown();
-		mSystemModules.pFileSystem->OnShutdown();
-		delete mSystemModules.pOS;
-		delete mSystemModules.pLog;
-		delete mSystemModules.pFileSystem;
-		delete mSystemModules.pInputSystem;
-		mSystemModules.pOS = nullptr;
-		mSystemModules.pFileSystem = nullptr;
-		mSystemModules.pLog = nullptr;
-		mSystemModules.pInputSystem = nullptr;
-
 		if (sInstance)
 			delete sInstance;
 	}
 
-	void System::SetI3DEngine(I3DEngine* p3DEngine) { mSystemModules.p3DEngine = p3DEngine; }
-	void System::SetI2DEngine(I2DEngine* p2DEngine) { mSystemModules.p2DEngine = p2DEngine; }
-	void System::SetRenderer(Renderer* pRenderer)   { mSystemModules.pRenderer = pRenderer; }
-
-	SG::SSystemModules*   System::GetSystemModules() { return &mSystemModules; }
-	SG::I3DEngine*        System::GetI3DEngine()     { return mSystemModules.p3DEngine; }
-	SG::I2DEngine*        System::GetI2DEngine()     { return mSystemModules.p2DEngine; }
-	SG::ILog*             System::GetILog()          { return mSystemModules.pLog; }
-	SG::IFileSystem*      System::GetIFileSystem()   { return mSystemModules.pFileSystem; }
-	SG::IInputSystem*     System::GetIInputSystem()  { return mSystemModules.pInputSystem; }
-	SG::IOperatingSystem* System::GetIOS()           { return mSystemModules.pOS; }
-	Renderer*             System::GetRenderer()      { return mSystemModules.pRenderer; }
-
-	bool System::ValidateCoreModules() const
+	bool CSystem::ValidateCoreModules() const
 	{
-		bool isReady = (mSystemModules.pLog != nullptr) &&
-			(mSystemModules.pFileSystem != nullptr) &&
-			(mSystemModules.pOS != nullptr) &&
-			(mSystemModules.pInputSystem != nullptr);
-		return isReady;
+		// TODO: fix it
+		//bool isReady = (mSystemModules.pLog != nullptr) &&
+		//	(mSystemModules.pFileSystem != nullptr) &&
+		//	(mSystemModules.pOS != nullptr) &&
+		//	(mSystemModules.pInputSystem != nullptr);
+		return true;
 	}
 
-	bool System::ValidateAllModules() const
+	bool CSystem::ValidateAllModules() const
 	{
-		bool isReady = ValidateCoreModules() &&
-			(mSystemModules.p2DEngine != nullptr) &&
-			(mSystemModules.p3DEngine != nullptr) &&
-			(mSystemModules.pRenderer != nullptr);
-		return isReady;
+		//bool isReady = ValidateCoreModules() &&
+		//	(mSystemModules.p2DEngine != nullptr) &&
+		//	(mSystemModules.p3DEngine != nullptr) &&
+		//	(mSystemModules.pRenderer != nullptr);
+		return false;
 	}
 
-	SG::UInt32 System::GetTotalMemoryUsage() const
+	SG::UInt32 CSystem::GetTotalMemoryUsage() const
 	{
 		// no implementation yet.
 		return 0;
 	}
 
-	void System::SetRootDirectory(const char* filepath)
-	{
-		mRootPath = filepath;
-		_chdir(filepath);
-	}
-
-	int System::RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut)
+	int CSystem::RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut)
 	{
 #ifdef SG_PLATFORM_WINDOWS
 		STARTUPINFOA        startupInfo;
@@ -151,7 +124,7 @@ namespace SG
 		return EXIT_SUCCESS;
 	}
 
-	void System::AddIProcess(IProcess* pProcess)
+	void CSystem::AddIProcess(IProcess* pProcess)
 	{
 		if (pProcess)
 		{
@@ -160,30 +133,32 @@ namespace SG
 		}
 	}
 
-	bool System::InitCoreModules()
+	bool CSystem::InitCoreModules()
 	{
-		if (!mSystemModules.pFileSystem)  mSystemModules.pFileSystem = new CFileSystem;
-		if (!mSystemModules.pLog)         mSystemModules.pLog = new CLog;
-		if (!mSystemModules.pOS)          mSystemModules.pOS = new COperatingSystem;
-		if (!mSystemModules.pInputSystem) mSystemModules.pInputSystem = new CInputSystem;
-		mSystemModules.pFileSystem->OnInit();
-		mSystemModules.pLog->OnInit();
-		mSystemModules.pOS->OnInit();
+		IFileSystem* pFileSystem = new CFileSystem;
+		ILog* pLogger = new CLog;
+		IOperatingSystem* pOS = new COperatingSystem;
+		IInputSystem* pInputSystem = new CInputSystem;
+
+		mModuleManager.RegisterCoreModule(pFileSystem);
+		mModuleManager.RegisterCoreModule(pLogger);
+		mModuleManager.RegisterCoreModule(pOS);
+		mModuleManager.RegisterCoreModule(pInputSystem);
+
 		return ValidateCoreModules();
 	}
 
-	System* System::GetInstance()
+	bool CSystem::RegisterModule(IModule* pModule)
 	{
-		if (sInstance == nullptr)
-			sInstance = new System;
-		return sInstance;
+		if (pModule)
+		{
+			mModuleManager.RegisterUserModule(pModule);
+			return true;
+		}
+		return false;
 	}
 
-	System::System()
-		:mRootPath("")
-	{}
-
-	bool System::SystemMainLoop()
+	bool CSystem::SystemMainLoop()
 	{
 		bool bIsSafeQuit = true;
 		bool bIsExit = false;
@@ -194,21 +169,19 @@ namespace SG
 			if (msg == EOsMessage::eQuit)
 				bIsExit = true;
 
-			Update();
+			OnUpdate();
 		}
 		return bIsSafeQuit;
 	}
 
-	void System::Update()
+	void CSystem::OnUpdate()
 	{
-		mSystemModules.pInputSystem->OnUpdate();
-		if (mSystemModules.p3DEngine) mSystemModules.p3DEngine->OnUpdate();
-		if (mSystemModules.p2DEngine) mSystemModules.p2DEngine->OnUpdate();
-
-		if (mpCurrActiveProcess)      mpCurrActiveProcess->OnUpdate();
+		mModuleManager.OnUpdate();
+		if (mpCurrActiveProcess) 
+			mpCurrActiveProcess->OnUpdate();
 	}
 
-	string System::GetResourceDirectory(EResourceDirectory rd) const
+	string CSystem::GetResourceDirectory(EResourceDirectory rd) const
 	{
 		switch (rd)
 		{
@@ -223,5 +196,23 @@ namespace SG
 		default: return "";
 		}
 	}
+
+	CSystem* CSystem::GetInstance()
+	{
+		if (sInstance == nullptr)
+			sInstance = new CSystem;
+		return sInstance;
+	}
+
+	void CSystem::SetRootDirectory(const char* filepath)
+	{
+		mRootPath = filepath;
+		_chdir(filepath);
+	}
+
+	ILog*             CSystem::GetLogger()         const { return mModuleManager.GetModule<ILog*>("Logger", true); }
+	IFileSystem*      CSystem::GetFileSystem()  const { return mModuleManager.GetModule<IFileSystem*>("FileSystem", true); }
+	IInputSystem*     CSystem::GetInputSystem() const { return mModuleManager.GetModule<IInputSystem*>("InputSystem", true); }
+	IOperatingSystem* CSystem::GetOS()          const { return mModuleManager.GetModule<IOperatingSystem*>("OS", true); }
 
 }

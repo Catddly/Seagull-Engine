@@ -26,7 +26,7 @@ namespace SG
 	class RendererVk final : public Renderer
 	{
 	public:
-		SG_RENDERER_VK_API virtual bool OnInit() override;
+		SG_RENDERER_VK_API virtual void OnInit() override;
 		SG_RENDERER_VK_API virtual void OnShutdown() override;
 
 		//SG_RENDERER_VK_API virtual Handle GetRendererInstance() const override;
@@ -36,6 +36,8 @@ namespace SG
 		SG_RENDERER_VK_API virtual RenderContext* GetRenderContext() const override;
 
 		SG_RENDERER_VK_API virtual SwapChain* GetSwapChain() const override;
+
+		SG_RENDERER_VK_API virtual const char* GetRegisterName() const override { return "Renderer"; }
 	private:
 		bool CreateInstance();
 		void ValidateExtensions(VkInstanceCreateInfo* info);

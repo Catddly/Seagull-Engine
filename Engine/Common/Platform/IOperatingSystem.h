@@ -3,6 +3,8 @@
 #include "Common/Config.h"
 #include "Common/Base/BasicTypes.h"
 
+#include "Common/System/IModule.h"
+
 #include <eigen/Dense>
 
 namespace SG
@@ -63,12 +65,10 @@ namespace SG
 	class Window;
 	class Adapter;
 	typedef Eigen::Matrix<Int32, 2, 1> Vector2i;
-	struct IOperatingSystem
+
+	struct IOperatingSystem : public IModule
 	{
 		virtual ~IOperatingSystem() = default;
-
-		virtual void OnInit() = 0;
-		virtual void OnShutdown() = 0;
 
 		//! Get the monitor where the window lay on.
 		virtual Monitor* GetMainMonitor() = 0;

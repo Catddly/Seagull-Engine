@@ -6,35 +6,53 @@
 #include "Common/System/IFileSystem.h"
 
 #include "Common/Stl/string.h"
+#include <EASTL/map.h>
 
 namespace SG
 {
+
+	struct IModule;
+	class CModuleManager
+	{
+	public:
+		CModuleManager();
+		~CModuleManager();
+
+		SG_COMMON_API static void OnUpdate();
+		// In order to ensure the order of core modules' destructions, we separate two independent register function.
+		SG_COMMON_API static bool RegisterCoreModule(IModule* pModule);
+		SG_COMMON_API static bool RegisterUserModule(IModule* pModule);
+
+		template <class T>
+		static T GetModule(const char* name, bool bIsCoreModule = false);
+	private:
+		SG_COMMON_API static eastl::map<const char*, IModule*> mCoreModuleMap;
+		SG_COMMON_API static eastl::map<const char*, IModule*> mUserModuleMap;
+	};
+
+	template <class T>
+	T CModuleManager::GetModule(const char* name, bool bIsCoreModule)
+	{
+		IModule* pModule = nullptr;
+		if (bIsCoreModule)
+		{
+			pModule = mCoreModuleMap[name];
+			return static_cast<T>(pModule);
+		}
+		else
+		{
+			pModule = mUserModuleMap[name];
+			return static_cast<T>(pModule);
+		}
+		return nullptr;
+	}
+
 	struct IProcess;
 
-	struct I3DEngine;
-	struct I2DEngine;
 	struct ILog;
 	struct IFileSystem;
 	struct IInputSystem;
 	struct IOperatingSystem;
-
-	struct Renderer;
-
-	//! @Interface 
-	//! All the system components are in here
-	//! We can dynamically change its implementation of modules
-	struct SSystemModules
-	{
-		I3DEngine*        p3DEngine = nullptr;
-		I2DEngine*        p2DEngine = nullptr;
-
-		ILog*             pLog = nullptr;
-		IFileSystem*      pFileSystem = nullptr;
-		IOperatingSystem* pOS = nullptr;
-		IInputSystem*     pInputSystem = nullptr;
-
-		Renderer*         pRenderer = nullptr;
-	};
 
 	//! System Manager to manager all the modules' life cycle
 	//! and usage.
@@ -49,21 +67,16 @@ namespace SG
 
 		virtual bool InitCoreModules() = 0;
 
-		virtual SSystemModules*   GetSystemModules() = 0;
-		virtual void              SetI3DEngine(I3DEngine* p3DEngine) = 0;
-		virtual I3DEngine*        GetI3DEngine() = 0;
-		virtual void              SetI2DEngine(I2DEngine* p2DEngine) = 0;
-		virtual I2DEngine*        GetI2DEngine() = 0;
-		virtual ILog*             GetILog() = 0;
-		virtual IFileSystem*      GetIFileSystem() = 0;
-		virtual IInputSystem*     GetIInputSystem() = 0;
-		virtual IOperatingSystem* GetIOS() = 0;
-
-		virtual void              SetRenderer(Renderer* pRenderer) = 0;
-		virtual Renderer*         GetRenderer() = 0;
+		virtual ILog*             GetLogger() const = 0;
+		virtual IFileSystem*      GetFileSystem() const = 0;
+		virtual IInputSystem*     GetInputSystem() const = 0;
+		virtual IOperatingSystem* GetOS() const = 0;
 
 		//! Register a user application.
 		//virtual void RegisterUserApp(IApp* pApp) = 0;
+
+		//! Register a user module.
+		virtual bool RegisterModule(IModule* pModule) = 0;
 		
 		//! System main game loop.
 		//! @return true if the loop exits safely, otherwise it is false.

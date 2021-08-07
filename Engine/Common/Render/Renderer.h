@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Common/Base/BasicTypes.h"
 #include "Common/Config.h"
+#include "Common/Base/BasicTypes.h"
+#include "Common/System/IModule.h"
 
 namespace SG
 {
@@ -11,12 +12,9 @@ namespace SG
 	struct Queue;
 	struct RenderContext;
 	struct SwapChain;
-	struct Renderer
+	struct Renderer : public IModule
 	{
 		virtual ~Renderer() = default;
-
-		SG_COMMON_API virtual bool OnInit() = 0;
-		SG_COMMON_API virtual void OnShutdown() = 0;
 
 		//SG_COMMON_API virtual Handle GetRendererInstance() const = 0;
 		SG_COMMON_API virtual RenderContext* GetRenderContext() const = 0;

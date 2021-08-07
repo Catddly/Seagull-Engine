@@ -3,6 +3,7 @@
 #include "Common/Config.h"
 #include "Common/Base/BasicTypes.h"
 
+#include "Common/System/IModule.h"
 #include "Core/System/System.h"
 
 #include <EASTL/string.h>
@@ -31,12 +32,12 @@ namespace SG
 
 	//! @Interface
 	//! Abstraction of the logger
-	struct SG_COMMON_API ILog
+	struct SG_COMMON_API ILog : public IModule
 	{
 		virtual ~ILog() = default;
 		//! Initialize the logger.
-		virtual void OnInit() = 0;
-		virtual void OnShutdown() = 0;
+		//virtual void OnInit() = 0;
+		//virtual void OnShutdown() = 0;
 		//! Set log format.
 		virtual void SetFormat(eastl::string_view format) = 0;
 		//! Log to console with printf-like format.
@@ -102,17 +103,17 @@ namespace impl
 #define SG_STR(x) SG_STR_IMPL(x)
 #define SG_STR_IMPL(x) #x
 
-#define SG_LOG_INFO(...)  SG::System::GetInstance()->GetILog()->LogToConsole(SG::ELogLevel::eLog_Level_Info,     __VA_ARGS__)
-#define SG_LOG_DEBUG(...) SG::System::GetInstance()->GetILog()->LogToConsole(SG::ELogLevel::eLog_Level_Debug,    __VA_ARGS__)
-#define SG_LOG_WARN(...)  SG::System::GetInstance()->GetILog()->LogToConsole(SG::ELogLevel::eLog_Level_Warn,     __VA_ARGS__)
-#define SG_LOG_ERROR(...) SG::System::GetInstance()->GetILog()->LogToConsole(SG::ELogLevel::eLog_Level_Error,    __VA_ARGS__)
-#define SG_LOG_CRIT(...)  SG::System::GetInstance()->GetILog()->LogToConsole(SG::ELogLevel::eLog_Level_Criticle, __VA_ARGS__)
+#define SG_LOG_INFO(...)  SG::CSystem::GetInstance()->GetLogger()->LogToConsole(SG::ELogLevel::eLog_Level_Info,     __VA_ARGS__)
+#define SG_LOG_DEBUG(...) SG::CSystem::GetInstance()->GetLogger()->LogToConsole(SG::ELogLevel::eLog_Level_Debug,    __VA_ARGS__)
+#define SG_LOG_WARN(...)  SG::CSystem::GetInstance()->GetLogger()->LogToConsole(SG::ELogLevel::eLog_Level_Warn,     __VA_ARGS__)
+#define SG_LOG_ERROR(...) SG::CSystem::GetInstance()->GetLogger()->LogToConsole(SG::ELogLevel::eLog_Level_Error,    __VA_ARGS__)
+#define SG_LOG_CRIT(...)  SG::CSystem::GetInstance()->GetLogger()->LogToConsole(SG::ELogLevel::eLog_Level_Criticle, __VA_ARGS__)
 
-#define SG_LOG_ITERABLE(LEVEL, BEG, END)   SG::System::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, false).c_str())
-#define SG_LOG_ITERABLE_R(LEVEL, BEG, END) SG::System::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, true).c_str())
+#define SG_LOG_ITERABLE(LEVEL, BEG, END)   SG::CSystem::GetInstance()->GetLogger()->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, false).c_str())
+#define SG_LOG_ITERABLE_R(LEVEL, BEG, END) SG::CSystem::GetInstance()->GetLogger()->LogToConsole(LEVEL, SG::impl::PrintIterator(BEG, END, true).c_str())
 
-#define SG_LOG_MATH(LEVEL, VAL)            SG::System::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintMathTypes(VAL).c_str())
+#define SG_LOG_MATH(LEVEL, VAL)            SG::CSystem::GetInstance()->GetLogger()->LogToConsole(LEVEL, SG::impl::PrintMathTypes(VAL).c_str())
 
-#define SG_LOG_IF(LEVEL, MSG, VAL)         SG::System::GetInstance()->GetILog()->LogToConsole(LEVEL, SG::impl::PrintIf(MSG, VAL).c_str())
+#define SG_LOG_IF(LEVEL, MSG, VAL)         SG::CSystem::GetInstance()->GetLogger()->LogToConsole(LEVEL, SG::impl::PrintIf(MSG, VAL).c_str())
 
 }

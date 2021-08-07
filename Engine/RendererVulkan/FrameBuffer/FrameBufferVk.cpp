@@ -22,7 +22,7 @@ namespace SG
 		mBuffers.resize(SG_SWAPCHAIN_IMAGE_COUNT);
 		mSwapChainImagaViews.resize(SG_SWAPCHAIN_IMAGE_COUNT);
 
-		Window* mainWindow = System::GetInstance()->GetIOS()->GetMainWindow();
+		Window* mainWindow = CSystem::GetInstance()->GetOS()->GetMainWindow();
 
 		RenderPass* pRenderPass = new RenderPassVk(mpRenderer);
 

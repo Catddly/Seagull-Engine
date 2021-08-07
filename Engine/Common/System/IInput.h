@@ -3,6 +3,8 @@
 #include "Common/Config.h"
 #include "Common/Base/BasicTypes.h"
 
+#include "Common/System/IModule.h"
+
 #ifdef SG_PLATFORM_WINDOWS
 #	include <windows.h>
 #endif
@@ -565,7 +567,7 @@ namespace SG
 		virtual bool OnInputUpdate(EKeyCode keycode, EKeyState keyState) = 0;
 	};
 
-	struct IInputSystem
+	struct IInputSystem : public IModule
 	{
 		virtual ~IInputSystem() = default;
 

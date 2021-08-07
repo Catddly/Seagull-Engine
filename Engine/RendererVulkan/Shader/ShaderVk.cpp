@@ -24,7 +24,7 @@ namespace SG
 			string name = stage.substr(0, dotPos);
 			string extension = stage.substr(dotPos + 1, stage.size() - dotPos);
 
-			auto* pFS = System::GetInstance()->GetIFileSystem();
+			auto* pFS = CSystem::GetInstance()->GetFileSystem();
 			if (extension == "spv")
 			{
 				if (!ReadBinaryFromDisk(name, extension)) // no spirv file exist, try to compile the file from ShaderSrc
@@ -109,14 +109,14 @@ namespace SG
 		glslc[num + 1] = '\0';
 		strcat_s(glslc, sizeof(wchar_t) * (num + 1), "\\Bin32\\glslc.exe");
 		string compiledName = name + "-" + extension + ".spv";
-		string shaderPath = System::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Sources) + name + "." + extension;
-		string outputPath = System::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + compiledName;
+		string shaderPath = CSystem::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Sources) + name + "." + extension;
+		string outputPath = CSystem::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + compiledName;
 
 		const char* args[3] = { shaderPath.c_str(), "-o", outputPath.c_str() };
-		string pOut = System::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + name + "-" + extension + "-compile.log";
+		string pOut = CSystem::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + name + "-" + extension + "-compile.log";
 
 		// create a process to use vulkanSDK to compile shader sources to binary (spirv)
-		if (System::GetInstance()->RunProcess(glslc, args, 3, pOut.c_str()) != 0)
+		if (CSystem::GetInstance()->RunProcess(glslc, args, 3, pOut.c_str()) != 0)
 		{
 			SG_LOG_WARN("%s", pOut);
 			SG_ASSERT(false);
@@ -127,7 +127,7 @@ namespace SG
 
 	bool ShaderVk::ReadBinaryFromDisk(const string& name, const string& extension)
 	{
-		auto* pFS = System::GetInstance()->GetIFileSystem();
+		auto* pFS = CSystem::GetInstance()->GetFileSystem();
 		string filepath = "";
 		if (extension == "spv")
 			filepath = name + "." + extension;

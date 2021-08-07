@@ -41,9 +41,9 @@ public:
 		job.Execute(a, b);
 		SG_LOG_INFO("b is %.2llf", b);
 
-		Renderer* pRenderer = System::GetInstance()->GetRenderer();
-		Queue*    pGraphicQueue = pRenderer->GetGraphicQueue();
-		Queue*    pPresentQueue = pRenderer->GetPresentQueue();
+		auto* pRenderer = CSystem::GetInstance()->GetModule<Renderer*>("Renderer");
+		Queue* pGraphicQueue = pRenderer->GetGraphicQueue();
+		Queue* pPresentQueue = pRenderer->GetPresentQueue();
 		SG_LOG_INFO("Graphic Queue Index: %d", pGraphicQueue->GetQueueIndex());
 		SG_LOG_INFO("Present Queue Index: %d", pPresentQueue->GetQueueIndex());
 
@@ -51,16 +51,13 @@ public:
 		//ThreadTest();
 
 		Vector2i veci = { 5, 8 };
-
-		int* ptr = new int(4);
-		delete ptr;
 	}
 
 	virtual void OnUpdate() override
 	{
 		using namespace SG;
 
-		auto* pOS = System::GetInstance()->GetIOS();
+		auto* pOS = CSystem::GetInstance()->GetOS();
 		Window* pMainWindow = pOS->GetMainWindow();
 		Rect& pWindowRect = pMainWindow->GetCurrRect();
 		Monitor* pMainMOnitor = pOS->GetMainMonitor();

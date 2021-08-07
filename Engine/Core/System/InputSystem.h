@@ -25,11 +25,16 @@ namespace SG
 		CInputSystem() = default;
 		~CInputSystem() = default;
 
+		virtual void OnInit() override {}
+		virtual void OnShutdown() override {}
+
 		virtual void RegisterListener(IInputListener* pListener) override;
 		virtual void MuteListener(IInputListener* pListener) override;
 		virtual void RemoveListener(IInputListener* pListener) override;
 
 		virtual void OnUpdate() override;
+
+		virtual const char* GetRegisterName() const override { return "InputSystem"; }
 	private:
 #ifdef SG_PLATFORM_WINDOWS
 		friend static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
