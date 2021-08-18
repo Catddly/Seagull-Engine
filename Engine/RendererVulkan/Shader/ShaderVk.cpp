@@ -90,7 +90,7 @@ namespace SG
 	{
 		for (auto beg = mShaderStages.begin(); beg != mShaderStages.end(); beg++)
 		{
-			Free(beg->second.pBinary);
+			Memory::Free(beg->second.pBinary);
 			VkShaderModule shaderModule = (VkShaderModule)beg->second.pShader;
 			vkDestroyShaderModule((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), shaderModule, nullptr);
 		}
@@ -136,7 +136,7 @@ namespace SG
 		if (pFS->Open(EResourceDirectory::eShader_Binarires, filepath.c_str(), EFileMode::eRead_Binary))
 		{
 			Size fileSize = pFS->FileSize();
-			std::byte* pBinary = (std::byte*)Malloc(fileSize * sizeof(std::byte));
+			std::byte* pBinary = (std::byte*)Memory::Malloc(fileSize * sizeof(std::byte));
 			pFS->Read(pBinary, fileSize);
 			Size binarySize = fileSize * sizeof(std::byte);
 			pFS->Close();

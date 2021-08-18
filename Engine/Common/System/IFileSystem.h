@@ -59,18 +59,18 @@ extern "C"
 	SG_ENUM_CLASS_FLAG(UInt32, EFileMode);
 
 	//! Memory stream for binary
-	typedef struct Memory
+	typedef struct MemoryBlock
 	{
 		UInt8* pBuffer;
 		Size   cursor;
-	} Memory;
+	} MemoryBlock;
 
 	typedef struct FileStream
 	{
 		union
 		{
-			Memory memory;
-			void*  file;
+			MemoryBlock memory;
+			void*       file;
 		};
 		EFileMode  filemode;
 	} FileStream;

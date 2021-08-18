@@ -9,21 +9,21 @@ namespace SG
 
 	void* CDefaultAllocator::allocate(Size size) noexcept
 	{
-		return Malloc(size);
+		return Memory::Malloc(size);
 	}
 
 	void* CDefaultAllocator::allocate(Size size, Size alignment, Size alignmentOffset, int flags /*= 0*/) noexcept
 	{
 		SG_NO_USE(flags);
 		if ((alignmentOffset % alignment) == 0)
-			return MallocAlign(size, alignment);
+			return Memory::MallocAlign(size, alignment);
 		return nullptr;
 	}
 
 	void CDefaultAllocator::deallocate(void* ptr, Size size) noexcept
 	{
 		SG_NO_USE(size);
-		Free(ptr);
+		Memory::Free(ptr);
 	}
 
 	CDefaultAllocator::CDefaultAllocator(const char* pName)
