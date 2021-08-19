@@ -80,11 +80,11 @@ namespace SG
 			SG_LOG_ERROR("Failed to create vkInstance");
 		}
 
-		mpRenderContext = new RenderContextVk(this);
+		mpRenderContext = Memory::New<RenderContextVk>(this);
 		SetupDebugMessager();
 		SelectPhysicalDevice();
 
-		mGraphicQueue = new QueueVk(EQueueType::eGraphic, EQueuePriority::eNormal, this);
+		mGraphicQueue = Memory::New<QueueVk>(EQueueType::eGraphic, EQueuePriority::eNormal, this);
 
 		CreateLogicalDevice();
 		mGraphicQueue->GetNativeHandle(); // Get the queue from the logical device.
@@ -92,30 +92,33 @@ namespace SG
 		CreateSurface();
 		CheckForPresentQueue();
 		auto rect = window->GetCurrRect();
-		mSwapChain = new SwapChainVk(EImageFormat::eSrgb_B8G8R8A8, EPresentMode::eFIFO, { GetRectWidth(rect), GetRectHeight(rect) }, this);
+		Resolution swapchainRes = { GetRectWidth(rect), GetRectHeight(rect) };
+		mSwapChain = Memory::New<SwapChainVk>(EImageFormat::eSrgb_B8G8R8A8, EPresentMode::eFIFO, swapchainRes, this);
 
 		const string stages[] = { "basic.vert", "basic.frag" };
-		mBasicShader = new ShaderVk(this, stages, 2);
+		mBasicShader = Memory::New<ShaderVk>(this, stages, 2);
 
-		mGraphicPipeline = new PipelineVk(this, mBasicShader, EPipelineType::eGraphic);
+		mGraphicPipeline = Memory::New<PipelineVk>(this, mBasicShader, EPipelineType::eGraphic);
 
-		mFrameBuffer = new FrameBufferVk(this);
+		mFrameBuffer = Memory::New<FrameBufferVk>(this);
 
 		//return bIsSuccess;
 	}
 
 	void RendererVk::OnShutdown()
 	{
-		delete mFrameBuffer;
-		delete mGraphicPipeline;
-		delete mBasicShader;
+		Memory::Delete(mFrameBuffer);
+		Memory::Delete(mGraphicPipeline);
+		Memory::Delete(mBasicShader);
 
-		delete mSwapChain;
+		Memory::Delete(mSwapChain);
 		if (!mbGraphicQueuePresentable)
-			delete mPresentQueue;
+			Memory::Delete(mPresentQueue);
 		vkDestroySurfaceKHR(mInstance, mpRenderContext->mPresentSurface, nullptr);
 		vkDestroyDevice(mpRenderContext->mLogicalDevice, nullptr);
-		delete mGraphicQueue;
+		Memory::Delete(mGraphicQueue);
+		if (!mbGraphicQueuePresentable)
+			Memory::Delete(mPresentQueue);
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
 		_DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessager, nullptr);
 #endif
@@ -371,7 +374,7 @@ namespace SG
 		{
 			SG_LOG_ERROR("Current physical device not support surface presentation");
 			mbGraphicQueuePresentable = false;
-			mPresentQueue = new QueueVk(EQueueType::eGraphic, EQueuePriority::eNormal, this);
+			mPresentQueue = Memory::New<QueueVk>(EQueueType::eGraphic, EQueuePriority::eNormal, this);
 		}
 		else
 		{

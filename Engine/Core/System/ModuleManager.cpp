@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "Common/System/ISystem.h"
 
+#include "Common/Memory/IMemory.h"
+
 namespace SG
 {
 
@@ -17,13 +19,13 @@ namespace SG
 		for (auto beg = mUserModuleMap.rbegin(); beg != mUserModuleMap.rend(); beg++)
 		{
 			beg->second->OnShutdown();
-			delete beg->second;
+			Memory::Delete(beg->second);
 		}
 
 		for (auto beg = mCoreModuleMap.rbegin(); beg != mCoreModuleMap.rend(); beg++)
 		{
 			beg->second->OnShutdown();
-			delete beg->second;
+			Memory::Delete(beg->second);
 		}
 	}
 

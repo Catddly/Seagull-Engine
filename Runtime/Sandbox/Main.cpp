@@ -155,5 +155,5 @@ SG::Mutex  MyApp::sMutex;
 
 SG::IApp* SG::GetAppInstance()
 {
-	return new MyApp;
+	return Memory::New<MyApp>();
 }

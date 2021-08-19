@@ -3,11 +3,11 @@
 #include "Common/Config.h"
 #include "Common/Base/BasicTypes.h"
 
-struct nothrow_t
-{
-	explicit nothrow_t() = default;
-};
-enum class align_val_t : size_t {};
+//struct nothrow_t
+//{
+//	explicit nothrow_t() = default;
+//};
+//enum class align_val_t : size_t {};
 
 // overload global new and delete
 //void* operator new(size_t n);
@@ -16,7 +16,7 @@ enum class align_val_t : size_t {};
 //void* operator new[](size_t n);
 //void* operator new[](size_t n, const nothrow_t& tag); // C++ 11
 //void* operator new[](size_t n, align_val_t align); // C++ 17
-//
+
 //void  operator delete(void* p) noexcept;
 //void  operator delete(void* p, size_t n) noexcept;
 //void  operator delete(void* p, const nothrow_t& tag) noexcept; // only be called when new_nothrow is been called

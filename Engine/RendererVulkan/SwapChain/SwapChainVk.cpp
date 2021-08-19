@@ -9,6 +9,8 @@
 
 #include "RendererVulkan/Utils/VulkanConversion.h"
 
+#include "Common/Memory/IMemory.h"
+
 #include "Common/Stl/vector.h"
 #include <EASTL/algorithm.h>
 #include <EASTL/utility.h>
@@ -127,13 +129,13 @@ namespace SG
 		// create texture container for swapchain images.
 		mImages.resize(SG_SWAPCHAIN_IMAGE_COUNT);
 		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
-			mImages[i] = new TextureVk(mpRenderer, this, i);
+			mImages[i] = Memory::New<TextureVk>(mpRenderer, this, i);
 	}
 
 	SwapChainVk::~SwapChainVk()
 	{
 		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
-			delete mImages[i];
+			Memory::Delete(mImages[i]);
 		vkDestroySwapchainKHR((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), mHandle, nullptr);
 	}
 

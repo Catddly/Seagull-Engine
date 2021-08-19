@@ -90,12 +90,12 @@ namespace SG
 			PeekLastOSError();
 		}
 
-		mMainWindow = new Window(pMonitor, L"Seagull Engine");
+		mMainWindow = Memory::New<Window>(pMonitor, L"Seagull Engine");
 	}
 
 	void CWindowManager::OnShutdown()
 	{
-		delete mMainWindow;
+		Memory::Delete(mMainWindow);
 	}
 
 	SG::Window* CWindowManager::GetMainWindow() const

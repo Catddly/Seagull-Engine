@@ -24,7 +24,7 @@ namespace SG
 
 		Window* mainWindow = CSystem::GetInstance()->GetOS()->GetMainWindow();
 
-		RenderPass* pRenderPass = new RenderPassVk(mpRenderer);
+		RenderPass* pRenderPass = Memory::New<RenderPassVk>(mpRenderer);
 
 		SwapChain* pSwapChain = mpRenderer->GetSwapChain();
 		Texture* ppSwapChainRt[SG_SWAPCHAIN_IMAGE_COUNT] = {};
@@ -54,7 +54,7 @@ namespace SG
 			}
 		}
 
-		delete pRenderPass;
+		Memory::Delete(pRenderPass);
 	}
 
 	FrameBufferVk::~FrameBufferVk()

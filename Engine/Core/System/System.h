@@ -68,6 +68,7 @@ namespace SG
 		SG_CORE_API static CSystem* GetInstance();
 	protected:
 		CSystem();
+		friend struct Memory;
 	private:
 		void OnUpdate();
 	private:
@@ -80,7 +81,6 @@ namespace SG
 		};
 
 		static CSystem* sInstance;
-		//SSystemModules mSystemModules;
 		CModuleManager mModuleManager;
 
 		IProcess* mpCurrActiveProcess;

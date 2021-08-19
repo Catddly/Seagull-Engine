@@ -6,6 +6,8 @@
 #include "Core/System/InputSystem.h"
 #include "Core/Platform/OperatingSystem.h"
 
+#include "Common/Memory/IMemory.h"
+
 #include <windows.h>
 
 namespace SG
@@ -48,8 +50,10 @@ namespace SG
 	void CSystem::OnShutdown()
 	{
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
+		Memory::Delete(mpCurrActiveProcess);
+
 		if (sInstance)
-			delete sInstance;
+			Memory::Delete(sInstance);
 	}
 
 	bool CSystem::ValidateCoreModules() const
@@ -135,10 +139,10 @@ namespace SG
 
 	bool CSystem::InitCoreModules()
 	{
-		IFileSystem* pFileSystem = new CFileSystem;
-		ILog* pLogger = new CLog;
-		IOperatingSystem* pOS = new COperatingSystem;
-		IInputSystem* pInputSystem = new CInputSystem;
+		IFileSystem* pFileSystem = Memory::New<CFileSystem>();
+		ILog* pLogger = Memory::New<CLog>();
+		IOperatingSystem* pOS = Memory::New<COperatingSystem>();
+		IInputSystem* pInputSystem = Memory::New<CInputSystem>();
 
 		mModuleManager.RegisterCoreModule(pFileSystem);
 		mModuleManager.RegisterCoreModule(pLogger);
@@ -200,7 +204,7 @@ namespace SG
 	CSystem* CSystem::GetInstance()
 	{
 		if (sInstance == nullptr)
-			sInstance = new CSystem;
+			sInstance = Memory::New<CSystem>();
 		return sInstance;
 	}
 
@@ -210,7 +214,7 @@ namespace SG
 		_chdir(filepath);
 	}
 
-	ILog*             CSystem::GetLogger()         const { return mModuleManager.GetModule<ILog*>("Logger", true); }
+	ILog*             CSystem::GetLogger()      const { return mModuleManager.GetModule<ILog*>("Logger", true); }
 	IFileSystem*      CSystem::GetFileSystem()  const { return mModuleManager.GetModule<IFileSystem*>("FileSystem", true); }
 	IInputSystem*     CSystem::GetInputSystem() const { return mModuleManager.GetModule<IInputSystem*>("InputSystem", true); }
 	IOperatingSystem* CSystem::GetOS()          const { return mModuleManager.GetModule<IOperatingSystem*>("OS", true); }

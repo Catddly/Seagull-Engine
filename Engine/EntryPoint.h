@@ -30,7 +30,7 @@ int main(int argv, char** argc)
 	//p3DEngine->OnInit();
 
 	// TODO: replace to runtime binding dll
-	Renderer* pRenderer = new RendererVk;
+	Renderer* pRenderer = Memory::New<RendererVk>();
 	pSystemManager->RegisterModule(pRenderer);
 	pSystemManager->AddIProcess(app);
 

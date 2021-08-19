@@ -154,7 +154,7 @@ namespace SG
 			SG_ASSERT(false);
 		}
 		
-		mpRenderpass = new RenderPassVk(mpRenderer);
+		mpRenderpass = Memory::New<RenderPassVk>(mpRenderer);
 
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -188,7 +188,7 @@ namespace SG
 	PipelineVk::~PipelineVk()
 	{
 		vkDestroyPipelineLayout((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), mPipelineLayout, nullptr);
-		delete mpRenderpass;
+		Memory::Delete(mpRenderpass);
 		vkDestroyPipeline((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), mPipeline, nullptr);
 	}
 
