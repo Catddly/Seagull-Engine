@@ -3,13 +3,13 @@
 //! Seagull Engine embedded the entrypoint inside the engine
 //! to avoid some user-side problems
  
-#include "Common/System/ISystem.h"
-#include "Common/User/IApp.h"
+#include "System/ISystem.h"
+#include "User/IApp.h"
 
 #include "3DEngine/3DEngine/3DEngine.h"
-#include "Core/System/System.h"
+#include "Core/Private/System/System.h"
 
-#include "Common/Memory/IMemory.h"
+#include "Memory/IMemory.h"
 
 // TODO: replace to runtime binding dll
 #include "RendererVulkan/Renderer/RendererVk.h"
@@ -21,7 +21,7 @@ int main(int argv, char** argc)
 	IApp* app = GetAppInstance();
 	ISystem* pSystemManager = CSystem::GetInstance();
 	pSystemManager->OnInit();
-	SG_LOG_IF(ELogLevel::eLog_Level_Info, "Are core modules loaded: ", pSystemManager->ValidateCoreModules());
+	SG_LOG_IF(ELogLevel::efLog_Level_Info, "Are core modules loaded: ", pSystemManager->ValidateCoreModules());
 
 	// TOOD: other modules should be loaded as dll,
 	// don't use get/set function.
@@ -34,7 +34,7 @@ int main(int argv, char** argc)
 	pSystemManager->RegisterModule(pRenderer);
 	pSystemManager->AddIProcess(app);
 
-	SG_LOG_IF(ELogLevel::eLog_Level_Info, "Are all  modules loaded: ", pSystemManager->ValidateAllModules());
+	SG_LOG_IF(ELogLevel::efLog_Level_Info, "Are all  modules loaded: ", pSystemManager->ValidateAllModules());
 	SG_LOG_INFO("Welcome To Seagull Engine!");
 
 	if (pSystemManager->SystemMainLoop())

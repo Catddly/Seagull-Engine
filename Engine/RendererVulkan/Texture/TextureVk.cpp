@@ -1,9 +1,9 @@
 #include "StdAfx.h"
 #include "TextureVk.h"
 
-#include "Common/System/ILog.h"
+#include "System/ILogger.h"
 
-#include "Common/Render/Renderer.h"
+#include "Render/Renderer.h"
 #include "RendererVulkan/Renderer/RendererVk.h"
 #include "RendererVulkan/RenderContext/RenderContextVk.h"
 #include "RendererVulkan/SwapChain/SwapChainVk.h"

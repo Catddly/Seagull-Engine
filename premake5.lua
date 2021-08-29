@@ -19,11 +19,9 @@ IncludeDir = { }
 
 group "Seagull Engine"
 
-    include "Engine/Common/"
     include "Engine/3DEngine/"
     include "Engine/Core/"
     include "Engine/Utility/"
-    -- include "Engine/Renderer/"
     include "Engine/RendererVulkan/"
     include "Engine/Editor/"
     include "Engine/Input/"
@@ -33,7 +31,6 @@ group ""
 group "Libs"
 
     include "Libs/mimalloc/"
-    include "Libs/mimalloc-static/"
     include "Libs/eastl/"
 
 group ""
@@ -67,6 +64,7 @@ group "Runtime"
         includedirs
         {
             "Engine/",
+            "Engine/Core/Public/",
             "Libs/",
             "Libs/eastl/include/",
         }
@@ -77,7 +75,7 @@ group "Runtime"
 
         links
         {
-            "mimalloc-static",
+            "mimalloc",
             "eastl",
             "S3DEngine",
             "SRendererVulkan",

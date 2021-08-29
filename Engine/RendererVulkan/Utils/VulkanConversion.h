@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common/Render/SwapChain.h"
+#include "Render/SwapChain.h"
 
 #include <vulkan/vulkan_core.h>
 

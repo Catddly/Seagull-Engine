@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "SwapChainVk.h"
 
-#include "Common/System/ILog.h"
+#include "System/ILogger.h"
 #include "RendererVulkan/Renderer/RendererVk.h"
 #include "RendererVulkan/Queue/QueueVk.h"
 #include "RendererVulkan/RenderContext/RenderContextVk.h"
@@ -9,9 +9,9 @@
 
 #include "RendererVulkan/Utils/VulkanConversion.h"
 
-#include "Common/Memory/IMemory.h"
+#include "Memory/IMemory.h"
 
-#include "Common/Stl/vector.h"
+#include "Stl/vector.h"
 #include <EASTL/algorithm.h>
 #include <EASTL/utility.h>
 

@@ -1,17 +1,17 @@
 #include "StdAfx.h"
 #include "FrameBufferVk.h"
 
-#include "Common/System/ILog.h"
+#include "System/ILogger.h"
 
-#include "Common/Render/Renderer.h"
+#include "Render/Renderer.h"
 #include "RendererVulkan/Renderer/RendererVk.h"
 #include "RendererVulkan/RenderContext/RenderContextVk.h"
-#include "Common/Render/Pipeline.h"
+#include "Render/Pipeline.h"
 #include "RendererVulkan/Pipeline/PipelineVk.h"
 #include "RendererVulkan/SwapChain/SwapChainVk.h"
-#include "Common/Render/Texture.h"
+#include "Render/Texture.h"
 
-#include "Common/Platform/Window.h"
+#include "Platform/Window.h"
 
 namespace SG
 {

@@ -27,6 +27,7 @@ project "S3DEngine"
     includedirs
     {
         "../",
+        "../Core/Public",
         "../../Libs",
         "../../Libs/eastl/include/",
     }

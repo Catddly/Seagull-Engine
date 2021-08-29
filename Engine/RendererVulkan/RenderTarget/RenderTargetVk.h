@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Common/Render/RenderTarget.h"
-#include "Common/Render/SwapChain.h"
+#include "Render/RenderTarget.h"
+#include "Render/SwapChain.h"
 
 namespace SG
 {

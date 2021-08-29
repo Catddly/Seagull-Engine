@@ -57,12 +57,12 @@ public:
 	{
 		using namespace SG;
 
-		auto* pOS = CSystem::GetInstance()->GetOS();
-		Window* pMainWindow = pOS->GetMainWindow();
-		Rect& pWindowRect = pMainWindow->GetCurrRect();
-		Monitor* pMainMOnitor = pOS->GetMainMonitor();
-		Vector2i pos = pMainWindow->GetMousePosRelative();
-		Vector2i pos2 = pOS->GetMousePos();
+		//auto* pOS = CSystem::GetInstance()->GetOS();
+		//Window* pMainWindow = pOS->GetMainWindow();
+		//Rect& pWindowRect = pMainWindow->GetCurrRect();
+		//Monitor* pMainMOnitor = pOS->GetMainMonitor();
+		//Vector2i pos = pMainWindow->GetMousePosRelative();
+		//Vector2i pos2 = pOS->GetMousePos();
 		//SG_LOG_DEBUG("Window Rect (%d, %d) (%d, %d)", pWindowRect.left, pWindowRect.top, pWindowRect.right, pWindowRect.bottom);
 		//SG_LOG_DEBUG("Mouse Pos(Relative) (%d, %d)", pos[0], pos[1]);
 		//SG_LOG_DEBUG("Mouse Pos(R - A) (%d, %d)", pos[0] - pos2[0], pos[1] - pos2[1]);
@@ -104,10 +104,10 @@ private:
 		Matrix3i mat3i = Matrix3i::Identity();
 		Matrix4i mat4i = Matrix4i::Identity();
 
-		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, mat3f);
-		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, mat4f);
-		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, mat3i);
-		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, mat4i);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat3f);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat4f);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat3i);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat4i);
 
 		Vector2f vec2f = Vector2f::Identity();
 		Vector3f vec3f = Vector3f::Identity();
@@ -116,12 +116,12 @@ private:
 		Vector3i vec3i = Vector3i::Identity();
 		Vector4i vec4i = Vector4i::Identity();
 
-		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec2f);
-		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec3f);
-		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec4f);
-		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec2i);
-		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec3i);
-		SG_LOG_MATH(ELogLevel::eLog_Level_Debug, vec4i);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec2f);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec3f);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec4f);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec2i);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec3i);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec4i);
 	}
 
 	void ThreadTest()

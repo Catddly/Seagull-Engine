@@ -1,5 +1,5 @@
 project "mimalloc"
-    kind "SharedLib"
+    kind "StaticLib"
     language "C"
     staticruntime "off"
 
@@ -16,7 +16,6 @@ project "mimalloc"
         "source/alloc-posix.c",
         "source/arena.c",
         "source/bitmap.c",
-        --"source/bitmap.h",
         "source/heap.c",
         "source/init.c",
         "source/options.c",
@@ -32,10 +31,7 @@ project "mimalloc"
     {
         "WIN32",
         "_WINDOWS",
-        "MI_SHARED_LIB",
-        "MI_SHARED_LIB_EXPORT",
-        "MI_MALLOC_OVERRIDE",
-        "mimalloc_EXPORTS",
+        "MI_STATIC_LIB",
     }
 
     includedirs
@@ -45,24 +41,23 @@ project "mimalloc"
 
     links
     {
-        "libs/mimalloc-redirect",
     }
 
 filter "configurations:Debug"
     runtime "Debug"
     symbols "on"
     -- enable if you want to build a dll
-    postbuildcommands
-    {
-        ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\""),
-        ("{COPY} \"libs/mimalloc-redirect.dll\" \"../../bin/" .. outputdir .. "/Sandbox/\""),
-    }
+    -- postbuildcommands
+    -- {
+    --     ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\""),
+    --     ("{COPY} \"libs/mimalloc-redirect.dll\" \"../../bin/" .. outputdir .. "/Sandbox/\""),
+    -- }
 
 filter "configurations:Release"
     runtime "Release"
     optimize "on"
-    postbuildcommands
-    {
-        ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\""),
-        ("{COPY} \"libs/mimalloc-redirect.dll\" \"../../bin/" .. outputdir .. "/Sandbox/\""),
-    }
+    -- postbuildcommands
+    -- {
+    --     ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\""),
+    --     ("{COPY} \"libs/mimalloc-redirect.dll\" \"../../bin/" .. outputdir .. "/Sandbox/\""),
+    -- }

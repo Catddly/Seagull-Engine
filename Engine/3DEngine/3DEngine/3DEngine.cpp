@@ -1,8 +1,8 @@
 #include "StdAfx.h"
 #include "3DEngine.h"
 
-#include "Common/System/ISystem.h"
-#include "Common/System/ILog.h"
+#include "System/ISystem.h"
+#include "System/ILogger.h"
 
 namespace SG
 {

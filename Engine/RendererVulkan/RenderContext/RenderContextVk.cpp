@@ -1,12 +1,12 @@
 #include "StdAfx.h"
 #include "RenderContextVk.h"
 
-#include "Common/System/ILog.h"
-#include "Common/Platform/Window.h"
+#include "System/ILogger.h"
+#include "Platform/Window.h"
 
 #include "RendererVulkan/Queue/QueueVk.h"
 
-#include "Common/Stl/vector.h"
+#include "Stl/vector.h"
 #include <EASTL/set.h>
 
 namespace SG

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Common/Render/Shader.h"
+#include "Render/Shader.h"
 
-#include "Common/Stl/string.h"
-#include "Common/Stl/string_view.h"
+#include "Stl/string.h"
+#include "Stl/string_view.h"
 
 #include <vulkan/vulkan_core.h>
 

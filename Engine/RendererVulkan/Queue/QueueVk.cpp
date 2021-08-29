@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "QueueVk.h"
 
-#include "Common/System/ILog.h"
+#include "System/ILogger.h"
 #include "RendererVulkan/Renderer/RendererVk.h"
 #include "RendererVulkan/RenderContext/RenderContextVk.h"
 

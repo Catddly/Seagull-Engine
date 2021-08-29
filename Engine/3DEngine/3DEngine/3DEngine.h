@@ -1,8 +1,8 @@
 #pragma once
 #include "3DEngine/Config.h"
 
-#include "Common/System/ILog.h"
-#include "Common/System/I3DEngine.h"
+#include "System/ILogger.h"
+#include "System/I3DEngine.h"
 
 namespace SG
 {

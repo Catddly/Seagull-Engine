@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Common/Render/SwapChain.h"
+#include "Render/SwapChain.h"
 
-#include "Common/Platform/IOperatingSystem.h"
+#include "Platform/IOperatingSystem.h"
 
 #include <vulkan/vulkan_core.h>
 
-#include "Common/Stl/vector.h"
+#include "Stl/vector.h"
 
 namespace SG
 {

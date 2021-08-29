@@ -1,60 +1,60 @@
-#include "Common/Core/Defs.h"
-#include "Common/Base/BasicTypes.h"
+#include "Defs/Defs.h"
+#include "Base/BasicTypes.h"
 
 //----------------------------------------------------------
 // Standard template library
 //----------------------------------------------------------
-#include "Common/Stl/vector.h"
-#include "Common/Stl/string.h"
-#include "Common/Stl/string_view.h"
-#include "Common/Stl/shared_ptr.h"
+#include "Stl/vector.h"
+#include "Stl/string.h"
+#include "Stl/string_view.h"
+#include "Stl/shared_ptr.h"
 #include <EASTL/map.h>
 
 //----------------------------------------------------------
 // Math library
 //----------------------------------------------------------
-#include "Common/Math/Vector.h"
-#include "Common/Math/Matrix.h"
+#include "Math/Vector.h"
+#include "Math/Matrix.h"
 
 //----------------------------------------------------------
 // System modules
 //----------------------------------------------------------
-#include "Common/System/ISystem.h"
-#include "Common/System/IFileSystem.h"
-#include "Common/System/ILog.h"
-#include "Common/User/IApp.h"
+#include "System/ISystem.h"
+#include "System/IFileSystem.h"
+#include "System/ILogger.h"
+#include "User/IApp.h"
 
 //----------------------------------------------------------
 // System implementation
 //----------------------------------------------------------
-#include "Core/System/System.h"
+#include "Core/Private/System/System.h"
 
 //----------------------------------------------------------
 // Platform specification modules
 //----------------------------------------------------------
-#include "Common/Platform/IOperatingSystem.h"
-#include "Common/Platform/SystemTime.h"
+#include "Platform/IOperatingSystem.h"
+#include "Platform/SystemTime.h"
 
-#include "Common/Thread/IThread.h"
-#include "Common/Thread/IJobSystem.h"
+#include "Thread/IThread.h"
+#include "Thread/IJobSystem.h"
 
-#include "Common/System/IInput.h"
+#include "System/IInput.h"
 
-#include "Common/Memory/IMemory.h"
+#include "Memory/IMemory.h"
 
 //----------------------------------------------------------
 // Render relative
 //----------------------------------------------------------
-#include "Common/Render/Queue.h"
-#include "Common/Render/RenderContext.h"
-#include "Common/Render/Texture.h"
-#include "Common/Render/Renderer.h"
+#include "Render/Queue.h"
+#include "Render/RenderContext.h"
+#include "Render/Texture.h"
+#include "Render/Renderer.h"
 
 //----------------------------------------------------------
 // System data
 //----------------------------------------------------------
-#include "Common/Platform/Window.h"
-#include "Common/Platform/OsDevices.h"
+#include "Platform/Window.h"
+#include "Platform/OsDevices.h"
 
 //----------------------------------------------------------
 // EntryPoint

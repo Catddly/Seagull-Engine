@@ -27,6 +27,7 @@ project "SRendererVulkan"
     includedirs
     {
         "../",
+        "../Core/Public/",
         "../../Libs/",
         "../../Libs/eastl/include/",
     }

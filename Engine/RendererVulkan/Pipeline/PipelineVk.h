@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common/Render/Pipeline.h"
+#include "Render/Pipeline.h"
 
 namespace SG
 {

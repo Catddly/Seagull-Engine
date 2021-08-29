@@ -23,6 +23,8 @@ project "eastl"
     {
         "include/",
         "../../Engine/",
+        "../../Engine/Core/",
+        "../../Engine/Core/Public/",
     }
 
     filter "system:windows"

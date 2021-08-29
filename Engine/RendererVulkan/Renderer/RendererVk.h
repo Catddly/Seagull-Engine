@@ -1,12 +1,12 @@
 #pragma once
 
 #include "RendererVulkan/Config.h"
-#include "Common/Core/Defs.h"
-#include "Common/Render/Renderer.h"
+#include "Defs/Defs.h"
+#include "Render/Renderer.h"
 
 #include <vulkan/vulkan_core.h>
 
-#include "Common/Stl/vector.h"
+#include "Stl/vector.h"
 
 namespace SG
 {

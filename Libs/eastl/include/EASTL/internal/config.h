@@ -29,7 +29,7 @@ namespace eastl
 #define EASTLAllocatorType SG::CDefaultAllocator
 #define EASTLAllocatorDefault SG::GetDefaultAllocator
 }
-#include "../../../../../Engine/Common/Core/Defs.h"
+#include "Defs/Defs.h"
 // End seagull's config override
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Common/Core/Defs.h"
-#include "Common/Render/Texture.h"
-#include "Common/Render/SwapChain.h"
+#include "Defs/Defs.h"
+#include "Render/Texture.h"
+#include "Render/SwapChain.h"
 
 #include <vulkan/vulkan_core.h>
 

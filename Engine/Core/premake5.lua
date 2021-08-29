@@ -29,11 +29,12 @@ project "SCore"
         "../",
         "../../Libs/",
         "../../Libs/eastl/include/",
+        "Public",
     }
 
     links
     {
-        "mimalloc-static",
+        "mimalloc",
         "eastl"
     }
 

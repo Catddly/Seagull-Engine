@@ -1,12 +1,12 @@
 #include "StdAfx.h"
 #include "ShaderVk.h"
 
-#include "Core/System/System.h"
-#include "Common/System/IFileSystem.h"
+#include "Core/Private/System/System.h"
+#include "System/IFileSystem.h"
 
 #include "RendererVulkan/Renderer/RendererVk.h"
 #include "RendererVulkan/RenderContext/RenderContextVk.h"
-#include "Common/Memory/IMemory.h"
+#include "Memory/IMemory.h"
 
 #include <EASTL/algorithm.h>
 
@@ -72,17 +72,17 @@ namespace SG
 				extension = name.substr(slashPos + 1, name.size() - slashPos);
 			}
 			if (extension == "vert")
-				CreateVulkanShaderModule(&mShaderStages[EShaderStages::eVert]);
+				CreateVulkanShaderModule(&mShaderStages[EShaderStages::efVert]);
 			else if (extension == "frag")
-				CreateVulkanShaderModule(&mShaderStages[EShaderStages::eFrag]);
+				CreateVulkanShaderModule(&mShaderStages[EShaderStages::efFrag]);
 			else if (extension == "comp")
-				CreateVulkanShaderModule(&mShaderStages[EShaderStages::eComp]);
+				CreateVulkanShaderModule(&mShaderStages[EShaderStages::efComp]);
 			else if (extension == "gemo")
-				CreateVulkanShaderModule(&mShaderStages[EShaderStages::eGeom]);
+				CreateVulkanShaderModule(&mShaderStages[EShaderStages::efGeom]);
 			else if (extension == "tesc")
-				CreateVulkanShaderModule(&mShaderStages[EShaderStages::eTesc]);
+				CreateVulkanShaderModule(&mShaderStages[EShaderStages::efTesc]);
 			else if (extension == "tese")
-				CreateVulkanShaderModule(&mShaderStages[EShaderStages::eTese]);
+				CreateVulkanShaderModule(&mShaderStages[EShaderStages::efTese]);
 		}
 	}
 
@@ -133,7 +133,7 @@ namespace SG
 			filepath = name + "." + extension;
 		else
 			filepath = name + "-" + extension + ".spv";
-		if (pFS->Open(EResourceDirectory::eShader_Binarires, filepath.c_str(), EFileMode::eRead_Binary))
+		if (pFS->Open(EResourceDirectory::eShader_Binarires, filepath.c_str(), EFileMode::efRead_Binary))
 		{
 			Size fileSize = pFS->FileSize();
 			std::byte* pBinary = (std::byte*)Memory::Malloc(fileSize * sizeof(std::byte));
@@ -149,17 +149,17 @@ namespace SG
 			}
 
 			if (actualExtension == "vert")
-				mShaderStages[EShaderStages::eVert] = { pBinary, binarySize, VK_NULL_HANDLE };
+				mShaderStages[EShaderStages::efVert] = { pBinary, binarySize, VK_NULL_HANDLE };
 			else if (actualExtension == "frag")
-				mShaderStages[EShaderStages::eFrag] = { pBinary, binarySize, VK_NULL_HANDLE };
+				mShaderStages[EShaderStages::efFrag] = { pBinary, binarySize, VK_NULL_HANDLE };
 			else if (actualExtension == "comp")
-				mShaderStages[EShaderStages::eComp] = { pBinary, binarySize, VK_NULL_HANDLE };
+				mShaderStages[EShaderStages::efComp] = { pBinary, binarySize, VK_NULL_HANDLE };
 			else if (actualExtension == "gemo")
-				mShaderStages[EShaderStages::eGeom] = { pBinary, binarySize, VK_NULL_HANDLE };
+				mShaderStages[EShaderStages::efGeom] = { pBinary, binarySize, VK_NULL_HANDLE };
 			else if (actualExtension == "tese")
-				mShaderStages[EShaderStages::eTese] = { pBinary, binarySize, VK_NULL_HANDLE };
+				mShaderStages[EShaderStages::efTese] = { pBinary, binarySize, VK_NULL_HANDLE };
 			else if (actualExtension == "tesc")
-				mShaderStages[EShaderStages::eTesc] = { pBinary, binarySize, VK_NULL_HANDLE };
+				mShaderStages[EShaderStages::efTesc] = { pBinary, binarySize, VK_NULL_HANDLE };
 
 			return true;
 		}

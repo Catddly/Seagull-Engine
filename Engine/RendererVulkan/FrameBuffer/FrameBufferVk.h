@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Common/Render/FrameBuffer.h"
+#include "Render/FrameBuffer.h"
 
-#include "Common/Stl/vector.h"
+#include "Stl/vector.h"
 
 #include <vulkan/vulkan_core.h>
 

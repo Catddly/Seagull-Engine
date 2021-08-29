@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Common/Core/Defs.h"
-#include "Common/Render/RenderContext.h"
+#include "Defs/Defs.h"
+#include "Render/RenderContext.h"
 
 #include <vulkan/vulkan_core.h>
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Common/Render/Queue.h"
-#include "Common/Base/BasicTypes.h"
+#include "Render/Queue.h"
+#include "Base/BasicTypes.h"
 
 #include <vulkan/vulkan_core.h>
 

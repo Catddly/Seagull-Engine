@@ -1,11 +1,11 @@
 #include "StdAfx.h"
 #include "RendererVk.h"
 
-#include "Common/System/ISystem.h"
-#include "Common/System/ILog.h"
-#include "Common/Memory/IMemory.h"
-#include "Common/Platform/IOperatingSystem.h"
-#include "Common/Platform/Window.h"
+#include "System/ISystem.h"
+#include "System/ILogger.h"
+#include "Memory/IMemory.h"
+#include "Platform/IOperatingSystem.h"
+#include "Platform/Window.h"
 
 #include "RendererVulkan/Queue/QueueVk.h"
 #include "RendererVulkan/SwapChain/SwapChainVk.h"
@@ -15,7 +15,7 @@
 
 #include "RendererVulkan/Shader/ShaderVk.h"
 
-#include "Common/Stl/vector.h"
+#include "Stl/vector.h"
 #include <EASTL/set.h>
 
 #ifdef SG_PLATFORM_WINDOWS
