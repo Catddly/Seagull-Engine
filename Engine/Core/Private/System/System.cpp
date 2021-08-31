@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "System.h"
 
-#include "Core/Private/Log/Logger.h"
+#include "Core/Private/Logger/Logger.h"
 #include "Core/Private/FileSystem/FileSystem.h"
 #include "Core/Private/System/InputSystem.h"
 #include "Core/Private/Platform/OperatingSystem.h"
