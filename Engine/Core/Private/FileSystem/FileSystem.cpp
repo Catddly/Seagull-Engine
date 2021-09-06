@@ -31,14 +31,14 @@ namespace SG
 		return mStreamOp->Close(&mStream);
 	}
 
-	Size CFileSystem::Read(void* pInBuf, Size bufSize)
+	Size CFileSystem::Read(void* pInBuf, Size bufSizeInByte)
 	{
-		return mStreamOp->Read(&mStream, pInBuf, bufSize);
+		return mStreamOp->Read(&mStream, pInBuf, bufSizeInByte);
 	}
 
-	Size CFileSystem::Write(const void* const pOutBuf, Size bufSize)
+	Size CFileSystem::Write(const void* const pOutBuf, Size bufSizeInByte)
 	{
-		return mStreamOp->Write(&mStream, pOutBuf, bufSize);
+		return mStreamOp->Write(&mStream, pOutBuf, bufSizeInByte);
 	}
 
 	bool CFileSystem::Seek(EFileBaseOffset baseOffset, Size offset)

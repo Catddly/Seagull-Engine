@@ -16,7 +16,7 @@ void CvThreadFunc(void* pUser)
 	}
 }
 
-class MyApp : public SG::IApp, SG::IInputListener
+class MyApp : public SG::IApp, public SG::IInputListener
 {
 public:
 	virtual void OnInit() override
@@ -51,6 +51,24 @@ public:
 		//ThreadTest();
 
 		Vector2i veci = { 5, 8 };
+
+		//auto pIO = CSystem::GetInstance()->GetFileSystem();
+		//if (pIO->Open(EResourceDirectory::eLog, "test.spv", EFileMode::efWrite_Binary))
+		//{
+		//	int a = 4;
+		//	pIO->Write(&a, 4);
+		//	pIO->Close();
+		//}
+
+		//if (pIO->Open(EResourceDirectory::eLog, "test.spv", EFileMode::efRead_Binary))
+		//{
+		//	SG_LOG_DEBUG("FileSize: %d", pIO->FileSize());
+		//	void* buf = Memory::Malloc(pIO->FileSize());
+		//	pIO->Read(buf, pIO->FileSize());
+		//	SG_LOG_DEBUG("a = %d", *(int*)buf);
+		//	pIO->Close();
+		//	Memory::Free(buf);
+		//}
 	}
 
 	virtual void OnUpdate() override

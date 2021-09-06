@@ -11,7 +11,6 @@
 namespace SG
 {
 
-
 	TextureVk::TextureVk(Renderer* pRenderer, const Resolution& res)
 		:mResolution(res), mpRenderer(pRenderer), mbIsSwapchainImage(false)
 	{

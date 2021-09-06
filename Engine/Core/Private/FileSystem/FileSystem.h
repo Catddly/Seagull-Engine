@@ -17,8 +17,8 @@ namespace SG
 
 		SG_CORE_API virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode) override;
 		SG_CORE_API virtual bool Close() override;
-		SG_CORE_API virtual Size Read(void* pInBuf, Size bufSize) override;
-		SG_CORE_API virtual Size Write(const void* const pOutBuf, Size bufSize) override;
+		SG_CORE_API virtual Size Read(void* pInBuf, Size bufSizeInByte) override;
+		SG_CORE_API virtual Size Write(const void* const pOutBuf, Size bufSizeInByte) override;
 		SG_CORE_API virtual bool Seek(EFileBaseOffset baseOffset, Size offset) override;
 		SG_CORE_API virtual Size Tell() const override;
 		SG_CORE_API virtual Size FileSize() const override;

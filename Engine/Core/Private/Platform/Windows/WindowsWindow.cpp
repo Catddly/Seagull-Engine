@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "Platform/Window.h"
 
-#include "Platform/DeviceManager.h"
+#include "Core/Private/Platform/DeviceManager.h"
 
 #include <windows.h>
 

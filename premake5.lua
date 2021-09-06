@@ -21,10 +21,10 @@ group "Seagull Engine"
 
     include "Engine/3DEngine/"
     include "Engine/Core/"
-    include "Engine/Utility/"
+    -- include "Engine/Utility/"
     include "Engine/RendererVulkan/"
-    include "Engine/Editor/"
-    include "Engine/Input/"
+    -- include "Engine/Editor/"
+    -- include "Engine/Input/"
 
 group ""
 

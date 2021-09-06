@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "Platform/DeviceManager.h"
+#include "Core/Private/Platform/DeviceManager.h"
 
 #include "Platform/OsDevices.h"
 #include "System/ILogger.h"

@@ -4,8 +4,8 @@
 
 #include "Platform/IOperatingSystem.h"
 
-#include "Platform/DeviceManager.h"
-#include "Platform/WindowManager.h"
+#include "Core/Private/Platform/DeviceManager.h"
+#include "Core/Private/Platform/WindowManager.h"
 
 #include "Math/Vector.h"
 

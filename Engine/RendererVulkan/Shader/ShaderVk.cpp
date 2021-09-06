@@ -135,11 +135,9 @@ namespace SG
 			filepath = name + "-" + extension + ".spv";
 		if (pFS->Open(EResourceDirectory::eShader_Binarires, filepath.c_str(), EFileMode::efRead_Binary))
 		{
-			Size fileSize = pFS->FileSize();
-			std::byte* pBinary = (std::byte*)Memory::Malloc(fileSize * sizeof(std::byte));
-			pFS->Read(pBinary, fileSize);
-			Size binarySize = fileSize * sizeof(std::byte);
-			pFS->Close();
+			Size binarySize = pFS->FileSize();
+			std::byte* pBinary = (std::byte*)Memory::Malloc(binarySize);
+			pFS->Read(pBinary, binarySize);
 
 			string actualExtension = extension;
 			if (extension == "spv")
@@ -161,6 +159,7 @@ namespace SG
 			else if (actualExtension == "tesc")
 				mShaderStages[EShaderStages::efTesc] = { pBinary, binarySize, VK_NULL_HANDLE };
 
+			pFS->Close();
 			return true;
 		}
 		else

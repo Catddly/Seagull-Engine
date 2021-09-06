@@ -1,8 +1,8 @@
 #include "StdAfx.h"
-#include "Platform/WindowManager.h"
+#include "Core/Private/Platform/WindowManager.h"
 
 #include "System/IInput.h"
-#include "Platform/DeviceManager.h"
+#include "Core/Private/Platform/DeviceManager.h"
 #include "Core/Private/System/InputSystem.h"
 #include "Platform/Window.h"
 
