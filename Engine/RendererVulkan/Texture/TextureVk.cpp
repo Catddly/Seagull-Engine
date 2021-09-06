@@ -47,9 +47,9 @@ namespace SG
 
 		// fetch image from swapchain
 		UInt32 imageCnt = SG_SWAPCHAIN_IMAGE_COUNT;
-		vector<VkImage> vkImages(imageCnt);
+		VkImage vkImages[SG_SWAPCHAIN_IMAGE_COUNT] = { };
 		vkGetSwapchainImagesKHR((VkDevice)pRenderer->GetRenderContext()->GetLogicalDeviceHandle(),
-			(VkSwapchainKHR)pSwapChain->GetNativeHandle(), &imageCnt, vkImages.data());
+			(VkSwapchainKHR)pSwapChain->GetNativeHandle(), &imageCnt, vkImages);
 		mImage = vkImages[index];
 
 		// create image view for swapchain image

@@ -21,8 +21,6 @@ namespace SG
 	SwapChainVk::SwapChainVk(EImageFormat format, EPresentMode presentMode, const Resolution& res, Renderer* pRenderer)
 		:mFormat(format), mPresentMode(presentMode), mResolution(res), mpRenderer(pRenderer)
 	{
-		//mTextures.resize(SG_SWAPCHAIN_IMAGE_COUNT);
-
 		auto physicalDevice = (VkPhysicalDevice)pRenderer->GetRenderContext()->GetPhysicalDeviceHandle();
 		auto presentSurface = (VkSurfaceKHR)pRenderer->GetRenderContext()->GetRenderSurface();
 

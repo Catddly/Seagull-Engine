@@ -291,6 +291,13 @@ namespace SG
 				mpRenderContext->mPhysicalDevice = device;
 				break;
 			}
+
+			if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU && deviceFeatures.geometryShader)
+			{
+				mpRenderContext->mPhysicalDevice = device;
+				SG_LOG_WARN("Integrated GPU detected!");
+				break;
+			}
 		}
 	
 	}
@@ -329,7 +336,7 @@ namespace SG
 				break;
 		}
 		if (!requiredExtensions.empty())
-			SG_LOG_WARN("Extensions in physical device do not include the ohters in instance");
+			SG_LOG_WARN("Extensions in physical device do not include the others in instance");
 	
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
