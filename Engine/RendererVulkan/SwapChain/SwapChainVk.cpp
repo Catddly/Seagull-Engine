@@ -137,7 +137,7 @@ namespace SG
 		vkDestroySwapchainKHR((VkDevice)mpRenderer->GetRenderContext()->GetLogicalDeviceHandle(), mHandle, nullptr);
 	}
 
-	SG::Texture* SwapChainVk::GetTexture(UInt32 index) const
+	SG::Old_Texture* SwapChainVk::GetTexture(UInt32 index) const
 	{
 		if (index >= SG_SWAPCHAIN_IMAGE_COUNT)
 			SG_LOG_ERROR("Required texture of swapchain had been out of the coundary");

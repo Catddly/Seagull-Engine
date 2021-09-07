@@ -11,7 +11,7 @@ namespace SG
 {
 
 	class RendererVk;
-	class QueueVk final : public Queue
+	class QueueVk final : public Old_Queue
 	{
 	public:
 		QueueVk(EQueueType type, EQueuePriority priority, RendererVk* pRenderer);
@@ -22,7 +22,7 @@ namespace SG
 		virtual bool       IsValid() const override;
 		virtual UInt32     GetQueueIndex() const override; // maybe we don't want this
 
-		virtual QueueHandle GetNativeHandle() override;
+		virtual Old_QueueHandle GetNativeHandle() override;
 
 		bool operator==(const QueueVk& rhs) const;
 		bool operator!=(const QueueVk& rhs) const;

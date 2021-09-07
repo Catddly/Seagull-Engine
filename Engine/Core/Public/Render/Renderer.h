@@ -10,9 +10,9 @@ namespace SG
 
 #define SG_SWAPCHAIN_IMAGE_COUNT 2 // temporary, should be moved to renderer
 
-	struct Queue;
+	struct Old_Queue;
 	struct RenderContext;
-	struct SwapChain;
+	struct Old_SwapChain;
 	interface Renderer : public IModule
 	{
 		virtual ~Renderer() = default;
@@ -20,10 +20,10 @@ namespace SG
 		//SG_CORE_API virtual Handle GetRendererInstance() const = 0;
 		SG_CORE_API virtual RenderContext* GetRenderContext() const = 0;
 		// TODO: Graphic queue can be multiple.
-		SG_CORE_API virtual Queue* GetGraphicQueue() const = 0;
-		SG_CORE_API virtual Queue* GetPresentQueue() const = 0;
+		SG_CORE_API virtual Old_Queue* GetGraphicQueue() const = 0;
+		SG_CORE_API virtual Old_Queue* GetPresentQueue() const = 0;
 
-		SG_CORE_API virtual SwapChain* GetSwapChain() const = 0;
+		SG_CORE_API virtual Old_SwapChain* GetSwapChain() const = 0;
 	};
 
 }

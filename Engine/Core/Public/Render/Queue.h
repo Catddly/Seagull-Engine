@@ -22,18 +22,18 @@ namespace SG
 		MAX_COUNT,
 	};
 
-	typedef void* QueueHandle;
+	typedef void* Old_QueueHandle;
 
-	struct Queue
+	struct Old_Queue
 	{
-		virtual ~Queue() = default;
+		virtual ~Old_Queue() = default;
 
 		virtual EQueueType GetQueueType() const = 0;
 		virtual EQueuePriority GetPriority() const = 0;
 		virtual bool       IsValid() const = 0;
 		virtual UInt32     GetQueueIndex() const = 0; // maybe we don't want this
 
-		virtual QueueHandle  GetNativeHandle() = 0;
+		virtual Old_QueueHandle  GetNativeHandle() = 0;
 	};
 
 }

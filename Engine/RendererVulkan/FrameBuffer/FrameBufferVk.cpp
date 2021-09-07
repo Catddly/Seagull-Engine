@@ -26,8 +26,8 @@ namespace SG
 
 		RenderPass* pRenderPass = Memory::New<RenderPassVk>(mpRenderer);
 
-		SwapChain* pSwapChain = mpRenderer->GetSwapChain();
-		Texture* ppSwapChainRt[SG_SWAPCHAIN_IMAGE_COUNT] = {};
+		Old_SwapChain* pSwapChain = mpRenderer->GetSwapChain();
+		Old_Texture* ppSwapChainRt[SG_SWAPCHAIN_IMAGE_COUNT] = {};
 		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
 			ppSwapChainRt[i] = pSwapChain->GetTexture(i);
 

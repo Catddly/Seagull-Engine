@@ -390,12 +390,12 @@ namespace SG
 		}
 	}
 
-	Queue* RendererVk::GetGraphicQueue() const
+	Old_Queue* RendererVk::GetGraphicQueue() const
 	{
 		return mGraphicQueue;
 	}
 
-	Queue* RendererVk::GetPresentQueue() const
+	Old_Queue* RendererVk::GetPresentQueue() const
 	{
 		return mPresentQueue;
 	}
@@ -405,7 +405,7 @@ namespace SG
 		return mpRenderContext;
 	}
 
-	SwapChain* RendererVk::GetSwapChain() const
+	Old_SwapChain* RendererVk::GetSwapChain() const
 	{
 		return mSwapChain;
 	}

@@ -30,12 +30,12 @@ namespace SG
 		SG_RENDERER_VK_API virtual void OnShutdown() override;
 
 		//SG_RENDERER_VK_API virtual Handle GetRendererInstance() const override;
-		SG_RENDERER_VK_API virtual Queue* GetGraphicQueue() const override;
-		SG_RENDERER_VK_API virtual Queue* GetPresentQueue() const override;
+		SG_RENDERER_VK_API virtual Old_Queue* GetGraphicQueue() const override;
+		SG_RENDERER_VK_API virtual Old_Queue* GetPresentQueue() const override;
 
 		SG_RENDERER_VK_API virtual RenderContext* GetRenderContext() const override;
 
-		SG_RENDERER_VK_API virtual SwapChain* GetSwapChain() const override;
+		SG_RENDERER_VK_API virtual Old_SwapChain* GetSwapChain() const override;
 
 		SG_RENDERER_VK_API virtual const char* GetRegisterName() const override { return "Renderer"; }
 	private:

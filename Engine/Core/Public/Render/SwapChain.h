@@ -96,13 +96,13 @@ namespace SG
 		MAX_COUNT,
 	};
 
-	struct Texture;
-	struct SwapChain
+	struct Old_Texture;
+	struct Old_SwapChain
 	{
-		virtual ~SwapChain() = default;
+		virtual ~Old_SwapChain() = default;
 
-		virtual Texture*   GetTexture(UInt32 index) const = 0;
-		virtual Handle     GetNativeHandle() const = 0;
+		virtual Old_Texture* GetTexture(UInt32 index) const = 0;
+		virtual Handle       GetNativeHandle() const = 0;
 
 		virtual Resolution GetExtent() const = 0;
 

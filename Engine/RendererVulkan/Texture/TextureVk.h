@@ -10,15 +10,15 @@ namespace SG
 {
 
 	struct Renderer;
-	struct SwapChain;
+	struct Old_SwapChain;
 	class  SwapChainVk;
-	class SG_ALIGN(64) TextureVk final : public Texture
+	class SG_ALIGN(64) TextureVk final : public Old_Texture
 	{
 	public:
 		//! Create an texture by parameters.
 		TextureVk(Renderer* pRenderer, const Resolution& res);
 		//! Fetch texture from swapchain.
-		TextureVk(Renderer* pRenderer, SwapChain* pSwapChain, UInt32 index);
+		TextureVk(Renderer* pRenderer, Old_SwapChain* pSwapChain, UInt32 index);
 		~TextureVk();
 
 		virtual Resolution GetResolution() const override;

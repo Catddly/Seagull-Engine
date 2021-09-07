@@ -7,7 +7,7 @@
 namespace SG
 {
 
-	VkFormat ToVkImageFormat(EImageFormat format);
+	VkFormat     ToVkImageFormat(EImageFormat format);
 	EImageFormat ToSGImageFormat(VkFormat format);
 
 	VkPresentModeKHR ToVkPresentMode(EPresentMode pmode);

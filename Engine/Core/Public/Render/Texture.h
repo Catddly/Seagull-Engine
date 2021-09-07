@@ -6,9 +6,9 @@
 namespace SG
 {
 
-	struct Texture
+	struct Old_Texture
 	{
-		virtual ~Texture() = default;
+		virtual ~Old_Texture() = default;
 
 		virtual Resolution GetResolution() const = 0;
 		virtual Handle     GetImage()      const = 0;

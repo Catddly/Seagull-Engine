@@ -42,33 +42,13 @@ public:
 		SG_LOG_INFO("b is %.2llf", b);
 
 		auto* pRenderer = CSystem::GetInstance()->GetModule<Renderer*>("Renderer");
-		Queue* pGraphicQueue = pRenderer->GetGraphicQueue();
-		Queue* pPresentQueue = pRenderer->GetPresentQueue();
+		Old_Queue* pGraphicQueue = pRenderer->GetGraphicQueue();
+		Old_Queue* pPresentQueue = pRenderer->GetPresentQueue();
 		SG_LOG_INFO("Graphic Queue Index: %d", pGraphicQueue->GetQueueIndex());
 		SG_LOG_INFO("Present Queue Index: %d", pPresentQueue->GetQueueIndex());
 
 		//MathTest();
 		//ThreadTest();
-
-		Vector2i veci = { 5, 8 };
-
-		//auto pIO = CSystem::GetInstance()->GetFileSystem();
-		//if (pIO->Open(EResourceDirectory::eLog, "test.spv", EFileMode::efWrite_Binary))
-		//{
-		//	int a = 4;
-		//	pIO->Write(&a, 4);
-		//	pIO->Close();
-		//}
-
-		//if (pIO->Open(EResourceDirectory::eLog, "test.spv", EFileMode::efRead_Binary))
-		//{
-		//	SG_LOG_DEBUG("FileSize: %d", pIO->FileSize());
-		//	void* buf = Memory::Malloc(pIO->FileSize());
-		//	pIO->Read(buf, pIO->FileSize());
-		//	SG_LOG_DEBUG("a = %d", *(int*)buf);
-		//	pIO->Close();
-		//	Memory::Free(buf);
-		//}
 	}
 
 	virtual void OnUpdate() override
@@ -164,6 +144,28 @@ private:
 		gCv.NotifyOne();
 
 		ThreadJoin(&cvThread);
+	}
+
+	void FileSystemTest()
+	{
+		using namespace SG;
+		auto pIO = CSystem::GetInstance()->GetFileSystem();
+		if (pIO->Open(EResourceDirectory::eRoot, "test.spv", EFileMode::efWrite_Binary))
+		{
+			int a = 4;
+			pIO->Write(&a, 4);
+			pIO->Close();
+		}
+
+		if (pIO->Open(EResourceDirectory::eRoot, "test.spv", EFileMode::efRead_Binary))
+		{
+			SG_LOG_DEBUG("FileSize: %d", pIO->FileSize());
+			void* buf = Memory::Malloc(pIO->FileSize());
+			pIO->Read(buf, pIO->FileSize());
+			SG_LOG_DEBUG("a = %d", *(int*)buf);
+			pIO->Close();
+			Memory::Free(buf);
+		}
 	}
 private:
 	static SG::Mutex  sMutex;

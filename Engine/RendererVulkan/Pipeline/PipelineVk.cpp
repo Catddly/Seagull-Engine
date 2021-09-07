@@ -61,7 +61,7 @@ namespace SG
 		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-		SwapChain* pSwapChain = mpRenderer->GetSwapChain();
+		Old_SwapChain* pSwapChain = mpRenderer->GetSwapChain();
 		UInt32 width = pSwapChain->GetExtent().width;
 		UInt32 height = pSwapChain->GetExtent().height;
 		VkViewport viewport = {};

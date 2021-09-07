@@ -14,13 +14,13 @@ namespace SG
 	struct Renderer;
 	class  TextureVk;
 	class  FrameBufferVk;
-	class SwapChainVk final : public SwapChain
+	class SwapChainVk final : public Old_SwapChain
 	{
 	public:
 		SwapChainVk(EImageFormat format, EPresentMode presentMode, const Resolution& res, Renderer* pRenderer);
 		~SwapChainVk();
 
-		virtual Texture* GetTexture(UInt32 index) const override;
+		virtual Old_Texture* GetTexture(UInt32 index) const override;
 		virtual Handle   GetNativeHandle() const override;
 
 		virtual Resolution GetExtent() const override;

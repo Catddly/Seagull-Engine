@@ -39,7 +39,7 @@ namespace SG
 		}
 	}
 
-	TextureVk::TextureVk(Renderer* pRenderer, SwapChain* pSwapChain, UInt32 index)
+	TextureVk::TextureVk(Renderer* pRenderer, Old_SwapChain* pSwapChain, UInt32 index)
 		:mpRenderer(pRenderer), mbIsSwapchainImage(true)
 	{
 		SG_ASSERT(index >= 0 && index < SG_SWAPCHAIN_IMAGE_COUNT);
