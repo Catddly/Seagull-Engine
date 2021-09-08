@@ -54,6 +54,7 @@ namespace SG
 	interface IFileSystem;
 	interface IInputSystem;
 	interface IOperatingSystem;
+	interface IRenderDevice;
 
 	//! System Manager to manager all the modules' life cycle
 	//! and usage.

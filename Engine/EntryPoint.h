@@ -1,8 +1,7 @@
 #pragma once
 
-//! Seagull Engine embedded the entrypoint inside the engine
-//! to avoid some user-side problems
- 
+// Seagull Engine embedded the entrypoint inside the engine
+// to avoid some user-side problems 
 #include "System/ISystem.h"
 #include "User/IApp.h"
 
@@ -12,7 +11,8 @@
 #include "Memory/IMemory.h"
 
 // TODO: replace to runtime binding dll
-#include "RendererVulkan/Renderer/RendererVk.h"
+#include "RendererVulkan/Backend/RenderDevice.h"
+//#include "RendererVulkan/Renderer/RendererVk.h"
 
 int main(int argv, char** argc)
 {
@@ -30,7 +30,7 @@ int main(int argv, char** argc)
 	//p3DEngine->OnInit();
 
 	// TODO: replace to runtime binding dll
-	Renderer* pRenderer = Memory::New<RendererVk>();
+	IRenderDevice* pRenderer = Memory::New<RenderDeviceVk>();
 	pSystemManager->RegisterModule(pRenderer);
 	pSystemManager->AddIProcess(app);
 

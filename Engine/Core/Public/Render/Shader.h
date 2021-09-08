@@ -14,7 +14,6 @@ namespace SG
 		eGLSL = 0,
 		eHLSL,
 		eMetal,
-		eSpirv,
 	};
 
 	enum class EShaderStages : UInt32
@@ -38,9 +37,9 @@ namespace SG
 
 	typedef eastl::map<EShaderStages, ShaderData> ShaderStages;
 
-	struct Shader
+	struct Old_Shader
 	{
-		virtual ~Shader() = default;
+		virtual ~Old_Shader() = default;
 
 		virtual ShaderStages* GetShaderStages() = 0;
 	};

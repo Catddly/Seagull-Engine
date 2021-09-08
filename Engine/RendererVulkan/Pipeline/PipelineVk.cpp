@@ -22,7 +22,7 @@ namespace SG
 	//	pipelineInfo.pStages = shaderStages;
 	//}
 
-	PipelineVk::PipelineVk(Renderer* pRenderer, Shader* pShader, EPipelineType type)
+	PipelineVk::PipelineVk(Renderer* pRenderer, Old_Shader* pShader, EPipelineType type)
 		:mpRenderer(pRenderer), mpShader(pShader), mType(type)
 	{
 		ShaderStages* shaderStages = mpShader->GetShaderStages();

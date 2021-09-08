@@ -3,6 +3,7 @@
 
 #include "Platform/Window.h"
 #include "System/ILogger.h"
+#include "Memory/IMemory.h"
 
 #include "RendererVulkan/Utils/VulkanConversion.h"
 
@@ -52,18 +53,17 @@ namespace SG
 
 #endif // SG_ENABLE_VK_VALIDATION_LAYER
 
-	VkRenderDevice::VkRenderDevice(UInt32 swapchainImageCount)
-		:mSwapChainImageCount(swapchainImageCount)
+	void RenderDeviceVk::OnInit()
 	{
 		Initialize();
 	}
 
-	VkRenderDevice::~VkRenderDevice()
+	void RenderDeviceVk::OnShutdown()
 	{
 		Shutdown();
 	}
 
-	bool VkRenderDevice::Initialize()
+	bool RenderDeviceVk::Initialize()
 	{
 		if (!CreateVkInstance())
 		{
@@ -77,7 +77,7 @@ namespace SG
 			SG_LOG_ERROR("No suittable GPU detected!");
 			return false;
 		}
-		if (!CreateLogicalDevice())
+		if (!CreateLogicalDevice()) // also create the graphic queue, too.
 		{
 			SG_LOG_ERROR("Failed to create logical device!");
 			return false;
@@ -101,10 +101,15 @@ namespace SG
 			return false;
 		}
 
+		const char* stages[] = { "basic.vert", "basic.frag" };
+		CreateShader(&mTriangleShader, stages, 2);
+
+		DestroyShader(mTriangleShader);
+
 		return true;
 	}
 
-	void VkRenderDevice::Shutdown()
+	void RenderDeviceVk::Shutdown()
 	{
 		DestroySwapchain(mSwapchain);
 		vkDestroySurfaceKHR(mInstance.instance, mInstance.presentSurface, nullptr);
@@ -115,7 +120,7 @@ namespace SG
 		vkDestroyInstance(mInstance.instance, nullptr);
 	}
 
-	bool VkRenderDevice::CreateQueue(Queue& queue, EQueueType type, EQueuePriority priority)
+	bool RenderDeviceVk::FetchQueue(Queue& queue, EQueueType type, EQueuePriority priority)
 	{
 		queue.priority = priority;
 
@@ -160,7 +165,7 @@ namespace SG
 		return true;
 	}
 
-	bool VkRenderDevice::CreateSwapchain(SwapChain& swapchain, EImageFormat format, EPresentMode presentMode, const Resolution& res)
+	bool RenderDeviceVk::CreateSwapchain(SwapChain& swapchain, EImageFormat format, EPresentMode presentMode, const Resolution& res)
 	{
 		VkSurfaceCapabilitiesKHR capabilities = {};
 		vector<VkSurfaceFormatKHR> formats;
@@ -214,7 +219,7 @@ namespace SG
 			}
 		}
 		if (!bPresentModeSupported)
-			SG_LOG_WARN("Unsupported image format");
+			SG_LOG_WARN("Unsupported present format");
 
 		// check for the swapchain extent
 		VkExtent2D extent = { res.width, res.height };
@@ -232,7 +237,7 @@ namespace SG
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		createInfo.surface = mInstance.presentSurface;
 		//createInfo.minImageCount = imageCount;
-		createInfo.minImageCount = mSwapChainImageCount;
+		createInfo.minImageCount = SG_SWAPCHAIN_IMAGE_COUNT;
 		createInfo.imageFormat = ToVkImageFormat(format);
 		createInfo.imageColorSpace = colorSpace;
 		createInfo.imageExtent = extent;
@@ -253,12 +258,15 @@ namespace SG
 		if (vkCreateSwapchainKHR(mInstance.logicalDevice, &createInfo, nullptr, &swapchain.handle) != VK_SUCCESS)
 			return false;
 
-		swapchain.renderTextures.resize(mSwapChainImageCount);
+		swapchain.renderTextures.resize(SG_SWAPCHAIN_IMAGE_COUNT);
 		// fetch image from swapchain
-		UInt32 imageCnt = mSwapChainImageCount;
-		VkImage vkImages[SG_SWAPCHAIN_IMAGE_COUNT] = { };
-		vkGetSwapchainImagesKHR(mInstance.logicalDevice, swapchain.handle, &imageCnt, vkImages);
-		for (UInt32 i = 0; i < mSwapChainImageCount; i++)
+		UInt32 imageCnt;
+		vkGetSwapchainImagesKHR(mInstance.logicalDevice, swapchain.handle, &imageCnt, nullptr);
+		vector<VkImage> vkImages;  
+		vkImages.resize(imageCnt);
+		vkGetSwapchainImagesKHR(mInstance.logicalDevice, swapchain.handle, &imageCnt, vkImages.data());
+
+		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
 		{
 			swapchain.renderTextures[i].resolution = { swapchain.extent.width, swapchain.extent.height };
 			swapchain.renderTextures[i].format = format;
@@ -293,14 +301,101 @@ namespace SG
 		return true;
 	}
 
-	void VkRenderDevice::DestroySwapchain(SwapChain& swapchain)
+	void RenderDeviceVk::DestroySwapchain(SwapChain& swapchain)
 	{
-		for (UInt32 i = 0; i < mSwapChainImageCount; i++)
+		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
 			vkDestroyImageView(mInstance.logicalDevice, swapchain.renderTextures[i].imageView, nullptr);
 		vkDestroySwapchainKHR(mInstance.logicalDevice, swapchain.handle, nullptr);
 	}
 
-	bool VkRenderDevice::CreateVkInstance()
+	bool RenderDeviceVk::CreateShader(Shader** ppShader, const char** shaderStages, Size numShaderStages)
+	{
+		*ppShader = Memory::New<Shader>();
+		auto* pShader = *ppShader;
+		for (Size i = 0; i < numShaderStages; i++)
+		{
+			string stage = string(shaderStages[i]);
+
+			Size dotPos = stage.find_last_of('.');
+			string name = stage.substr(0, dotPos);
+			string extension = stage.substr(dotPos + 1, stage.size() - dotPos);
+
+			auto* pFS = CSystem::GetInstance()->GetFileSystem();
+			if (extension == "spv")
+			{
+				if (!ReadBinaryFromDisk(pShader, name, extension)) // no spirv file exist, try to compile the file from ShaderSrc
+				{
+					Size slashPos = stage.find_last_of('-');
+					if (slashPos == string::npos)
+					{
+						SG_LOG_ERROR("Invalid spv file format. (spv format: shader-vert.spv)");
+						SG_ASSERT(false);
+					}
+					string compiledPath = stage.substr(0, dotPos);  // convert to string to ensure the null-terminated string
+					compiledPath[slashPos] = '.';
+					string name = compiledPath.substr(0, slashPos);
+					string extension = compiledPath.substr(slashPos + 1, compiledPath.size() - slashPos);
+					CompileUseVulkanSDK(name, extension);
+					if (!ReadBinaryFromDisk(pShader, name, extension))
+					{
+						SG_LOG_ERROR("No such file exists! (%s)", stage.c_str());
+						// TODO: no assert, but throw an error.
+						SG_ASSERT(false);
+					}
+				}
+			}
+			else if (extension == "vert" || extension == "frag" || extension == "comp" || extension == "geom" || extension == "tesc" || extension == "tese") // compiled the source shader to spirv
+			{
+				if (!ReadBinaryFromDisk(pShader, name, extension)) // no spirv file exist, try to compile the file from ShaderSrc
+				{
+					CompileUseVulkanSDK(name, extension);
+					if (!ReadBinaryFromDisk(pShader, name, extension))
+					{
+						SG_LOG_ERROR("No such file exists! (%s.%s)", name, extension);
+						SG_ASSERT(false);
+					}
+				}
+			}
+			else
+			{
+				SG_LOG_WARN("Unknown file type of shader!");
+				SG_ASSERT(false);
+			}
+
+			if (extension == "spv")
+			{
+				Size slashPos = name.find_last_of('-');
+				extension = name.substr(slashPos + 1, name.size() - slashPos);
+			}
+			if (extension == "vert")
+				CreateVulkanShaderModule(pShader->stages[EShaderStages::efVert]);
+			else if (extension == "frag")
+				CreateVulkanShaderModule(pShader->stages[EShaderStages::efFrag]);
+			else if (extension == "comp")
+				CreateVulkanShaderModule(pShader->stages[EShaderStages::efComp]);
+			else if (extension == "gemo")
+				CreateVulkanShaderModule(pShader->stages[EShaderStages::efGeom]);
+			else if (extension == "tesc")
+				CreateVulkanShaderModule(pShader->stages[EShaderStages::efTesc]);
+			else if (extension == "tese")
+				CreateVulkanShaderModule(pShader->stages[EShaderStages::efTese]);
+		}
+		return true;
+	}
+	
+	void RenderDeviceVk::DestroyShader(Shader* pShader)
+	{
+		for (auto beg = pShader->stages.begin(); beg != pShader->stages.end(); beg++)
+		{
+			Memory::Free(beg->second.pBinary);
+			VkShaderModule shaderModule = (VkShaderModule)beg->second.pShader;
+			vkDestroyShaderModule(mInstance.logicalDevice, shaderModule, nullptr);
+		}
+		Memory::Delete(pShader);
+		pShader = nullptr;
+	}
+
+	bool RenderDeviceVk::CreateVkInstance()
 	{
 		VkApplicationInfo info = {};
 		info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -337,7 +432,7 @@ namespace SG
 		return true;
 	}
 
-	void VkRenderDevice::ValidateExtensions(VkInstanceCreateInfo* info)
+	void RenderDeviceVk::ValidateExtensions(VkInstanceCreateInfo* info)
 	{
 		UInt32 extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -382,7 +477,7 @@ namespace SG
 		info->ppEnabledExtensionNames = mInstance.validateExtensions.data();
 	}
 
-	void VkRenderDevice::ValidateLayers(VkInstanceCreateInfo* info)
+	void RenderDeviceVk::ValidateLayers(VkInstanceCreateInfo* info)
 	{
 		UInt32 layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -425,7 +520,7 @@ namespace SG
 #endif
 	}
 
-	void VkRenderDevice::PopulateDebugMsgCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugMessager)
+	void RenderDeviceVk::PopulateDebugMsgCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugMessager)
 	{
 		debugMessager.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		debugMessager.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
@@ -436,7 +531,7 @@ namespace SG
 		debugMessager.pUserData = nullptr;
 	}
 
-	void VkRenderDevice::SetupDebugMessenger()
+	void RenderDeviceVk::SetupDebugMessenger()
 	{
 #ifndef SG_ENABLE_VK_VALIDATION_LAYER
 		return; // release mode, don't need the debug messenger
@@ -448,7 +543,7 @@ namespace SG
 			SG_ASSERT(false);
 	}
 
-	bool VkRenderDevice::SelectPhysicalDevice()
+	bool RenderDeviceVk::SelectPhysicalDevice()
 	{
 		//auto* pOS = System::GetInstance()->GetIOS();
 		//UInt32 deviceCount = pOS->GetAdapterCount();
@@ -486,9 +581,9 @@ namespace SG
 		return false;
 	}
 
-	bool VkRenderDevice::CreateLogicalDevice()
+	bool RenderDeviceVk::CreateLogicalDevice()
 	{
-		CreateQueue(mGraphicQueue, EQueueType::eGraphic, EQueuePriority::eNormal);
+		FetchQueue(mGraphicQueue, EQueueType::eGraphic, EQueuePriority::eNormal);
 
 		VkDeviceQueueCreateInfo queueCreateInfo = {};
 		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -545,7 +640,7 @@ namespace SG
 		return true;
 	}
 
-	bool VkRenderDevice::CreatePresentSurface()
+	bool RenderDeviceVk::CreatePresentSurface()
 	{
 		auto* pOS = CSystem::GetInstance()->GetOS();
 		Window* mainWindow = pOS->GetMainWindow();
@@ -573,6 +668,87 @@ namespace SG
 			return true;
 		}
 #endif
+	}
+
+	string RenderDeviceVk::CompileUseVulkanSDK(const string& name, const string& extension) const
+	{
+		char* glslc = "";
+		Size num = 1;
+		_dupenv_s(&glslc, &num, "VULKAN_SDK");
+		glslc[num + 1] = '\0';
+		strcat_s(glslc, sizeof(wchar_t) * (num + 1), "\\Bin32\\glslc.exe");
+		string compiledName = name + "-" + extension + ".spv";
+		string shaderPath = CSystem::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Sources) + name + "." + extension;
+		string outputPath = CSystem::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + compiledName;
+
+		const char* args[3] = { shaderPath.c_str(), "-o", outputPath.c_str() };
+		string pOut = CSystem::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + name + "-" + extension + "-compile.log";
+
+		// create a process to use vulkanSDK to compile shader sources to binary (spirv)
+		if (CSystem::GetInstance()->RunProcess(glslc, args, 3, pOut.c_str()) != 0)
+		{
+			SG_LOG_WARN("%s", pOut);
+			SG_ASSERT(false);
+		}
+
+		return eastl::move(compiledName);
+	}
+
+	bool RenderDeviceVk::ReadBinaryFromDisk(Shader* pShader, const string& name, const string& extension)
+	{
+		auto* pFS = CSystem::GetInstance()->GetFileSystem();
+		string filepath = "";
+		if (extension == "spv")
+			filepath = name + "." + extension;
+		else
+			filepath = name + "-" + extension + ".spv";
+		if (pFS->Open(EResourceDirectory::eShader_Binarires, filepath.c_str(), EFileMode::efRead_Binary))
+		{
+			Size binarySize = pFS->FileSize();
+			std::byte* pBinary = (std::byte*)Memory::Malloc(binarySize);
+			pFS->Read(pBinary, binarySize);
+
+			string actualExtension = extension;
+			if (extension == "spv")
+			{
+				Size slashPos = name.find_last_of('-');
+				actualExtension = name.substr(slashPos + 1, name.size() - slashPos);
+			}
+
+			if (actualExtension == "vert")
+				pShader->stages[EShaderStages::efVert] = { pBinary, binarySize, VK_NULL_HANDLE };
+			else if (actualExtension == "frag")
+				pShader->stages[EShaderStages::efFrag] = { pBinary, binarySize, VK_NULL_HANDLE };
+			else if (actualExtension == "comp")
+				pShader->stages[EShaderStages::efComp] = { pBinary, binarySize, VK_NULL_HANDLE };
+			else if (actualExtension == "gemo")
+				pShader->stages[EShaderStages::efGeom] = { pBinary, binarySize, VK_NULL_HANDLE };
+			else if (actualExtension == "tese")
+				pShader->stages[EShaderStages::efTese] = { pBinary, binarySize, VK_NULL_HANDLE };
+			else if (actualExtension == "tesc")
+				pShader->stages[EShaderStages::efTesc] = { pBinary, binarySize, VK_NULL_HANDLE };
+
+			pFS->Close();
+			return true;
+		}
+		else
+			return false;
+	}
+
+	void RenderDeviceVk::CreateVulkanShaderModule(ShaderData& pShaderData)
+	{
+		VkShaderModuleCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		createInfo.codeSize = pShaderData.binarySize;
+		createInfo.pCode = reinterpret_cast<UInt32*>(pShaderData.pBinary);
+
+		VkShaderModule shaderModule = {};
+		if (vkCreateShaderModule(mInstance.logicalDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+		{
+			SG_LOG_ERROR("Failed to create shader module from spirv!");
+			SG_ASSERT(false);
+		}
+		pShaderData.pShader = shaderModule;
 	}
 
 }

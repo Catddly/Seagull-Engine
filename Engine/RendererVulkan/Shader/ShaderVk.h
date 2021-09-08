@@ -11,7 +11,7 @@ namespace SG
 {
 
 	struct Renderer;
-	class ShaderVk : public Shader
+	class ShaderVk : public Old_Shader
 	{
 	public:
 		ShaderVk(Renderer* pRenderer, const string* shaderStages, Size numShaderStages);

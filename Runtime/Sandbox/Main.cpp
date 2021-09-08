@@ -41,11 +41,11 @@ public:
 		job.Execute(a, b);
 		SG_LOG_INFO("b is %.2llf", b);
 
-		auto* pRenderer = CSystem::GetInstance()->GetModule<Renderer*>("Renderer");
-		Old_Queue* pGraphicQueue = pRenderer->GetGraphicQueue();
-		Old_Queue* pPresentQueue = pRenderer->GetPresentQueue();
-		SG_LOG_INFO("Graphic Queue Index: %d", pGraphicQueue->GetQueueIndex());
-		SG_LOG_INFO("Present Queue Index: %d", pPresentQueue->GetQueueIndex());
+		//auto* pRenderer = CSystem::GetInstance()->GetModule<Renderer*>("Renderer");
+		//Old_Queue* pGraphicQueue = pRenderer->GetGraphicQueue();
+		//Old_Queue* pPresentQueue = pRenderer->GetPresentQueue();
+		//SG_LOG_INFO("Graphic Queue Index: %d", pGraphicQueue->GetQueueIndex());
+		//SG_LOG_INFO("Present Queue Index: %d", pPresentQueue->GetQueueIndex());
 
 		//MathTest();
 		//ThreadTest();

@@ -45,10 +45,10 @@
 //----------------------------------------------------------
 // Render relative
 //----------------------------------------------------------
-#include "Render/Queue.h"
-#include "Render/RenderContext.h"
-#include "Render/Texture.h"
-#include "Render/Renderer.h"
+//#include "Render/Queue.h"
+//#include "Render/RenderContext.h"
+//#include "Render/Texture.h"
+//#include "Render/Renderer.h"
 
 //----------------------------------------------------------
 // System data
