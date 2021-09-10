@@ -4,8 +4,6 @@
 #include "Core/Private/Platform/Windows/WindowsStreamOp.h"
 #include "Memory/IMemory.h"
 
-#include "Stl/string.h"
-
 namespace SG
 {
 

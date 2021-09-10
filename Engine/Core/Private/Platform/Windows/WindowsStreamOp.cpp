@@ -1,9 +1,6 @@
 #include "StdAfx.h"
 #include "Core/Private/Platform/Windows/WindowsStreamOp.h"
 
-#include "Stl/string.h"
-#include "Stl/string_view.h"
-
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {

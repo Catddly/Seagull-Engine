@@ -9,8 +9,6 @@
 #include "System/ILogger.h"
 #include "Memory/IMemory.h"
 
-#include <EASTL/utility.h>
-
 namespace SG
 {
 

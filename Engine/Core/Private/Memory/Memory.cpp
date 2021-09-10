@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #include "Memory/IMemory.h"
 
-#include <mimalloc/include/mimalloc.h>
-
 // TODO: add memory tracking
 namespace SG
 {

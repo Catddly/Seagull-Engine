@@ -4,13 +4,6 @@
 #include "Defs/Defs.h"
 #include "System/ILogger.h"
 
-#include "Stl/string.h"
-
-#ifndef WIN32_LEAN_AND_MEAN
-#	define WIN32_LEAN_AND_MEAN
-#	include <windows.h>
-#endif
-
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {

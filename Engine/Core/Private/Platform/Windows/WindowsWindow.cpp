@@ -3,8 +3,6 @@
 
 #include "Core/Private/Platform/DeviceManager.h"
 
-#include <windows.h>
-
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {

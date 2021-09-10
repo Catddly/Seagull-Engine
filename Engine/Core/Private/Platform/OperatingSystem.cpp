@@ -2,10 +2,7 @@
 #include "OperatingSystem.h"
 
 #include "System/ILogger.h"
-
 #include "Platform/Window.h"
-
-#include <windows.h>
 
 namespace SG
 {

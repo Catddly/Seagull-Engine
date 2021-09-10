@@ -3,8 +3,6 @@
 
 #include "Defs/Defs.h"
 
-#include <windows.h>
-
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {

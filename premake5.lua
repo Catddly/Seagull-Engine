@@ -38,7 +38,7 @@ group ""
 group "Runtime"
 
     project "Sandbox"
-        location "Runtime/Sandbox"
+        location "User/Sandbox"
         kind "ConsoleApp"
         language "C++"
         cppdialect "C++17"
@@ -49,13 +49,13 @@ group "Runtime"
         objdir    ("bin-int/" .. outputdir .. "/%{prj.name}")
 
         pchheader "StdAfx.h"
-        pchsource "Runtime/Sandbox/StdAfx.cpp"
+        pchsource "User/Sandbox/StdAfx.cpp"
 
         -- include files
         files
         {
-            "Runtime/%{prj.name}/**.h",
-            "Runtime/%{prj.name}/**.cpp"
+            "User/%{prj.name}/**.h",
+            "User/%{prj.name}/**.cpp"
         }
 
         includedirs

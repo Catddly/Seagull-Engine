@@ -7,10 +7,7 @@
 
 #include "RendererVulkan/Utils/VkConvert.h"
 
-#include <eastl/set.h>
-
 #ifdef SG_PLATFORM_WINDOWS
-#	include <windows.h>
 #	include <vulkan/vulkan_win32.h>
 #endif
 
