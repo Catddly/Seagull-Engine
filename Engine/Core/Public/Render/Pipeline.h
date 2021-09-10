@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Render/Renderer.h"
-
 namespace SG
 {
 
@@ -11,18 +9,6 @@ namespace SG
 		eCompute,
 		eTransfer,
 		MAX_COUNT,
-	};
-
-	struct RenderPass
-	{
-		virtual ~RenderPass() = default;
-
-		virtual Handle GetNativeHandle() const = 0;
-	};
-
-	struct Pipeline
-	{
-		virtual ~Pipeline() = default;
 	};
 
 }

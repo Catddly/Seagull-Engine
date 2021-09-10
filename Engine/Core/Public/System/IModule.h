@@ -10,6 +10,7 @@ namespace SG
 	interface IModule
 	{
 		virtual ~IModule() = default;
+		using module_t = void;
 
 		SG_CORE_API virtual void OnInit() = 0;
 		SG_CORE_API virtual void OnShutdown() = 0;

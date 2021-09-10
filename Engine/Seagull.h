@@ -39,16 +39,11 @@
 #include "Thread/IJobSystem.h"
 
 #include "System/IInput.h"
-
 #include "Memory/IMemory.h"
 
 //----------------------------------------------------------
 // Render relative
 //----------------------------------------------------------
-//#include "Render/Queue.h"
-//#include "Render/RenderContext.h"
-//#include "Render/Texture.h"
-//#include "Render/Renderer.h"
 
 //----------------------------------------------------------
 // System data

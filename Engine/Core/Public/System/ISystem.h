@@ -78,7 +78,7 @@ namespace SG
 		//virtual void RegisterUserApp(IApp* pApp) = 0;
 
 		//! Register a user module.
-		virtual bool RegisterModule(IModule* pModule) = 0;
+		//virtual bool RegisterModule(IModule* pModule) = 0;
 		
 		//! System main game loop.
 		//! @return true if the loop exits safely, otherwise it is false.

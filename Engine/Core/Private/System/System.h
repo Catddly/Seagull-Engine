@@ -36,6 +36,9 @@ namespace SG
 		template <class T>
 		T GetModule(const char* name) const;
 
+		template <class T>
+		bool RegisterModule();
+
 		SG_CORE_API virtual ILogger* GetLogger() const override;
 		SG_CORE_API virtual IFileSystem* GetFileSystem() const override;
 		SG_CORE_API virtual IInputSystem* GetInputSystem() const override;
@@ -48,7 +51,6 @@ namespace SG
 
 		SG_CORE_API virtual bool SystemMainLoop() override;
 
-		SG_CORE_API virtual bool RegisterModule(IModule* pModule) override;
 		//! Add an IProcess to system to update.
 		SG_CORE_API virtual void AddIProcess(IProcess* pProcess) override;
 		//! Remove an IProcess from system.
@@ -87,6 +89,18 @@ namespace SG
 		Thread  mMainThread;
 		string  mRootPath;
 	};
+
+	template <class T>
+	bool SG::CSystem::RegisterModule()
+	{
+		T* pModule = Memory::New<T>();
+		if (pModule)
+		{
+			mModuleManager.RegisterUserModule(pModule);
+			return true;
+		}
+		return false;
+	}
 
 	template <class T>
 	T SG::CSystem::GetModule(const char* name) const

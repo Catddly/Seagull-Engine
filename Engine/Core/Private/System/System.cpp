@@ -152,16 +152,6 @@ namespace SG
 		return ValidateCoreModules();
 	}
 
-	bool CSystem::RegisterModule(IModule* pModule)
-	{
-		if (pModule)
-		{
-			mModuleManager.RegisterUserModule(pModule);
-			return true;
-		}
-		return false;
-	}
-
 	bool CSystem::SystemMainLoop()
 	{
 		bool bIsSafeQuit = true;

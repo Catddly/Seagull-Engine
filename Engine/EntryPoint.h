@@ -12,7 +12,6 @@
 
 // TODO: replace to runtime binding dll
 #include "RendererVulkan/Backend/RenderDevice.h"
-//#include "RendererVulkan/Renderer/RendererVk.h"
 
 int main(int argv, char** argc)
 {
@@ -30,8 +29,7 @@ int main(int argv, char** argc)
 	//p3DEngine->OnInit();
 
 	// TODO: replace to runtime binding dll
-	IRenderDevice* pRenderer = Memory::New<RenderDeviceVk>();
-	pSystemManager->RegisterModule(pRenderer);
+	CSystem::GetInstance()->RegisterModule<RenderDeviceVk>();
 	pSystemManager->AddIProcess(app);
 
 	SG_LOG_IF(ELogLevel::efLog_Level_Info, "Are all  modules loaded: ", pSystemManager->ValidateAllModules());

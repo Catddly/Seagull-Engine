@@ -4,8 +4,6 @@
 
 #include "Platform/IOperatingSystem.h"
 
-#include "Render/Renderer.h"
-
 namespace SG
 {
 
@@ -94,19 +92,6 @@ namespace SG
 		eFIFO_Relaxed,
 		eMailbox,
 		MAX_COUNT,
-	};
-
-	struct Old_Texture;
-	struct Old_SwapChain
-	{
-		virtual ~Old_SwapChain() = default;
-
-		virtual Old_Texture* GetTexture(UInt32 index) const = 0;
-		virtual Handle       GetNativeHandle() const = 0;
-
-		virtual Resolution GetExtent() const = 0;
-
-		virtual EImageFormat GetColorFormat() const = 0;
 	};
 
 }

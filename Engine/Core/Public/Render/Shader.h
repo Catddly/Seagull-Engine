@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Base/BasicTypes.h"
-#include "Render/Renderer.h"
 
 #include <cstddef>
 #include <EASTL/map.h>
@@ -36,12 +35,5 @@ namespace SG
 	};
 
 	typedef eastl::map<EShaderStages, ShaderData> ShaderStages;
-
-	struct Old_Shader
-	{
-		virtual ~Old_Shader() = default;
-
-		virtual ShaderStages* GetShaderStages() = 0;
-	};
 
 }
