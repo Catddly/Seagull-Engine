@@ -2,6 +2,8 @@
 
 #include "Core/Config.h"
 
+#include <atomic>
+
 namespace SG
 {
 
@@ -137,6 +139,25 @@ namespace SG
 	private:
 		InternalSemaphore mSemaphore;
 		Atomic32 mCount;
+	};
+
+	class SG_CORE_API SpinLock
+	{
+	public:
+		SpinLock() = default;
+		~SpinLock() = default;
+		SG_CLASS_NO_COPY_ASSIGNABLE(SpinLock);
+
+		SG_INLINE void Lock()
+		{
+			while (mFlag.test_and_set(std::memory_order_acquire));
+		}
+		SG_INLINE void UnLock()
+		{
+			mFlag.clear(std::memory_order_release);
+		}
+	private:
+		std::atomic_flag mFlag;
 	};
 
 }
