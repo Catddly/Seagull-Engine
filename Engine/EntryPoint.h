@@ -28,8 +28,9 @@ int main(int argv, char** argc)
 	//pSystemManager->SetI3DEngine(p3DEngine);
 	//p3DEngine->OnInit();
 
-	// TODO: replace to runtime binding dll
 	CSystem::GetInstance()->RegisterModule<RenderDeviceVk>();
+
+	// TODO: replace to runtime binding dll
 	pSystemManager->AddIProcess(app);
 
 	SG_LOG_IF(ELogLevel::efLog_Level_Info, "Are all  modules loaded: ", pSystemManager->ValidateAllModules());
