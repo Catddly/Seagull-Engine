@@ -1,30 +1,38 @@
 #pragma once
 
 #include "Core/Config.h"
-#include "System/ISystem.h"
 #include "Thread/IThread.h"
 
-#include "System/ILogger.h"
 #include "System/IFileSystem.h"
 #include "Platform/IOperatingSystem.h"
-
-#include "User/IApp.h"
+#include "Core/Private/System/ModuleManager.h"
+#include "System/ISystemMessage.h"
 
 #include "Stl/string.h"
+
+#ifdef SG_PLATFORM_WINDOWS
+#	ifndef WIN32_LEAN_AND_MEAN
+#	define WIN32_LEAN_AND_MEAN
+#		include <windows.h>
+#	endif
+#endif
 
 namespace SG
 {
 
-	class CSystem final : public ISystem
+	interface ILogger;
+	interface IInputSystem;
+
+	interface IProcess;
+
+	class System final
 	{
 	public:
-		~CSystem() = default;
+		~System() = default;
 
-		SG_CORE_API virtual void OnInit() override;
-		SG_CORE_API virtual bool InitCoreModules() override;
-		SG_CORE_API virtual void OnShutdown() override;
-
-		//SG_CORE_API virtual SSystemModules* GetSystemModules() override;
+		SG_CORE_API void OnInit();
+		SG_CORE_API bool InitCoreModules();
+		SG_CORE_API void OnShutdown();
 
 		// TOOD: other modules should be loaded as dll,
 		// don't use get/set function.
@@ -39,40 +47,43 @@ namespace SG
 		template <class T>
 		bool RegisterModule();
 
-		SG_CORE_API virtual ILogger* GetLogger() const override;
-		SG_CORE_API virtual IFileSystem* GetFileSystem() const override;
-		SG_CORE_API virtual IInputSystem* GetInputSystem() const override;
-		SG_CORE_API virtual IOperatingSystem* GetOS() const override;
+		SG_CORE_API ILogger*          GetLogger() const;
+		SG_CORE_API IFileSystem*      GetFileSystem() const;
+		SG_CORE_API IInputSystem*     GetInputSystem() const;
+		SG_CORE_API IOperatingSystem* GetOS() const;
 
 		//! Check if all the core modules is loaded.
-		SG_CORE_API virtual bool ValidateCoreModules() const override;
+		SG_CORE_API bool ValidateCoreModules() const;
 		//! Check if all the modules is loaded.
-		SG_CORE_API virtual bool ValidateAllModules() const override;
+		SG_CORE_API bool ValidateAllModules() const;
 
-		SG_CORE_API virtual bool SystemMainLoop() override;
+		SG_CORE_API bool SystemMainLoop();
 
 		//! Add an IProcess to system to update.
-		SG_CORE_API virtual void AddIProcess(IProcess* pProcess) override;
+		SG_CORE_API void AddIProcess(IProcess* pProcess);
 		//! Remove an IProcess from system.
 		//virtual void RemoveIProcess(IProcess* pProcess) override;
 
 		//! Get current memory usage for all the modules.
-		SG_CORE_API virtual UInt32 GetTotalMemoryUsage() const override;
+		SG_CORE_API UInt32 GetTotalMemoryUsage() const;
 		//! Set engine's resource files root directory in absolute path.
 		//! Default root directory will be the folder where .exe is in.
 		//! \param (filepath) relative path to the .exe
-		SG_CORE_API virtual void        SetRootDirectory(const char* filepath) override;
-		SG_CORE_API virtual string      GetResourceDirectory(EResourceDirectory rd) const override;
+		SG_CORE_API void        SetRootDirectory(const char* filepath);
+		SG_CORE_API string      GetResourceDirectory(EResourceDirectory rd) const;
 
-		SG_CORE_API virtual int RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut) override;
+		SG_CORE_API int RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut);
+
+		SG_CORE_API void RegisterSystemMessageListener(ISystemMessageListener* pListener);
+		SG_CORE_API void RemoveSystemMessageListener(ISystemMessageListener* pListener);
 
 		//! Force to use ISystemManager as the interface of system manager.
-		SG_CORE_API static CSystem* GetInstance();
-	protected:
-		CSystem();
-		friend struct Memory;
+		SG_CORE_API static System* const Instance();
 	private:
-		void OnUpdate();
+		System();
+#ifdef SG_PLATFORM_WINDOWS
+		friend LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif
 	private:
 		enum {
 			SG_MAX_FILE_PATH = 200,
@@ -82,8 +93,8 @@ namespace SG
 			SG_MAX_DIREC_PATH = SG_MAX_FILE_PATH - SG_MAX_DRIVE_PATH - SG_MAX_FILE_NAME - SG_MAX_EXT_PATH,
 		};
 
-		static CSystem* sInstance;
-		CModuleManager mModuleManager;
+		ModuleManager    mModuleManager;
+		SystemMessageBus mMessageBus;
 
 		IProcess* mpCurrActiveProcess;
 		Thread  mMainThread;
@@ -91,7 +102,7 @@ namespace SG
 	};
 
 	template <class T>
-	bool SG::CSystem::RegisterModule()
+	bool SG::System::RegisterModule()
 	{
 		T* pModule = Memory::New<T>();
 		if (pModule)
@@ -103,9 +114,11 @@ namespace SG
 	}
 
 	template <class T>
-	T SG::CSystem::GetModule(const char* name) const
+	T SG::System::GetModule(const char* name) const
 	{
 		return mModuleManager.GetModule<T>(name);
 	}
+
+#define SSystem() System::Instance()
 
 }

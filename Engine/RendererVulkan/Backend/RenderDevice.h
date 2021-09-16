@@ -11,6 +11,7 @@
 
 #include "Render/IRenderDevice.h"
 #include "Platform/IOperatingSystem.h"
+#include "System/ISystemMessage.h"
 
 #include <vulkan/vulkan_core.h>
 
@@ -28,7 +29,7 @@ namespace SG
 #	define SG_ENABLE_VK_VALIDATION_LAYER 0
 #endif
 
-	class RenderDeviceVk : public IRenderDevice
+	class RenderDeviceVk : public IRenderDevice, public ISystemMessageListener
 	{
 	public:
 		RenderDeviceVk() = default;
@@ -128,6 +129,8 @@ namespace SG
 		SG_RENDERER_VK_API virtual void OnUpdate() override;
 
 		SG_RENDERER_VK_API virtual const char* GetRegisterName() const override { return "RenderDevice"; }
+
+		SG_RENDERER_VK_API virtual bool OnSystemMessage(ESystemMessage msg) override;
 	protected:
 		bool Initialize();
 		void Shutdown();

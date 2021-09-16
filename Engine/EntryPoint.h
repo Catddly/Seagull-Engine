@@ -2,11 +2,10 @@
 
 // Seagull Engine embedded the entrypoint inside the engine
 // to avoid some user-side problems 
-#include "System/ISystem.h"
+#include "System/System.h"
 #include "User/IApp.h"
 
 #include "3DEngine/3DEngine/3DEngine.h"
-#include "Core/Private/System/System.h"
 
 #include "Memory/IMemory.h"
 
@@ -18,7 +17,7 @@ int main(int argv, char** argc)
 	using namespace SG;
 	extern IApp* GetAppInstance();
 	IApp* app = GetAppInstance();
-	ISystem* pSystemManager = CSystem::GetInstance();
+	auto* pSystemManager = SSystem();
 	pSystemManager->OnInit();
 	SG_LOG_IF(ELogLevel::efLog_Level_Info, "Are core modules loaded: ", pSystemManager->ValidateCoreModules());
 
@@ -28,7 +27,7 @@ int main(int argv, char** argc)
 	//pSystemManager->SetI3DEngine(p3DEngine);
 	//p3DEngine->OnInit();
 
-	CSystem::GetInstance()->RegisterModule<RenderDeviceVk>();
+	SSystem()->RegisterModule<RenderDeviceVk>();
 
 	// TODO: replace to runtime binding dll
 	pSystemManager->AddIProcess(app);

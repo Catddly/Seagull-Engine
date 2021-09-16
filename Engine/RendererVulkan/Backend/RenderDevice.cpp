@@ -52,6 +52,7 @@ namespace SG
 
 	void RenderDeviceVk::OnInit()
 	{
+		SSystem()->RegisterSystemMessageListener(this);
 		Initialize();
 	}
 
@@ -75,6 +76,11 @@ namespace SG
 		QueuePresent(mpRenderFinishSemaphore[currFrame], currFrame);
 
 		currFrame = (currFrame + 1) % SG_SWAPCHAIN_IMAGE_COUNT;
+	}
+
+	bool RenderDeviceVk::OnSystemMessage(ESystemMessage msg)
+	{
+		return true;
 	}
 
 	bool RenderDeviceVk::Initialize()
@@ -105,7 +111,7 @@ namespace SG
 			return false;
 		}
 
-		auto* pOS = CSystem::GetInstance()->GetOS();
+		auto* pOS = SSystem()->GetOS();
 		Window* window = pOS->GetMainWindow();
 		auto rect = window->GetCurrRect();
 		Resolution swapchainRes = { GetRectWidth(rect), GetRectHeight(rect) };
@@ -181,7 +187,6 @@ namespace SG
 
 		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
 			DestroyCommandBuffer(mpRenderCommmands[i]);
-		DestroyCommandPool(mpCommandPool);
 
 		DestroyFrameBuffer(mpFrameBuffer);
 		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
@@ -191,6 +196,8 @@ namespace SG
 			DestroySemaphores(mpRenderFinishSemaphore[i]);
 			DestroySemaphores(mpFetchImageSemaphore[i]);
 		}
+
+		DestroyCommandPool(mpCommandPool);
 		DestroyPipeline(mpDefaultPipeline);
 		DestroySwapchain(mSwapchain);
 		vkDestroySurfaceKHR(mInstance.instance, mInstance.presentSurface, nullptr);
@@ -408,7 +415,7 @@ namespace SG
 			string name = stage.substr(0, dotPos);
 			string extension = stage.substr(dotPos + 1, stage.size() - dotPos);
 
-			auto* pFS = CSystem::GetInstance()->GetFileSystem();
+			auto* pFS = SSystem()->GetFileSystem();
 			if (extension == "spv")
 			{
 				if (!ReadBinaryFromDisk(pShader, name, extension)) // no spirv file exist, try to compile the file from ShaderSrc
@@ -994,7 +1001,7 @@ namespace SG
 
 	bool RenderDeviceVk::CreatePresentSurface()
 	{
-		auto* pOS = CSystem::GetInstance()->GetOS();
+		auto* pOS = SSystem()->GetOS();
 		Window* mainWindow = pOS->GetMainWindow();
 
 #ifdef SG_PLATFORM_WINDOWS
@@ -1030,14 +1037,14 @@ namespace SG
 		glslc[num + 1] = '\0';
 		strcat_s(glslc, sizeof(wchar_t) * (num + 1), "\\Bin32\\glslc.exe");
 		string compiledName = name + "-" + extension + ".spv";
-		string shaderPath = CSystem::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Sources) + name + "." + extension;
-		string outputPath = CSystem::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + compiledName;
+		string shaderPath = SSystem()->GetResourceDirectory(EResourceDirectory::eShader_Sources) + name + "." + extension;
+		string outputPath = SSystem()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + compiledName;
 
 		const char* args[3] = { shaderPath.c_str(), "-o", outputPath.c_str() };
-		string pOut = CSystem::GetInstance()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + name + "-" + extension + "-compile.log";
+		string pOut = SSystem()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + name + "-" + extension + "-compile.log";
 
 		// create a process to use vulkanSDK to compile shader sources to binary (spirv)
-		if (CSystem::GetInstance()->RunProcess(glslc, args, 3, pOut.c_str()) != 0)
+		if (SSystem()->RunProcess(glslc, args, 3, pOut.c_str()) != 0)
 		{
 			SG_LOG_WARN("%s", pOut);
 			SG_ASSERT(false);
@@ -1048,7 +1055,7 @@ namespace SG
 
 	bool RenderDeviceVk::ReadBinaryFromDisk(Shader* pShader, const string& name, const string& extension)
 	{
-		auto* pFS = CSystem::GetInstance()->GetFileSystem();
+		auto* pFS = SSystem()->GetFileSystem();
 		string filepath = "";
 		if (extension == "spv")
 			filepath = name + "." + extension;

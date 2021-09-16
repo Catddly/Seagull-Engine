@@ -19,7 +19,6 @@
 //----------------------------------------------------------
 // System modules
 //----------------------------------------------------------
-#include "System/ISystem.h"
 #include "System/IFileSystem.h"
 #include "System/ILogger.h"
 #include "User/IApp.h"
@@ -27,7 +26,7 @@
 //----------------------------------------------------------
 // System implementation
 //----------------------------------------------------------
-#include "Core/Private/System/System.h"
+#include "System/System.h"
 
 //----------------------------------------------------------
 // Platform specification modules

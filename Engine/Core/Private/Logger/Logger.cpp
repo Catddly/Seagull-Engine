@@ -3,7 +3,7 @@
 #include "Base/BasicTypes.h"
 #include "Logger.h"
 
-#include "Core/Private/System/System.h"
+#include "System/System.h"
 
 namespace SG
 {
@@ -16,7 +16,7 @@ namespace SG
 	{
 		SetToDefaultFormat();
 
-		ISystem* pSysMgr = CSystem::GetInstance();
+		auto* pSysMgr = SSystem();
 		IFileSystem* pFs = pSysMgr->GetFileSystem();
 		if (pFs->Open(EResourceDirectory::eLog, "log.txt", EFileMode::efWrite)) // reopen to clean up the log file
 		{
@@ -73,7 +73,7 @@ namespace SG
 
 	void CLogger::LogToFile() const
 	{
-		ISystem* pSysMgr = CSystem::GetInstance();
+		auto* pSysMgr = SSystem();
 		IFileSystem* pFs = pSysMgr->GetFileSystem();
 
 		if (pFs->Open(EResourceDirectory::eLog, "log.txt", EFileMode::efAppend))

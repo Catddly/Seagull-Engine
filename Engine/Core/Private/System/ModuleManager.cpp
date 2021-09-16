@@ -1,20 +1,20 @@
 #include "StdAfx.h"
-#include "System/ISystem.h"
+#include "System/System.h"
 
 #include "Memory/IMemory.h"
 
 namespace SG
 {
 
-	eastl::map<const char*, IModule*> CModuleManager::mCoreModuleMap;
-	eastl::map<const char*, IModule*> CModuleManager::mUserModuleMap;
+	eastl::map<const char*, IModule*> ModuleManager::mCoreModuleMap;
+	eastl::map<const char*, IModule*> ModuleManager::mUserModuleMap;
 
-	CModuleManager::CModuleManager()
+	ModuleManager::ModuleManager()
 	{
 
 	}
 
-	CModuleManager::~CModuleManager()
+	ModuleManager::~ModuleManager()
 	{
 		for (auto beg = mUserModuleMap.rbegin(); beg != mUserModuleMap.rend(); beg++)
 		{
@@ -29,7 +29,7 @@ namespace SG
 		}
 	}
 
-	bool CModuleManager::RegisterCoreModule(IModule* pModule)
+	bool ModuleManager::RegisterCoreModule(IModule* pModule)
 	{
 		if (pModule)
 		{
@@ -41,7 +41,7 @@ namespace SG
 			return false;
 	}
 
-	bool CModuleManager::RegisterUserModule(IModule* pModule)
+	bool ModuleManager::RegisterUserModule(IModule* pModule)
 	{
 		if (pModule)
 		{
@@ -53,7 +53,7 @@ namespace SG
 			return false;
 	}
 
-	void CModuleManager::OnUpdate()
+	void ModuleManager::Update()
 	{
 		for (auto e : mUserModuleMap)
 			e.second->OnUpdate();

@@ -143,7 +143,7 @@ private:
 	void FileSystemTest()
 	{
 		using namespace SG;
-		auto pIO = CSystem::GetInstance()->GetFileSystem();
+		auto pIO = SSystem()->GetFileSystem();
 		if (pIO->Open(EResourceDirectory::eRoot, "test.spv", EFileMode::efWrite_Binary))
 		{
 			int a = 4;

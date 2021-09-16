@@ -1,10 +1,12 @@
 #include "StdAfx.h"
-#include "System.h"
+#include "System/System.h"
 
 #include "Core/Private/Logger/Logger.h"
 #include "Core/Private/FileSystem/FileSystem.h"
 #include "Core/Private/System/InputSystem.h"
 #include "Core/Private/Platform/OperatingSystem.h"
+
+#include "User/IApp.h"
 
 #include "Memory/IMemory.h"
 
@@ -15,13 +17,11 @@ namespace SG
 	// no implementation yet, just use a forward declaration
 	class C2DEngine;
 
-	CSystem* CSystem::sInstance = nullptr;
-
-	CSystem::CSystem()
+	System::System()
 		:mRootPath("")
 	{}
 
-	void CSystem::OnInit()
+	void System::OnInit()
 	{
 		char abPath[SG_MAX_FILE_PATH] = { 0 };
 		::GetModuleFileNameA(NULL, abPath, sizeof(abPath));
@@ -47,16 +47,13 @@ namespace SG
 			SG_LOG_ERROR("Failed to initialized core modules");
 	}
 
-	void CSystem::OnShutdown()
+	void System::OnShutdown()
 	{
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
 		Memory::Delete(mpCurrActiveProcess);
-
-		if (sInstance)
-			Memory::Delete(sInstance);
 	}
 
-	bool CSystem::ValidateCoreModules() const
+	bool System::ValidateCoreModules() const
 	{
 		// TODO: fix it
 		//bool isReady = (mSystemModules.pLog != nullptr) &&
@@ -66,7 +63,7 @@ namespace SG
 		return true;
 	}
 
-	bool CSystem::ValidateAllModules() const
+	bool System::ValidateAllModules() const
 	{
 		//bool isReady = ValidateCoreModules() &&
 		//	(mSystemModules.p2DEngine != nullptr) &&
@@ -75,13 +72,13 @@ namespace SG
 		return false;
 	}
 
-	SG::UInt32 CSystem::GetTotalMemoryUsage() const
+	SG::UInt32 System::GetTotalMemoryUsage() const
 	{
 		// no implementation yet.
 		return 0;
 	}
 
-	int CSystem::RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut)
+	int System::RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut)
 	{
 #ifdef SG_PLATFORM_WINDOWS
 		STARTUPINFOA        startupInfo;
@@ -128,7 +125,7 @@ namespace SG
 		return EXIT_SUCCESS;
 	}
 
-	void CSystem::AddIProcess(IProcess* pProcess)
+	void System::AddIProcess(IProcess* pProcess)
 	{
 		if (pProcess)
 		{
@@ -137,7 +134,7 @@ namespace SG
 		}
 	}
 
-	bool CSystem::InitCoreModules()
+	bool System::InitCoreModules()
 	{
 		IFileSystem* pFileSystem = Memory::New<CFileSystem>();
 		ILogger* pLogger = Memory::New<CLogger>();
@@ -152,7 +149,7 @@ namespace SG
 		return ValidateCoreModules();
 	}
 
-	bool CSystem::SystemMainLoop()
+	bool System::SystemMainLoop()
 	{
 		bool bIsSafeQuit = true;
 		bool bIsExit = false;
@@ -162,20 +159,17 @@ namespace SG
 			msg = PeekOSMessage();
 			if (msg == EOsMessage::eQuit)
 				bIsExit = true;
+			mMessageBus.Update();
+			
+			mModuleManager.Update();
 
-			OnUpdate();
+			if (mpCurrActiveProcess)
+				mpCurrActiveProcess->OnUpdate();
 		}
 		return bIsSafeQuit;
 	}
 
-	void CSystem::OnUpdate()
-	{
-		mModuleManager.OnUpdate();
-		if (mpCurrActiveProcess) 
-			mpCurrActiveProcess->OnUpdate();
-	}
-
-	string CSystem::GetResourceDirectory(EResourceDirectory rd) const
+	string System::GetResourceDirectory(EResourceDirectory rd) const
 	{
 		switch (rd)
 		{
@@ -191,22 +185,31 @@ namespace SG
 		}
 	}
 
-	CSystem* CSystem::GetInstance()
-	{
-		if (sInstance == nullptr)
-			sInstance = Memory::New<CSystem>();
-		return sInstance;
-	}
-
-	void CSystem::SetRootDirectory(const char* filepath)
+	void System::SetRootDirectory(const char* filepath)
 	{
 		mRootPath = filepath;
 		_chdir(filepath);
 	}
 
-	ILogger*          CSystem::GetLogger()      const { return mModuleManager.GetModule<ILogger*>("Logger", true); }
-	IFileSystem*      CSystem::GetFileSystem()  const { return mModuleManager.GetModule<IFileSystem*>("FileSystem", true); }
-	IInputSystem*     CSystem::GetInputSystem() const { return mModuleManager.GetModule<IInputSystem*>("InputSystem", true); }
-	IOperatingSystem* CSystem::GetOS()          const { return mModuleManager.GetModule<IOperatingSystem*>("OS", true); }
+	ILogger*          System::GetLogger()      const { return mModuleManager.GetModule<ILogger*>("Logger", true); }
+	IFileSystem*      System::GetFileSystem()  const { return mModuleManager.GetModule<IFileSystem*>("FileSystem", true); }
+	IInputSystem*     System::GetInputSystem() const { return mModuleManager.GetModule<IInputSystem*>("InputSystem", true); }
+	IOperatingSystem* System::GetOS()          const { return mModuleManager.GetModule<IOperatingSystem*>("OS", true); }
+
+	System* const System::Instance()
+	{
+		static System instance;
+		return &instance;
+	}
+
+	void System::RegisterSystemMessageListener(ISystemMessageListener* pListener)
+	{
+		mMessageBus.RegisterListener(pListener);
+	}
+
+	void System::RemoveSystemMessageListener(ISystemMessageListener* pListener)
+	{
+		mMessageBus.RemoveListener(pListener);
+	}
 
 }
