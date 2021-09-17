@@ -34,19 +34,6 @@ namespace SG
 		SG_CORE_API bool InitCoreModules();
 		SG_CORE_API void OnShutdown();
 
-		// TOOD: other modules should be loaded as dll,
-		// don't use get/set function.
-		//SG_CORE_API virtual void       SetI3DEngine(I3DEngine* p3DEngine) override;
-		//SG_CORE_API virtual I3DEngine* GetI3DEngine() override;
-		//SG_CORE_API virtual void       SetI2DEngine(I2DEngine* p3DEngine) override;
-		//SG_CORE_API virtual I2DEngine* GetI2DEngine() override;
-
-		template <class T>
-		T GetModule(const char* name) const;
-
-		template <class T>
-		bool RegisterModule();
-
 		SG_CORE_API ILogger*          GetLogger() const;
 		SG_CORE_API IFileSystem*      GetFileSystem() const;
 		SG_CORE_API IInputSystem*     GetInputSystem() const;
@@ -79,6 +66,12 @@ namespace SG
 
 		//! Force to use ISystemManager as the interface of system manager.
 		SG_CORE_API static System* const Instance();
+
+		template <class T>
+		bool RegisterModule();
+
+		template <class T>
+		T GetModule(const char* name) const;
 	private:
 		System();
 #ifdef SG_PLATFORM_WINDOWS

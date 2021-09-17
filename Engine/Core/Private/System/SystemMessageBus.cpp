@@ -8,16 +8,15 @@ namespace SG
 
 	void SystemMessageBus::Update()
 	{
-		while (mMessages.size() != 0)
+		for (auto beg = mMessages.begin(); beg != mMessages.end(); beg++)
 		{
-			ESystemMessage msg = mMessages.front();
 			for (auto* e : mpListeners)
 			{
-				if (!e->OnSystemMessage(msg))
+				if (!e->OnSystemMessage(*beg))
 					break;
 			}
-			mMessages.pop();
 		}
+		mMessages.clear();
 	}
 
 	void SystemMessageBus::RegisterListener(ISystemMessageListener* pListener)
@@ -36,7 +35,7 @@ namespace SG
 
 	void SystemMessageBus::PushEvent(ESystemMessage msg)
 	{
-		mMessages.push(msg);
+		mMessages.emplace(msg);
 	}
 
 }

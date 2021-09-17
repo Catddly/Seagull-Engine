@@ -7,6 +7,8 @@
 
 #include "RendererVulkan/Utils/VkConvert.h"
 
+#include "RendererVulkan/Backend/VulkanInstance.h"
+
 #ifdef SG_PLATFORM_WINDOWS
 #	include <vulkan/vulkan_win32.h>
 #endif
@@ -53,29 +55,36 @@ namespace SG
 	void RenderDeviceVk::OnInit()
 	{
 		SSystem()->RegisterSystemMessageListener(this);
-		Initialize();
+		mVulkanInstance = Memory::New<VulkanInstance>();
+		//Initialize();
 	}
 
 	void RenderDeviceVk::OnShutdown()
 	{
-		Shutdown();
+		Memory::Delete(mVulkanInstance);
+		//Shutdown();
 	}
 
 	void RenderDeviceVk::OnUpdate()
 	{
-		static UInt32 currFrame = 0;
-		UInt32 nextImageIndex = 0;
+		//static UInt32 currFrame = 0;
+		//UInt32 nextImageIndex = 0;
 
-		// [CPU 2 GPU] in current frame, if the commands of current queue had not been completed, wait for it and reset its status to un-signal. 
-		WaitForFence(mpInFlightFence[currFrame]);
-		// [GPU 2 GPU]
-		AcquireNextImage(mpFetchImageSemaphore[currFrame], nextImageIndex);
+		//// [CPU 2 GPU] in current frame, if the commands of current queue had not been completed, wait for it and reset its status to un-signal. 
+		//WaitForFence(mpInFlightFence[currFrame]);
+		//// [GPU 2 GPU]
+		//AcquireNextImage(mpFetchImageSemaphore[currFrame], nextImageIndex);
 
-		// wait for the execution of these commands to finish using mpInFlightFence.
-		QueueSubmit(mpFetchImageSemaphore[currFrame], mpRenderFinishSemaphore[currFrame], mpInFlightFence[currFrame], mpRenderCommmands[currFrame]);
-		QueuePresent(mpRenderFinishSemaphore[currFrame], currFrame);
+		//// wait for the execution of these commands to finish using mpInFlightFence.
+		//QueueSubmit(mpFetchImageSemaphore[currFrame], mpRenderFinishSemaphore[currFrame], mpInFlightFence[currFrame], mpRenderCommmands[currFrame]);
+		//QueuePresent(mpRenderFinishSemaphore[currFrame], currFrame);
 
-		currFrame = (currFrame + 1) % SG_SWAPCHAIN_IMAGE_COUNT;
+		//currFrame = (currFrame + 1) % SG_SWAPCHAIN_IMAGE_COUNT;
+	}
+
+	void RenderDeviceVk::OnDraw()
+	{
+
 	}
 
 	bool RenderDeviceVk::OnSystemMessage(ESystemMessage msg)
@@ -111,95 +120,95 @@ namespace SG
 			return false;
 		}
 
-		auto* pOS = SSystem()->GetOS();
-		Window* window = pOS->GetMainWindow();
-		auto rect = window->GetCurrRect();
-		Resolution swapchainRes = { GetRectWidth(rect), GetRectHeight(rect) };
-		if (!CreateSwapchain(mSwapchain, EImageFormat::eSrgb_B8G8R8A8, EPresentMode::eFIFO, swapchainRes))
-		{
-			SG_LOG_ERROR("Failed to create swapchain!");
-			return false;
-		}
+		//auto* pOS = SSystem()->GetOS();
+		//Window* window = pOS->GetMainWindow();
+		//auto rect = window->GetCurrRect();
+		//Resolution swapchainRes = { GetRectWidth(rect), GetRectHeight(rect) };
+		//if (!CreateSwapchain(mSwapchain, EImageFormat::eSrgb_B8G8R8A8, EPresentMode::eFIFO, swapchainRes))
+		//{
+		//	SG_LOG_ERROR("Failed to create swapchain!");
+		//	return false;
+		//}
 
-		const char* stages[] = { "basic.vert", "basic.frag" };
-		CreateShader(&mpTriangleShader, stages, 2);
-		CreatePipeline(&mpDefaultPipeline, EPipelineType::eGraphic, mpTriangleShader); // here we create the render pass
-		DestroyShader(mpTriangleShader);
+		//const char* stages[] = { "basic.vert", "basic.frag" };
+		//CreateShader(&mpTriangleShader, stages, 2);
+		//CreatePipeline(&mpDefaultPipeline, EPipelineType::eGraphic, mpTriangleShader); // here we create the render pass
+		//DestroyShader(mpTriangleShader);
 
-		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
-		{
-			CreateSemaphores(&mpFetchImageSemaphore[i]);
-			CreateSemaphores(&mpRenderFinishSemaphore[i]);
-			CreateFence(&mpInFlightFence[i]);
-			CreateFence(&mpImageInFlightFence[i]);
-		}
+		//for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
+		//{
+		//	CreateSemaphores(&mpFetchImageSemaphore[i]);
+		//	CreateSemaphores(&mpRenderFinishSemaphore[i]);
+		//	CreateFence(&mpInFlightFence[i]);
+		//	CreateFence(&mpImageInFlightFence[i]);
+		//}
 
-		if (!CreateFrameBuffer(&mpFrameBuffer, mpDefaultPipeline))
-		{
-			SG_LOG_ERROR("Failed to create framebuffer!");
-			return false;
-		}
+		//if (!CreateFrameBuffer(&mpFrameBuffer, mpDefaultPipeline))
+		//{
+		//	SG_LOG_ERROR("Failed to create framebuffer!");
+		//	return false;
+		//}
 
-		if (!CreateCommandPool(&mpCommandPool, &mGraphicQueue))
-		{
-			SG_LOG_ERROR("Failed to create command pool!");
-			return false;
-		}
-		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
-		{
-			if (!AllocateCommandBuffer(&mpRenderCommmands[i], mpCommandPool))
-			{
-				SG_LOG_ERROR("Failed to allocate command buffers from command pool!");
-				return false;
-			}
-		}
+		//if (!CreateCommandPool(&mpCommandPool, &mGraphicQueue))
+		//{
+		//	SG_LOG_ERROR("Failed to create command pool!");
+		//	return false;
+		//}
+		//for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
+		//{
+		//	if (!AllocateCommandBuffer(&mpRenderCommmands[i], mpCommandPool))
+		//	{
+		//		SG_LOG_ERROR("Failed to allocate command buffers from command pool!");
+		//		return false;
+		//	}
+		//}
 
-		ResourceBarrier rtBarrier = {};
-		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
-		{
-			auto* pCommand = mpRenderCommmands[i];
-			RenderTarget* pRt[] = { &mSwapchain.renderTargets[i] };
-			BeginCommand(pCommand);
+		//ResourceBarrier rtBarrier = {};
+		//for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
+		//{
+		//	auto* pCommand = mpRenderCommmands[i];
+		//	RenderTarget* pRt[] = { &mSwapchain.renderTargets[i] };
+		//	BeginCommand(pCommand);
 
-			rtBarrier = { pRt[0], EResoureceBarrier::efPresent, EResoureceBarrier::efRenderTarget };
-			CmdRenderTargetResourceBarrier(pCommand, 1, &rtBarrier);
+		//	rtBarrier = { pRt[0], EResoureceBarrier::efPresent, EResoureceBarrier::efRenderTarget };
+		//	CmdRenderTargetResourceBarrier(pCommand, 1, &rtBarrier);
 
-			CmdBindRenderTarget(pCommand, pRt, 1, i); // begin renderpass
-				CmdSetViewport(pCommand, 0, 0, (float)pRt[0]->pTexture->resolution.width, (float)pRt[0]->pTexture->resolution.height, 0.0f, 1.0f);
-				CmdSetScissor(pCommand, 0, 0, pRt[0]->pTexture->resolution.width, pRt[0]->pTexture->resolution.height);
+		//	CmdBindRenderTarget(pCommand, pRt, 1, i); // begin renderpass
+		//		CmdSetViewport(pCommand, 0, 0, (float)pRt[0]->pTexture->resolution.width, (float)pRt[0]->pTexture->resolution.height, 0.0f, 1.0f);
+		//		CmdSetScissor(pCommand, 0, 0, pRt[0]->pTexture->resolution.width, pRt[0]->pTexture->resolution.height);
 
-				CmdBindPipeline(pCommand, mpDefaultPipeline);
-				CmdDraw(pCommand, 3, 1, 0, 0);
-			CmdBindRenderTarget(pCommand, nullptr, 0, i); // end renderpass
+		//		CmdBindPipeline(pCommand, mpDefaultPipeline);
+		//		CmdDraw(pCommand, 3, 1, 0, 0);
+		//	CmdBindRenderTarget(pCommand, nullptr, 0, i); // end renderpass
 
-			rtBarrier = { pRt[0], EResoureceBarrier::efRenderTarget, EResoureceBarrier::efPresent };
-			CmdRenderTargetResourceBarrier(pCommand, 1, &rtBarrier);
+		//	rtBarrier = { pRt[0], EResoureceBarrier::efRenderTarget, EResoureceBarrier::efPresent };
+		//	CmdRenderTargetResourceBarrier(pCommand, 1, &rtBarrier);
 
-			EndCommand(pCommand);
-		}
+		//	EndCommand(pCommand);
+		//}
 
 		return true;
 	}
 
 	void RenderDeviceVk::Shutdown()
 	{
-		WaitQueueIdle(&mGraphicQueue);
+		//WaitQueueIdle(&mGraphicQueue);
 
-		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
-			DestroyCommandBuffer(mpRenderCommmands[i]);
+		//for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
+		//	DestroyCommandBuffer(mpRenderCommmands[i]);
 
-		DestroyFrameBuffer(mpFrameBuffer);
-		for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
-		{
-			DestroyFence(mpImageInFlightFence[i]);
-			DestroyFence(mpInFlightFence[i]);
-			DestroySemaphores(mpRenderFinishSemaphore[i]);
-			DestroySemaphores(mpFetchImageSemaphore[i]);
-		}
+		//DestroyFrameBuffer(mpFrameBuffer);
+		//for (UInt32 i = 0; i < SG_SWAPCHAIN_IMAGE_COUNT; i++)
+		//{
+		//	DestroyFence(mpImageInFlightFence[i]);
+		//	DestroyFence(mpInFlightFence[i]);
+		//	DestroySemaphores(mpRenderFinishSemaphore[i]);
+		//	DestroySemaphores(mpFetchImageSemaphore[i]);
+		//}
 
-		DestroyCommandPool(mpCommandPool);
-		DestroyPipeline(mpDefaultPipeline);
-		DestroySwapchain(mSwapchain);
+		//DestroyCommandPool(mpCommandPool);
+		//DestroyPipeline(mpDefaultPipeline);
+		//DestroySwapchain(mSwapchain);
 		vkDestroySurfaceKHR(mInstance.instance, mInstance.presentSurface, nullptr);
 		vkDestroyDevice(mInstance.logicalDevice, nullptr);
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER

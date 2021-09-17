@@ -155,16 +155,20 @@ namespace SG
 		bool bIsExit = false;
 		while (!bIsExit)
 		{
+			// update all the messages
 			EOsMessage msg = EOsMessage::eNull;
 			msg = PeekOSMessage();
 			if (msg == EOsMessage::eQuit)
 				bIsExit = true;
 			mMessageBus.Update();
 			
+			// module OnUpdate()
 			mModuleManager.Update();
-
 			if (mpCurrActiveProcess)
 				mpCurrActiveProcess->OnUpdate();
+
+			// module OnDraw()
+			mModuleManager.Draw();
 		}
 		return bIsSafeQuit;
 	}

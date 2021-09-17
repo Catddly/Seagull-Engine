@@ -29,6 +29,8 @@ namespace SG
 #	define SG_ENABLE_VK_VALIDATION_LAYER 0
 #endif
 
+	class VulkanInstance;
+
 	class RenderDeviceVk : public IRenderDevice, public ISystemMessageListener
 	{
 	public:
@@ -127,6 +129,7 @@ namespace SG
 		SG_RENDERER_VK_API virtual void OnShutdown() override;
 
 		SG_RENDERER_VK_API virtual void OnUpdate() override;
+		SG_RENDERER_VK_API virtual void OnDraw() override;
 
 		SG_RENDERER_VK_API virtual const char* GetRegisterName() const override { return "RenderDevice"; }
 
@@ -246,6 +249,9 @@ namespace SG
 		// CPU to GPU synchronization
 		Fence*     mpInFlightFence[SG_SWAPCHAIN_IMAGE_COUNT] = {};
 		Fence*     mpImageInFlightFence[SG_SWAPCHAIN_IMAGE_COUNT] = {};
+
+		/// New
+		VulkanInstance* mVulkanInstance = nullptr;
 	};
 
 }

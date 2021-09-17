@@ -16,6 +16,7 @@ namespace SG
 		SG_CORE_API virtual void OnShutdown() = 0;
 
 		SG_CORE_API virtual void OnUpdate() {}
+		SG_CORE_API virtual void OnDraw()   {}
 
 		SG_CORE_API virtual const char* GetRegisterName() const = 0;
 	};

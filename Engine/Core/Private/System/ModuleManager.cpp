@@ -61,4 +61,10 @@ namespace SG
 			e.second->OnUpdate();
 	}
 
+	void ModuleManager::Draw()
+	{
+		for (auto e : mUserModuleMap)
+			e.second->OnDraw();
+	}
+
 }

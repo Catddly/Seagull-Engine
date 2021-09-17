@@ -36,7 +36,7 @@ namespace SG
 
 		void PushEvent(ESystemMessage msg);
 	private:
-		eastl::queue<ESystemMessage>        mMessages;
+		eastl::set<ESystemMessage>          mMessages;
 		eastl::set<ISystemMessageListener*> mpListeners;
 	};
 

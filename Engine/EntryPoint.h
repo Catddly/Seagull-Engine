@@ -10,7 +10,7 @@
 #include "Memory/IMemory.h"
 
 // TODO: replace to runtime binding dll
-#include "RendererVulkan/Backend/RenderDevice.h"
+#include "RendererVulkan/RenderDevice/RenderDevice.h"
 
 int main(int argv, char** argc)
 {
@@ -19,7 +19,7 @@ int main(int argv, char** argc)
 	IApp* app = GetAppInstance();
 	auto* pSystemManager = SSystem();
 	pSystemManager->OnInit();
-	SG_LOG_IF(ELogLevel::efLog_Level_Info, "Are core modules loaded: ", pSystemManager->ValidateCoreModules());
+	//SG_LOG_IF(ELogLevel::efLog_Level_Info, "Are core modules loaded: ", pSystemManager->ValidateCoreModules());
 
 	// TOOD: other modules should be loaded as dll,
 	// don't use get/set function.
@@ -27,12 +27,11 @@ int main(int argv, char** argc)
 	//pSystemManager->SetI3DEngine(p3DEngine);
 	//p3DEngine->OnInit();
 
-	SSystem()->RegisterModule<RenderDeviceVk>();
-
 	// TODO: replace to runtime binding dll
+	pSystemManager->RegisterModule<RenderDeviceVk>();
 	pSystemManager->AddIProcess(app);
 
-	SG_LOG_IF(ELogLevel::efLog_Level_Info, "Are all  modules loaded: ", pSystemManager->ValidateAllModules());
+	//SG_LOG_IF(ELogLevel::efLog_Level_Info, "Are all  modules loaded: ", pSystemManager->ValidateAllModules());
 	SG_LOG_INFO("Welcome To Seagull Engine!");
 
 	if (pSystemManager->SystemMainLoop())
