@@ -54,7 +54,7 @@ namespace SG
 
 	void RenderDeviceVk::OnInit()
 	{
-		SSystem()->RegisterSystemMessageListener(this);
+		//SSystem()->RegisterSystemMessageListener(this);
 		mVulkanInstance = Memory::New<VulkanInstance>();
 		//Initialize();
 	}

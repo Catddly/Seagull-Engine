@@ -27,19 +27,19 @@ public:
 		//auto* pInputSystem = SG::System::GetInstance()->GetIInputSystem();
 		//pInputSystem->RegisterListener(this);
 
-		struct MyJob : public SG::IJob<int, double>
-		{
-			virtual void Execute(const int& inData, double& outData) override
-			{
-				outData = (double)inData + 5.99;
-			}
-		};
+		//struct MyJob : public SG::IJob<int, double>
+		//{
+		//	virtual void Execute(const int& inData, double& outData) override
+		//	{
+		//		outData = (double)inData + 5.99;
+		//	}
+		//};
 
-		MyJob job;
-		int a = 54;
-		double b;
-		job.Execute(a, b);
-		SG_LOG_INFO("b is %.2llf", b);
+		//MyJob job;
+		//int a = 54;
+		//double b;
+		//job.Execute(a, b);
+		//SG_LOG_INFO("b is %.2llf", b);
 
 		//MathTest();
 		//ThreadTest();

@@ -23,10 +23,12 @@
 namespace SG
 {
 
-#ifdef SG_DEBUG
-#	define SG_ENABLE_VK_VALIDATION_LAYER 1
-#else
-#	define SG_ENABLE_VK_VALIDATION_LAYER 0
+#ifndef SG_ENABLE_VK_VALIDATION_LAYER 
+#	ifdef SG_DEBUG
+#		define SG_ENABLE_VK_VALIDATION_LAYER 1
+#	else
+#		define SG_ENABLE_VK_VALIDATION_LAYER 0
+#	endif
 #endif
 
 	class VulkanInstance;

@@ -8,33 +8,31 @@
 #include "VulkanDevice.h"
 
 #ifdef SG_PLATFORM_WINDOWS
-#	ifndef WIN32_LEAN_AND_MEAN
-#	define WIN32_LEAN_AND_MEAN
-#	endif
-#	include <windows.h>
 #	include <vulkan/vulkan_win32.h>
 #endif
 
 namespace SG
 {
 
-	VulkanSwapchain::VulkanSwapchain(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device)
-		:mInstance(instance), mPhysicalDevice(physicalDevice), mLogicalDevice(device)
+	VulkanSwapchain::VulkanSwapchain(VkInstance instance)
+		:mInstance(instance), mPhysicalDevice(VK_NULL_HANDLE), mLogicalDevice(VK_NULL_HANDLE)
 	{
-		bSwapchainAdequate = true;
 	}
 
 	VulkanSwapchain::~VulkanSwapchain()
 	{
-		if (mPresentSurface != VK_NULL_HANDLE)
-			vkDestroySurfaceKHR(mInstance, mPresentSurface, nullptr);
 	}
 
-	bool VulkanSwapchain::CreateSurface(VulkanQueue graphicQueue)
+	void VulkanSwapchain::BindDevice(VkPhysicalDevice physicalDevice, VkDevice device)
 	{
-		if (!bSwapchainAdequate)
-			return false;
+		mPhysicalDevice = physicalDevice;
+		mLogicalDevice = device;
 
+		bSwapchainAdequate = true;
+	}
+
+	bool VulkanSwapchain::CreateSurface()
+	{
 #ifdef SG_PLATFORM_WINDOWS
 		auto* pOS = SSystem()->GetOS();
 		Window* mainWindow = pOS->GetMainWindow();
@@ -43,24 +41,30 @@ namespace SG
 		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		createInfo.hwnd = (HWND)mainWindow->GetNativeHandle();
 		createInfo.hinstance = ::GetModuleHandle(NULL);
+		
+		if (vkCreateWin32SurfaceKHR(mInstance, &createInfo, nullptr, &mPresentSurface) != VK_SUCCESS)
+			return false;
+		return true;
+#endif
+	}
 
-		if (!vkCreateWin32SurfaceKHR(mInstance, &createInfo, nullptr, &mPresentSurface) != VK_SUCCESS)
+	void VulkanSwapchain::DestroySurface()
+	{
+		if (mPresentSurface != VK_NULL_HANDLE)
+			vkDestroySurfaceKHR(mInstance, mPresentSurface, nullptr);
+	}
+
+	bool VulkanSwapchain::CheckSurfacePresentable(VulkanQueue queue)
+	{
+		// check if the graphic queue can do the presentation job
+		VkBool32 presentSupport = false;
+		vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, queue.familyIndex, mPresentSurface, &presentSupport);
+		if (!presentSupport)
 		{
-			// check if the graphic queue can do the presentation job
-			VkBool32 presentSupport = false;
-			vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, graphicQueue.familyIndex, mPresentSurface, &presentSupport);
-			if (!presentSupport)
-			{
-				SG_LOG_ERROR("Current physical device not support surface presentation");
-				return false;
-			}
-			return true;
-		}
-		else
-		{
+			SG_LOG_ERROR("Current physical device not support surface presentation");
 			return false;
 		}
-#endif
+		return true;
 	}
 
 }

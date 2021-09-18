@@ -10,12 +10,16 @@ namespace SG
 	class VulkanSwapchain
 	{
 	public:
-		VulkanSwapchain(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device);
+		VulkanSwapchain(VkInstance instance);
 		~VulkanSwapchain();
 
 		VkSwapchainKHR mHandle;
 
-		bool CreateSurface(VulkanQueue graphicQueue);
+		void BindDevice(VkPhysicalDevice physicalDevice, VkDevice device);
+
+		bool CreateSurface();
+		void DestroySurface();
+		bool CheckSurfacePresentable(VulkanQueue queue);
 	private:
 		VkInstance       mInstance;
 		VkPhysicalDevice mPhysicalDevice;

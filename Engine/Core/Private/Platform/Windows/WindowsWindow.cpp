@@ -52,7 +52,7 @@ namespace SG
 
 	Window::~Window()
 	{
-
+		::DestroyWindow((HWND)mHandle);
 	}
 
 	void Window::AdjustWindow()

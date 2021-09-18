@@ -27,12 +27,12 @@ namespace SG
 		VulkanDevice(VkPhysicalDevice device);
 		~VulkanDevice();
 
-		VkPhysicalDevice physicalDevice;
-		VkDevice         logicalDevice;
+		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+		VkDevice         logicalDevice = VK_NULL_HANDLE;
 
 		VkCommandPool    defaultCommandPool;
 
-		vector<string>   supportedExtensions;
+		vector<VkExtensionProperties>   supportedExtensions;
 		vector<VkQueueFamilyProperties> queueFamilyProperties;
 		struct
 		{
@@ -43,6 +43,7 @@ namespace SG
 
 		//! @brief Fetch all the queue family indices and create a logical device.
 		bool CreateLogicalDevice(void* pNext);
+		void DestroyLogicalDevice();
 		//! @brief Create a command pool.
 		VkCommandPool CreateCommandPool(UInt32 queueFamilyIndices, VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 

@@ -57,24 +57,29 @@ namespace SG
 			SG_ASSERT(false);
 		}
 
+		mSwapchain = Memory::New<VulkanSwapchain>(mInstance);
+		mSwapchain->CreateSurface();
+
 		if (!SelectPhysicalDeviceAndCreateDevice())
 		{
 			SG_LOG_ERROR("No suittable GPU detected!");
 			SG_ASSERT(false);
 		}
-
 		mDevice->CreateLogicalDevice(nullptr);
-		mGraphicQueue = mDevice->GetQueue(EQueueType::eGraphic);
+		mGraphicsQueue = mDevice->GetQueue(EQueueType::eGraphic);
 
-		mSwapchain = Memory::New<VulkanSwapchain>(mInstance, mDevice->physicalDevice, mDevice->logicalDevice);
-		mSwapchain->CreateSurface(mGraphicQueue);
+		mSwapchain->BindDevice(mDevice->physicalDevice, mDevice->logicalDevice);
+		mSwapchain->CheckSurfacePresentable(mGraphicsQueue);
 	}
 
 	VulkanInstance::~VulkanInstance()
 	{
-		Memory::Delete(mSwapchain);
 		Memory::Delete(mDevice);
+		mSwapchain->DestroySurface();
+		Memory::Delete(mSwapchain);
+#ifdef SG_ENABLE_VK_VALIDATION_LAYER
 		_DestroyDebugUtilsMessengerEXT(mInstance, mDebugLayer, nullptr);
+#endif
 		vkDestroyInstance(mInstance, nullptr);
 	}
 
@@ -103,9 +108,16 @@ namespace SG
 		vector<const char*> layers;
 
 		ValidateExtensions(extents, &insInfo);
-		ValidateLayers(layers, &insInfo);
 
 		insInfo.pNext = nullptr;
+
+#ifdef SG_ENABLE_VK_VALIDATION_LAYER
+		ValidateLayers(layers, &insInfo);
+
+		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
+		PopulateDebugMsgCreateInfo(debugCreateInfo);
+		insInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+#endif
 
 		if (vkCreateInstance(&insInfo, nullptr, &mInstance) != VK_SUCCESS)
 		{
@@ -114,14 +126,10 @@ namespace SG
 		}
 
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
-		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
-		PopulateDebugMsgCreateInfo(debugCreateInfo);
-		insInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
-
 		if (_CreateDebugUtilsMessengerEXT(mInstance, &debugCreateInfo, nullptr, &mDebugLayer) != VK_SUCCESS)
 		{
 			SG_LOG_ERROR("Failed to create debug layer");
-			return false;
+			SG_ASSERT(false);
 		}
 #endif
 
@@ -130,7 +138,6 @@ namespace SG
 
 	void VulkanInstance::ValidateExtensions(vector<const char*>& extents, VkInstanceCreateInfo* info)
 	{
-
 		UInt32 extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 		vector<VkExtensionProperties> extensions(extensionCount);

@@ -3,6 +3,8 @@
 
 #include "System/ILogger.h"
 
+#include "VulkanInstance.h"
+
 #include "Stl/vector.h"
 
 namespace SG
@@ -16,14 +18,8 @@ namespace SG
 		vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extCount, nullptr);
 		if (extCount > 0)
 		{
-			std::vector<VkExtensionProperties> extensions(extCount);
-			if (vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extCount, &extensions.front()) == VK_SUCCESS)
-			{
-				for (auto ext : extensions)
-				{
-					supportedExtensions.push_back(ext.extensionName);
-				}
-			}
+			supportedExtensions.resize(extCount);
+			vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extCount, supportedExtensions.data());
 		}
 
 		uint32_t queueFamilyCount = 0;
@@ -34,10 +30,10 @@ namespace SG
 
 	VulkanDevice::~VulkanDevice()
 	{
+		if (logicalDevice != VK_NULL_HANDLE)
+			DestroyLogicalDevice();
 		//if (defaultCommandPool != VK_NULL_HANDLE)
 		//	vkDestroyCommandPool(logicalDevice, defaultCommandPool, nullptr);
-		if (logicalDevice != VK_NULL_HANDLE)
-			vkDestroyDevice(logicalDevice, nullptr);
 	}
 
 	bool VulkanDevice::CreateLogicalDevice(void* pNext)
@@ -64,7 +60,7 @@ namespace SG
 
 		// compute queue
 		int compute = FetchQueueFamilyIndicies(VK_QUEUE_COMPUTE_BIT);
-		if (compute != -1)
+		if (compute != -1 && compute != graphics)
 		{
 			queueFamilyIndices.compute = compute;
 			VkDeviceQueueCreateInfo queueInfo = {};
@@ -81,7 +77,7 @@ namespace SG
 
 		// transfer queue
 		int transfer = FetchQueueFamilyIndicies(VK_QUEUE_TRANSFER_BIT);
-		if (transfer != -1)
+		if (transfer != -1 && transfer != graphics)
 		{
 			queueFamilyIndices.transfer = transfer;
 			VkDeviceQueueCreateInfo queueInfo = {};
@@ -97,28 +93,16 @@ namespace SG
 		}
 
 		VkPhysicalDeviceFeatures deviceFeatures = {};
-		UInt32 extensionCount;
-		vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
-		vector<VkExtensionProperties> availableExtensions(extensionCount);
-		vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, availableExtensions.data());
 
 		// to support swapchain
-		vector<const char*> deviceExtensions = {
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-		};
-
+		vector<const char*> deviceExtensions = {};
+		if (SupportExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
+			deviceExtensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 		if (SupportExtension(VK_EXT_DEBUG_MARKER_EXTENSION_NAME))
 			deviceExtensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
 
-		eastl::set<string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
-		for (const auto& extension : availableExtensions)
-		{
-			requiredExtensions.erase(extension.extensionName);
-			if (requiredExtensions.empty())
-				break;
-		}
-		if (!requiredExtensions.empty())
-			SG_LOG_WARN("Extensions in physical device do not include the others in instance");
+		//if (!bAllDeviceExtensionSupported)
+		//	SG_LOG_WARN("Extensions in physical device do not include the others in instance");
 
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -128,10 +112,16 @@ namespace SG
 
 		createInfo.enabledExtensionCount = (UInt32)deviceExtensions.size();;
 		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+
+		createInfo.enabledLayerCount = 0;
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
-		createInfo.enabledLayerCount = (UInt32)mInstance.validateLayers.size();
-		createInfo.ppEnabledLayerNames = mInstance.validateLayers.data();
+		vector<const char*> layers;
+		layers.emplace_back("VK_LAYER_KHRONOS_validation");
+
+		createInfo.enabledLayerCount = (UInt32)layers.size();
+		createInfo.ppEnabledLayerNames = layers.data();
 #endif
+		
 		VkPhysicalDeviceFeatures2 physicalDeviceFeatures2 = {};
 		if (pNext) 
 		{
@@ -157,6 +147,11 @@ namespace SG
 		//}
 
 		return true;
+	}
+
+	void VulkanDevice::DestroyLogicalDevice()
+	{
+		vkDestroyDevice(logicalDevice, nullptr);
 	}
 
 	VkCommandPool VulkanDevice::CreateCommandPool(UInt32 queueFamilyIndices, VkCommandPoolCreateFlags createFlags)
@@ -200,7 +195,7 @@ namespace SG
 	{
 		for (auto beg = supportedExtensions.begin(); beg != supportedExtensions.end(); beg++)
 		{
-			if (*beg == extension)
+			if (beg->extensionName == extension)
 				return true;
 		}
 		return false;

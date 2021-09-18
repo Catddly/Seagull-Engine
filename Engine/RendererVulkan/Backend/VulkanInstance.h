@@ -42,7 +42,7 @@ namespace SG
 		VulkanDevice*    mDevice = nullptr;
 		VulkanSwapchain* mSwapchain = nullptr;
 
-		VulkanQueue     mGraphicQueue;
+		VulkanQueue     mGraphicsQueue;
 	};
 
 }
