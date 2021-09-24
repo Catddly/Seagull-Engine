@@ -9,8 +9,7 @@
 
 #include "Memory/IMemory.h"
 
-// TODO: replace to runtime binding dll
-#include "RendererVulkan/RenderDevice/RenderDevice.h"
+#include "RendererVulkan/RenderDevice/VulkanRenderDevice.h"
 
 int main(int argv, char** argc)
 {
@@ -28,7 +27,7 @@ int main(int argv, char** argc)
 	//p3DEngine->OnInit();
 
 	// TODO: replace to runtime binding dll
-	pSystemManager->RegisterModule<RenderDeviceVk>();
+	pSystemManager->RegisterModule<VulkanRenderDevice>();
 	pSystemManager->AddIProcess(app);
 
 	//SG_LOG_IF(ELogLevel::efLog_Level_Info, "Are all  modules loaded: ", pSystemManager->ValidateAllModules());

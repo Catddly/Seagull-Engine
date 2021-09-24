@@ -1,7 +1,11 @@
 #pragma once
 
 #if defined(SG_BUILD_DLL) // If this module is a dll
-#	define SG_ENGINE_API __declspec(dllexport)
+#	if defined(SG_MODULE)
+#		define SG_3DENGINE_API __declspec(dllexport)
+#	else
+#		define SG_3DENGINE_API __declspec(dllimport)
+#	endif
 #else
-#	define SG_ENGINE_API __declspec(dllimport)
+#	define SG_3DENGINE_API
 #endif

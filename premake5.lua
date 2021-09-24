@@ -19,16 +19,16 @@ IncludeDir = { }
 
 group "Seagull Engine"
 
-    include "Engine/3DEngine/"
     include "Engine/Core/"
+    include "Engine/3DEngine/"
     include "Engine/RendererVulkan/"
 
 group ""
 
 group "Libs"
 
-    include "Libs/mimalloc/"
     include "Libs/eastl/"
+    include "Libs/mimalloc/"
 
 group ""
 
@@ -68,15 +68,16 @@ group "Runtime"
 
         defines
         {
+            "SG_BUILD_DLL",
         }
 
         links
         {
             "mimalloc",
             "eastl",
+            "SCore",
             "S3DEngine",
             "SRendererVulkan",
-            "SCore",
         }
 
     filter "system:windows"

@@ -21,7 +21,8 @@ project "SRendererVulkan"
 
     defines
     {
-        "SG_BUILD_DLL"
+        "SG_BUILD_DLL",
+        "SG_MODULE",
     }
 
     includedirs
@@ -36,6 +37,7 @@ project "SRendererVulkan"
     {
         "../../Libs/vulkan/libs/vulkan.lib",
         "eastl",
+        "mimalloc",
         "SCore",
     }
 

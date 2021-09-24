@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Defs/Defs.h"
+#include "Core/Config.h"
 #include "System/IModule.h"
 
 namespace SG
@@ -8,8 +9,9 @@ namespace SG
 
 #define SG_SWAPCHAIN_IMAGE_COUNT 2 // temporary, should be moved to renderer
 
-	interface IRenderDevice : public IModule
+	interface SG_CORE_API IRenderDevice : public IModule
 	{
+		IRenderDevice() = default;
 		virtual ~IRenderDevice() = default;
 	};
 

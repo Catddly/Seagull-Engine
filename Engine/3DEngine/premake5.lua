@@ -21,7 +21,8 @@ project "S3DEngine"
 
     defines
     {
-        "SG_BUILD_DLL"
+        "SG_BUILD_DLL",
+        "SG_MODULE",
     }
 
     includedirs

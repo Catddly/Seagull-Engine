@@ -21,7 +21,7 @@ namespace SG
 		eTerminate,
 	};
 
-	interface ISystemMessageListener
+	interface SG_CORE_API ISystemMessageListener
 	{
 		virtual bool OnSystemMessage(ESystemMessage msg) = 0;
 	};

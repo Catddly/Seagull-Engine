@@ -163,6 +163,7 @@ private:
 	}
 private:
 	static SG::Mutex  sMutex;
+	SG::VulkanInstance* mVkInstance = nullptr;
 };
 
 SG::Mutex  MyApp::sMutex;

@@ -7,18 +7,18 @@
 namespace SG
 {
 
-	interface IModule
+	interface SG_CORE_API IModule
 	{
 		virtual ~IModule() = default;
 		using module_t = void;
 
-		SG_CORE_API virtual void OnInit() = 0;
-		SG_CORE_API virtual void OnShutdown() = 0;
-
-		SG_CORE_API virtual void OnUpdate() {}
-		SG_CORE_API virtual void OnDraw()   {}
-
-		SG_CORE_API virtual const char* GetRegisterName() const = 0;
+		virtual void OnInit() = 0;
+		virtual void OnShutdown() = 0;
+		
+		virtual void OnUpdate() {}
+		virtual void OnDraw()   {}
+		
+		virtual const char* GetRegisterName() const = 0;
 	};
 
 }

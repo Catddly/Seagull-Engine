@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RendererVulkan/Config.h"
 #include "Base/BasicTypes.h"
 #include "Render/Queue.h"
 

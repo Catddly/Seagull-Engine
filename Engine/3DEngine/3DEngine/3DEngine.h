@@ -11,11 +11,11 @@ namespace SG
 	{
 	public:
 		//! Engine core initialization
-		SG_ENGINE_API virtual void OnInit() override;
+		SG_3DENGINE_API virtual void OnInit() override;
 		//! Engine update per frame
-		SG_ENGINE_API virtual void OnUpdate() override;
+		SG_3DENGINE_API virtual void OnUpdate() override;
 		//! Engine core shutdown
-		SG_ENGINE_API virtual void OnShutdown() override;
+		SG_3DENGINE_API virtual void OnShutdown() override;
 	};
 
 }

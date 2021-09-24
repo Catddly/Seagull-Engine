@@ -22,6 +22,7 @@ project "SCore"
     defines
     {
         "SG_BUILD_DLL",
+        "SG_MODULE",
     }
 
     includedirs

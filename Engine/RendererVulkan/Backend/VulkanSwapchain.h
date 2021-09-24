@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererVulkan/Config.h"
+
 #include <vulkan/vulkan_core.h>
 
 namespace SG
