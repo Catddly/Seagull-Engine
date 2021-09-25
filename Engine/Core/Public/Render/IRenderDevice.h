@@ -7,7 +7,7 @@
 namespace SG
 {
 
-#define SG_SWAPCHAIN_IMAGE_COUNT 2 // temporary, should be moved to renderer
+#define SG_SWAPCHAIN_IMAGE_COUNT 3 // temporary, should be moved to renderer
 
 	interface SG_CORE_API IRenderDevice : public IModule
 	{

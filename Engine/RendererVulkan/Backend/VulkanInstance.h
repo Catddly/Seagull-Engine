@@ -8,6 +8,8 @@
 
 #include <vulkan/vulkan_core.h>
 
+#include "Stl/vector.h"
+
 namespace SG
 {
 
@@ -43,6 +45,11 @@ namespace SG
 		VulkanSwapchain* mSwapchain = nullptr;
 
 		VulkanQueue     mGraphicsQueue;
+
+		eastl::vector<VkCommandBuffer> mCommandBuffers;
+
+		vector<VulkanRenderTarget> mColorRts;
+		VulkanRenderTarget         mDepthRt;
 	};
 
 }

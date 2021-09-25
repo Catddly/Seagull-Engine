@@ -11,13 +11,15 @@
 
 #include "RendererVulkan/RenderDevice/VulkanRenderDevice.h"
 
+#include <eastl/unique_ptr.h>
+
 int main(int argv, char** argc)
 {
 	using namespace SG;
 	extern IApp* GetAppInstance();
 	IApp* app = GetAppInstance();
 	auto* pSystemManager = SSystem();
-	pSystemManager->OnInit();
+	pSystemManager->Initialize();
 	//SG_LOG_IF(ELogLevel::efLog_Level_Info, "Are core modules loaded: ", pSystemManager->ValidateCoreModules());
 
 	// TOOD: other modules should be loaded as dll,
@@ -27,6 +29,7 @@ int main(int argv, char** argc)
 	//p3DEngine->OnInit();
 
 	// TODO: replace to runtime binding dll
+	//eastl::unique_ptr<IRenderDevice> pRenderDevice = eastl::make_unique<VulkanRenderDevice>();
 	pSystemManager->RegisterModule<VulkanRenderDevice>();
 	pSystemManager->AddIProcess(app);
 
@@ -38,5 +41,6 @@ int main(int argv, char** argc)
 	else
 		SG_LOG_ERROR("Failed to exit game loop");
 
-	pSystemManager->OnShutdown();
+	pSystemManager->UnResgisterModule<VulkanRenderDevice>();
+	pSystemManager->Shutdown();
 }

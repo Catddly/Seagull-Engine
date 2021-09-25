@@ -21,6 +21,9 @@ namespace SG
 		virtual void OnDraw();
 
 		virtual const char* GetRegisterName() const { return "RenderDevice"; }
+
+		// TODO: replace it to reflection
+		static const char* GetModuleName() { return "RenderDevice"; }
 	private:
 		VulkanInstance* mInstance = nullptr;
 	};

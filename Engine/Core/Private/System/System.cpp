@@ -21,7 +21,7 @@ namespace SG
 		:mRootPath("")
 	{}
 
-	void System::OnInit()
+	void System::Initialize()
 	{
 		char abPath[SG_MAX_FILE_PATH] = { 0 };
 		::GetModuleFileNameA(NULL, abPath, sizeof(abPath));
@@ -47,7 +47,7 @@ namespace SG
 			SG_LOG_ERROR("Failed to initialized core modules");
 	}
 
-	void System::OnShutdown()
+	void System::Shutdown()
 	{
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
 		Memory::Delete(mpCurrActiveProcess);

@@ -94,4 +94,22 @@ namespace SG
 		MAX_COUNT,
 	};
 
+	enum class ESampleCount
+	{
+		eSample_1 = 0,
+		eSample_2,
+		eSample_4,
+		eSample_8,
+		eSample_16,
+		eSample_32,
+		eSample_64,
+	};
+
+	enum class EImageType
+	{
+		e1D = 0,
+		e2D,
+		e3D,
+	};
+
 }

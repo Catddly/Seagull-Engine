@@ -53,6 +53,19 @@ namespace SG
 			return false;
 	}
 
+	IModule* ModuleManager::UnRegisterUserModule(const char* name)
+	{
+		auto iter = mUserModuleMap.find(name);
+		if (iter != mUserModuleMap.end())
+		{
+			auto* pModule = mUserModuleMap[name];
+			pModule->OnShutdown();
+			mUserModuleMap.erase(iter);
+			return pModule;
+		}
+		return nullptr;
+	}
+
 	void ModuleManager::Update()
 	{
 		for (auto e : mUserModuleMap)

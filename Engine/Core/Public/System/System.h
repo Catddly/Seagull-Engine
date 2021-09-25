@@ -30,9 +30,9 @@ namespace SG
 	public:
 		~System() = default;
 
-		SG_CORE_API void OnInit();
+		SG_CORE_API void Initialize();
 		SG_CORE_API bool InitCoreModules();
-		SG_CORE_API void OnShutdown();
+		SG_CORE_API void Shutdown();
 
 		SG_CORE_API ILogger*          GetLogger() const;
 		SG_CORE_API IFileSystem*      GetFileSystem() const;
@@ -71,6 +71,9 @@ namespace SG
 		bool RegisterModule();
 
 		template <class T>
+		void UnResgisterModule();
+
+		template <class T>
 		T GetModule(const char* name) const;
 	private:
 		System();
@@ -93,6 +96,13 @@ namespace SG
 		Thread  mMainThread;
 		string  mRootPath;
 	};
+
+	template <class T>
+	void SG::System::UnResgisterModule()
+	{
+		IModule* pModule = mModuleManager.UnRegisterUserModule(T::GetModuleName());
+		Memory::Delete(pModule);
+	}
 
 	template <class T>
 	bool SG::System::RegisterModule()

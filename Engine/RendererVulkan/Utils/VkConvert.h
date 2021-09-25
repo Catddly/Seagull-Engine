@@ -18,6 +18,8 @@ namespace SG
 
 	VkImageLayout ToVkImageLayout(EResoureceBarrier barrier);
 
+	VkImageViewType ToVkImageViewType(VkImageType imageType, UInt32 array);
+
 	VkPipelineStageFlags ToVkPipelineStageFlags(VkAccessFlags accessFlags, EQueueType queueType);
 
 }

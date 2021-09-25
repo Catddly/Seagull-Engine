@@ -20,7 +20,9 @@ namespace SG
 		SG_CORE_API static void Draw();
 		// In order to ensure the order of core modules' destructions, we separate two independent register function.
 		SG_CORE_API static bool RegisterCoreModule(IModule* pModule);
+
 		SG_CORE_API static bool RegisterUserModule(IModule* pModule);
+		SG_CORE_API static IModule* UnRegisterUserModule(const char* name);
 
 		template <class T>
 		static T GetModule(const char* name, bool bIsCoreModule = false);

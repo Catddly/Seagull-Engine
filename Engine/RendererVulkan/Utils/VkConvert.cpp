@@ -154,6 +154,34 @@ namespace SG
 		return VK_IMAGE_LAYOUT_UNDEFINED;
 	}
 
+	VkImageViewType ToVkImageViewType(VkImageType imageType, UInt32 array)
+	{
+		SG_ASSERT(array >= 1);
+
+		if (array == 1)
+		{
+			switch (imageType)
+			{
+			case VK_IMAGE_TYPE_1D: return VK_IMAGE_VIEW_TYPE_1D; break;
+			case VK_IMAGE_TYPE_2D: return VK_IMAGE_VIEW_TYPE_2D; break;
+			case VK_IMAGE_TYPE_3D: return VK_IMAGE_VIEW_TYPE_3D; break;
+			default: SG_LOG_ERROR("Unacceptable image type!"); break;
+			}
+		}
+		else
+		{
+			if (array == 6 && imageType == VK_IMAGE_TYPE_2D)
+				return VK_IMAGE_VIEW_TYPE_CUBE;
+			if (imageType == VK_IMAGE_TYPE_1D)
+				return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+			if (imageType == VK_IMAGE_TYPE_2D)
+				return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+
+		}
+
+		return VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+	}
+
 	VkPipelineStageFlags ToVkPipelineStageFlags(VkAccessFlags accessFlags, EQueueType queueType)
 	{
 		VkPipelineStageFlags flags = 0;

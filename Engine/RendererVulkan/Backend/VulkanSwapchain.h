@@ -1,13 +1,32 @@
 #pragma once
 
+#include "Base/BasicTypes.h"
 #include "RendererVulkan/Config.h"
 
 #include <vulkan/vulkan_core.h>
 
+#include "Stl/vector.h"
+
 namespace SG
 {
-	
+
 	struct VulkanQueue;
+
+	struct VulkanRenderTarget
+	{
+		VkImage               image;
+		VkImageView           imageView;
+		VkDeviceMemory        memory;
+		VkFormat              format;
+		VkImageType           type;
+		VkSampleCountFlagBits sample;
+		VkImageUsageFlagBits  usage;
+
+		UInt32         width;
+		UInt32         height;
+		UInt32         depth;
+		UInt32         array;
+	};
 
 	class VulkanSwapchain
 	{
@@ -15,12 +34,17 @@ namespace SG
 		VulkanSwapchain(VkInstance instance);
 		~VulkanSwapchain();
 
-		VkSwapchainKHR mHandle;
+		VkSwapchainKHR       swapchain = VK_NULL_HANDLE;
+		UInt32               imageCount;
+		vector<VkImage>      images;
+		vector<VkImageView>  imageViews;
 
 		void BindDevice(VkPhysicalDevice physicalDevice, VkDevice device);
 
+		bool CreateOrRecreate(UInt32 width, UInt32 height, vector<VulkanRenderTarget>& pRt, bool vsync = false);
+		void Destroy();
+
 		bool CreateSurface();
-		void DestroySurface();
 		bool CheckSurfacePresentable(VulkanQueue queue);
 	private:
 		VkInstance       mInstance;
@@ -29,6 +53,8 @@ namespace SG
 		bool             bSwapchainAdequate = false;
 
 		VkSurfaceKHR     mPresentSurface;
+		VkFormat         mFormat;
+		VkColorSpaceKHR  mColorSpace;
 	};
 
 }
