@@ -3,7 +3,7 @@
 #include "Base/BasicTypes.h"
 
 #include <cstddef>
-#include <EASTL/map.h>
+#include <eastl/map.h>
 
 namespace SG
 {
@@ -23,6 +23,7 @@ namespace SG
 		efGeom = 1 << 3,
 		efFrag = 1 << 4,
 		efComp = 1 << 5,
+		NUM_STAGES = 6,
 	};
 	SG_ENUM_CLASS_FLAG(UInt32, EShaderStages);
 
@@ -31,7 +32,6 @@ namespace SG
 	{
 		std::byte* pBinary = nullptr;
 		Size       binarySize;
-		Handle     pShader; // shader handle specified by graphic api
 	};
 
 	typedef eastl::map<EShaderStages, ShaderData> ShaderStages;

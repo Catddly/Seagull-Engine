@@ -6,6 +6,8 @@
 #include "Platform/Window.h"
 #include "Memory/IMemory.h"
 
+#include "Render/Shader.h"
+
 #include "Stl/vector.h"
 
 #ifdef SG_PLATFORM_WINDOWS
@@ -58,49 +60,10 @@ namespace SG
 			SG_LOG_ERROR("Failed to create vulkan instance!");
 			SG_ASSERT(false);
 		}
-
-		mSwapchain = Memory::New<VulkanSwapchain>(mInstance);
-		mSwapchain->CreateSurface();
-
-		if (!SelectPhysicalDeviceAndCreateDevice())
-		{
-			SG_LOG_ERROR("No suittable GPU detected!");
-			SG_ASSERT(false);
-		}
-		mDevice->CreateLogicalDevice(nullptr);
-		mGraphicsQueue = mDevice->GetQueue(EQueueType::eGraphic);
-
-		mSwapchain->BindDevice(mDevice->physicalDevice, mDevice->logicalDevice);
-		mSwapchain->CheckSurfacePresentable(mGraphicsQueue);
-
-		Window* mainWindow = SSystem()->GetOS()->GetMainWindow();
-		Rect rect = mainWindow->GetCurrRect();
-		mSwapchain->CreateOrRecreate(GetRectWidth(rect), GetRectHeight(rect), mColorRts);
-
-		// create command buffer
-		mCommandBuffers.resize(mSwapchain->imageCount);
-		mDevice->AllocateCommandBuffers(mCommandBuffers);
-
-		// create depth stencil rt
-		mDepthRt.width = mColorRts[0].width;
-		mDepthRt.height = mColorRts[0].height;
-		mDepthRt.depth = mColorRts[0].depth;
-		mDepthRt.array = 1;
-		mDepthRt.format = VK_FORMAT_D24_UNORM_S8_UINT;
-		mDepthRt.sample = VK_SAMPLE_COUNT_1_BIT;
-		mDepthRt.type = VK_IMAGE_TYPE_2D;
-		mDepthRt.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-		mDevice->CreateRenderTarget(&mDepthRt);
 	}
 
 	VulkanInstance::~VulkanInstance()
 	{
-		mDevice->DestroyRenderTarget(&mDepthRt);
-		mDevice->FreeCommandBuffers(mCommandBuffers);
-
-		mSwapchain->Destroy();
-		Memory::Delete(mSwapchain);
-		Memory::Delete(mDevice);
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
 		_DestroyDebugUtilsMessengerEXT(mInstance, mDebugLayer, nullptr);
 #endif

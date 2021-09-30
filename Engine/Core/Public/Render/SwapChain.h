@@ -112,4 +112,33 @@ namespace SG
 		e3D,
 	};
 
+	enum class ERenderTargetUsage : UInt32
+	{
+		eTransfer_Src                = 1 << 0,
+		eTransfer_Dst                = 1 << 1,
+		eSampled                     = 1 << 2,
+		eStorage                     = 1 << 3,
+		eColor                       = 1 << 4,
+		eDepth_Stencil               = 1 << 5,
+		eTransient                   = 1 << 6,
+		eInput                       = 1 << 7,
+		eShading_Rate_Image          = 1 << 8,
+		eFragment_Density_Map        = 1 << 9,
+		eFragment_Shading_Rate_Image = 1 << 10,
+	};
+	SG_ENUM_CLASS_FLAG(UInt32, ERenderTargetUsage);
+
+	struct RenderTargetCreateDesc
+	{
+		EImageFormat       format;
+		ESampleCount       sample;
+		EImageType         type;
+		ERenderTargetUsage usage;
+
+		UInt32         width;
+		UInt32         height;
+		UInt32         depth;
+		UInt32         array;
+	};
+
 }

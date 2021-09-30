@@ -41,6 +41,6 @@ int main(int argv, char** argc)
 	else
 		SG_LOG_ERROR("Failed to exit game loop");
 
-	pSystemManager->UnResgisterModule<VulkanRenderDevice>();
 	pSystemManager->Shutdown();
+	pSystemManager->UnResgisterModule<VulkanRenderDevice>();
 }

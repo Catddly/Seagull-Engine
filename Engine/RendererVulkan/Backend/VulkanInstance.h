@@ -6,6 +6,8 @@
 #include "VulkanDevice.h"
 #include "VulkanSwapchain.h"
 
+#include "RendererVulkan/Shaders/ShaderComiler.h"
+
 #include <vulkan/vulkan_core.h>
 
 #include "Stl/vector.h"
@@ -28,6 +30,8 @@ namespace SG
 	public:
 		VulkanInstance();
 		~VulkanInstance();
+
+		VkInstance instance = VK_NULL_HANDLE;
 	private:
 		bool CreateVkInstance();
 		void ValidateExtensions(vector<const char*>& extens, VkInstanceCreateInfo* info);
@@ -40,16 +44,6 @@ namespace SG
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
 		VkDebugUtilsMessengerEXT mDebugLayer;
 #endif
-		VkInstance       mInstance = VK_NULL_HANDLE;
-		VulkanDevice*    mDevice = nullptr;
-		VulkanSwapchain* mSwapchain = nullptr;
-
-		VulkanQueue     mGraphicsQueue;
-
-		eastl::vector<VkCommandBuffer> mCommandBuffers;
-
-		vector<VulkanRenderTarget> mColorRts;
-		VulkanRenderTarget         mDepthRt;
 	};
 
 }

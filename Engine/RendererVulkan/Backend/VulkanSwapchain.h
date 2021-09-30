@@ -41,7 +41,7 @@ namespace SG
 
 		void BindDevice(VkPhysicalDevice physicalDevice, VkDevice device);
 
-		bool CreateOrRecreate(UInt32 width, UInt32 height, vector<VulkanRenderTarget>& pRt, bool vsync = false);
+		bool CreateOrRecreate(UInt32 width, UInt32 height, bool vsync = false);
 		void Destroy();
 
 		bool CreateSurface();
@@ -55,6 +55,8 @@ namespace SG
 		VkSurfaceKHR     mPresentSurface;
 		VkFormat         mFormat;
 		VkColorSpaceKHR  mColorSpace;
+
+		//vector<VulkanRenderTarget> pRt;
 	};
 
 }

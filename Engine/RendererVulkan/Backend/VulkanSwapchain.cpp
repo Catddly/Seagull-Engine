@@ -80,7 +80,7 @@ namespace SG
 		}
 	}
 
-	bool VulkanSwapchain::CreateOrRecreate(UInt32 width, UInt32 height, vector<VulkanRenderTarget>& pRt, bool vsync)
+	bool VulkanSwapchain::CreateOrRecreate(UInt32 width, UInt32 height, bool vsync)
 	{
 		// if there is an old swapchain, use it to ease up recreation.
 		VkSwapchainKHR oldSwapchain = swapchain;

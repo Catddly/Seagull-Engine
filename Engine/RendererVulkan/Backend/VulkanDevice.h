@@ -3,6 +3,8 @@
 #include "RendererVulkan/Config.h"
 #include "Base/BasicTypes.h"
 #include "Render/Queue.h"
+#include "Render/Shader.h"
+#include "Render/SwapChain.h"
 
 #include <vulkan/vulkan_core.h>
 
@@ -34,6 +36,7 @@ namespace SG
 		VkDevice         logicalDevice = VK_NULL_HANDLE;
 
 		VkCommandPool    defaultCommandPool;
+		VkRenderPass     defaultRenderPass;
 
 		vector<VkExtensionProperties>   supportedExtensions;
 		vector<VkQueueFamilyProperties> queueFamilyProperties;
@@ -54,8 +57,17 @@ namespace SG
 		bool AllocateCommandBuffers(vector<VkCommandBuffer>& pCommandBuffers);
 		void FreeCommandBuffers(vector<VkCommandBuffer>& pCommandBuffers);
 
-		bool CreateRenderTarget(VulkanRenderTarget* rt);
+		VulkanRenderTarget CreateRenderTarget(const RenderTargetCreateDesc& rt);
 		void DestroyRenderTarget(VulkanRenderTarget* rt);
+
+		VkRenderPass CreateRenderPass(VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt); // relative to rts
+		void DestroyRenderPass(VkRenderPass renderPass);
+
+		VkPipelineCache CreatePipelineCache();
+		void DestroyPipelineCache(VkPipelineCache pipelineCache);
+		// TODO: remove layout to set descriptions layout (Root Signature)
+		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass, ShaderStages& shader);
+		void DestroyPipeline(VkPipeline pipeline);
 
 		VulkanQueue GetQueue(EQueueType type) const;
 

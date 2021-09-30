@@ -87,6 +87,17 @@ namespace SG
 		return VK_FORMAT_UNDEFINED;
 	}
 
+	VkImageType ToVkImageType(EImageType type)
+	{
+		switch (type)
+		{
+		case SG::EImageType::e1D: return VK_IMAGE_TYPE_1D; break;
+		case SG::EImageType::e2D: return VK_IMAGE_TYPE_1D; break;
+		case SG::EImageType::e3D: return VK_IMAGE_TYPE_1D; break;
+		default: SG_LOG_ERROR("Wrong Vk Image type!"); break;
+		}
+	}
+
 	SG::EImageFormat ToSGImageFormat(VkFormat format)
 	{
 		return EImageFormat::eNull;
