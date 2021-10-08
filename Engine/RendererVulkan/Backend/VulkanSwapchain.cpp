@@ -278,9 +278,9 @@ namespace SG
 		return mpRts[index];
 	}
 
-	bool VulkanSwapchain::AcquireNextImage(VkSemaphore signalSemaphore, UInt32& imageIndex)
+	bool VulkanSwapchain::AcquireNextImage(VulkanSemaphore* signalSemaphore, UInt32& imageIndex)
 	{
-		if (vkAcquireNextImageKHR(mLogicalDevice, swapchain, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
+		if (vkAcquireNextImageKHR(mLogicalDevice, swapchain, UINT64_MAX, signalSemaphore->semaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
 		{
 			SG_LOG_WARN("Failed to acquire next image!");
 			return false;

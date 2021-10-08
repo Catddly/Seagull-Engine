@@ -21,16 +21,16 @@ namespace SG
 		VkImage               image;
 		VkImageView           imageView;
 		VkDeviceMemory        memory;
+
 		VkFormat              format;
 		VkImageType           type;
 		VkSampleCountFlagBits sample;
 		VkImageUsageFlags     usage;
-
-		UInt32         width;
-		UInt32         height;
-		UInt32         depth;
-		UInt32         array;
-		UInt32         mipmap;
+		UInt32                width;
+		UInt32                height;
+		UInt32                depth;
+		UInt32                array;
+		UInt32                mipmap;
 
 		virtual UInt32 GetWidth()     const override { return width; };
 		virtual UInt32 GetHeight()    const override { return height; };
@@ -61,7 +61,7 @@ namespace SG
 		void Destroy();
 
 		VulkanRenderTarget* GetRenderTarget(UInt32 index) const;
-		bool AcquireNextImage(VkSemaphore signalSemaphore, UInt32& imageIndex);
+		bool AcquireNextImage(VulkanSemaphore* signalSemaphore, UInt32& imageIndex);
 		EImageState Present(VulkanQueue* queue, UInt32 imageIndex, VulkanSemaphore* signalSemaphore);
 
 		bool CreateSurface();

@@ -66,11 +66,13 @@ namespace SG
 
 		//! @brief Create a command pool.
 		VkCommandPool CreateCommandPool(UInt32 queueFamilyIndices, VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+		void DestroyCommandPool(VkCommandPool pool);
 
 		VkSemaphore CreateSemaphore();
 		void        DestroySemaphore(VkSemaphore semaphore);
 		VkFence     CreateFence();
 		void        DestroyFence(VkFence fence);
+
 		void        ResetFence(VkFence fence);
 
 		bool AllocateCommandBuffers(vector<VkCommandBuffer>& pCommandBuffers);
@@ -88,7 +90,7 @@ namespace SG
 		VkPipelineCache CreatePipelineCache();
 		void DestroyPipelineCache(VkPipelineCache pipelineCache);
 		// TODO: remove layout to set descriptions layout (Root Signature)
-		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass, ShaderStages& shader);
+		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass, ShaderStages& outShader);
 		void DestroyPipeline(VkPipeline pipeline);
 
 		VulkanQueue* GetQueue(EQueueType type) const;

@@ -42,7 +42,7 @@ namespace SG
 		mpQueue = mpDevice->GetQueue(EQueueType::eGraphic);
 
 		mpSwapchain->BindDevice(mpDevice->physicalDevice, mpDevice->logicalDevice);
-		mpSwapchain->CheckSurfacePresentable(static_cast<VulkanQueue*>(mpQueue));
+		mpSwapchain->CheckSurfacePresentable(mpQueue);
 
 		Window* mainWindow = SSystem()->GetOS()->GetMainWindow();
 		Rect rect = mainWindow->GetCurrRect();
@@ -55,54 +55,29 @@ namespace SG
 		mpRenderContext = Memory::New<VulkanRenderContext>(mpSwapchain->imageCount);
 		mpDevice->AllocateCommandBuffers(mpRenderContext->commandBuffers);
 
-		// create depth stencil rt
-		RenderTargetCreateDesc depthRtCI;
-		depthRtCI.width  = mpColorRts[0]->GetWidth();
-		depthRtCI.height = mpColorRts[0]->GetHeight();
-		depthRtCI.depth  = mpColorRts[0]->GetDepth();
-		depthRtCI.array  = 1;
-		depthRtCI.mipmap = 1;
-		depthRtCI.format = EImageFormat::eUnorm_D24_uint_S8;
-		depthRtCI.sample = ESampleCount::eSample_1;
-		depthRtCI.type   = EImageType::e2D;
-		depthRtCI.usage  = ERenderTargetUsage::efDepth_Stencil;
-		mpDepthRt = mpDevice->CreateRenderTarget(depthRtCI);
+		CreateDepthRT();
 
 		ShaderStages basicShader;
 		mShaderCompiler.LoadSPIRVShader("basic", basicShader);
 
-		auto* pColorRt = static_cast<VulkanRenderTarget*>(mpColorRts[0]);
-		auto* pDepthRt = static_cast<VulkanRenderTarget*>(mpDepthRt);
-		VkRenderPass defaultRenderPass = mpDevice->CreateRenderPass(pColorRt, pDepthRt);
-		VkPipelineCache pipelineCache = mpDevice->CreatePipelineCache();
-		VkPipeline pipeline = mpDevice->CreatePipeline(pipelineCache, defaultRenderPass, basicShader);
-
-		auto defaultPipeline = Memory::New<VulkanPipeline>();
-		defaultPipeline->pipeline = pipeline;
-		defaultPipeline->pipelineCache = pipelineCache;
-		defaultPipeline->renderPass = defaultRenderPass;
-		mpPipeline = defaultPipeline;
+		mpPipeline = Memory::New<VulkanPipeline>();
+		mpPipeline->renderPass = mpDevice->CreateRenderPass(mpColorRts[0], mpDepthRt);
+		mpPipeline->pipelineCache = mpDevice->CreatePipelineCache();;
+		mpPipeline->pipeline = mpDevice->CreatePipeline(mpPipeline->pipelineCache, mpPipeline->renderPass, basicShader);;
 
 		for (UInt32 i = 0; i < mpRenderContext->frameBuffers.size(); ++i)
-		{
-			auto* pColorRt = static_cast<VulkanRenderTarget*>(mpColorRts[i]);
-			auto* pDepthRt = static_cast<VulkanRenderTarget*>(mpDepthRt);
-			mpRenderContext->frameBuffers[i] = mpDevice->CreateFrameBuffer(defaultRenderPass, pColorRt, pDepthRt);
-		}
+			mpRenderContext->frameBuffers[i] = mpDevice->CreateFrameBuffer(mpPipeline->renderPass, mpColorRts[i], mpDepthRt);
 
-		auto* renderCompleteSemaphore = Memory::New<VulkanSemaphore>();
-		renderCompleteSemaphore->semaphore = mpDevice->CreateSemaphore();
-		mpRenderCompleteSemaphore = renderCompleteSemaphore;
-		auto* presentCompleteSemaphore = Memory::New<VulkanSemaphore>();
-		presentCompleteSemaphore->semaphore = mpDevice->CreateSemaphore();
-		mpPresentCompleteSemaphore = presentCompleteSemaphore;
+		mpRenderCompleteSemaphore = Memory::New<VulkanSemaphore>();
+		mpRenderCompleteSemaphore->semaphore = mpDevice->CreateSemaphore();
+		mpPresentCompleteSemaphore = Memory::New<VulkanSemaphore>();
+		mpPresentCompleteSemaphore->semaphore = mpDevice->CreateSemaphore();
 
 		mpBufferFences.resize(mpSwapchain->imageCount);
 		for (UInt32 i = 0; i < mpSwapchain->imageCount; ++i)
 		{
-			auto* fence = Memory::New<VulkanFence>();
-			fence->fence = mpDevice->CreateFence();
-			mpBufferFences[i] = fence;
+			mpBufferFences[i] = Memory::New<VulkanFence>();
+			mpBufferFences[i]->fence = mpDevice->CreateFence();
 		}
 
 		SG_LOG_DEBUG("RenderDevice - Vulkan Init");
@@ -114,27 +89,25 @@ namespace SG
 	{
 		mpQueue->WaitIdle();
 
-		mpDevice->DestroySemaphore(static_cast<VulkanSemaphore*>(mpRenderCompleteSemaphore)->semaphore);
-		mpDevice->DestroySemaphore(static_cast<VulkanSemaphore*>(mpPresentCompleteSemaphore)->semaphore);
+		mpDevice->DestroySemaphore(mpRenderCompleteSemaphore->semaphore);
+		mpDevice->DestroySemaphore(mpPresentCompleteSemaphore->semaphore);
 		Memory::Delete(mpRenderCompleteSemaphore);
 		Memory::Delete(mpPresentCompleteSemaphore);
 		for (UInt32 i = 0; i < mpSwapchain->imageCount; ++i)
 		{
-			mpDevice->DestroyFence(static_cast<VulkanFence*>(mpBufferFences[i])->fence);
+			mpDevice->DestroyFence(mpBufferFences[i]->fence);
 			Memory::Delete(mpBufferFences[i]);
 		}
 
 		for (UInt32 i = 0; i < mpRenderContext->frameBuffers.size(); ++i)
 			mpDevice->DestroyFrameBuffer(mpRenderContext->frameBuffers[i]);
 
-		auto pPipeline = static_cast<VulkanPipeline*>(mpPipeline);
-		mpDevice->DestroyPipeline(pPipeline->pipeline);
-		mpDevice->DestroyPipelineCache(pPipeline->pipelineCache);
-		mpDevice->DestroyRenderPass(pPipeline->renderPass);
+		mpDevice->DestroyPipeline(mpPipeline->pipeline);
+		mpDevice->DestroyPipelineCache(mpPipeline->pipelineCache);
+		mpDevice->DestroyRenderPass(mpPipeline->renderPass);
 		Memory::Delete(mpPipeline);
 
-		mpDevice->DestroyRenderTarget(static_cast<VulkanRenderTarget*>(mpDepthRt));
-		Memory::Delete(mpDepthRt);
+		DestroyDepthRT();
 		mpDevice->FreeCommandBuffers(mpRenderContext->commandBuffers);
 		Memory::Delete(mpRenderContext);
 
@@ -156,18 +129,14 @@ namespace SG
 		if (mbWindowMinimal)
 			return;
 
-		auto* presentSemaphore = static_cast<VulkanSemaphore*>(mpPresentCompleteSemaphore);
-		auto* renderSemaphore = static_cast<VulkanSemaphore*>(mpRenderCompleteSemaphore);
-
-		mpSwapchain->AcquireNextImage(presentSemaphore->semaphore, mCurrentFrameInCPU);
+		mpSwapchain->AcquireNextImage(mpPresentCompleteSemaphore, mCurrentFrameInCPU);
 
 		auto* fence = static_cast<VulkanFence*>(mpBufferFences[mCurrentFrameInCPU]);
 		mpDevice->ResetFence(fence->fence);
 
 		mpQueue->SubmitCommands(mpRenderContext, mCurrentFrameInCPU, mpRenderCompleteSemaphore, mpPresentCompleteSemaphore, mpBufferFences[mCurrentFrameInCPU]);
 
-		auto* vkQueue = static_cast<VulkanQueue*>(mpQueue);
-		mpSwapchain->Present(vkQueue, mCurrentFrameInCPU, renderSemaphore);
+		mpSwapchain->Present(mpQueue, mCurrentFrameInCPU, mpRenderCompleteSemaphore);
 
 		mbPresentOnce = true;
 	}
@@ -228,19 +197,8 @@ namespace SG
 		for (UInt32 i = 0; i < mpColorRts.size(); ++i)
 			mpColorRts[i] = mpSwapchain->GetRenderTarget(i);
 
-		mpDevice->DestroyRenderTarget(static_cast<VulkanRenderTarget*>(mpDepthRt));
-		Memory::Delete(mpDepthRt);
-		RenderTargetCreateDesc depthRtCI;
-		depthRtCI.width  = mpColorRts[0]->GetWidth();
-		depthRtCI.height = mpColorRts[0]->GetHeight();
-		depthRtCI.depth  = mpColorRts[0]->GetDepth();
-		depthRtCI.array = 1;
-		depthRtCI.mipmap = 1;
-		depthRtCI.format = EImageFormat::eUnorm_D24_uint_S8;
-		depthRtCI.sample = ESampleCount::eSample_1;
-		depthRtCI.type = EImageType::e2D;
-		depthRtCI.usage = ERenderTargetUsage::efDepth_Stencil;
-		mpDepthRt = mpDevice->CreateRenderTarget(depthRtCI);
+		DestroyDepthRT();
+		CreateDepthRT();
 
 		auto& frameBuffers = mpRenderContext->frameBuffers;
 		auto* pipeline = static_cast<VulkanPipeline*>(mpPipeline);
@@ -254,8 +212,6 @@ namespace SG
 		mpDevice->FreeCommandBuffers(mpRenderContext->commandBuffers);
 		mpDevice->AllocateCommandBuffers(mpRenderContext->commandBuffers);
 		RecordRenderCommands();
-
-		mpDevice->WaitIdle();
 	}
 
 	void VulkanRenderDevice::RecordRenderCommands()
@@ -283,6 +239,30 @@ namespace SG
 		}
 
 		SG_LOG_DEBUG("RenderDevice - Render Command Recorded");
+	}
+
+	bool VulkanRenderDevice::CreateDepthRT()
+	{
+		RenderTargetCreateDesc depthRtCI;
+		depthRtCI.width = mpColorRts[0]->GetWidth();
+		depthRtCI.height = mpColorRts[0]->GetHeight();
+		depthRtCI.depth = mpColorRts[0]->GetDepth();
+		depthRtCI.array = 1;
+		depthRtCI.mipmap = 1;
+		depthRtCI.format = EImageFormat::eUnorm_D24_uint_S8;
+		depthRtCI.sample = ESampleCount::eSample_1;
+		depthRtCI.type = EImageType::e2D;
+		depthRtCI.usage = ERenderTargetUsage::efDepth_Stencil;
+		mpDepthRt = mpDevice->CreateRenderTarget(depthRtCI);
+		if (!mpDepthRt)
+			return false;
+		return true;
+	}
+
+	void VulkanRenderDevice::DestroyDepthRT()
+	{
+		mpDevice->DestroyRenderTarget(static_cast<VulkanRenderTarget*>(mpDepthRt));
+		Memory::Delete(mpDepthRt);
 	}
 
 }

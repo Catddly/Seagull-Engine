@@ -15,12 +15,12 @@ namespace SG
 	class VulkanDevice;
 	class VulkanSwapchain;
 	class VulkanRenderContext;
-
-	interface RenderTarget;
-	interface Pipeline;
-	interface RenderSemaphore;
-	interface RenderFence;
-	interface Queue;
+	
+	struct VulkanRenderTarget;
+	struct VulkanPipeline;
+	struct VulkanSemaphore;
+	struct VulkanFence;
+	struct VulkanQueue;
 
 	class VulkanRenderDevice : public IRenderDevice, public ISystemMessageListener
 	{
@@ -44,6 +44,9 @@ namespace SG
 		bool SelectPhysicalDeviceAndCreateDevice();
 		void WindowResize();
 		void RecordRenderCommands();
+
+		bool CreateDepthRT();
+		void DestroyDepthRT();
 	private:
 		bool mbPresentOnce = false;
 		bool mbWindowMinimal = false;
@@ -53,16 +56,16 @@ namespace SG
 		VulkanSwapchain*     mpSwapchain = nullptr;
 		VulkanRenderContext* mpRenderContext = nullptr;
 
-		vector<RenderTarget*> mpColorRts;
-		RenderTarget*         mpDepthRt;
+		vector<VulkanRenderTarget*> mpColorRts;
+		VulkanRenderTarget*         mpDepthRt;
 
-		ShaderCompiler mShaderCompiler;
-		Pipeline*      mpPipeline;
+		ShaderCompiler  mShaderCompiler;
+		VulkanPipeline* mpPipeline;
 
-		RenderSemaphore*     mpRenderCompleteSemaphore;
-		RenderSemaphore*     mpPresentCompleteSemaphore;
-		vector<RenderFence*> mpBufferFences;
-		Queue*               mpQueue;
+		VulkanSemaphore*     mpRenderCompleteSemaphore;
+		VulkanSemaphore*     mpPresentCompleteSemaphore;
+		vector<VulkanFence*> mpBufferFences;
+		VulkanQueue*         mpQueue;
 
 		UInt32 mCurrentFrameInCPU;
 	};

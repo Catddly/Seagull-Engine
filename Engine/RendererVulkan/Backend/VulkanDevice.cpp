@@ -37,7 +37,7 @@ namespace SG
 	VulkanDevice::~VulkanDevice()
 	{
 		if (defaultCommandPool != VK_NULL_HANDLE)
-			vkDestroyCommandPool(logicalDevice, defaultCommandPool, nullptr);
+			DestroyCommandPool(defaultCommandPool);
 		if (logicalDevice != VK_NULL_HANDLE)
 			DestroyLogicalDevice();
 	}
@@ -172,6 +172,11 @@ namespace SG
 		if (vkCreateCommandPool(logicalDevice, &cmdPoolInfo, nullptr, &cmdPool) != VK_SUCCESS)
 			return VK_NULL_HANDLE;
 		return cmdPool;
+	}
+
+	void VulkanDevice::DestroyCommandPool(VkCommandPool pool)
+	{
+		vkDestroyCommandPool(logicalDevice, pool, nullptr);
 	}
 
 	VkSemaphore VulkanDevice::CreateSemaphore()
@@ -478,11 +483,11 @@ namespace SG
 		vkDestroyPipelineCache(logicalDevice, pipelineCache, nullptr);
 	}
 
-	VkPipeline VulkanDevice::CreatePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass, ShaderStages& shader)
+	VkPipeline VulkanDevice::CreatePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass, ShaderStages& outShader)
 	{
 		VkPipeline pipeline;
 		vector<VkPipelineShaderStageCreateInfo> shaderStages = {};
-		for (auto beg = shader.begin(); beg != shader.end(); ++beg)
+		for (auto beg = outShader.begin(); beg != outShader.end(); ++beg)
 		{
 			VkPipelineShaderStageCreateInfo createInfo = {};
 			createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -510,7 +515,7 @@ namespace SG
 			createInfo.pName = "main";
 			shaderStages.push_back(createInfo);
 		}
-		shader.clear();
+		outShader.clear();
 
 		VkPipelineLayout layout;
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
