@@ -19,11 +19,11 @@
 namespace SG
 {
 
-	class CInputSystem : public IInputSystem
+	class InputSystem : public IInputSystem
 	{
 	public:
-		CInputSystem() = default;
-		~CInputSystem() = default;
+		InputSystem() = default;
+		~InputSystem() = default;
 
 		virtual void OnInit() override {}
 		virtual void OnShutdown() override {}

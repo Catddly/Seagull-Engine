@@ -6,14 +6,14 @@
 namespace SG
 {
 
-	eastl::vector<eastl::pair<EKeyCode, EKeyState>> CInputSystem::mFrameInputDelta;
+	eastl::vector<eastl::pair<EKeyCode, EKeyState>> InputSystem::mFrameInputDelta;
 
-	void CInputSystem::RegisterListener(IInputListener* pListener)
+	void InputSystem::RegisterListener(IInputListener* pListener)
 	{
 		mpListeners.emplace(pListener);
 	}
 
-	void CInputSystem::MuteListener(IInputListener* pListener)
+	void InputSystem::MuteListener(IInputListener* pListener)
 	{
 		for (auto* e : mpListeners)
 		{
@@ -24,7 +24,7 @@ namespace SG
 		}
 	}
 
-	void CInputSystem::RemoveListener(IInputListener* pListener)
+	void InputSystem::RemoveListener(IInputListener* pListener)
 	{
 		for (auto beg = mpListeners.cbegin(); beg != mpListeners.cend(); beg++)
 		{
@@ -36,7 +36,7 @@ namespace SG
 		}
 	}
 
-	void CInputSystem::OnUpdate()
+	void InputSystem::OnUpdate()
 	{
 		for (auto& input : mFrameInputDelta)
 		{
@@ -49,7 +49,7 @@ namespace SG
 		mFrameInputDelta.clear();
 	}
 
-	void CInputSystem::OnSystemInputEvent(EKeyCode keycode, EKeyState keyState)
+	void InputSystem::OnSystemInputEvent(EKeyCode keycode, EKeyState keyState)
 	{
 		mFrameInputDelta.emplace_back(eastl::make_pair(keycode, keyState));
 	}

@@ -26,11 +26,16 @@ namespace SG
 
 	void SystemMessageBus::RemoveListener(ISystemMessageListener* pListener)
 	{
-		for (auto beg = mpListeners.begin(); beg != mpListeners.end(); beg++)
+		auto pRemove = mpListeners.begin();
+		for (auto beg = mpListeners.begin(); beg != mpListeners.end(); ++beg)
 		{
 			if (*beg == pListener)
-				mpListeners.erase(beg);
+			{
+				pRemove = beg;
+				break;
+			}
 		}
+		mpListeners.erase(pRemove);
 	}
 
 	void SystemMessageBus::PushEvent(ESystemMessage msg)

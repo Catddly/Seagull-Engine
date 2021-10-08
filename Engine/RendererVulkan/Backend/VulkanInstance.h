@@ -38,8 +38,6 @@ namespace SG
 		void ValidateLayers(vector<const char*>& layers, VkInstanceCreateInfo* info);
 		void PopulateDebugMsgCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugMessager);
 		void SetupDebugMessenger();
-
-		bool SelectPhysicalDeviceAndCreateDevice();
 	private:
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
 		VkDebugUtilsMessengerEXT mDebugLayer;

@@ -139,7 +139,7 @@ namespace SG
 		IFileSystem* pFileSystem = Memory::New<CFileSystem>();
 		ILogger* pLogger = Memory::New<CLogger>();
 		IOperatingSystem* pOS = Memory::New<COperatingSystem>();
-		IInputSystem* pInputSystem = Memory::New<CInputSystem>();
+		IInputSystem* pInputSystem = Memory::New<InputSystem>();
 
 		mModuleManager.RegisterCoreModule(pFileSystem);
 		mModuleManager.RegisterCoreModule(pLogger);
@@ -155,19 +155,20 @@ namespace SG
 		bool bIsExit = false;
 		while (!bIsExit)
 		{
-			// update all the messages
+			// collect all the messages
 			EOsMessage msg = EOsMessage::eNull;
 			msg = PeekOSMessage();
 			if (msg == EOsMessage::eQuit)
 				bIsExit = true;
+			// dispatch all the system messages
 			mMessageBus.Update();
 			
-			// module OnUpdate()
+			// modules OnUpdate()
 			mModuleManager.Update();
 			if (mpCurrActiveProcess)
 				mpCurrActiveProcess->OnUpdate();
 
-			// module OnDraw()
+			// modules OnDraw()
 			mModuleManager.Draw();
 		}
 		return bIsSafeQuit;

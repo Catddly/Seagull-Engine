@@ -4,6 +4,7 @@
 #include "Base/BasicTypes.h"
 #include "Render/Queue.h"
 #include "Render/Shader.h"
+#include "Render/Pipeline.h"
 #include "Render/SwapChain.h"
 
 #include <vulkan/vulkan_core.h>
@@ -14,12 +15,22 @@
 namespace SG
 {
 
-	struct VulkanQueue
+	struct VulkanPipeline : public Pipeline
+	{
+		VkPipeline      pipeline;
+		VkPipelineCache pipelineCache;
+		VkRenderPass    renderPass;
+	};
+
+	struct VulkanQueue : public Queue
 	{
 		UInt32         familyIndex;
 		EQueueType     type = EQueueType::eNull;
 		EQueuePriority priority = EQueuePriority::eNormal;
 		VkQueue        handle = VK_NULL_HANDLE;
+
+		virtual bool SubmitCommands(RenderContext* pContext, UInt32 bufferIndex, RenderSemaphore* renderSemaphore, RenderSemaphore* presentSemaphore, RenderFence* fence) override;
+		virtual void WaitIdle() const override;
 	};
 
 	struct VulkanRenderTarget;
@@ -47,6 +58,8 @@ namespace SG
 			UInt32 transfer;
 		} queueFamilyIndices;
 
+		void WaitIdle() const;
+
 		//! @brief Fetch all the queue family indices and create a logical device.
 		bool CreateLogicalDevice(void* pNext);
 		void DestroyLogicalDevice();
@@ -54,10 +67,19 @@ namespace SG
 		//! @brief Create a command pool.
 		VkCommandPool CreateCommandPool(UInt32 queueFamilyIndices, VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
+		VkSemaphore CreateSemaphore();
+		void        DestroySemaphore(VkSemaphore semaphore);
+		VkFence     CreateFence();
+		void        DestroyFence(VkFence fence);
+		void        ResetFence(VkFence fence);
+
 		bool AllocateCommandBuffers(vector<VkCommandBuffer>& pCommandBuffers);
 		void FreeCommandBuffers(vector<VkCommandBuffer>& pCommandBuffers);
 
-		VulkanRenderTarget CreateRenderTarget(const RenderTargetCreateDesc& rt);
+		VkFramebuffer CreateFrameBuffer(VkRenderPass renderPass, VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt);
+		void DestroyFrameBuffer(VkFramebuffer frameBuffer);
+
+		VulkanRenderTarget* CreateRenderTarget(const RenderTargetCreateDesc& rt);
 		void DestroyRenderTarget(VulkanRenderTarget* rt);
 
 		VkRenderPass CreateRenderPass(VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt); // relative to rts
@@ -69,7 +91,7 @@ namespace SG
 		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass, ShaderStages& shader);
 		void DestroyPipeline(VkPipeline pipeline);
 
-		VulkanQueue GetQueue(EQueueType type) const;
+		VulkanQueue* GetQueue(EQueueType type) const;
 
 		bool SupportExtension(const string& extension);
 	private:

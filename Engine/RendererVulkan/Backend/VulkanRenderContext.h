@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Platform/Window.h"
-#include "Render/CommandBuffers.h"
+#include "Render/RenderContext.h"
 
 #include "VulkanSwapchain.h"
 
@@ -13,10 +13,11 @@ namespace SG
 {
 
 	//! Record render commands and dispatch render jobs to render thread.
-	class VulkanRenderContext
+	class VulkanRenderContext : public RenderContext
 	{
 	public:
 		vector<VkCommandBuffer> commandBuffers;
+		vector<VkFramebuffer>   frameBuffers;
 
 		explicit VulkanRenderContext(UInt32 numCommandBuffers);
 		~VulkanRenderContext() = default;
@@ -33,9 +34,9 @@ namespace SG
 
 		// TODO: combine it width begin render pass
 		//void CmdBindRenderTarget(VulkanRenderTarget* pRt, const ClearValue& clear);
-	private:
-		void CmdBeginRenderPass(VkCommandBuffer buf, VkRenderPass renderPass, const ClearValue& clear, UInt32 width, UInt32 height);
+		void CmdBeginRenderPass(VkCommandBuffer buf, VkRenderPass renderPass, VkFramebuffer frameBuffer, const ClearValue& clear, UInt32 width, UInt32 height);
 		void CmdEndRenderPass(VkCommandBuffer buf);
+	private:
 	};
 
 }

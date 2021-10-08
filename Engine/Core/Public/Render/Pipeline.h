@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Defs/Defs.h"
+
 namespace SG
 {
 
@@ -9,6 +11,11 @@ namespace SG
 		eCompute,
 		eTransfer,
 		MAX_COUNT,
+	};
+
+	interface Pipeline
+	{
+		virtual ~Pipeline() = default;
 	};
 
 }

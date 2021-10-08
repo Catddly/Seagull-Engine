@@ -2,6 +2,11 @@
 
 #include "RendererVulkan/Config.h"
 #include "Render/IRenderDevice.h"
+#include "System/ISystemMessage.h"
+
+#include "RendererVulkan/Shaders/ShaderComiler.h"
+
+#include "stl/vector.h"
 
 namespace SG
 {
@@ -11,11 +16,17 @@ namespace SG
 	class VulkanSwapchain;
 	class VulkanRenderContext;
 
-	class VulkanRenderDevice : public IRenderDevice
+	interface RenderTarget;
+	interface Pipeline;
+	interface RenderSemaphore;
+	interface RenderFence;
+	interface Queue;
+
+	class VulkanRenderDevice : public IRenderDevice, public ISystemMessageListener
 	{
 	public:
-		VulkanRenderDevice();
-		~VulkanRenderDevice();
+		SG_RENDERER_VK_API VulkanRenderDevice();
+		SG_RENDERER_VK_API ~VulkanRenderDevice();
 
 		SG_RENDERER_VK_API virtual void OnInit();
 		SG_RENDERER_VK_API virtual void OnShutdown();
@@ -25,25 +36,35 @@ namespace SG
 
 		SG_RENDERER_VK_API virtual const char* GetRegisterName() const { return "RenderDevice"; }
 
+		SG_RENDERER_VK_API virtual bool OnSystemMessage(ESystemMessage msg) override;
+
 		// TODO: replace it to reflection
 		SG_RENDERER_VK_API static const char* GetModuleName() { return "RenderDevice"; }
 	protected:
 		bool SelectPhysicalDeviceAndCreateDevice();
+		void WindowResize();
+		void RecordRenderCommands();
 	private:
+		bool mbPresentOnce = false;
+		bool mbWindowMinimal = false;
+
 		VulkanInstance*      mpInstance = nullptr;
 		VulkanDevice*        mpDevice = nullptr;
 		VulkanSwapchain*     mpSwapchain = nullptr;
 		VulkanRenderContext* mpRenderContext = nullptr;
 
-		//vector<VulkanRenderTarget> mColorRts;
-		//VulkanRenderTarget         mDepthRt;
+		vector<RenderTarget*> mpColorRts;
+		RenderTarget*         mpDepthRt;
 
-		//ShaderCompiler   mShaderCompiler;
+		ShaderCompiler mShaderCompiler;
+		Pipeline*      mpPipeline;
 
-		//VkRenderPass     mDefaultRenderPass = VK_NULL_HANDLE;
-		//VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
-		//VkPipeline       mPipeline = VK_NULL_HANDLE;
-		//VkPipelineCache  mPipelineCache = VK_NULL_HANDLE;
+		RenderSemaphore*     mpRenderCompleteSemaphore;
+		RenderSemaphore*     mpPresentCompleteSemaphore;
+		vector<RenderFence*> mpBufferFences;
+		Queue*               mpQueue;
+
+		UInt32 mCurrentFrameInCPU;
 	};
 
 }

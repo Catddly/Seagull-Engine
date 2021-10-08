@@ -146,6 +146,11 @@ namespace SG
 		::ShowWindow((HWND)mHandle, SW_MAXIMIZE);
 	}
 
+	bool Window::IsMinimize() const
+	{
+		return bIsMinimized;
+	}
+
 	SG::Vector2i Window::GetMousePosRelative() const
 	{
 		POINT pos = {};

@@ -6,6 +6,8 @@
 
 #include "VulkanInstance.h"
 #include "VulkanSwapchain.h"
+#include "VulkanRenderContext.h"
+#include "VulkanSynchronizePrimitive.h"
 #include "RendererVulkan/Utils/VkConvert.h"
 
 #include "Stl/vector.h"
@@ -38,6 +40,11 @@ namespace SG
 			vkDestroyCommandPool(logicalDevice, defaultCommandPool, nullptr);
 		if (logicalDevice != VK_NULL_HANDLE)
 			DestroyLogicalDevice();
+	}
+
+	void VulkanDevice::WaitIdle() const
+	{
+		vkDeviceWaitIdle(logicalDevice);
 	}
 
 	bool VulkanDevice::CreateLogicalDevice(void* pNext)
@@ -167,6 +174,52 @@ namespace SG
 		return cmdPool;
 	}
 
+	VkSemaphore VulkanDevice::CreateSemaphore()
+	{
+		VkSemaphore semaphore;
+		VkSemaphoreCreateInfo semaphoreCI = {};
+		semaphoreCI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		semaphoreCI.pNext = nullptr;
+
+		if (vkCreateSemaphore(logicalDevice, &semaphoreCI, nullptr, &semaphore) != VK_SUCCESS)
+		{
+			SG_LOG_ERROR("Failed to create vulkan semaphore!");
+			return VK_NULL_HANDLE;
+		}
+		return semaphore;
+	}
+
+	void VulkanDevice::DestroySemaphore(VkSemaphore semaphore)
+	{
+		vkDestroySemaphore(logicalDevice, semaphore, nullptr);
+	}
+
+	VkFence VulkanDevice::CreateFence()
+	{
+		VkFence fence;
+		VkFenceCreateInfo fenceCreateInfo = {};
+		fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		// create in signaled state so we don't wait on first render of each command buffer.
+		fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+		if (vkCreateFence(logicalDevice, &fenceCreateInfo, nullptr, &fence) != VK_SUCCESS)
+		{
+			SG_LOG_ERROR("Failed to create vulkan fence");
+			return VK_NULL_HANDLE;
+		}
+		return fence;
+	}
+
+	void VulkanDevice::DestroyFence(VkFence fence)
+	{
+		vkDestroyFence(logicalDevice, fence, nullptr);
+	}
+
+	void VulkanDevice::ResetFence(VkFence fence)
+	{
+		vkWaitForFences(logicalDevice, 1, &fence, VK_TRUE, UINT64_MAX);
+		vkResetFences(logicalDevice, 1, &fence);
+	}
+
 	bool VulkanDevice::AllocateCommandBuffers(vector<VkCommandBuffer>& commandBuffers)
 	{
 		VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
@@ -188,61 +241,115 @@ namespace SG
 		vkFreeCommandBuffers(logicalDevice, defaultCommandPool, (UInt32)commandBuffers.size(), commandBuffers.data());
 	}
 
-	VulkanRenderTarget VulkanDevice::CreateRenderTarget(const RenderTargetCreateDesc& rt)
+	VkFramebuffer VulkanDevice::CreateFrameBuffer(VkRenderPass renderPass, VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt)
 	{
+		if (!pColorRt)
+		{
+			SG_LOG_WARN("pColorRt should not be nullptr!");
+			return VK_NULL_HANDLE;
+		}
+
+		VkFramebuffer fb;
+		UInt32 numRts = 1;
+		if (pDepthRt)
+			++numRts;
+
+		eastl::array<VkImageView, 2> attachments;
+		attachments[0] = pColorRt->imageView;
+		if (pDepthRt)
+			attachments[1] = pDepthRt->imageView;
+
+		VkFramebufferCreateInfo frameBufferCreateInfo = {};
+		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+
+		frameBufferCreateInfo.renderPass = renderPass;
+		frameBufferCreateInfo.attachmentCount = numRts;
+		frameBufferCreateInfo.pAttachments = attachments.data();
+		frameBufferCreateInfo.width  = pColorRt->width;
+		frameBufferCreateInfo.height = pColorRt->height;
+		frameBufferCreateInfo.layers = 1;
+
+		if (vkCreateFramebuffer(logicalDevice, &frameBufferCreateInfo, nullptr, &fb) != VK_SUCCESS)
+		{
+			SG_LOG_ERROR("Failed to create vulkan frame buffer!");
+			return VK_NULL_HANDLE;
+		}
+		return fb;
+	}
+
+	void VulkanDevice::DestroyFrameBuffer(VkFramebuffer frameBuffer)
+	{
+		vkDestroyFramebuffer(logicalDevice, frameBuffer, nullptr);
+	}
+
+	VulkanRenderTarget* VulkanDevice::CreateRenderTarget(const RenderTargetCreateDesc& rt)
+	{
+		// TODO: use resource system to store the resource
+		VulkanRenderTarget* renderTarget = Memory::New<VulkanRenderTarget>();
+		renderTarget->width  = rt.width;
+		renderTarget->height = rt.height;
+		renderTarget->depth  = rt.depth;
+		renderTarget->mipmap = rt.mipmap;
+		renderTarget->array  = rt.array;
+
+		renderTarget->format = ToVkImageFormat(rt.format);
+		renderTarget->type   = ToVkImageType(rt.type);
+		renderTarget->sample = ToVkSampleCount(rt.sample);
+		renderTarget->usage  = ToVkImageUsage(rt.usage);
+
 		VkImageCreateInfo imageCI = {};
 		imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageCI.imageType = ToVkImageType(rt.type);
-		imageCI.format = ToVkImageFormat(rt.format);
-		imageCI.extent = { rt->width, rt->height, rt->depth };
-		imageCI.mipLevels = 1;
-		imageCI.arrayLayers = rt->array;
-		imageCI.samples = rt->sample;
+		imageCI.imageType = renderTarget->type;
+		imageCI.format = renderTarget->format;
+		imageCI.extent = { rt.width, rt.height, rt.depth };
+		imageCI.mipLevels = rt.mipmap;
+		imageCI.arrayLayers = rt.array;
+		imageCI.samples = renderTarget->sample;
 		imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageCI.usage = rt->usage;
+		imageCI.usage = renderTarget->usage;
 
-		if (vkCreateImage(logicalDevice, &imageCI, nullptr, &rt->image) != VK_NULL_HANDLE)
+		if (vkCreateImage(logicalDevice, &imageCI, nullptr, &renderTarget->image) != VK_NULL_HANDLE)
 		{
 			SG_LOG_ERROR("Failed to create render targets' image!");
 			return false;
 		}
 
 		VkMemoryRequirements memReqs = {};
-		vkGetImageMemoryRequirements(logicalDevice, rt->image, &memReqs);
+		vkGetImageMemoryRequirements(logicalDevice, renderTarget->image, &memReqs);
 
 		VkMemoryAllocateInfo memAllloc = {};
 		memAllloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		memAllloc.allocationSize = memReqs.size;
 		memAllloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		vkAllocateMemory(logicalDevice, &memAllloc, nullptr, &rt->memory);
-		vkBindImageMemory(logicalDevice, rt->image, rt->memory, 0);
+		vkAllocateMemory(logicalDevice, &memAllloc, nullptr, &renderTarget->memory);
+		vkBindImageMemory(logicalDevice, renderTarget->image, renderTarget->memory, 0);
 
 		VkImageViewCreateInfo imageViewCI = {};
 		imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCI.viewType = ToVkImageViewType(rt->type, rt->array);
-		imageViewCI.image = rt->image;
-		imageViewCI.format = rt->format;
+		imageViewCI.viewType = ToVkImageViewType(renderTarget->type, renderTarget->array);
+		imageViewCI.image = renderTarget->image;
+		imageViewCI.format = renderTarget->format;
 		imageViewCI.subresourceRange.baseMipLevel = 0;
 		imageViewCI.subresourceRange.levelCount = 1;
 		imageViewCI.subresourceRange.baseArrayLayer = 0;
-		imageViewCI.subresourceRange.layerCount = rt->array;
+		imageViewCI.subresourceRange.layerCount = renderTarget->array;
 
-		if (rt->usage == VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+		if (renderTarget->usage == VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 		{
 			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 			// stencil aspect should only be set on depth + stencil formats (VK_FORMAT_D16_UNORM_S8_UINT..VK_FORMAT_D32_SFLOAT_S8_UINT
-			if (rt->format >= VK_FORMAT_D16_UNORM_S8_UINT) {
+			if (renderTarget->format >= VK_FORMAT_D16_UNORM_S8_UINT) {
 				imageViewCI.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 			}
 		}
 
-		if (vkCreateImageView(logicalDevice, &imageViewCI, nullptr, &rt->imageView) != VK_SUCCESS)
+		if (vkCreateImageView(logicalDevice, &imageViewCI, nullptr, &renderTarget->imageView) != VK_SUCCESS)
 		{
 			SG_LOG_ERROR("Failed to create render targets' image view!");
-			return false;
+			return nullptr;
 		}
 
-		return true;
+		return renderTarget;
 	}
 
 	void VulkanDevice::DestroyRenderTarget(VulkanRenderTarget* rt)
@@ -517,29 +624,29 @@ namespace SG
 		vkDestroyPipeline(logicalDevice, pipeline, nullptr);
 	}
 
-	VulkanQueue VulkanDevice::GetQueue(EQueueType type) const
+	VulkanQueue* VulkanDevice::GetQueue(EQueueType type) const
 	{
-		VulkanQueue queue;
+		VulkanQueue* queue = Memory::New<VulkanQueue>();
 		switch (type)
 		{
 		case SG::EQueueType::eNull: SG_LOG_ERROR("Wrong queue type!"); break;
 		case SG::EQueueType::eGraphic:  
-			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.graphics, 0, &queue.handle); 
-			queue.familyIndex = queueFamilyIndices.graphics;
+			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.graphics, 0, &queue->handle); 
+			queue->familyIndex = queueFamilyIndices.graphics;
 			break;
 		case SG::EQueueType::eCompute:
-			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.compute, 0, &queue.handle);
-			queue.familyIndex = queueFamilyIndices.compute;
+			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.compute, 0, &queue->handle);
+			queue->familyIndex = queueFamilyIndices.compute;
 			break;
 		case SG::EQueueType::eTransfer: 
-			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.transfer, 0, &queue.handle);
-			queue.familyIndex = queueFamilyIndices.transfer;
+			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.transfer, 0, &queue->handle);
+			queue->familyIndex = queueFamilyIndices.transfer;
 			break;
 		default: SG_LOG_ERROR("Unknown queue type!"); break;
 		}
-		queue.type = type;
-		queue.priority = EQueuePriority::eNormal;
-		return eastl::move(queue);
+		queue->type = type;
+		queue->priority = EQueuePriority::eNormal;
+		return queue;
 	}
 
 	bool VulkanDevice::SupportExtension(const string& extension)
@@ -630,6 +737,43 @@ namespace SG
 		}
 
 		return 0;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// VulkanQueue
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	bool VulkanQueue::SubmitCommands(RenderContext* pContext, UInt32 bufferIndex, RenderSemaphore* renderSemaphore, RenderSemaphore* presentSemaphore, RenderFence* fence)
+	{
+		auto* pVkContext   = static_cast<VulkanRenderContext*>(pContext);
+		auto* pVkFence     = static_cast<VulkanFence*>(fence);
+		auto* pVkRenderSP  = static_cast<VulkanSemaphore*>(renderSemaphore);
+		auto* pVkPresentSP = static_cast<VulkanSemaphore*>(presentSemaphore);
+
+		// pipeline stage at which the queue submission will wait (via pWaitSemaphores)
+		VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		// the submit info structure specifies a command buffer queue submission batch
+		VkSubmitInfo submitInfo = {};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.pWaitDstStageMask = &waitStageMask;
+		submitInfo.pWaitSemaphores = &pVkPresentSP->semaphore;
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &pVkRenderSP->semaphore;
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pCommandBuffers = &pVkContext->commandBuffers[bufferIndex];
+		submitInfo.commandBufferCount = 1;
+
+		if (vkQueueSubmit(handle, 1, &submitInfo, pVkFence->fence) != VK_SUCCESS)
+		{
+			SG_LOG_ERROR("Failed to submit render commands to queue!");
+			return false;
+		}
+		return true;
+	}
+
+	void VulkanQueue::WaitIdle() const
+	{
+		vkQueueWaitIdle(handle);
 	}
 
 }

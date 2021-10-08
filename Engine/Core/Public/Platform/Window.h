@@ -29,6 +29,8 @@ namespace SG
 		SG_CORE_API void Maximized();
 		SG_CORE_API void Minimized();
 
+		SG_CORE_API bool IsMinimize() const;
+
 		SG_CORE_API Rect GetCurrRect();
 		SG_CORE_API Vector2i GetMousePosRelative() const;
 		SG_CORE_API WindowHandle GetNativeHandle();

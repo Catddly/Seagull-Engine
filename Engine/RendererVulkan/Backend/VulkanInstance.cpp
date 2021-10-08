@@ -65,9 +65,9 @@ namespace SG
 	VulkanInstance::~VulkanInstance()
 	{
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
-		_DestroyDebugUtilsMessengerEXT(mInstance, mDebugLayer, nullptr);
+		_DestroyDebugUtilsMessengerEXT(instance, mDebugLayer, nullptr);
 #endif
-		vkDestroyInstance(mInstance, nullptr);
+		vkDestroyInstance(instance, nullptr);
 	}
 
 	bool VulkanInstance::CreateVkInstance()
@@ -106,14 +106,14 @@ namespace SG
 		insInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 #endif
 
-		if (vkCreateInstance(&insInfo, nullptr, &mInstance) != VK_SUCCESS)
+		if (vkCreateInstance(&insInfo, nullptr, &instance) != VK_SUCCESS)
 		{
 			SG_LOG_ERROR("Failed to create vulkan instance");
 			return false;
 		}
 
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
-		if (_CreateDebugUtilsMessengerEXT(mInstance, &debugCreateInfo, nullptr, &mDebugLayer) != VK_SUCCESS)
+		if (_CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, nullptr, &mDebugLayer) != VK_SUCCESS)
 		{
 			SG_LOG_ERROR("Failed to create debug layer");
 			SG_ASSERT(false);
@@ -230,41 +230,8 @@ namespace SG
 		VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 		PopulateDebugMsgCreateInfo(createInfo);
 
-		if (_CreateDebugUtilsMessengerEXT(mInstance, &createInfo, nullptr, &mDebugLayer) != VK_SUCCESS)
+		if (_CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &mDebugLayer) != VK_SUCCESS)
 			SG_ASSERT(false);
-	}
-
-	bool VulkanInstance::SelectPhysicalDeviceAndCreateDevice()
-	{
-		UInt32 gpuCount;
-		vkEnumeratePhysicalDevices(mInstance, &gpuCount, nullptr);
-		vector<VkPhysicalDevice> devices(gpuCount);
-		vkEnumeratePhysicalDevices(mInstance, &gpuCount, devices.data());
-
-		// TODO: add more conditions to choose the best device(adapter)
-		for (auto& device : devices)
-		{
-			VkPhysicalDeviceProperties deviceProperties;
-			VkPhysicalDeviceFeatures   deviceFeatures;
-			vkGetPhysicalDeviceProperties(device, &deviceProperties);
-			vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-			//SG_LOG_DEBUG("VkAdapter Name: %s", deviceProperties.deviceName);
-
-			if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-			{
-				mDevice = Memory::New<VulkanDevice>(device);
-				return true;
-			}
-
-			if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
-			{
-				mDevice = Memory::New<VulkanDevice>(device);
-				SG_LOG_WARN("Integrated GPU detected!");
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 }

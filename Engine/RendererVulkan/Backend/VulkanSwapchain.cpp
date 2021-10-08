@@ -6,6 +6,7 @@
 #include "Platform/Window.h"
 
 #include "VulkanDevice.h"
+#include "VulkanSynchronizePrimitive.h"
 #include "RendererVulkan/Utils/VkConvert.h"
 
 #ifdef SG_PLATFORM_WINDOWS
@@ -205,7 +206,7 @@ namespace SG
 			{
 				vkDestroyImageView(mLogicalDevice, e, nullptr);
 			}
-			vkDestroySwapchainKHR(mLogicalDevice, swapchain, nullptr);
+			vkDestroySwapchainKHR(mLogicalDevice, oldSwapchain, nullptr);
 		}
 
 		vkGetSwapchainImagesKHR(mLogicalDevice, swapchain, &imageCount, nullptr);
@@ -213,7 +214,7 @@ namespace SG
 		vkGetSwapchainImagesKHR(mLogicalDevice, swapchain, &imageCount, images.data());
 
 		imageViews.resize(imageCount);
-		pRt.resize(imageCount);
+		mpRts.resize(imageCount);
 		for (UInt32 i = 0; i < imageCount; ++i)
 		{
 			VkImageViewCreateInfo colorAttachmentView = {};
@@ -238,17 +239,21 @@ namespace SG
 
 			vkCreateImageView(mLogicalDevice, &colorAttachmentView, nullptr, &imageViews[i]);
 
-			pRt[i].array = 1;
-			pRt[i].format = mFormat;
-			pRt[i].width = swapchainExtent.width;
-			pRt[i].height = swapchainExtent.height;
-			pRt[i].depth = 1;
-			pRt[i].image = images[i];
-			pRt[i].imageView = imageViews[i];
-			pRt[i].memory = VK_NULL_HANDLE;
-			pRt[i].sample = VK_SAMPLE_COUNT_1_BIT;
-			pRt[i].type = VK_IMAGE_TYPE_2D;
-			pRt[i].usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			mpRts[i] = Memory::New<VulkanRenderTarget>();
+			mpRts[i]->width  = swapchainExtent.width;
+			mpRts[i]->height = swapchainExtent.height;
+			mpRts[i]->depth  = 1;
+			mpRts[i]->array  = 1;
+			mpRts[i]->mipmap = 1;
+
+			mpRts[i]->format = mFormat;
+			mpRts[i]->sample = VK_SAMPLE_COUNT_1_BIT;
+			mpRts[i]->type   = VK_IMAGE_TYPE_2D;
+			mpRts[i]->usage  = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+			mpRts[i]->image = images[i];
+			mpRts[i]->imageView = imageViews[i];
+			mpRts[i]->memory = VK_NULL_HANDLE;
 		}
 
 		return true;
@@ -256,12 +261,53 @@ namespace SG
 
 	void VulkanSwapchain::Destroy()
 	{
+		for (auto* ptr : mpRts)
+			Memory::Delete(ptr);
 		for (UInt32 i = 0; i < imageCount; ++i)
 			vkDestroyImageView(mLogicalDevice, imageViews[i], nullptr);
 		if (swapchain != VK_NULL_HANDLE)
 			vkDestroySwapchainKHR(mLogicalDevice, swapchain, nullptr);
 		if (mPresentSurface != VK_NULL_HANDLE)
 			vkDestroySurfaceKHR(mInstance, mPresentSurface, nullptr);
+	}
+
+	VulkanRenderTarget* VulkanSwapchain::GetRenderTarget(UInt32 index) const
+	{
+		if (mpRts.empty())
+			SG_LOG_WARN("Swapchain not created yet!");
+		return mpRts[index];
+	}
+
+	bool VulkanSwapchain::AcquireNextImage(VkSemaphore signalSemaphore, UInt32& imageIndex)
+	{
+		if (vkAcquireNextImageKHR(mLogicalDevice, swapchain, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
+		{
+			SG_LOG_WARN("Failed to acquire next image!");
+			return false;
+		}
+		return true;
+	}
+
+	EImageState VulkanSwapchain::Present(VulkanQueue* queue, UInt32 imageIndex, VulkanSemaphore* signalSemaphore)
+	{
+		VkPresentInfoKHR presentInfo = {};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfo.pNext = nullptr;
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = &swapchain;
+		presentInfo.pImageIndices = &imageIndex;
+		if (signalSemaphore != nullptr)
+		{
+			presentInfo.pWaitSemaphores = &signalSemaphore->semaphore;
+			presentInfo.waitSemaphoreCount = 1;
+		}
+
+		VkResult res = vkQueuePresentKHR(queue->handle, &presentInfo);
+		if (res == VK_SUCCESS)
+			return EImageState::eComplete;
+		else if (res == VK_SUBOPTIMAL_KHR)
+			return EImageState::eIncomplete;
+		return EImageState::eFailure;
 	}
 
 	bool VulkanSwapchain::CreateSurface()
@@ -281,11 +327,11 @@ namespace SG
 #endif
 	}
 
-	bool VulkanSwapchain::CheckSurfacePresentable(VulkanQueue queue)
+	bool VulkanSwapchain::CheckSurfacePresentable(VulkanQueue* queue)
 	{
 		// check if the graphic queue can do the presentation job
 		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, queue.familyIndex, mPresentSurface, &presentSupport);
+		vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, queue->familyIndex, mPresentSurface, &presentSupport);
 		if (!presentSupport)
 		{
 			SG_LOG_ERROR("Current physical device not support surface presentation");

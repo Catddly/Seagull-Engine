@@ -8,7 +8,8 @@ namespace SG
 
 	VulkanRenderContext::VulkanRenderContext(UInt32 numCommandBuffers)
 	{
-		mCommandBuffers.resize(numCommandBuffers);
+		commandBuffers.resize(numCommandBuffers);
+		frameBuffers.resize(numCommandBuffers);
 	}
 
 	void VulkanRenderContext::CmdBeginCommandBuf(VkCommandBuffer buf)
@@ -63,10 +64,10 @@ namespace SG
 		vkCmdDraw(buf, vertexCount, instanceCount, firstVertex, firstInstance);
 	}
 
-	void VulkanRenderContext::CmdBeginRenderPass(VkCommandBuffer buf, VkRenderPass renderPass, const ClearValue& clear, UInt32 width, UInt32 height)
+	void VulkanRenderContext::CmdBeginRenderPass(VkCommandBuffer buf, VkRenderPass renderPass, VkFramebuffer frameBuffer, const ClearValue & clear, UInt32 width, UInt32 height)
 	{
 		VkClearValue clearValues[2];
-		clearValues[0].color = { *clear.color.data() };
+		clearValues[0].color = { clear.color[0], clear.color[1], clear.color[2], clear.color[3], };
 		clearValues[1].depthStencil = { clear.depthStencil.depth, clear.depthStencil.stencil };
 
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -79,6 +80,8 @@ namespace SG
 		renderPassBeginInfo.renderArea.extent.height = height;
 		renderPassBeginInfo.clearValueCount = 2;
 		renderPassBeginInfo.pClearValues = clearValues;
+
+		renderPassBeginInfo.framebuffer = frameBuffer;
 
 		vkCmdBeginRenderPass(buf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}

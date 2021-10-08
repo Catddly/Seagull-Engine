@@ -18,6 +18,8 @@ namespace SG
 	static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		bool bPropagateOnDef = true;
+		bool bWindowSizeChanging = false;
+
 		switch (msg)
 		{
 		// on window destroy and app quit
@@ -27,17 +29,12 @@ namespace SG
 			PostQuitMessage(0);
 			break;
 		}
-		// on window move and resize
-		case WM_MOVE:
-		case WM_SIZE:
-		{
-		}
 		case WM_KEYDOWN:
 		{
 			if (gPrevKey == wParam)
-				CInputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eHold);
+				InputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eHold);
 			else
-				CInputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::ePressed);
+				InputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::ePressed);
 			gPrevKey = (int)wParam;
 			break;
 		}
@@ -45,9 +42,40 @@ namespace SG
 		{
 			if (gPrevKey == wParam) // reset
 				gPrevKey = -1;
-			CInputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eRelease);
+			InputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eRelease);
 			if (wParam == VK_ESCAPE)
 				PostQuitMessage(0);
+			break;
+		}
+		// on window move and resize
+		case WM_MOVE:
+		{
+			SSystem()->mMessageBus.PushEvent(ESystemMessage::eWindowMove);
+			break;
+		}
+		case WM_SIZE:
+		{
+			if (wParam != SIZE_MINIMIZED)
+			{
+				if (bWindowSizeChanging || ((wParam == SIZE_MAXIMIZED) || (wParam == SIZE_RESTORED)))
+				{
+					SSystem()->mMessageBus.PushEvent(ESystemMessage::eWindowResize);
+				}
+			}
+			else
+			{
+				SSystem()->mMessageBus.PushEvent(ESystemMessage::eWindowMinimal);
+			}
+			break;
+		}
+		case WM_ENTERSIZEMOVE:
+		{
+			bWindowSizeChanging = true;
+			break;
+		}
+		case WM_EXITSIZEMOVE:
+		{
+			bWindowSizeChanging = false;
 			break;
 		}
 		//case WM_NCLBUTTONDOWN:   // left mouse down on non-client area

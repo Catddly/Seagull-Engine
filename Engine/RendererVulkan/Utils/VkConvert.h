@@ -10,8 +10,16 @@ namespace SG
 {
 
 	VkFormat     ToVkImageFormat(EImageFormat format);
-	VkImageType  ToVkImageType(EImageType type);
 	EImageFormat ToSGImageFormat(VkFormat format);
+
+	VkImageType  ToVkImageType(EImageType type);
+	EImageType   ToSGImageType(VkImageType type);
+
+	VkSampleCountFlagBits ToVkSampleCount(ESampleCount cnt);
+	ESampleCount ToSGSampleCount(VkSampleCountFlagBits cnt);
+
+	VkImageUsageFlags  ToVkImageUsage(ERenderTargetUsage usage);
+	ERenderTargetUsage ToSGImageUsage(VkImageUsageFlags usage);
 
 	VkPresentModeKHR ToVkPresentMode(EPresentMode pmode);
 
