@@ -2,6 +2,7 @@
 
 #include "RendererVulkan/Config.h"
 #include "Render/IRenderDevice.h"
+#include "Render/Shader.h"
 #include "System/ISystemMessage.h"
 
 #include "RendererVulkan/Shaders/ShaderComiler.h"
@@ -59,8 +60,8 @@ namespace SG
 		vector<VulkanRenderTarget*> mpColorRts;
 		VulkanRenderTarget*         mpDepthRt;
 
-		ShaderCompiler  mShaderCompiler;
 		VulkanPipeline* mpPipeline;
+		ShaderStages    mBasicShader;
 
 		VulkanSemaphore*     mpRenderCompleteSemaphore;
 		VulkanSemaphore*     mpPresentCompleteSemaphore;

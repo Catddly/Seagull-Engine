@@ -18,3 +18,4 @@
 
 #include <stdio.h>
 #include <ctime>    // SystemTimeWindows.cpp
+#include <io.h>     // _access() in FileSystem

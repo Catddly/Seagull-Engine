@@ -78,7 +78,7 @@ namespace SG
 		return 0;
 	}
 
-	int System::RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut)
+	int System::RunProcess(const string& command, const char* pOut)
 	{
 #ifdef SG_PLATFORM_WINDOWS
 		STARTUPINFOA        startupInfo;
@@ -99,17 +99,14 @@ namespace SG
 			MultiByteToWideChar(CP_UTF8, 0, pOut, (int)pathLength, buffer, (int)pathLength);
 			stdOut = CreateFileW(buffer, GENERIC_ALL, FILE_SHARE_WRITE | FILE_SHARE_READ, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 		}
+
 		startupInfo.cb = sizeof(STARTUPINFO);
 		startupInfo.dwFlags |= STARTF_USESTDHANDLES;
 		startupInfo.hStdOutput = stdOut;
 		startupInfo.hStdError  = stdOut;
 
-		string commandLine = pCommand;
-		for (int i = 0; i < argNum; i++)
-			commandLine += " " + string(ppArgs[i]);
-
 		// create a process
-		if (!CreateProcessA(NULL, (LPSTR)commandLine.c_str(), NULL, NULL, stdOut ? TRUE : FALSE, CREATE_NO_WINDOW, NULL, NULL, &startupInfo, &processInfo))
+		if (!CreateProcessA(NULL, (LPSTR)command.c_str(), NULL, NULL, stdOut ? TRUE : FALSE, CREATE_NO_WINDOW, NULL, NULL, &startupInfo, &processInfo))
 			return -1;
 
 		WaitForSingleObject(processInfo.hProcess, INFINITE);
@@ -136,7 +133,7 @@ namespace SG
 
 	bool System::InitCoreModules()
 	{
-		IFileSystem* pFileSystem = Memory::New<CFileSystem>();
+		IFileSystem* pFileSystem = Memory::New<FileSystem>();
 		ILogger* pLogger = Memory::New<CLogger>();
 		IOperatingSystem* pOS = Memory::New<COperatingSystem>();
 		IInputSystem* pInputSystem = Memory::New<InputSystem>();

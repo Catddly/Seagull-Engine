@@ -30,8 +30,8 @@ namespace SG
 	//! Data of shader.
 	struct ShaderData
 	{
-		std::byte* pBinary = nullptr;
-		Size       binarySize;
+		std::byte*    pBinary = nullptr;
+		Size          binarySize;
 	};
 
 	typedef eastl::map<EShaderStages, ShaderData> ShaderStages;

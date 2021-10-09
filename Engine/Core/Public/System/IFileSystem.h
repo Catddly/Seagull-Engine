@@ -102,6 +102,8 @@ extern "C"
 		//! User interface to set the stream op to user custom.
 		virtual void SetIStreamOp(IStreamOps* pStreamOp) = 0;
 
+		virtual bool Exist(const EResourceDirectory directory, const char* filename) = 0;
+
 		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode) = 0;
 		virtual bool Close() = 0;
 		virtual Size Read(void* pInBuf, Size bufSize) = 0;

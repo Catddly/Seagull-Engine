@@ -29,6 +29,10 @@ namespace SG
 
 	void VulkanRenderDevice::OnInit()
 	{
+		ShaderCompiler compiler;
+		compiler.CompileGLSLShader("basic", mBasicShader);
+		SG_LOG_DEBUG("Num Stages: %d", mBasicShader.size());
+
 		mpInstance = Memory::New<VulkanInstance>();
 		mpSwapchain = Memory::New<VulkanSwapchain>(mpInstance->instance);
 		mpSwapchain->CreateSurface();
@@ -57,13 +61,10 @@ namespace SG
 
 		CreateDepthRT();
 
-		ShaderStages basicShader;
-		mShaderCompiler.LoadSPIRVShader("basic", basicShader);
-
 		mpPipeline = Memory::New<VulkanPipeline>();
 		mpPipeline->renderPass = mpDevice->CreateRenderPass(mpColorRts[0], mpDepthRt);
 		mpPipeline->pipelineCache = mpDevice->CreatePipelineCache();;
-		mpPipeline->pipeline = mpDevice->CreatePipeline(mpPipeline->pipelineCache, mpPipeline->renderPass, basicShader);;
+		mpPipeline->pipeline = mpDevice->CreatePipeline(mpPipeline->pipelineCache, mpPipeline->renderPass, mBasicShader);
 
 		for (UInt32 i = 0; i < mpRenderContext->frameBuffers.size(); ++i)
 			mpRenderContext->frameBuffers[i] = mpDevice->CreateFrameBuffer(mpPipeline->renderPass, mpColorRts[i], mpDepthRt);

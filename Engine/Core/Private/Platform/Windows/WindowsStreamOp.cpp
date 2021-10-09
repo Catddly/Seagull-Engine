@@ -1,25 +1,27 @@
 #include "StdAfx.h"
+
+#include "Core/Private/FileSystem/FileSystem.h"
 #include "Core/Private/Platform/Windows/WindowsStreamOp.h"
 
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
 	// TODO: maybe we should use a more elegant way to do the convertion
-	const char* gResoureceDirectory[(UInt32)EResourceDirectory::Num_Directory] = {
-		"",
-		"ShaderBin",
-		"ShaderSrc",
-		"Mesh",
-		"Texture",
-		"Font",
-		"Log",
-		"Script"
-	};
+	//const char* gResoureceDirectory[(UInt32)EResourceDirectory::Num_Directory] = {
+	//	"",
+	//	"ShaderBin",
+	//	"ShaderSrc",
+	//	"Mesh",
+	//	"Texture",
+	//	"Font",
+	//	"Log",
+	//	"Script"
+	//};
 
 	bool SWindowsStreamOp::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut)
 	{
 		// if the EResourceDirectory folder is exist
-		auto rd = (LPCSTR)gResoureceDirectory[(UInt32)directory];
+		auto rd = (LPCSTR)FileSystem::sResourceDirectory[(UInt32)directory];
 		if (!::PathIsDirectoryA(rd))
 			::CreateDirectoryA(rd, NULL);
 
@@ -28,7 +30,7 @@ namespace SG
 			outDirectory += filename;
 		else
 		{
-			outDirectory += gResoureceDirectory[(UInt32)directory];
+			outDirectory += FileSystem::sResourceDirectory[(UInt32)directory];
 			outDirectory += "/";
 			outDirectory += filename;
 		}

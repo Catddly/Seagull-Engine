@@ -4,70 +4,95 @@
 #include "Core/Private/Platform/Windows/WindowsStreamOp.h"
 #include "Memory/IMemory.h"
 
+#include "stl/string.h"
+
 namespace SG
 {
 
-	void CFileSystem::OnInit()
+	const char* FileSystem::sResourceDirectory[9] = {
+		"",
+		"ShaderBin",
+		"ShaderSrc",
+		"Mesh",
+		"Texture",
+		"Font",
+		"Log",
+		"Script",
+		""
+	};
+
+	void FileSystem::OnInit()
 	{
 #ifdef SG_PLATFORM_WINDOWS
 		mStreamOp = Memory::New<SWindowsStreamOp>();
 #endif
 	}
 
-	void CFileSystem::OnShutdown()
+	void FileSystem::OnShutdown()
 	{
 		Memory::Delete(mStreamOp);
 	}
 
-	bool CFileSystem::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode)
+	bool FileSystem::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode)
 	{
 		return mStreamOp->Open(directory, filename, filemode, &mStream);
 	}
 
-	bool CFileSystem::Close()
+	bool FileSystem::Close()
 	{
 		return mStreamOp->Close(&mStream);
 	}
 
-	Size CFileSystem::Read(void* pInBuf, Size bufSizeInByte)
+	Size FileSystem::Read(void* pInBuf, Size bufSizeInByte)
 	{
 		return mStreamOp->Read(&mStream, pInBuf, bufSizeInByte);
 	}
 
-	Size CFileSystem::Write(const void* const pOutBuf, Size bufSizeInByte)
+	Size FileSystem::Write(const void* const pOutBuf, Size bufSizeInByte)
 	{
 		return mStreamOp->Write(&mStream, pOutBuf, bufSizeInByte);
 	}
 
-	bool CFileSystem::Seek(EFileBaseOffset baseOffset, Size offset)
+	bool FileSystem::Seek(EFileBaseOffset baseOffset, Size offset)
 	{
 		return mStreamOp->Seek(&mStream, baseOffset, offset);
 	}
 
-	Size CFileSystem::Tell() const
+	Size FileSystem::Tell() const
 	{
 		return mStreamOp->Tell(&mStream);
 	}
 
-	Size CFileSystem::FileSize() const
+	Size FileSystem::FileSize() const
 	{
 		return mStreamOp->FileSize(&mStream);
 	}
 
-	bool CFileSystem::Flush()
+	bool FileSystem::Flush()
 	{
 		return mStreamOp->Flush(&mStream);
 	}
 
-	bool CFileSystem::IsEndOfFile() const
+	bool FileSystem::IsEndOfFile() const
 	{
 		return mStreamOp->IsEndOfFile(&mStream);
 	}
 
-	void CFileSystem::SetIStreamOp(IStreamOps* pStreamOp)
+	void FileSystem::SetIStreamOp(IStreamOps* pStreamOp)
 	{
 		if (pStreamOp != nullptr)
 			mStreamOp = pStreamOp;
+	}
+
+	bool FileSystem::Exist(const EResourceDirectory directory, const char* filename)
+	{
+		string filepath = sResourceDirectory[(UInt32)directory];
+		filepath += "/";
+		filepath += filename;
+		if (_access(filepath.c_str(), 0) == 0)
+			return true;
+		else
+			return false;
 	}
 
 }

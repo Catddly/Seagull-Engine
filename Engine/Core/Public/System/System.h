@@ -59,7 +59,7 @@ namespace SG
 		SG_CORE_API void        SetRootDirectory(const char* filepath);
 		SG_CORE_API string      GetResourceDirectory(EResourceDirectory rd) const;
 
-		SG_CORE_API int RunProcess(const char* pCommand, const char** ppArgs, Size argNum, const char* pOut);
+		SG_CORE_API int RunProcess(const string& command, const char* pOut);
 
 		SG_CORE_API void RegisterSystemMessageListener(ISystemMessageListener* pListener);
 		SG_CORE_API void RemoveSystemMessageListener(ISystemMessageListener* pListener);
