@@ -24,7 +24,7 @@ namespace SG
 	void FileSystem::OnInit()
 	{
 #ifdef SG_PLATFORM_WINDOWS
-		mStreamOp = Memory::New<SWindowsStreamOp>();
+		mStreamOp = Memory::New<WindowsStreamOp>();
 #endif
 	}
 
@@ -33,9 +33,9 @@ namespace SG
 		Memory::Delete(mStreamOp);
 	}
 
-	bool FileSystem::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode)
+	bool FileSystem::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, Size rootFolderOffset)
 	{
-		return mStreamOp->Open(directory, filename, filemode, &mStream);
+		return mStreamOp->Open(directory, filename, filemode, &mStream, rootFolderOffset);
 	}
 
 	bool FileSystem::Close()
@@ -84,15 +84,53 @@ namespace SG
 			mStreamOp = pStreamOp;
 	}
 
-	bool FileSystem::Exist(const EResourceDirectory directory, const char* filename)
+	bool FileSystem::Exist(const EResourceDirectory directory, const char* filename, const char* prefix)
 	{
-		string filepath = sResourceDirectory[(UInt32)directory];
-		filepath += "/";
+		string filepath = prefix;
+		filepath += sResourceDirectory[(UInt32)directory];
+		filepath += "//";
 		filepath += filename;
 		if (_access(filepath.c_str(), 0) == 0)
 			return true;
 		else
 			return false;
+	}
+
+	bool FileSystem::CreateFolder(const EResourceDirectory directory, const char* folderName)
+	{
+		string path = sResourceDirectory[(UInt32)directory];
+		path += "//";
+		path += folderName;
+		if (_mkdir(path.c_str()) == 0)
+			return true;
+		return false;
+	}
+
+	bool FileSystem::ExistOrCreate(const EResourceDirectory directory, const string& filename)
+	{
+		bool bSuccess = true;
+		string folder = "";
+		string path = filename;
+		while (true)
+		{
+			Size nextFolderPos = path.find_first_of('/');
+			if (nextFolderPos == string::npos) // no folder path in the filename
+			{
+				if (!Exist(directory, folder.c_str()))
+					bSuccess &= CreateFolder(directory, folder.c_str());
+				break;
+			}
+			else
+			{
+				folder += path.substr(0, nextFolderPos - 1);
+				if (path[nextFolderPos + 1] == '/') // if use // or /
+					++nextFolderPos;
+				path = path.substr(nextFolderPos, path.size() - nextFolderPos);
+				if (!Exist(directory, folder.c_str()))
+					bSuccess &= CreateFolder(directory, folder.c_str());
+			}
+		}
+		return bSuccess;
 	}
 
 }

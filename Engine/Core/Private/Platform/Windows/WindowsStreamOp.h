@@ -6,9 +6,9 @@
 namespace SG
 {
 
-	struct SWindowsStreamOp : public IStreamOps
+	struct WindowsStreamOp : public IStreamOps
 	{
-		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut) override;
+		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut, Size rootFolderOffset = 0) override;
 		virtual bool Close(FileStream* pStream) override;
 		virtual Size Read(FileStream* pStream, void* pInBuf, Size bufSize) override;
 		virtual Size Write(FileStream* pStream, const void* const pOutBuf, Size bufSize) override;

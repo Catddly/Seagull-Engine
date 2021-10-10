@@ -16,6 +16,11 @@ namespace SG
 		auto* pIO = SSystem()->GetFileSystem();
 
 		UInt8 shaderBits = 0;
+		if (!pIO->Exist(EResourceDirectory::eShader_Binarires, ""))
+		{
+			SG_LOG_WARN("You must put all the SPIRV binaries in the ShaderBin folder!");
+			return false;
+		}
 
 		for (UInt32 i = 0; i < (UInt32)EShaderStages::NUM_STAGES; ++i)
 		{
@@ -75,6 +80,7 @@ namespace SG
 		glslcPath += "\\Bin32\\glslc.exe ";
 
 		UInt8 shaderBits = 0;
+		pIO->ExistOrCreate(EResourceDirectory::eShader_Binarires, ""); // create ShaderBin folder if it doesn't exist
 
 		for (UInt32 i = 0; i < (UInt32)EShaderStages::NUM_STAGES; ++i)
 		{
@@ -94,15 +100,18 @@ namespace SG
 			compiledName[actualName.find('.')] = '-';
 			compiledName += ".spv";
 
-			if (pIO->Exist(EResourceDirectory::eShader_Binarires, compiledName.c_str())) // already compiled once, skip it.
+			if (pIO->Exist(EResourceDirectory::eShader_Binarires, compiledName.c_str())) // already compiled this shader once, skip it.
 			{
-				shaderBits |= (1 << i);
+				shaderBits |= (1 << i); // mark as exist.
 				continue;
 			}
 
-			if (pIO->Exist(EResourceDirectory::eShader_Sources, actualName.c_str()))
+			const char* prefix = "..//..//..//Resources//";
+			if (pIO->Exist(EResourceDirectory::eShader_Sources, actualName.c_str(), prefix))
 			{
-				string shaderPath = SSystem()->GetResourceDirectory(EResourceDirectory::eShader_Sources) + actualName;
+				string shaderPath = prefix;
+				shaderPath += "ShaderSrc//";
+				shaderPath += actualName;;
 				string outputPath = SSystem()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + compiledName;
 
 				commandLine += shaderPath;

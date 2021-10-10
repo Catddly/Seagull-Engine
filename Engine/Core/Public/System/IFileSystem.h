@@ -5,6 +5,8 @@
 
 #include "System/IModule.h"
 
+#include "stl/string.h"
+
 namespace SG
 {
 
@@ -81,7 +83,7 @@ extern "C"
 	{
 		virtual ~IStreamOps() = default;
 
-		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut) = 0;
+		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut, Size rootFolderOffset = 0) = 0;
 		virtual bool Close(FileStream* pStream) = 0;
 		virtual Size Read(FileStream* pStream, void* pInBuf, Size bufSize) = 0;
 		virtual Size Write(FileStream* pStream, const void* const pOutBuf, Size bufSize) = 0;
@@ -101,10 +103,12 @@ extern "C"
 
 		//! User interface to set the stream op to user custom.
 		virtual void SetIStreamOp(IStreamOps* pStreamOp) = 0;
+		//! If a file or a file folder exist.
+		virtual bool Exist(const EResourceDirectory directory, const char* filename, const char* prefix = "") = 0;
+		//! If a a file folder exist, it not, create one empty.
+		virtual bool ExistOrCreate(const EResourceDirectory directory, const string& filename) = 0;
 
-		virtual bool Exist(const EResourceDirectory directory, const char* filename) = 0;
-
-		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode) = 0;
+		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, Size rootFolderOffset = 0) = 0;
 		virtual bool Close() = 0;
 		virtual Size Read(void* pInBuf, Size bufSize) = 0;
 		virtual Size Write(const void* const pOutBuf, Size bufSize) = 0;
@@ -113,6 +117,8 @@ extern "C"
 		virtual Size FileSize() const = 0;
 		virtual bool Flush() = 0;
 		virtual bool IsEndOfFile() const = 0;
+
+		virtual bool CreateFolder(const EResourceDirectory directory, const char* folderName) = 0;
 	} IFileSystem;
 
 #ifdef __cplusplus

@@ -18,7 +18,7 @@ namespace SG
 	//	"Script"
 	//};
 
-	bool SWindowsStreamOp::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut)
+	bool WindowsStreamOp::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut, Size rootFolderOffset)
 	{
 		// if the EResourceDirectory folder is exist
 		auto rd = (LPCSTR)FileSystem::sResourceDirectory[(UInt32)directory];
@@ -26,6 +26,9 @@ namespace SG
 			::CreateDirectoryA(rd, NULL);
 
 		string outDirectory;
+		for (Size i = 0; i < rootFolderOffset; ++i)
+			outDirectory += "../";
+
 		if (directory == EResourceDirectory::eRoot)
 			outDirectory += filename;
 		else
@@ -69,7 +72,7 @@ namespace SG
 		return true;
 	}
 
-	bool SWindowsStreamOp::Close(FileStream* pStream)
+	bool WindowsStreamOp::Close(FileStream* pStream)
 	{
 		FILE* pFile = (FILE*)pStream->file;
 		if (pFile)
@@ -81,17 +84,17 @@ namespace SG
 			return false;
 	}
 
-	Size SWindowsStreamOp::Read(FileStream* pStream, void* pInBuf, Size bufSize)
+	Size WindowsStreamOp::Read(FileStream* pStream, void* pInBuf, Size bufSize)
 	{
 		return fread(pInBuf, bufSize, 1, (FILE*)pStream->file);
 	}
 
-	Size SWindowsStreamOp::Write(FileStream* pStream, const void* const pOutBuf, Size bufSize)
+	Size WindowsStreamOp::Write(FileStream* pStream, const void* const pOutBuf, Size bufSize)
 	{
 		return fwrite(pOutBuf, bufSize, 1, (FILE*)pStream->file);
 	}
 
-	bool SWindowsStreamOp::Seek(const FileStream* pStream, EFileBaseOffset baseOffset, Size offset) const
+	bool WindowsStreamOp::Seek(const FileStream* pStream, EFileBaseOffset baseOffset, Size offset) const
 	{
 		int bOffset = baseOffset == EFileBaseOffset::eStart ? SEEK_SET :
 			baseOffset == EFileBaseOffset::eCurrent ? SEEK_CUR : SEEK_END;
@@ -101,12 +104,12 @@ namespace SG
 		return false;
 	}
 
-	Size SWindowsStreamOp::Tell(const FileStream* pStream) const
+	Size WindowsStreamOp::Tell(const FileStream* pStream) const
 	{
 		return ftell((FILE*)pStream->file);
 	}
 
-	Size SWindowsStreamOp::FileSize(const FileStream* pStream) const
+	Size WindowsStreamOp::FileSize(const FileStream* pStream) const
 	{
 		Size currPos = Tell(pStream);
 		Seek(pStream, EFileBaseOffset::eEOF, 0);
@@ -115,7 +118,7 @@ namespace SG
 		return fileSize;
 	}
 
-	bool SWindowsStreamOp::Flush(FileStream* pStream)
+	bool WindowsStreamOp::Flush(FileStream* pStream)
 	{
 		int ret = fflush((FILE*)pStream->file);
 		if (ret == 0)
@@ -123,7 +126,7 @@ namespace SG
 		return false;
 	}
 
-	bool SWindowsStreamOp::IsEndOfFile(const FileStream* pStream) const
+	bool WindowsStreamOp::IsEndOfFile(const FileStream* pStream) const
 	{
 		return feof((FILE*)pStream->file);
 	}
