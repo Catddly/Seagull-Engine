@@ -22,7 +22,7 @@ namespace SG
 		explicit VulkanRenderContext(UInt32 numCommandBuffers);
 		~VulkanRenderContext() = default;
 
-		void CmdBeginCommandBuf(VkCommandBuffer buf);
+		void CmdBeginCommandBuf(VkCommandBuffer buf, bool bPermanent = false);
 		void CmdEndCommandBuf(VkCommandBuffer buf);
 
 		void CmdSetViewport(VkCommandBuffer buf, float width, float height, float minDepth, float maxDepth);

@@ -116,15 +116,19 @@ namespace SG
 			Size nextFolderPos = path.find_first_of('/');
 			if (nextFolderPos == string::npos) // no folder path in the filename
 			{
+				if (path.size() != 0) // path still have a folder to create
+					folder += path;
+
 				if (!Exist(directory, folder.c_str()))
 					bSuccess &= CreateFolder(directory, folder.c_str());
 				break;
 			}
 			else
 			{
-				folder += path.substr(0, nextFolderPos - 1);
 				if (path[nextFolderPos + 1] == '/') // if use // or /
 					++nextFolderPos;
+				++nextFolderPos;
+				folder += path.substr(0, nextFolderPos);
 				path = path.substr(nextFolderPos, path.size() - nextFolderPos);
 				if (!Exist(directory, folder.c_str()))
 					bSuccess &= CreateFolder(directory, folder.c_str());

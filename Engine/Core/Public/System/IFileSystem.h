@@ -105,7 +105,7 @@ extern "C"
 		virtual void SetIStreamOp(IStreamOps* pStreamOp) = 0;
 		//! If a file or a file folder exist.
 		virtual bool Exist(const EResourceDirectory directory, const char* filename, const char* prefix = "") = 0;
-		//! If a a file folder exist, it not, create one empty.
+		//! If a file folder does not exist, create one empty folder.
 		virtual bool ExistOrCreate(const EResourceDirectory directory, const string& filename) = 0;
 
 		virtual bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, Size rootFolderOffset = 0) = 0;

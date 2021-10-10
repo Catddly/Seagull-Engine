@@ -12,11 +12,15 @@ namespace SG
 		frameBuffers.resize(numCommandBuffers);
 	}
 
-	void VulkanRenderContext::CmdBeginCommandBuf(VkCommandBuffer buf)
+	void VulkanRenderContext::CmdBeginCommandBuf(VkCommandBuffer buf, bool bPermanent)
 	{
 		VkCommandBufferBeginInfo cmdBufInfo = {};
 		cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		cmdBufInfo.pNext = nullptr;
+		if (bPermanent)
+			cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+		else
+			cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		if (vkBeginCommandBuffer(buf, &cmdBufInfo) != VK_SUCCESS)
 		{
 			SG_LOG_ERROR("Failed to begin command buffer!");

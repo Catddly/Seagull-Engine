@@ -7,6 +7,7 @@
 #include "Memory/IMemory.h"
 
 #include "Render/SwapChain.h"
+#include "Render/ShaderComiler.h"
 
 #include "RendererVulkan/Backend/VulkanInstance.h"
 #include "RendererVulkan/Backend/VulkanRenderContext.h"
@@ -223,7 +224,7 @@ namespace SG
 			auto* pBuf = mpRenderContext->commandBuffers[i];
 			auto* pFb = mpRenderContext->frameBuffers[i];
 			auto* pColorRt = static_cast<VulkanRenderTarget*>(mpColorRts[i]);
-			mpRenderContext->CmdBeginCommandBuf(pBuf);
+			mpRenderContext->CmdBeginCommandBuf(pBuf, true);
 			ClearValue cv;
 			cv.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 			cv.depthStencil = { 1.0f, 0 };

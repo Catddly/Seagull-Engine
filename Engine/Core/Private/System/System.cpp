@@ -8,6 +8,7 @@
 
 #include "User/IApp.h"
 
+#include "Profile/FpsTimer.h"
 #include "Memory/IMemory.h"
 
 #include <windows.h>
@@ -150,6 +151,9 @@ namespace SG
 	{
 		bool bIsSafeQuit = true;
 		bool bIsExit = false;
+
+		FpsTimer renderTimer("RenderDevice::OnDraw()", 3.0f, 60);
+		
 		while (!bIsExit)
 		{
 			// collect all the messages
@@ -166,7 +170,11 @@ namespace SG
 				mpCurrActiveProcess->OnUpdate();
 
 			// modules OnDraw()
-			mModuleManager.Draw();
+			{
+				renderTimer.BeginProfile();
+				mModuleManager.Draw();
+				renderTimer.EndProfile();
+			}
 		}
 		return bIsSafeQuit;
 	}

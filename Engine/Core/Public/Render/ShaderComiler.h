@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Config.h"
 #include "Render/Shader.h"
 
 #include "Stl/string.h"
@@ -7,7 +8,7 @@
 namespace SG
 {
 
-	class ShaderCompiler
+	class SG_CORE_API ShaderCompiler
 	{
 	public:
 		//! Load SPIRV shaders in as ShaderStages.

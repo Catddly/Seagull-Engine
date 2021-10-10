@@ -1,12 +1,10 @@
 #include "StdAfx.h"
-#include "ShaderComiler.h"
+#include "Render/ShaderComiler.h"
 
 #include "System/System.h"
 #include "System/IFileSystem.h"
 #include "System/ILogger.h"
 #include "Memory/IMemory.h"
-
-#include <eastl/unique_ptr.h>
 
 namespace SG
 {
@@ -46,11 +44,11 @@ namespace SG
 				shaderBits |= (1 << i);
 				pIO->Close();
 			}
-			else
-			{
-				SG_LOG_WARN("Failed to find SPIRV stages: (%d)", i);
-				pIO->Close();
-			}
+			//else
+			//{
+			//	SG_LOG_WARN("Failed to find SPIRV stages: (%d)", i);
+			//	pIO->Close();
+			//}
 		}
 
 		if ((shaderBits & (1 << 0)) == 0 || (shaderBits & (1 << 4)) == 0) // if vert or frag stage is missing
@@ -132,10 +130,10 @@ namespace SG
 				// record what shader stage we had compiled
 				shaderBits |= (1 << i);
 			}
-			else
-			{
-				SG_LOG_WARN("Failed to find GLSL shader stage: (%d)", i);
-			}
+			//else
+			//{
+			//	SG_LOG_WARN("Failed to find GLSL shader stage: (%d)", i);
+			//}
 		}
 
 		if (shaderBits == 0)
