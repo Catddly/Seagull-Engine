@@ -34,6 +34,6 @@ namespace SG
 		Size          binarySize;
 	};
 
-	typedef eastl::map<EShaderStages, ShaderData> ShaderStages;
+	typedef eastl::map<EShaderStages, ShaderData> Shader;
 
 }

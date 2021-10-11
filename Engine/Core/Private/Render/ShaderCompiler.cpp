@@ -9,7 +9,7 @@
 namespace SG
 {
 
-	bool ShaderCompiler::LoadSPIRVShader(const string& binShaderName, ShaderStages& outStages)
+	bool ShaderCompiler::LoadSPIRVShader(const string& binShaderName, Shader& outStages)
 	{
 		auto* pIO = SSystem()->GetFileSystem();
 
@@ -67,7 +67,7 @@ namespace SG
 		return true;
 	}
 
-	bool ShaderCompiler::CompileGLSLShader(const string& binShaderName, ShaderStages& outStages)
+	bool ShaderCompiler::CompileGLSLShader(const string& binShaderName, Shader& outStages)
 	{
 		auto* pIO = SSystem()->GetFileSystem();
 

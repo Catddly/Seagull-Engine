@@ -16,14 +16,14 @@ namespace SG
 		//! @param [binShaderName] Just name of the shaders, like basic. it will try find all the basic-vert.spv, basic-frag.spv, etc...
 		//! @param [outStages] Output data of shader stages.
 		//! @return If it successfully load in the shaders.
-		static bool LoadSPIRVShader(const string& binShaderName, ShaderStages& outStages);
+		static bool LoadSPIRVShader(const string& binShaderName, Shader& outStages);
 
 		//! Compile GLSL shaders to SPIRV shaders and load them in
 		//! The format of shaders' name should be ***.vert or ***.frag for GLSL shaders.
 		//! @param [binShaderName] Just name of the shaders, like basic. it will try find all the basic.vert, basic.frag, etc...
 		//! @param [outStages] Output data of shader stages.
 		//! @return If it successfully load in the shaders.
-		static bool CompileGLSLShader(const string& binShaderName, ShaderStages& outStages);
+		static bool CompileGLSLShader(const string& binShaderName, Shader& outStages);
 	};
 
 }

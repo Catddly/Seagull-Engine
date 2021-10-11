@@ -3,6 +3,7 @@
 #include "Render/SwapChain.h"
 #include "Render/Queue.h"
 #include "Render/ResourceBarriers.h"
+#include "Render/Buffer.h"
 
 #include <vulkan/vulkan_core.h>
 
@@ -20,6 +21,8 @@ namespace SG
 
 	VkImageUsageFlags  ToVkImageUsage(ERenderTargetUsage usage);
 	ERenderTargetUsage ToSGImageUsage(VkImageUsageFlags usage);
+
+	VkBufferUsageFlags ToVkBufferUsage(EBufferType type);
 
 	VkPresentModeKHR ToVkPresentMode(EPresentMode pmode);
 

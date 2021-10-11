@@ -57,8 +57,7 @@ namespace SG
 			mpColorRts[i] = mpSwapchain->GetRenderTarget(i);
 
 		// create command buffer
-		mpRenderContext = Memory::New<VulkanRenderContext>(mpSwapchain->imageCount);
-		mpDevice->AllocateCommandBuffers(mpRenderContext->commandBuffers);
+		mpRenderContext = mpDevice->CreateRenderContext(mpSwapchain->imageCount, EQueueType::eGraphic);
 
 		CreateDepthRT();
 
@@ -67,8 +66,10 @@ namespace SG
 		mpPipeline->pipelineCache = mpDevice->CreatePipelineCache();;
 		mpPipeline->pipeline = mpDevice->CreatePipeline(mpPipeline->pipelineCache, mpPipeline->renderPass, mBasicShader);
 
-		for (UInt32 i = 0; i < mpRenderContext->frameBuffers.size(); ++i)
-			mpRenderContext->frameBuffers[i] = mpDevice->CreateFrameBuffer(mpPipeline->renderPass, mpColorRts[i], mpDepthRt);
+		mpFrameBuffers = Memory::New<VulkanFrameBuffer>();
+		mpFrameBuffers->frameBuffers.resize(mpSwapchain->imageCount);
+		for (UInt32 i = 0; i < mpFrameBuffers->frameBuffers.size(); ++i)
+			mpFrameBuffers->frameBuffers[i] = mpDevice->CreateFrameBuffer(mpPipeline->renderPass, mpColorRts[i], mpDepthRt);
 
 		mpRenderCompleteSemaphore = Memory::New<VulkanSemaphore>();
 		mpRenderCompleteSemaphore->semaphore = mpDevice->CreateSemaphore();
@@ -79,10 +80,12 @@ namespace SG
 		for (UInt32 i = 0; i < mpSwapchain->imageCount; ++i)
 		{
 			mpBufferFences[i] = Memory::New<VulkanFence>();
-			mpBufferFences[i]->fence = mpDevice->CreateFence();
+			mpBufferFences[i]->fence = mpDevice->CreateFence(true);
 		}
 
 		SG_LOG_DEBUG("RenderDevice - Vulkan Init");
+
+		CreateAndUploadBuffers();
 
 		RecordRenderCommands();
 	}
@@ -90,6 +93,8 @@ namespace SG
 	void VulkanRenderDevice::OnShutdown()
 	{
 		mpQueue->WaitIdle();
+
+		DestroyBuffers();
 
 		mpDevice->DestroySemaphore(mpRenderCompleteSemaphore->semaphore);
 		mpDevice->DestroySemaphore(mpPresentCompleteSemaphore->semaphore);
@@ -101,8 +106,9 @@ namespace SG
 			Memory::Delete(mpBufferFences[i]);
 		}
 
-		for (UInt32 i = 0; i < mpRenderContext->frameBuffers.size(); ++i)
-			mpDevice->DestroyFrameBuffer(mpRenderContext->frameBuffers[i]);
+		for (UInt32 i = 0; i < mpFrameBuffers->frameBuffers.size(); ++i)
+			mpDevice->DestroyFrameBuffer(mpFrameBuffers->frameBuffers[i]);
+		Memory::Delete(mpFrameBuffers);
 
 		mpDevice->DestroyPipeline(mpPipeline->pipeline);
 		mpDevice->DestroyPipelineCache(mpPipeline->pipelineCache);
@@ -110,8 +116,7 @@ namespace SG
 		Memory::Delete(mpPipeline);
 
 		DestroyDepthRT();
-		mpDevice->FreeCommandBuffers(mpRenderContext->commandBuffers);
-		Memory::Delete(mpRenderContext);
+		mpDevice->DestroyRenderContext(mpRenderContext);
 
 		mpSwapchain->Destroy();
 		Memory::Delete(mpSwapchain);
@@ -140,12 +145,12 @@ namespace SG
 
 		mpSwapchain->Present(mpQueue, mCurrentFrameInCPU, mpRenderCompleteSemaphore);
 
-		mbPresentOnce = true;
+		mbBlockEvent = false;
 	}
 
 	bool VulkanRenderDevice::OnSystemMessage(ESystemMessage msg)
 	{
-		if (!mbPresentOnce)
+		if (mbBlockEvent)
 			return true;
 
 		switch (msg)
@@ -202,7 +207,7 @@ namespace SG
 		DestroyDepthRT();
 		CreateDepthRT();
 
-		auto& frameBuffers = mpRenderContext->frameBuffers;
+		auto& frameBuffers = mpFrameBuffers->frameBuffers;
 		auto* pipeline = static_cast<VulkanPipeline*>(mpPipeline);
 		for (UInt32 i = 0; i < frameBuffers.size(); ++i)
 		{
@@ -211,8 +216,9 @@ namespace SG
 			frameBuffers[i] = mpDevice->CreateFrameBuffer(pipeline->renderPass, colorRt, static_cast<VulkanRenderTarget*>(mpDepthRt));
 		}
 
-		mpDevice->FreeCommandBuffers(mpRenderContext->commandBuffers);
-		mpDevice->AllocateCommandBuffers(mpRenderContext->commandBuffers);
+		mpDevice->FreeCommandBuffers(mpRenderContext);
+		mpDevice->AllocateCommandBuffers(mpRenderContext);
+
 		RecordRenderCommands();
 	}
 
@@ -222,7 +228,7 @@ namespace SG
 		for (UInt32 i = 0; i < mpRenderContext->commandBuffers.size(); ++i)
 		{
 			auto* pBuf = mpRenderContext->commandBuffers[i];
-			auto* pFb = mpRenderContext->frameBuffers[i];
+			auto* pFb  = mpFrameBuffers->frameBuffers[i];
 			auto* pColorRt = static_cast<VulkanRenderTarget*>(mpColorRts[i]);
 			mpRenderContext->CmdBeginCommandBuf(pBuf, true);
 			ClearValue cv;
@@ -265,6 +271,50 @@ namespace SG
 	{
 		mpDevice->DestroyRenderTarget(static_cast<VulkanRenderTarget*>(mpDepthRt));
 		Memory::Delete(mpDepthRt);
+	}
+
+	bool VulkanRenderDevice::CreateAndUploadBuffers()
+	{
+		bool bSuccess = true;
+
+		// datas for a triangle
+		float vertices[3][3] = {
+			{  1.0f,  1.0f, 0.0f },
+			{ -1.0f,  1.0f, 0.0f },
+			{  0.0f, -1.0f, 0.0f },
+		};
+
+		UInt32 indices[3] = {
+			0, 1, 2
+		};
+
+		BufferCreateDesc vertexBufferCI = {};
+		vertexBufferCI.sizeInByte = sizeof(float) * 3 * 3;
+		vertexBufferCI.pData = vertices;
+		vertexBufferCI.type  = EBufferType::efVertex | EBufferType::efTransfer_Dst;
+
+		BufferCreateDesc indexBufferCI = {};
+		indexBufferCI.sizeInByte = sizeof(UInt32) * 3;
+		indexBufferCI.pData = indices;
+		indexBufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
+
+		mpVertexBuffer = mpDevice->CreateBuffer(vertexBufferCI);
+		mpIndexBuffer  = mpDevice->CreateBuffer(indexBufferCI);
+
+		//bSuccess &= mpVertexBuffer->Upload(mpDevice->logicalDevice, vertices);
+		//bSuccess &= mpIndexBuffer->Upload(mpDevice->logicalDevice, indices);
+
+		if (!mpVertexBuffer || !mpIndexBuffer)
+			bSuccess &= false;
+		return bSuccess;
+	}
+
+	void VulkanRenderDevice::DestroyBuffers()
+	{
+		mpDevice->DestroyBuffer(mpVertexBuffer);
+		mpDevice->DestroyBuffer(mpIndexBuffer);
+		Memory::Delete(mpVertexBuffer);
+		Memory::Delete(mpIndexBuffer);
 	}
 
 }

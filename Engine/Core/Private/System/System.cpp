@@ -152,7 +152,7 @@ namespace SG
 		bool bIsSafeQuit = true;
 		bool bIsExit = false;
 
-		FpsTimer renderTimer("RenderDevice::OnDraw()", 3.0f, 60);
+		//FpsTimer renderTimer("RenderDevice::OnDraw()", 3.0f, 60);
 		
 		while (!bIsExit)
 		{
@@ -171,9 +171,9 @@ namespace SG
 
 			// modules OnDraw()
 			{
-				renderTimer.BeginProfile();
+				//renderTimer.BeginProfile();
 				mModuleManager.Draw();
-				renderTimer.EndProfile();
+				//renderTimer.EndProfile();
 			}
 		}
 		return bIsSafeQuit;

@@ -20,6 +20,8 @@ namespace SG
 	struct VulkanSemaphore;
 	struct VulkanFence;
 	struct VulkanQueue;
+	struct VulkanFrameBuffer;
+	struct VulkanBuffer;
 
 	class VulkanRenderDevice : public IRenderDevice, public ISystemMessageListener
 	{
@@ -46,27 +48,36 @@ namespace SG
 
 		bool CreateDepthRT();
 		void DestroyDepthRT();
+
+		bool CreateAndUploadBuffers();
+		void DestroyBuffers();
 	private:
-		bool mbPresentOnce = false;
+		bool mbBlockEvent    = true;
 		bool mbWindowMinimal = false;
 
 		VulkanInstance*      mpInstance = nullptr;
 		VulkanDevice*        mpDevice = nullptr;
 		VulkanSwapchain*     mpSwapchain = nullptr;
+		VulkanFrameBuffer*   mpFrameBuffers = nullptr;
 		VulkanRenderContext* mpRenderContext = nullptr;
 
 		vector<VulkanRenderTarget*> mpColorRts;
 		VulkanRenderTarget*         mpDepthRt;
 
 		VulkanPipeline* mpPipeline;
-		ShaderStages    mBasicShader;
+		Shader          mBasicShader;
 
+		// [GPU 2 GPU Synchronization]
 		VulkanSemaphore*     mpRenderCompleteSemaphore;
 		VulkanSemaphore*     mpPresentCompleteSemaphore;
+		// [CPU 2 GPU Synchronization]
 		vector<VulkanFence*> mpBufferFences;
-		VulkanQueue*         mpQueue;
 
-		UInt32 mCurrentFrameInCPU;
+		VulkanQueue*         mpQueue;
+		UInt32               mCurrentFrameInCPU;
+
+		VulkanBuffer* mpVertexBuffer;
+		VulkanBuffer* mpIndexBuffer;
 	};
 
 }

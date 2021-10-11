@@ -14,7 +14,7 @@ namespace SG
 
 	struct VulkanQueue;
 	struct VulkanSemaphore;
-	
+
 	// TODO: abstract to IResource
 	struct VulkanRenderTarget : public RenderTarget
 	{
@@ -42,6 +42,13 @@ namespace SG
 		virtual ESampleCount       GetSample() const { return ToSGSampleCount(sample); }
 		virtual EImageType         GetType()   const { return ToSGImageType(type); }
 		virtual ERenderTargetUsage GetUsage()  const { return ToSGImageUsage(usage); }
+	};
+
+	struct VulkanFrameBuffer
+	{
+		vector<VkFramebuffer>       frameBuffers;
+		//VkRenderPass                renderPass;
+		//vector<VulkanRenderTarget*> renderTargets;
 	};
 
 	class VulkanSwapchain

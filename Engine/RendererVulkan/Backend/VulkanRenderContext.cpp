@@ -9,7 +9,6 @@ namespace SG
 	VulkanRenderContext::VulkanRenderContext(UInt32 numCommandBuffers)
 	{
 		commandBuffers.resize(numCommandBuffers);
-		frameBuffers.resize(numCommandBuffers);
 	}
 
 	void VulkanRenderContext::CmdBeginCommandBuf(VkCommandBuffer buf, bool bPermanent)
@@ -68,7 +67,18 @@ namespace SG
 		vkCmdDraw(buf, vertexCount, instanceCount, firstVertex, firstInstance);
 	}
 
-	void VulkanRenderContext::CmdBeginRenderPass(VkCommandBuffer buf, VkRenderPass renderPass, VkFramebuffer frameBuffer, const ClearValue & clear, UInt32 width, UInt32 height)
+	void VulkanRenderContext::CmdCopyBuffer(VkCommandBuffer buf, VkBuffer srcBuffer, VkBuffer dstBuffer, UInt32 sizeInByte)
+	{
+		VkBufferCopy copyRegion = {};
+		
+		copyRegion.srcOffset = 0;
+		copyRegion.dstOffset = 0;
+		copyRegion.size = sizeInByte;
+
+		vkCmdCopyBuffer(buf, srcBuffer, dstBuffer, 1, &copyRegion);
+	}
+
+	void VulkanRenderContext::CmdBeginRenderPass(VkCommandBuffer buf, VkRenderPass renderPass, VkFramebuffer frameBuffer, const ClearValue& clear, UInt32 width, UInt32 height)
 	{
 		VkClearValue clearValues[2];
 		clearValues[0].color = { clear.color[0], clear.color[1], clear.color[2], clear.color[3], };

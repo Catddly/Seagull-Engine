@@ -17,7 +17,7 @@ namespace SG
 	{
 	public:
 		vector<VkCommandBuffer> commandBuffers;
-		vector<VkFramebuffer>   frameBuffers;
+		VkCommandPool           commandPool;
 
 		explicit VulkanRenderContext(UInt32 numCommandBuffers);
 		~VulkanRenderContext() = default;
@@ -31,6 +31,8 @@ namespace SG
 		void CmdBindPipeline(VkCommandBuffer buf, VkPipeline pipeline);
 
 		void CmdDraw(VkCommandBuffer buf, UInt32 vertexCount, UInt32 instanceCount, UInt32 firstVertex, UInt32 firstInstance);
+
+		void CmdCopyBuffer(VkCommandBuffer buf, VkBuffer srcBuffer, VkBuffer dstBuffer, UInt32 sizeInByte);
 
 		// TODO: combine it width begin render pass
 		//void CmdBindRenderTarget(VulkanRenderTarget* pRt, const ClearValue& clear);

@@ -28,7 +28,6 @@ namespace SG
 
 		vector<float> mFrameDurationCounter;
 		UInt32        mCurrIndex;
-		//float         mDisplayCounter;
 	};
 
 }

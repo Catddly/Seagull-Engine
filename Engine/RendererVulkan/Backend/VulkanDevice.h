@@ -6,6 +6,9 @@
 #include "Render/Shader.h"
 #include "Render/Pipeline.h"
 #include "Render/SwapChain.h"
+#include "Render/Buffer.h"
+
+#include "RendererVulkan/Backend/VulkanBuffer.h"
 
 #include <vulkan/vulkan_core.h>
 
@@ -34,6 +37,7 @@ namespace SG
 	};
 
 	struct VulkanRenderTarget;
+	class  VulkanRenderContext;
 
 	//! @brief All the device relative data are stored in here.
 	//! Should be initialized by VulkanInstace.
@@ -46,7 +50,9 @@ namespace SG
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 		VkDevice         logicalDevice = VK_NULL_HANDLE;
 
-		VkCommandPool    defaultCommandPool;
+		VkCommandPool    graphicCommandPool;
+		VkCommandPool    computeCommandPool;
+		VkCommandPool    transferCommandPool;
 		VkRenderPass     defaultRenderPass;
 
 		vector<VkExtensionProperties>   supportedExtensions;
@@ -70,13 +76,16 @@ namespace SG
 
 		VkSemaphore CreateSemaphore();
 		void        DestroySemaphore(VkSemaphore semaphore);
-		VkFence     CreateFence();
+		VkFence     CreateFence(bool bSignaled = false);
 		void        DestroyFence(VkFence fence);
 
 		void        ResetFence(VkFence fence);
 
-		bool AllocateCommandBuffers(vector<VkCommandBuffer>& pCommandBuffers);
-		void FreeCommandBuffers(vector<VkCommandBuffer>& pCommandBuffers);
+		bool AllocateCommandBuffers(VulkanRenderContext* pContext);
+		void FreeCommandBuffers(VulkanRenderContext* pContext);
+
+		VulkanRenderContext* CreateRenderContext(UInt32 numBuffers, EQueueType type);
+		void                 DestroyRenderContext(VulkanRenderContext* pContext);
 
 		VkFramebuffer CreateFrameBuffer(VkRenderPass renderPass, VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt);
 		void DestroyFrameBuffer(VkFramebuffer frameBuffer);
@@ -90,10 +99,14 @@ namespace SG
 		VkPipelineCache CreatePipelineCache();
 		void DestroyPipelineCache(VkPipelineCache pipelineCache);
 		// TODO: remove layout to set descriptions layout (Root Signature)
-		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass, ShaderStages& outShader);
+		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass, Shader& outShader);
 		void DestroyPipeline(VkPipeline pipeline);
 
 		VulkanQueue* GetQueue(EQueueType type) const;
+
+		// resources (TODO: move to asset manager)
+		VulkanBuffer* CreateBuffer(const BufferCreateDesc& bufferCI);
+		void          DestroyBuffer(VulkanBuffer* pBuffer);
 
 		bool SupportExtension(const string& extension);
 	private:

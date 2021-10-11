@@ -461,6 +461,32 @@ namespace SG
 		return ERenderTargetUsage::efColor;
 	}
 
+	VkBufferUsageFlags ToVkBufferUsage(EBufferType type)
+	{
+		VkBufferUsageFlags flags = {};
+
+		if (SG_HAS_ENUM_FLAG(type, EBufferType::efTransfer_Src))
+			flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EBufferType::efTransfer_Dst))
+			flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EBufferType::efTexel_Uniform))
+			flags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EBufferType::efTexel_Storage))
+			flags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EBufferType::efUniform))
+			flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EBufferType::efStorage))
+			flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EBufferType::efIndex))
+			flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EBufferType::efVertex))
+			flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EBufferType::efIndirect))
+			flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+		
+		return flags;
+	}
+
 	VkPresentModeKHR ToVkPresentMode(EPresentMode pmode)
 	{
 		switch (pmode)
