@@ -28,9 +28,14 @@ namespace SG
 		void CmdSetViewport(VkCommandBuffer buf, float width, float height, float minDepth, float maxDepth);
 		void CmdSetScissor(VkCommandBuffer buf, const Rect& rect);
 
+		void CmdBindVertexBuffer(VkCommandBuffer buf, UInt32 firstBinding, UInt32 bindingCount, VkBuffer* buffer, const VkDeviceSize* pOffsets);
+		void CmdBindIndexBuffer(VkCommandBuffer buf, VkBuffer buffer, UInt32 offset, VkIndexType type = VK_INDEX_TYPE_UINT32);
+
+		void CmdBindDescriptorSets(VkCommandBuffer buf, VkPipelineLayout layout, VkDescriptorSet descriptorSet);
 		void CmdBindPipeline(VkCommandBuffer buf, VkPipeline pipeline);
 
 		void CmdDraw(VkCommandBuffer buf, UInt32 vertexCount, UInt32 instanceCount, UInt32 firstVertex, UInt32 firstInstance);
+		void CmdDrawIndexed(VkCommandBuffer buf, UInt32 indexCount, UInt32 instanceCount, UInt32 firstIndex, UInt32 vertexOffset, UInt32 firstInstance);
 
 		void CmdCopyBuffer(VkCommandBuffer buf, VkBuffer srcBuffer, VkBuffer dstBuffer, UInt32 sizeInByte);
 

@@ -20,9 +20,10 @@ namespace SG
 
 	struct VulkanPipeline : public Pipeline
 	{
-		VkPipeline      pipeline;
-		VkPipelineCache pipelineCache;
-		VkRenderPass    renderPass;
+		VkPipeline       pipeline;
+		VkPipelineLayout layout;
+		VkPipelineCache  pipelineCache;
+		VkRenderPass     renderPass;
 	};
 
 	struct VulkanQueue : public Queue
@@ -54,6 +55,8 @@ namespace SG
 		VkCommandPool    computeCommandPool;
 		VkCommandPool    transferCommandPool;
 		VkRenderPass     defaultRenderPass;
+
+		VkDescriptorPool defaultDescriptorPool;
 
 		vector<VkExtensionProperties>   supportedExtensions;
 		vector<VkQueueFamilyProperties> queueFamilyProperties;
@@ -99,7 +102,9 @@ namespace SG
 		VkPipelineCache CreatePipelineCache();
 		void DestroyPipelineCache(VkPipelineCache pipelineCache);
 		// TODO: remove layout to set descriptions layout (Root Signature)
-		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass, Shader& outShader);
+		VkPipelineLayout CreatePipelineLayout(VulkanBuffer* pBuffer, BufferLayout* pLayout);
+		void             DestroyPipelineLayout(VkPipelineLayout layout);
+		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkPipelineLayout layout, VkRenderPass renderPass, Shader& shader, BufferLayout* pLayout);
 		void DestroyPipeline(VkPipeline pipeline);
 
 		VulkanQueue* GetQueue(EQueueType type) const;
@@ -107,6 +112,11 @@ namespace SG
 		// resources (TODO: move to asset manager)
 		VulkanBuffer* CreateBuffer(const BufferCreateDesc& bufferCI);
 		void          DestroyBuffer(VulkanBuffer* pBuffer);
+
+		VkDescriptorPool CreateDescriptorPool();
+		void             DestroyDescriptorPool(VkDescriptorPool pool);
+		VkDescriptorSet  AllocateDescriptorSet(VkDescriptorSetLayout layout);
+		void             FreeDescriptorSet(VkDescriptorSet set);
 
 		bool SupportExtension(const string& extension);
 	private:

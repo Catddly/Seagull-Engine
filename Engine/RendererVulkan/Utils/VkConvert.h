@@ -4,6 +4,7 @@
 #include "Render/Queue.h"
 #include "Render/ResourceBarriers.h"
 #include "Render/Buffer.h"
+#include "Render/Shader.h"
 
 #include <vulkan/vulkan_core.h>
 
@@ -12,6 +13,8 @@ namespace SG
 
 	VkFormat     ToVkImageFormat(EImageFormat format);
 	EImageFormat ToSGImageFormat(VkFormat format);
+
+	VkFormat     ToVkShaderDataFormat(EShaderDataType type);
 
 	VkImageType  ToVkImageType(EImageType type);
 	EImageType   ToSGImageType(VkImageType type);

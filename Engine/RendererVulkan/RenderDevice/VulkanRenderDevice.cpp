@@ -60,11 +60,31 @@ namespace SG
 		mpRenderContext = mpDevice->CreateRenderContext(mpSwapchain->imageCount, EQueueType::eGraphic);
 
 		CreateDepthRT();
+		// data for a triangle
+		float vertices[18] = {
+			 1.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+			 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		};
+
+		UInt32 indices[3] = {
+			0, 1, 2
+		};
+		CreateAndUploadBuffers(vertices, indices);
 
 		mpPipeline = Memory::New<VulkanPipeline>();
 		mpPipeline->renderPass = mpDevice->CreateRenderPass(mpColorRts[0], mpDepthRt);
-		mpPipeline->pipelineCache = mpDevice->CreatePipelineCache();;
-		mpPipeline->pipeline = mpDevice->CreatePipeline(mpPipeline->pipelineCache, mpPipeline->renderPass, mBasicShader);
+		mpPipeline->pipelineCache = mpDevice->CreatePipelineCache();
+		mpPipeline->layout   = mpDevice->CreatePipelineLayout(nullptr, nullptr);
+		BufferLayout vertexBufferLayout = {
+			{ EShaderDataType::eFloat3, "position" },
+			{ EShaderDataType::eFloat3, "color" },
+		};
+		mpPipeline->pipeline = mpDevice->CreatePipeline(mpPipeline->pipelineCache, mpPipeline->layout, mpPipeline->renderPass, mBasicShader, &vertexBufferLayout);
+
+		//mpVertexBuffer->descriptorSet = mpDevice->AllocateDescriptorSet(mpVertexBuffer->descriptorSetLayout);
+		//mpVertexBuffer->UpdateDescriptor();
+		//mpVertexBuffer->UploadData(vertices);
 
 		mpFrameBuffers = Memory::New<VulkanFrameBuffer>();
 		mpFrameBuffers->frameBuffers.resize(mpSwapchain->imageCount);
@@ -85,16 +105,12 @@ namespace SG
 
 		SG_LOG_DEBUG("RenderDevice - Vulkan Init");
 
-		CreateAndUploadBuffers();
-
 		RecordRenderCommands();
 	}
 
 	void VulkanRenderDevice::OnShutdown()
 	{
 		mpQueue->WaitIdle();
-
-		DestroyBuffers();
 
 		mpDevice->DestroySemaphore(mpRenderCompleteSemaphore->semaphore);
 		mpDevice->DestroySemaphore(mpPresentCompleteSemaphore->semaphore);
@@ -110,12 +126,16 @@ namespace SG
 			mpDevice->DestroyFrameBuffer(mpFrameBuffers->frameBuffers[i]);
 		Memory::Delete(mpFrameBuffers);
 
+		//mpDevice->FreeDescriptorSet(mpVertexBuffer->descriptorSet);
+
 		mpDevice->DestroyPipeline(mpPipeline->pipeline);
+		mpDevice->DestroyPipelineLayout(mpPipeline->layout);
 		mpDevice->DestroyPipelineCache(mpPipeline->pipelineCache);
 		mpDevice->DestroyRenderPass(mpPipeline->renderPass);
 		Memory::Delete(mpPipeline);
 
 		DestroyDepthRT();
+		DestroyBuffers();
 		mpDevice->DestroyRenderContext(mpRenderContext);
 
 		mpSwapchain->Destroy();
@@ -239,8 +259,13 @@ namespace SG
 			mpRenderContext->CmdSetViewport(pBuf, (float)pColorRt->width, (float)pColorRt->height, 0.0f, 1.0f);
 			mpRenderContext->CmdSetScissor(pBuf, { 0, 0, (int)pColorRt->width, (int)pColorRt->height });
 
+			//mpRenderContext->CmdBindDescriptorSets(pBuf, pipeline->layout, mpVertexBuffer->descriptorSet);
 			mpRenderContext->CmdBindPipeline(pBuf, pipeline->pipeline);
-			mpRenderContext->CmdDraw(pBuf, 3, 1, 0, 0);
+			VkDeviceSize offset[1] = { 0 };
+			mpRenderContext->CmdBindVertexBuffer(pBuf, 0, 1, &mpVertexBuffer->buffer, offset);
+			mpRenderContext->CmdBindIndexBuffer(pBuf, mpIndexBuffer->buffer, 0);
+
+			mpRenderContext->CmdDrawIndexed(pBuf, 3, 1, 0, 0, 1);
 
 			mpRenderContext->CmdEndRenderPass(pBuf);
 			mpRenderContext->CmdEndCommandBuf(pBuf);
@@ -273,36 +298,25 @@ namespace SG
 		Memory::Delete(mpDepthRt);
 	}
 
-	bool VulkanRenderDevice::CreateAndUploadBuffers()
+	bool VulkanRenderDevice::CreateAndUploadBuffers(float* vertices, UInt32* indices)
 	{
 		bool bSuccess = true;
 
-		// datas for a triangle
-		float vertices[3][3] = {
-			{  1.0f,  1.0f, 0.0f },
-			{ -1.0f,  1.0f, 0.0f },
-			{  0.0f, -1.0f, 0.0f },
-		};
-
-		UInt32 indices[3] = {
-			0, 1, 2
-		};
-
 		BufferCreateDesc vertexBufferCI = {};
-		vertexBufferCI.sizeInByte = sizeof(float) * 3 * 3;
+		vertexBufferCI.totalSizeInByte = sizeof(float) * 6 * 3;
 		vertexBufferCI.pData = vertices;
 		vertexBufferCI.type  = EBufferType::efVertex | EBufferType::efTransfer_Dst;
 
 		BufferCreateDesc indexBufferCI = {};
-		indexBufferCI.sizeInByte = sizeof(UInt32) * 3;
+		indexBufferCI.totalSizeInByte = sizeof(UInt32) * 3;
 		indexBufferCI.pData = indices;
 		indexBufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
 
 		mpVertexBuffer = mpDevice->CreateBuffer(vertexBufferCI);
 		mpIndexBuffer  = mpDevice->CreateBuffer(indexBufferCI);
 
-		//bSuccess &= mpVertexBuffer->Upload(mpDevice->logicalDevice, vertices);
-		//bSuccess &= mpIndexBuffer->Upload(mpDevice->logicalDevice, indices);
+		//mpVertexBuffer->UploadData(vertices);
+		//mpIndexBuffer->UploadData(indices);
 
 		if (!mpVertexBuffer || !mpIndexBuffer)
 			bSuccess &= false;

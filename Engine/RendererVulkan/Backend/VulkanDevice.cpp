@@ -38,6 +38,7 @@ namespace SG
 
 	VulkanDevice::~VulkanDevice()
 	{
+		DestroyDescriptorPool(defaultDescriptorPool);
 		if (graphicCommandPool != VK_NULL_HANDLE)
 			DestroyCommandPool(graphicCommandPool);
 		if (transferCommandPool != VK_NULL_HANDLE && queueFamilyIndices.graphics != queueFamilyIndices.transfer)
@@ -189,6 +190,8 @@ namespace SG
 				return false;
 			}
 		}
+
+		defaultDescriptorPool = CreateDescriptorPool();
 
 		return true;
 	}
@@ -537,11 +540,59 @@ namespace SG
 		vkDestroyPipelineCache(logicalDevice, pipelineCache, nullptr);
 	}
 
-	VkPipeline VulkanDevice::CreatePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass, Shader& outShader)
+	VkPipelineLayout VulkanDevice::CreatePipelineLayout(VulkanBuffer* pBuffer, BufferLayout* pLayout)
+	{
+		// bind descriptors layout to pipeline
+		VkDescriptorSetLayout descriptorSetLayout;
+		if (pBuffer)
+		{
+			vector<VkDescriptorSetLayoutBinding> bindings;
+			for (UInt32 i = 0; i < pLayout->GetSize(); ++i)
+			{
+				VkDescriptorSetLayoutBinding layoutBinding = {};
+				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; // TODO: change it dynamically
+				layoutBinding.binding = i;
+				layoutBinding.descriptorCount = 1;
+				layoutBinding.stageFlags = SG_HAS_ENUM_FLAG(pBuffer->type, EBufferType::efVertex) ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
+				layoutBinding.pImmutableSamplers = nullptr;
+				bindings.emplace_back(layoutBinding);
+			}
+
+			VkDescriptorSetLayoutCreateInfo descriptorLayout = {};
+			descriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			descriptorLayout.pNext = nullptr;
+			descriptorLayout.bindingCount = (UInt32)bindings.size();
+			descriptorLayout.pBindings    = bindings.data();
+
+			VK_CHECK(vkCreateDescriptorSetLayout(logicalDevice, &descriptorLayout, nullptr, &descriptorSetLayout),
+				SG_LOG_ERROR("Failed to create descriptor set layout!"); return VK_NULL_HANDLE; );
+			pBuffer->descriptorSetLayout = descriptorSetLayout;
+		}
+
+		VkPipelineLayout layout;
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.setLayoutCount = pBuffer ? 1 : 0;
+		pipelineLayoutInfo.pSetLayouts = pBuffer ? &descriptorSetLayout : nullptr;
+		pipelineLayoutInfo.pushConstantRangeCount = 0;
+		pipelineLayoutInfo.pPushConstantRanges = nullptr;
+
+		VK_CHECK(vkCreatePipelineLayout(logicalDevice, &pipelineLayoutInfo, nullptr, &layout),
+			SG_LOG_ERROR("Failed to create pipeline layout!"); return VK_NULL_HANDLE; );
+
+		return layout;
+	}
+
+	void VulkanDevice::DestroyPipelineLayout(VkPipelineLayout layout)
+	{
+		vkDestroyPipelineLayout(logicalDevice, layout, nullptr);
+	}
+
+	VkPipeline VulkanDevice::CreatePipeline(VkPipelineCache pipelineCache, VkPipelineLayout layout, VkRenderPass renderPass, Shader& shader, BufferLayout* pLayout)
 	{
 		VkPipeline pipeline;
 		vector<VkPipelineShaderStageCreateInfo> shaderStages = {};
-		for (auto beg = outShader.begin(); beg != outShader.end(); ++beg)
+		for (auto beg = shader.begin(); beg != shader.end(); ++beg)
 		{
 			VkPipelineShaderStageCreateInfo createInfo = {};
 			createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -569,21 +620,7 @@ namespace SG
 			createInfo.pName = "main";
 			shaderStages.push_back(createInfo);
 		}
-		outShader.clear();
-
-		VkPipelineLayout layout;
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
-		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
-
-		if (vkCreatePipelineLayout(logicalDevice, &pipelineLayoutInfo, nullptr, &layout) != VK_SUCCESS)
-		{
-			SG_LOG_ERROR("Failed to create pipeline layout!");
-			return false;
-		}
+		shader.clear();
 
 		VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
 		pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -644,12 +681,30 @@ namespace SG
 		multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 		multisampleState.pSampleMask = nullptr;
 
+		VkVertexInputBindingDescription vertexInputBinding = {};
+		vertexInputBinding.binding = 0;
+		vertexInputBinding.stride = pLayout->GetTotalSize();
+		vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		vector<VkVertexInputAttributeDescription> vertexInputAttributs;
+		UInt32 loc = 0;
+		for (auto& e : *pLayout)
+		{
+			VkVertexInputAttributeDescription vertexInputAttrib = {};
+			vertexInputAttrib.binding  = 0;
+			vertexInputAttrib.location = loc;
+			vertexInputAttrib.format = ToVkShaderDataFormat(e.type);
+			vertexInputAttrib.offset = e.offset;
+			++loc;
+			vertexInputAttributs.emplace_back(vertexInputAttrib);
+		}
+
 		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputState.vertexBindingDescriptionCount = 0;
-		vertexInputState.pVertexBindingDescriptions = nullptr;
-		vertexInputState.vertexAttributeDescriptionCount = 0;
-		vertexInputState.pVertexAttributeDescriptions = nullptr;
+		vertexInputState.vertexBindingDescriptionCount = 1;
+		vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
+		vertexInputState.vertexAttributeDescriptionCount = (UInt32)vertexInputAttributs.size();
+		vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
 		// assign the pipeline states to the pipeline creation info structure
 		pipelineCreateInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
@@ -670,8 +725,6 @@ namespace SG
 			SG_LOG_ERROR("Failed to create graphics pipeline!");
 			return VK_NULL_HANDLE;
 		}
-
-		vkDestroyPipelineLayout(logicalDevice, layout, nullptr);
 
 		for (UInt32 i = 0; i < shaderStages.size(); ++i)
 			vkDestroyShaderModule(logicalDevice, shaderStages[i].module, nullptr);
@@ -714,8 +767,9 @@ namespace SG
 		VulkanBuffer       stagingBuffer = {};
 		VkBufferCreateInfo bufferInfo = {};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = bufferCI.sizeInByte;
-		stagingBuffer.sizeInByte = bufferCI.sizeInByte;
+		bufferInfo.size = bufferCI.totalSizeInByte;
+		stagingBuffer.totalSizeInByte = bufferCI.totalSizeInByte;
+		stagingBuffer.device = logicalDevice;
 		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; // used to copy data
 
 		VkMemoryAllocateInfo memAlloc = {};
@@ -730,13 +784,15 @@ namespace SG
 		VK_CHECK(vkAllocateMemory(logicalDevice, &memAlloc, nullptr, &stagingBuffer.memory),
 			SG_LOG_ERROR("Failed to alloc memory for staging buffer!"); return nullptr;);
 
-		stagingBuffer.Upload(logicalDevice, bufferCI.pData);
+		stagingBuffer.UploadData(bufferCI.pData);
 		VK_CHECK(vkBindBufferMemory(logicalDevice, stagingBuffer.buffer, stagingBuffer.memory, 0),
 			SG_LOG_ERROR("Failed to bind buffer memory!"); return nullptr; );
 
 		// buffer creation
 		auto* pBuffer = Memory::New<VulkanBuffer>();
-		pBuffer->sizeInByte = bufferCI.sizeInByte;
+		pBuffer->totalSizeInByte = bufferCI.totalSizeInByte;
+		pBuffer->device = logicalDevice;
+		pBuffer->type   = bufferCI.type;
 		bufferInfo.usage = ToVkBufferUsage(bufferCI.type);
 		VK_CHECK(vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &pBuffer->buffer),
 			SG_LOG_ERROR("Failed to create vulkan buffer!"); Memory::Delete(pBuffer); return nullptr; );
@@ -757,7 +813,7 @@ namespace SG
 		AllocateCommandBuffers(&context);
 
 		context.CmdBeginCommandBuf(context.commandBuffers[0]);
-		context.CmdCopyBuffer(context.commandBuffers[0], stagingBuffer.buffer, pBuffer->buffer, bufferCI.sizeInByte);
+		context.CmdCopyBuffer(context.commandBuffers[0], stagingBuffer.buffer, pBuffer->buffer, bufferCI.totalSizeInByte);
 		context.CmdEndCommandBuf(context.commandBuffers[0]);
 
 		VulkanQueue* pTransferQueue = GetQueue(EQueueType::eTransfer);
@@ -771,13 +827,61 @@ namespace SG
 
 		DestroyBuffer(&stagingBuffer);
 
+		pBuffer->descriptor.buffer = pBuffer->buffer;
+		pBuffer->descriptor.offset = 0;
+		pBuffer->descriptor.range = bufferCI.totalSizeInByte;
+
 		return pBuffer;
 	}
 
 	void VulkanDevice::DestroyBuffer(VulkanBuffer* pBuffer)
 	{
+		vkDestroyDescriptorSetLayout(logicalDevice, pBuffer->descriptorSetLayout, nullptr);
 		vkFreeMemory(logicalDevice, pBuffer->memory, nullptr);
 		vkDestroyBuffer(logicalDevice, pBuffer->buffer, nullptr);
+	}
+
+	VkDescriptorPool VulkanDevice::CreateDescriptorPool()
+	{
+		VkDescriptorPool pool;
+		VkDescriptorPoolSize typeCounts[1];
+		typeCounts[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		typeCounts[0].descriptorCount = 1;
+
+		VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
+		descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		descriptorPoolInfo.pNext = nullptr;
+		descriptorPoolInfo.poolSizeCount = 1;
+		descriptorPoolInfo.pPoolSizes = typeCounts;
+		descriptorPoolInfo.maxSets = 1;
+
+		VK_CHECK(vkCreateDescriptorPool(logicalDevice, &descriptorPoolInfo, nullptr, &pool),
+			SG_LOG_ERROR("Failed to create descriptor pool!"); return VK_NULL_HANDLE; );
+		return pool;
+	}
+
+	void VulkanDevice::DestroyDescriptorPool(VkDescriptorPool pool)
+	{
+		vkDestroyDescriptorPool(logicalDevice, pool, nullptr);
+	}
+
+	VkDescriptorSet VulkanDevice::AllocateDescriptorSet(VkDescriptorSetLayout layout)
+	{
+		VkDescriptorSet descriptorSet;
+		VkDescriptorSetAllocateInfo allocInfo = {};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocInfo.descriptorPool = defaultDescriptorPool;
+		allocInfo.descriptorSetCount = 1;
+		allocInfo.pSetLayouts = &layout;
+
+		VK_CHECK(vkAllocateDescriptorSets(logicalDevice, &allocInfo, &descriptorSet),
+			SG_LOG_ERROR("Failed to allocate descriptor set!"); return VK_NULL_HANDLE; );
+		return descriptorSet;
+	}
+
+	void VulkanDevice::FreeDescriptorSet(VkDescriptorSet set)
+	{
+		vkFreeDescriptorSets(logicalDevice, defaultDescriptorPool, 1, &set);
 	}
 
 	bool VulkanDevice::SupportExtension(const string& extension)

@@ -22,9 +22,9 @@ namespace SG
 
 	struct BufferCreateDesc
 	{
-		UInt32      sizeInByte;
-		void*       pData;
-		EBufferType type;
+		void*        pData;
+		EBufferType  type;
+		UInt32       totalSizeInByte;
 	};
 
 }

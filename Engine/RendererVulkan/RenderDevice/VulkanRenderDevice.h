@@ -49,7 +49,7 @@ namespace SG
 		bool CreateDepthRT();
 		void DestroyDepthRT();
 
-		bool CreateAndUploadBuffers();
+		bool CreateAndUploadBuffers(float* vertices, UInt32* indices);
 		void DestroyBuffers();
 	private:
 		bool mbBlockEvent    = true;

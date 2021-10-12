@@ -362,6 +362,27 @@ namespace SG
 		return EImageFormat::eNull;
 	}
 
+	VkFormat ToVkShaderDataFormat(EShaderDataType type)
+	{
+		switch (type)
+		{
+		case SG::EShaderDataType::eFloat:  return VK_FORMAT_R32_SFLOAT; break;
+		case SG::EShaderDataType::eFloat2: return VK_FORMAT_R32G32_SFLOAT; break;
+		case SG::EShaderDataType::eFloat3: return VK_FORMAT_R32G32B32_SFLOAT; break;
+		case SG::EShaderDataType::eFloat4: return VK_FORMAT_R32G32B32A32_SFLOAT; break;
+		case SG::EShaderDataType::eMat3:   return VK_FORMAT_UNDEFINED; break;
+		case SG::EShaderDataType::eMat4:   return VK_FORMAT_UNDEFINED; break;
+		case SG::EShaderDataType::eInt:    return VK_FORMAT_R32_SINT; break;
+		case SG::EShaderDataType::eInt2:   return VK_FORMAT_R32G32_SINT; break;
+		case SG::EShaderDataType::eInt3:   return VK_FORMAT_R32G32B32_SINT; break;
+		case SG::EShaderDataType::eInt4:   return VK_FORMAT_R32G32B32A32_SINT; break;
+		case SG::EShaderDataType::eBool:   return VK_FORMAT_UNDEFINED; break;
+		case SG::EShaderDataType::eUndefined:
+		default:
+			SG_LOG_ERROR("Invalid shader data type!"); break;
+		}
+	}
+
 	VkImageType ToVkImageType(EImageType type)
 	{
 		switch (type)

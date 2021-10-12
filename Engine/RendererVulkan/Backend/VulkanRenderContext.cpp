@@ -56,6 +56,21 @@ namespace SG
 		vkCmdSetScissor(buf, 0, 1, &scissor);
 	}
 
+	void VulkanRenderContext::CmdBindVertexBuffer(VkCommandBuffer buf, UInt32 firstBinding, UInt32 bindingCount, VkBuffer* buffer, const VkDeviceSize* pOffsets)
+	{
+		vkCmdBindVertexBuffers(buf, firstBinding, bindingCount, buffer, pOffsets);
+	}
+
+	void VulkanRenderContext::CmdBindIndexBuffer(VkCommandBuffer buf, VkBuffer buffer, UInt32 offset, VkIndexType type)
+	{
+		vkCmdBindIndexBuffer(buf, buffer, offset, VK_INDEX_TYPE_UINT32);
+	}
+
+	void VulkanRenderContext::CmdBindDescriptorSets(VkCommandBuffer buf, VkPipelineLayout layout, VkDescriptorSet descriptorSet)
+	{
+		vkCmdBindDescriptorSets(buf, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSet, 0, nullptr);
+	}
+
 	void VulkanRenderContext::CmdBindPipeline(VkCommandBuffer buf, VkPipeline pipeline)
 	{
 		// TODO: abstract pipeline
@@ -65,6 +80,11 @@ namespace SG
 	void VulkanRenderContext::CmdDraw(VkCommandBuffer buf, UInt32 vertexCount, UInt32 instanceCount, UInt32 firstVertex, UInt32 firstInstance)
 	{
 		vkCmdDraw(buf, vertexCount, instanceCount, firstVertex, firstInstance);
+	}
+
+	void VulkanRenderContext::CmdDrawIndexed(VkCommandBuffer buf, UInt32 indexCount, UInt32 instanceCount, UInt32 firstIndex, UInt32 vertexOffset, UInt32 firstInstance)
+	{
+		vkCmdDrawIndexed(buf, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 	}
 
 	void VulkanRenderContext::CmdCopyBuffer(VkCommandBuffer buf, VkBuffer srcBuffer, VkBuffer dstBuffer, UInt32 sizeInByte)
