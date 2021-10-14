@@ -5,6 +5,10 @@
 #include "Render/Shader.h"
 #include "System/ISystemMessage.h"
 
+#include "Render/Camera/ICamera.h"
+
+#include "Math/Matrix.h"
+
 #include "stl/vector.h"
 
 namespace SG
@@ -78,6 +82,18 @@ namespace SG
 
 		VulkanBuffer* mpVertexBuffer;
 		VulkanBuffer* mpIndexBuffer;
+
+		// Temporary
+		struct SG_ALIGN(64) UBO
+		{
+			Matrix4f model;
+			Matrix4f view;
+			Matrix4f proj;
+		};
+
+		Camera* mpCamera;
+		UBO     mCameraUBO;
+		VulkanBuffer* mpCameraUBOBuffer;
 	};
 
 }

@@ -556,7 +556,7 @@ namespace SG
 	};
 
 	//! Observer design pattern, can be register by any class which inherits this class.
-	interface IInputListener
+	interface SG_CORE_API IInputListener
 	{
 		virtual ~IInputListener() = default;
 

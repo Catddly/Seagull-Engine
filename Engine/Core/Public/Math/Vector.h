@@ -11,14 +11,15 @@
 
 namespace SG
 {
+	typedef Eigen::Vector2f Vector2f;
+	typedef Eigen::Vector3f Vector3f;
+	typedef Eigen::Vector4f Vector4f;
 
-	typedef Eigen::Matrix<Float32, 2, 1> Vector2f;
-	typedef Eigen::Matrix<Float32, 3, 1> Vector3f;
-	typedef Eigen::Matrix<Float32, 4, 1> Vector4f;
+	typedef Eigen::Vector2i Vector2i;
+	typedef Eigen::Vector3i Vector3i;
+	typedef Eigen::Vector4i Vector4i;
 
-	typedef Eigen::Matrix<Int32, 2, 1>   Vector2i;
-	typedef Eigen::Matrix<Int32, 3, 1>   Vector3i;
-	typedef Eigen::Matrix<Int32, 4, 1>   Vector4i;
+#define SG_ENGINE_UP_VEC() Vector3f(0.0f, 1.0f, 0.0f) // Seagull engine is y-up right hand-side coordinate
 
 	// overload log out functions
 	namespace impl

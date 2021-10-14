@@ -102,7 +102,7 @@ namespace SG
 		VkPipelineCache CreatePipelineCache();
 		void DestroyPipelineCache(VkPipelineCache pipelineCache);
 		// TODO: remove layout to set descriptions layout (Root Signature)
-		VkPipelineLayout CreatePipelineLayout(VulkanBuffer* pBuffer, BufferLayout* pLayout);
+		VkPipelineLayout CreatePipelineLayout(VulkanBuffer* pBuffer);
 		void             DestroyPipelineLayout(VkPipelineLayout layout);
 		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkPipelineLayout layout, VkRenderPass renderPass, Shader& shader, BufferLayout* pLayout);
 		void DestroyPipeline(VkPipeline pipeline);

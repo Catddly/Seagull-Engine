@@ -8,6 +8,7 @@
 
 #include "Render/SwapChain.h"
 #include "Render/ShaderComiler.h"
+#include "Render/Camera/PointOrientedCamera.h"
 
 #include "RendererVulkan/Backend/VulkanInstance.h"
 #include "RendererVulkan/Backend/VulkanRenderContext.h"
@@ -30,6 +31,11 @@ namespace SG
 
 	void VulkanRenderDevice::OnInit()
 	{
+		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, 3.0f));
+		mCameraUBO.model = Matrix4f::Identity();
+		mCameraUBO.view = mpCamera->GetViewMatrix();
+		mCameraUBO.proj = mpCamera->GetProjMatrix();
+
 		ShaderCompiler compiler;
 		compiler.CompileGLSLShader("basic", mBasicShader);
 		SG_LOG_DEBUG("Num Stages: %d", mBasicShader.size());
@@ -75,16 +81,16 @@ namespace SG
 		mpPipeline = Memory::New<VulkanPipeline>();
 		mpPipeline->renderPass = mpDevice->CreateRenderPass(mpColorRts[0], mpDepthRt);
 		mpPipeline->pipelineCache = mpDevice->CreatePipelineCache();
-		mpPipeline->layout   = mpDevice->CreatePipelineLayout(nullptr, nullptr);
+		mpPipeline->layout   = mpDevice->CreatePipelineLayout(mpCameraUBOBuffer);
 		BufferLayout vertexBufferLayout = {
 			{ EShaderDataType::eFloat3, "position" },
 			{ EShaderDataType::eFloat3, "color" },
 		};
 		mpPipeline->pipeline = mpDevice->CreatePipeline(mpPipeline->pipelineCache, mpPipeline->layout, mpPipeline->renderPass, mBasicShader, &vertexBufferLayout);
 
-		//mpVertexBuffer->descriptorSet = mpDevice->AllocateDescriptorSet(mpVertexBuffer->descriptorSetLayout);
-		//mpVertexBuffer->UpdateDescriptor();
-		//mpVertexBuffer->UploadData(vertices);
+		mpCameraUBOBuffer->descriptorSet = mpDevice->AllocateDescriptorSet(mpCameraUBOBuffer->descriptorSetLayout);
+		mpCameraUBOBuffer->UpdateDescriptor();
+		mpCameraUBOBuffer->UploadData(&mCameraUBO);
 
 		mpFrameBuffers = Memory::New<VulkanFrameBuffer>();
 		mpFrameBuffers->frameBuffers.resize(mpSwapchain->imageCount);
@@ -126,7 +132,7 @@ namespace SG
 			mpDevice->DestroyFrameBuffer(mpFrameBuffers->frameBuffers[i]);
 		Memory::Delete(mpFrameBuffers);
 
-		//mpDevice->FreeDescriptorSet(mpVertexBuffer->descriptorSet);
+		//mpDevice->FreeDescriptorSet(mpCameraUBOBuffer->descriptorSet);
 
 		mpDevice->DestroyPipeline(mpPipeline->pipeline);
 		mpDevice->DestroyPipelineLayout(mpPipeline->layout);
@@ -144,11 +150,13 @@ namespace SG
 
 		Memory::Delete(mpInstance);
 		SG_LOG_DEBUG("RenderDevice - Vulkan Shutdown");
+
+		Memory::Delete(mpCamera);
 	}
 
 	void VulkanRenderDevice::OnUpdate()
 	{
-
+		mpCameraUBOBuffer->UploadData(&mCameraUBO);
 	}
 
 	void VulkanRenderDevice::OnDraw()
@@ -259,7 +267,7 @@ namespace SG
 			mpRenderContext->CmdSetViewport(pBuf, (float)pColorRt->width, (float)pColorRt->height, 0.0f, 1.0f);
 			mpRenderContext->CmdSetScissor(pBuf, { 0, 0, (int)pColorRt->width, (int)pColorRt->height });
 
-			//mpRenderContext->CmdBindDescriptorSets(pBuf, pipeline->layout, mpVertexBuffer->descriptorSet);
+			mpRenderContext->CmdBindDescriptorSets(pBuf, pipeline->layout, mpCameraUBOBuffer->descriptorSet);
 			mpRenderContext->CmdBindPipeline(pBuf, pipeline->pipeline);
 			VkDeviceSize offset[1] = { 0 };
 			mpRenderContext->CmdBindVertexBuffer(pBuf, 0, 1, &mpVertexBuffer->buffer, offset);
@@ -302,21 +310,21 @@ namespace SG
 	{
 		bool bSuccess = true;
 
-		BufferCreateDesc vertexBufferCI = {};
-		vertexBufferCI.totalSizeInByte = sizeof(float) * 6 * 3;
-		vertexBufferCI.pData = vertices;
-		vertexBufferCI.type  = EBufferType::efVertex | EBufferType::efTransfer_Dst;
+		BufferCreateDesc BufferCI = {};
+		BufferCI.totalSizeInByte = sizeof(float) * 6 * 3;
+		BufferCI.pData = vertices;
+		BufferCI.type  = EBufferType::efVertex | EBufferType::efTransfer_Dst;
+		mpVertexBuffer = mpDevice->CreateBuffer(BufferCI);
 
-		BufferCreateDesc indexBufferCI = {};
-		indexBufferCI.totalSizeInByte = sizeof(UInt32) * 3;
-		indexBufferCI.pData = indices;
-		indexBufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
+		BufferCI.totalSizeInByte = sizeof(UInt32) * 3;
+		BufferCI.pData = indices;
+		BufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
+		mpIndexBuffer  = mpDevice->CreateBuffer(BufferCI);
 
-		mpVertexBuffer = mpDevice->CreateBuffer(vertexBufferCI);
-		mpIndexBuffer  = mpDevice->CreateBuffer(indexBufferCI);
-
-		//mpVertexBuffer->UploadData(vertices);
-		//mpIndexBuffer->UploadData(indices);
+		BufferCI.totalSizeInByte = sizeof(UBO);
+		BufferCI.pData = &mCameraUBO;
+		BufferCI.type = EBufferType::efUniform;
+		mpCameraUBOBuffer = mpDevice->CreateBuffer(BufferCI);
 
 		if (!mpVertexBuffer || !mpIndexBuffer)
 			bSuccess &= false;
@@ -325,8 +333,10 @@ namespace SG
 
 	void VulkanRenderDevice::DestroyBuffers()
 	{
+		mpDevice->DestroyBuffer(mpCameraUBOBuffer);
 		mpDevice->DestroyBuffer(mpVertexBuffer);
 		mpDevice->DestroyBuffer(mpIndexBuffer);
+		Memory::Delete(mpCameraUBOBuffer);
 		Memory::Delete(mpVertexBuffer);
 		Memory::Delete(mpIndexBuffer);
 	}

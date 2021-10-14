@@ -10,8 +10,9 @@ namespace SG
 
 	bool VulkanBuffer::UploadData(void* pData)
 	{
-		void* pUpload = nullptr;
-		VK_CHECK(vkMapMemory(device, memory, 0, totalSizeInByte, 0, &pUpload), SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
+		UInt8* pUpload = nullptr;
+		VK_CHECK(vkMapMemory(device, memory, 0, totalSizeInByte, 0, (void**)&pUpload), 
+			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
 		memcpy(pUpload, pData, totalSizeInByte);
 		vkUnmapMemory(device, memory);
 		return true;

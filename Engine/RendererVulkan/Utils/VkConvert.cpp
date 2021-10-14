@@ -381,6 +381,7 @@ namespace SG
 		default:
 			SG_LOG_ERROR("Invalid shader data type!"); break;
 		}
+		return VK_FORMAT_UNDEFINED;
 	}
 
 	VkImageType ToVkImageType(EImageType type)
