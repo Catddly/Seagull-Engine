@@ -45,7 +45,7 @@ public:
 		//ThreadTest();
 	}
 
-	virtual void OnUpdate() override
+	virtual void OnUpdate(float deltaTime) override
 	{
 		using namespace SG;
 

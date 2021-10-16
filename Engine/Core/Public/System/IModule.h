@@ -15,7 +15,7 @@ namespace SG
 		virtual void OnInit() = 0;
 		virtual void OnShutdown() = 0;
 		
-		virtual void OnUpdate() {}
+		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnDraw()   {}
 		
 		virtual const char* GetRegisterName() const = 0;

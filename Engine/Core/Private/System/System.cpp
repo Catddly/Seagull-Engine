@@ -8,6 +8,7 @@
 
 #include "User/IApp.h"
 
+#include "Profile/Timer.h"
 #include "Profile/FpsTimer.h"
 #include "Memory/IMemory.h"
 
@@ -135,8 +136,8 @@ namespace SG
 	bool System::InitCoreModules()
 	{
 		IFileSystem* pFileSystem = Memory::New<FileSystem>();
-		ILogger* pLogger = Memory::New<CLogger>();
-		IOperatingSystem* pOS = Memory::New<COperatingSystem>();
+		ILogger* pLogger = Memory::New<Logger>();
+		IOperatingSystem* pOS = Memory::New<OperatingSystem>();
 		IInputSystem* pInputSystem = Memory::New<InputSystem>();
 
 		mModuleManager.RegisterCoreModule(pFileSystem);
@@ -153,9 +154,11 @@ namespace SG
 		bool bIsExit = false;
 
 		//FpsTimer renderTimer("RenderDevice::OnDraw()", 3.0f, 60);
-		
+		Timer deltaTimer;
 		while (!bIsExit)
 		{
+			deltaTimer.Tick();
+
 			// collect all the messages
 			EOsMessage msg = EOsMessage::eNull;
 			msg = PeekOSMessage();
@@ -165,9 +168,9 @@ namespace SG
 			mMessageBus.Update();
 			
 			// modules OnUpdate()
-			mModuleManager.Update();
+			mModuleManager.Update(deltaTimer.GetDurationMs());
 			if (mpCurrActiveProcess)
-				mpCurrActiveProcess->OnUpdate();
+				mpCurrActiveProcess->OnUpdate(deltaTimer.GetDurationMs());
 
 			// modules OnDraw()
 			{

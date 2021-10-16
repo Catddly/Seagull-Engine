@@ -15,7 +15,7 @@ namespace SG
 		//! Initialize before main game loop
 		virtual void OnInit() { }
 		//! Update per frame
-		virtual void OnUpdate() { }
+		virtual void OnUpdate(float deltaTime) { }
 		//! Shutdown the app
 		virtual void OnShutdown() { }
 	};

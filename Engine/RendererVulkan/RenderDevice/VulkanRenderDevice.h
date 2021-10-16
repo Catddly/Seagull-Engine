@@ -33,11 +33,11 @@ namespace SG
 		SG_RENDERER_VK_API VulkanRenderDevice();
 		SG_RENDERER_VK_API ~VulkanRenderDevice();
 
-		SG_RENDERER_VK_API virtual void OnInit();
-		SG_RENDERER_VK_API virtual void OnShutdown();
+		SG_RENDERER_VK_API virtual void OnInit() override;
+		SG_RENDERER_VK_API virtual void OnShutdown() override;
 
-		SG_RENDERER_VK_API virtual void OnUpdate();
-		SG_RENDERER_VK_API virtual void OnDraw();
+		SG_RENDERER_VK_API virtual void OnUpdate(float deltaTime) override;
+		SG_RENDERER_VK_API virtual void OnDraw() override;
 
 		SG_RENDERER_VK_API virtual const char* GetRegisterName() const { return "RenderDevice"; }
 

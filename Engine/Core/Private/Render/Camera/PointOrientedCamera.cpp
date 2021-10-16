@@ -2,6 +2,7 @@
 #include "Render/Camera/PointOrientedCamera.h"
 
 #include "System/System.h"
+#include "Math/MathBasic.h"
 
 namespace SG
 {

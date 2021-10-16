@@ -12,7 +12,7 @@
 namespace SG
 {
 
-	class CLogger final : public ILogger
+	class Logger final : public ILogger
 	{
 	public:
 		SG_CORE_API virtual void OnInit() override;

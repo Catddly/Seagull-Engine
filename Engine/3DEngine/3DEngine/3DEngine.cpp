@@ -12,7 +12,7 @@ namespace SG
 		SG_LOG_INFO("Engine OnInit()");
 	}
 
-	void C3DEngine::OnUpdate()
+	void C3DEngine::OnUpdate(float deltaTime)
 	{
 		//SG_LOG_INFO("Engine OnUpdate()");
 	}

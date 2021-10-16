@@ -19,8 +19,6 @@ namespace SG
 	typedef Eigen::Vector3i Vector3i;
 	typedef Eigen::Vector4i Vector4i;
 
-#define SG_ENGINE_UP_VEC() Vector3f(0.0f, 1.0f, 0.0f) // Seagull engine is y-up right hand-side coordinate
-
 	// overload log out functions
 	namespace impl
 	{

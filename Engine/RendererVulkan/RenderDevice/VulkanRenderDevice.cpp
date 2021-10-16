@@ -10,6 +10,9 @@
 #include "Render/ShaderComiler.h"
 #include "Render/Camera/PointOrientedCamera.h"
 
+#include "Math/MathBasic.h"
+#include "Math/Transform.h"
+
 #include "RendererVulkan/Backend/VulkanInstance.h"
 #include "RendererVulkan/Backend/VulkanRenderContext.h"
 #include "RendererVulkan/Backend/VulkanDevice.h"
@@ -32,7 +35,11 @@ namespace SG
 	void VulkanRenderDevice::OnInit()
 	{
 		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, 3.0f));
-		mCameraUBO.model = Matrix4f::Identity();
+		Vector3f modelPos      = { 0.0f, 0.0f, 0.0f };
+		Vector3f modelScale    = { 0.5f, 0.5f, 1.0f };
+		Vector3f modelRatation = { 0.0f, 0.0f, 0.0f };
+
+		mCameraUBO.model = BuildTransformMatrix(modelPos, modelScale, modelRatation);
 		mCameraUBO.view = mpCamera->GetViewMatrix();
 		mCameraUBO.proj = mpCamera->GetProjMatrix();
 
@@ -154,9 +161,15 @@ namespace SG
 		Memory::Delete(mpCamera);
 	}
 
-	void VulkanRenderDevice::OnUpdate()
+	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
+		static float totalTime = 0.0f;
+		static float speed = 0.005f;
+		Vector3f pos = { 0.5f * Sin(totalTime), 0.0f, 0.0f };
+		TranslateTo(mCameraUBO.model, pos);
+
 		mpCameraUBOBuffer->UploadData(&mCameraUBO);
+		totalTime += deltaTime * speed;
 	}
 
 	void VulkanRenderDevice::OnDraw()
