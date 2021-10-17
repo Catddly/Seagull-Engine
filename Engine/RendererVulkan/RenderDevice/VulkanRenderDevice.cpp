@@ -34,18 +34,20 @@ namespace SG
 
 	void VulkanRenderDevice::OnInit()
 	{
-		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, 3.0f));
-		Vector3f modelPos      = { 0.0f, 0.0f, 0.0f };
+		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -1.0f));
+		Vector3f modelPos      = { 0.0f, 0.0f, 0.1f };
 		Vector3f modelScale    = { 0.5f, 0.5f, 1.0f };
 		Vector3f modelRatation = { 0.0f, 0.0f, 0.0f };
 
 		mCameraUBO.model = BuildTransformMatrix(modelPos, modelScale, modelRatation);
-		mCameraUBO.view = mpCamera->GetViewMatrix();
-		mCameraUBO.proj = mpCamera->GetProjMatrix();
+		mCameraUBO.view  = mpCamera->GetViewMatrix();
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mCameraUBO.view, "View");
+		mCameraUBO.proj  = mpCamera->GetProjMatrix();
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mCameraUBO.proj, "Proj");
 
 		ShaderCompiler compiler;
 		compiler.CompileGLSLShader("basic", mBasicShader);
-		SG_LOG_DEBUG("Num Stages: %d", mBasicShader.size());
+		//SG_LOG_DEBUG("Num Stages: %d", mBasicShader.size());
 
 		mpInstance = Memory::New<VulkanInstance>();
 		mpSwapchain = Memory::New<VulkanSwapchain>(mpInstance->instance);
@@ -74,14 +76,16 @@ namespace SG
 
 		CreateDepthRT();
 		// data for a triangle
-		float vertices[18] = {
+		float vertices[24] = {
 			 1.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-			 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
 		};
 
-		UInt32 indices[3] = {
-			0, 1, 2
+		UInt32 indices[6] = {
+			0, 1, 2,
+			2, 3, 0
 		};
 		CreateAndUploadBuffers(vertices, indices);
 
@@ -163,13 +167,14 @@ namespace SG
 
 	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
-		static float totalTime = 0.0f;
-		static float speed = 0.005f;
-		Vector3f pos = { 0.5f * Sin(totalTime), 0.0f, 0.0f };
-		TranslateTo(mCameraUBO.model, pos);
+		//static float totalTime = 0.0f;
+		//static float speed = 0.005f;
+		//Vector3f pos = { 0.5f * Sin(totalTime), 0.0f, -4.0f };
+		//TranslateTo(mCameraUBO.model, pos);
+		//Rotate(mCameraUBO.model, SG_ENGINE_UP_VEC(), deltaTime * 0.5f);
 
-		mpCameraUBOBuffer->UploadData(&mCameraUBO);
-		totalTime += deltaTime * speed;
+		//mpCameraUBOBuffer->UploadData(&mCameraUBO);
+		//totalTime += deltaTime * speed;
 	}
 
 	void VulkanRenderDevice::OnDraw()
@@ -286,7 +291,7 @@ namespace SG
 			mpRenderContext->CmdBindVertexBuffer(pBuf, 0, 1, &mpVertexBuffer->buffer, offset);
 			mpRenderContext->CmdBindIndexBuffer(pBuf, mpIndexBuffer->buffer, 0);
 
-			mpRenderContext->CmdDrawIndexed(pBuf, 3, 1, 0, 0, 1);
+			mpRenderContext->CmdDrawIndexed(pBuf, 6, 1, 0, 0, 1);
 
 			mpRenderContext->CmdEndRenderPass(pBuf);
 			mpRenderContext->CmdEndCommandBuf(pBuf);
@@ -324,12 +329,12 @@ namespace SG
 		bool bSuccess = true;
 
 		BufferCreateDesc BufferCI = {};
-		BufferCI.totalSizeInByte = sizeof(float) * 6 * 3;
+		BufferCI.totalSizeInByte = sizeof(float) * 6 *4;
 		BufferCI.pData = vertices;
 		BufferCI.type  = EBufferType::efVertex | EBufferType::efTransfer_Dst;
 		mpVertexBuffer = mpDevice->CreateBuffer(BufferCI);
 
-		BufferCI.totalSizeInByte = sizeof(UInt32) * 3;
+		BufferCI.totalSizeInByte = sizeof(UInt32) * 6;
 		BufferCI.pData = indices;
 		BufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
 		mpIndexBuffer  = mpDevice->CreateBuffer(BufferCI);

@@ -96,10 +96,10 @@ private:
 		Matrix3i mat3i = Matrix3i::Identity();
 		Matrix4i mat4i = Matrix4i::Identity();
 
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat3f);
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat4f);
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat3i);
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat4i);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat3f, "");
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat4f, "");
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat3i, "");
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat4i, "");
 
 		Vector2f vec2f = Vector2f::Identity();
 		Vector3f vec3f = Vector3f::Identity();
@@ -108,12 +108,12 @@ private:
 		Vector3i vec3i = Vector3i::Identity();
 		Vector4i vec4i = Vector4i::Identity();
 
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec2f);
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec3f);
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec4f);
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec2i);
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec3i);
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec4i);
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec2f, "");
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec3f, "");
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec4f, "");
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec2i, "");
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec3i, "");
+		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec4i, "");
 	}
 
 	void ThreadTest()

@@ -9,6 +9,8 @@
 
 #include <eigen/Dense>
 
+#include "Math/MathBasic.h"
+
 namespace SG
 {
 	typedef Eigen::Vector2f Vector2f;
@@ -22,219 +24,110 @@ namespace SG
 	// overload log out functions
 	namespace impl
 	{
-		template<>
-		static eastl::string PrintMathTypes<SG::Vector2f>(const SG::Vector2f& types)
+		template <typename T>
+		static void _PrintVector(string& s, UInt32 width, UInt32 height, const T& value)
 		{
-			eastl::string s = "Vector2f:\n";
-			Float32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
+			Float32 maxNum = Float32(value.maxCoeff() > Abs(value.minCoeff()) ? value.maxCoeff() : value.minCoeff());
 			eastl::string num = eastl::to_string(maxNum);
-			Size maxBit = num.substr(0, num.find_first_of('.') + 2).size();
+			UInt32 maxBit = (UInt32)num.substr(0, num.find_first_of('.') + 2).size();
 
 			bool bHasNegative = false;
-			if (types.minCoeff() < 0)
+			if (value.minCoeff() < 0)
 				bHasNegative = true;
 
-			for (int i = 0; i < 2; i++)
+			for (UInt32 i = 0; i < width; i++)
 			{
 				s += "[ ";
-				for (int j = 0; j < 1; j++)
+				for (UInt32 j = 0; j < height; j++)
 				{
-					Size tempBit = maxBit + 1;
-					if (types(i, j) > 0 && bHasNegative)
+					UInt32 tempBit = maxBit + 1;
+					if (value(i, j) > 0 && bHasNegative)
 					{
 						s += ' ';
 						tempBit -= 1;
 					}
-					eastl::string num = eastl::to_string(types(i, j));
+					eastl::string num = eastl::to_string(value(i, j));
 					eastl::string clipedNum = num.substr(0, num.find_first_of('.') + 2);
-					tempBit -= clipedNum.size();
+					tempBit -= (UInt32)clipedNum.size();
 					s += clipedNum;
-					for (int k = 0; k < tempBit; k++)
+					for (UInt32 k = 0; k < tempBit; k++)
 						s += ' ';
 				}
 				s += ']';
-				if (i != 1)
+				if (i != width - 1)
 					s += '\n';
 			}
+		}
+
+		template<>
+		static eastl::string PrintMathTypes<SG::Vector2f>(const SG::Vector2f& types, const string& prefix)
+		{
+			eastl::string s = "";
+			if (!prefix.empty())
+				s = prefix;
+			s += "Vector2f:\n";
+
+			_PrintVector(s, 2, 1, types);
 			return eastl::move(s);
 		}
 
 		template<>
-		static eastl::string PrintMathTypes<SG::Vector3f>(const SG::Vector3f& types)
+		static eastl::string PrintMathTypes<SG::Vector3f>(const SG::Vector3f& types, const string& prefix)
 		{
-			eastl::string s = "Vector3f:\n";
-			Float32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
-			eastl::string num = eastl::to_string(maxNum);
-			Size maxBit = num.substr(0, num.find_first_of('.') + 2).size();
+			eastl::string s = "";
+			if (!prefix.empty())
+				s = prefix;
+			s += "Vector3f:\n";
 
-			bool bHasNegative = false;
-			if (types.minCoeff() < 0)
-				bHasNegative = true;
-
-			for (int i = 0; i < 3; i++)
-			{
-				s += "[ ";
-				for (int j = 0; j < 1; j++)
-				{
-					Size tempBit = maxBit + 1;
-					if (types(i, j) > 0 && bHasNegative)
-					{
-						s += ' ';
-						tempBit -= 1;
-					}
-					eastl::string num = eastl::to_string(types(i, j));
-					eastl::string clipedNum = num.substr(0, num.find_first_of('.') + 2);
-					tempBit -= clipedNum.size();
-					s += clipedNum;
-					for (int k = 0; k < tempBit; k++)
-						s += ' ';
-				}
-				s += ']';
-				if (i != 2)
-					s += '\n';
-			}
+			_PrintVector(s, 3, 1, types);
 			return eastl::move(s);
 		}
 
 		template<>
-		static eastl::string PrintMathTypes<SG::Vector4f>(const SG::Vector4f& types)
+		static eastl::string PrintMathTypes<SG::Vector4f>(const SG::Vector4f& types, const string& prefix)
 		{
-			eastl::string s = "Vector4f:\n";
-			Float32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
-			eastl::string num = eastl::to_string(maxNum);
-			Size maxBit = num.substr(0, num.find_first_of('.') + 2).size();
+			eastl::string s = "";
+			if (!prefix.empty())
+				s = prefix;
+			s += "Vector4f:\n";
 
-			bool bHasNegative = false;
-			if (types.minCoeff() < 0)
-				bHasNegative = true;
-
-			for (int i = 0; i < 4; i++)
-			{
-				s += "[ ";
-				for (int j = 0; j < 1; j++)
-				{
-					Size tempBit = maxBit + 1;
-					if (types(i, j) > 0 && bHasNegative)
-					{
-						s += ' ';
-						tempBit -= 1;
-					}
-					eastl::string num = eastl::to_string(types(i, j));
-					eastl::string clipedNum = num.substr(0, num.find_first_of('.') + 2);
-					tempBit -= clipedNum.size();
-					s += clipedNum;
-					for (int k = 0; k < tempBit; k++)
-						s += ' ';
-				}
-				s += ']';
-				if (i != 3)
-					s += '\n';
-			}
+			_PrintVector(s, 4, 1, types);
 			return eastl::move(s);
 		}
 
 		template<>
-		static eastl::string PrintMathTypes<SG::Vector2i>(const SG::Vector2i& types)
+		static eastl::string PrintMathTypes<SG::Vector2i>(const SG::Vector2i& types, const string& prefix)
 		{
-			eastl::string s = "Vector2i:\n";
-			Int32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
-			Size maxBit = eastl::to_string(maxNum).size();
+			eastl::string s = "";
+			if (!prefix.empty())
+				s = prefix;
+			s += "Vector2i:\n";
 
-			bool bHasNegative = false;
-			if (types.minCoeff() < 0)
-				bHasNegative = true;
-
-			for (int i = 0; i < 2; i++)
-			{
-				s += "[ ";
-				for (int j = 0; j < 1; j++)
-				{
-					Size tempBit = maxBit + 1;
-					if (types(i, j) > 0 && bHasNegative)
-					{
-						s += ' ';
-						tempBit -= 1;
-					}
-					eastl::string num = eastl::to_string(types(i, j));
-					tempBit -= num.size();
-					s += num;
-					for (int k = 0; k < tempBit; k++)
-						s += ' ';
-				}
-				s += ']';
-				if (i != 1)
-					s += '\n';
-			}
+			_PrintVector(s, 2, 1, types);
 			return eastl::move(s);
 		}
 
 		template<>
-		static eastl::string PrintMathTypes<SG::Vector3i>(const SG::Vector3i& types)
+		static eastl::string PrintMathTypes<SG::Vector3i>(const SG::Vector3i& types, const string& prefix)
 		{
-			eastl::string s = "Vector3i:\n";
-			Int32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
-			Size maxBit = eastl::to_string(maxNum).size();
+			eastl::string s = "";
+			if (!prefix.empty())
+				s = prefix;
+			s += "Vector3i:\n";
 
-			bool bHasNegative = false;
-			if (types.minCoeff() < 0)
-				bHasNegative = true;
-
-			for (int i = 0; i < 3; i++)
-			{
-				s += "[ ";
-				for (int j = 0; j < 1; j++)
-				{
-					Size tempBit = maxBit + 1;
-					if (types(i, j) > 0 && bHasNegative)
-					{
-						s += ' ';
-						tempBit -= 1;
-					}
-					eastl::string num = eastl::to_string(types(i, j));
-					tempBit -= num.size();
-					s += num;
-					for (int k = 0; k < tempBit; k++)
-						s += ' ';
-				}
-				s += ']';
-				if (i != 2)
-					s += '\n';
-			}
+			_PrintVector(s, 3, 1, types);
 			return eastl::move(s);
 		}
 
 		template<>
-		static eastl::string PrintMathTypes<SG::Vector4i>(const SG::Vector4i& types)
+		static eastl::string PrintMathTypes<SG::Vector4i>(const SG::Vector4i& types, const string& prefix)
 		{
-			eastl::string s = "Vector4i:\n";
-			Int32 maxNum = types.maxCoeff() > abs(types.minCoeff()) ? types.maxCoeff() : types.minCoeff();
-			Size maxBit = eastl::to_string(maxNum).size();
+			eastl::string s = "";
+			if (!prefix.empty())
+				s = prefix;
+			s += "Vector4i:\n";
 
-			bool bHasNegative = false;
-			if (types.minCoeff() < 0)
-				bHasNegative = true;
-
-			for (int i = 0; i < 4; i++)
-			{
-				s += "[ ";
-				for (int j = 0; j < 1; j++)
-				{
-					Size tempBit = maxBit + 1;
-					if (types(i, j) > 0 && bHasNegative)
-					{
-						s += ' ';
-						tempBit -= 1;
-					}
-					eastl::string num = eastl::to_string(types(i, j));
-					tempBit -= num.size();
-					s += num;
-					for (int k = 0; k < tempBit; k++)
-						s += ' ';
-				}
-				s += ']';
-				if (i != 3)
-					s += '\n';
-			}
+			_PrintVector(s, 4, 1, types);
 			return eastl::move(s);
 		}
 	}

@@ -181,5 +181,15 @@ namespace SG
 		}
 	}
 
+	UInt32 Window::GetWidth()
+	{
+		return GetRectWidth(GetCurrRect());
+	}
+
+	UInt32 Window::GetHeight()
+	{
+		return GetRectHeight(GetCurrRect());
+	}
+
 }
 #endif // SG_PLATFORM_WINDOWS

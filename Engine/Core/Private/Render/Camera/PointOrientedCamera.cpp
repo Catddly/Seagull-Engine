@@ -2,13 +2,19 @@
 #include "Render/Camera/PointOrientedCamera.h"
 
 #include "System/System.h"
+#include "Platform/Window.h"
+
 #include "Math/MathBasic.h"
+#include "Math/Transform.h"
 
 namespace SG
 {
 
 	PointOrientedCamera::PointOrientedCamera()
+		:mViewMatrix(Matrix4f::Identity()), mPosition({ 0.0f, 0.0f, -3.0f }), mViewAtPoint(Vector3f::Zero())
 	{
+		CalcViewMatrix();
+		CalcPerspectiveMatrix();
 		SSystem()->GetInputSystem()->RegisterListener(this);
 	}
 
@@ -16,6 +22,7 @@ namespace SG
 		:mPosition(pos), mViewAtPoint(viewAt)
 	{
 		CalcViewMatrix();
+		CalcPerspectiveMatrix();
 		SSystem()->GetInputSystem()->RegisterListener(this);
 	}
 
@@ -31,22 +38,22 @@ namespace SG
 
 	void PointOrientedCamera::CalcViewMatrix()
 	{
-		Vector3f viewDirection = mPosition - mViewAtPoint;
-		viewDirection.normalize();
+//#ifdef SG_GRAPHICS_API_VULKAN
+//		mPosition(1) *= -1.0f; // flip y coordinate
+//#endif
+		mViewMatrix = BuildViewMatrix(mPosition, mViewAtPoint, SG_ENGINE_UP_VEC());
+	}
 
-		Vector3f worldUpVec = SG_ENGINE_UP_VEC();
-		Vector3f rightVec = worldUpVec.cross(viewDirection);
-		rightVec.normalize();
+	void PointOrientedCamera::CalcPerspectiveMatrix()
+	{
+		auto* pWindow = SSystem()->GetOS()->GetMainWindow();
+		const UInt32 WIDTH  = pWindow->GetWidth();
+		const UInt32 HEIGHT = pWindow->GetHeight();
 
-		Vector3f upVec = viewDirection.cross(rightVec);
-		upVec.normalize();
-
-		mViewMatrix.row(0) << rightVec.x(), rightVec.y(), rightVec.z(), 0.0f;
-		mViewMatrix.row(1) << upVec.x(), upVec.y(), upVec.z(), 0.0f;
-		mViewMatrix.row(2) << viewDirection.x(), viewDirection.y(), viewDirection.z(), 0.0f;
-		mViewMatrix.row(3) << 0.0f, 0.0f, 0.0f, 1.0f;
-
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mViewMatrix);
+		mPerspectiveMatrix = BuildPerspectiveMatrix(DegreesToRadians(45.0f), (float)WIDTH / (float)HEIGHT, 1.0f, 1000.0f);
+//#ifdef SG_GRAPHICS_API_VULKAN
+//		mPerspectiveMatrix(1, 1) *= -1.0f; // flip y coordinate
+//#endif
 	}
 
 }

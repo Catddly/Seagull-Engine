@@ -86,7 +86,7 @@ namespace impl
 	}
 
 	template<class T>
-	static eastl::string PrintMathTypes(const T& types)
+	static eastl::string PrintMathTypes(const T& types, const string& prefix)
 	{
 		SG_COMPILE_ASSERT(false, "Please log out a math type!");
 		return eastl::string();
@@ -116,7 +116,7 @@ namespace impl
 #define SG_LOG_ITERABLE(LEVEL, BEG, END)   ::SG::System::Instance()->GetLogger()->LogToConsole(LEVEL, ::SG::impl::PrintIterator(BEG, END, false).c_str())
 #define SG_LOG_ITERABLE_R(LEVEL, BEG, END) ::SG::System::Instance()->GetLogger()->LogToConsole(LEVEL, ::SG::impl::PrintIterator(BEG, END, true).c_str())
 
-#define SG_LOG_MATH(LEVEL, VAL)            ::SG::System::Instance()->GetLogger()->LogToConsole(LEVEL, ::SG::impl::PrintMathTypes(VAL).c_str())
+#define SG_LOG_MATH(LEVEL, VAL, PREFIX)    ::SG::System::Instance()->GetLogger()->LogToConsole(LEVEL, ::SG::impl::PrintMathTypes(VAL, PREFIX).c_str())
 
 #define SG_LOG_IF(LEVEL, MSG, VAL)         ::SG::System::Instance()->GetLogger()->LogToConsole(LEVEL, ::SG::impl::PrintIf(MSG, VAL).c_str())
 
