@@ -38,9 +38,6 @@ namespace SG
 
 	void PointOrientedCamera::CalcViewMatrix()
 	{
-//#ifdef SG_GRAPHICS_API_VULKAN
-//		mPosition(1) *= -1.0f; // flip y coordinate
-//#endif
 		mViewMatrix = BuildViewMatrix(mPosition, mViewAtPoint, SG_ENGINE_UP_VEC());
 	}
 
@@ -51,9 +48,6 @@ namespace SG
 		const UInt32 HEIGHT = pWindow->GetHeight();
 
 		mPerspectiveMatrix = BuildPerspectiveMatrix(DegreesToRadians(45.0f), (float)WIDTH / (float)HEIGHT, 1.0f, 1000.0f);
-//#ifdef SG_GRAPHICS_API_VULKAN
-//		mPerspectiveMatrix(1, 1) *= -1.0f; // flip y coordinate
-//#endif
 	}
 
 }

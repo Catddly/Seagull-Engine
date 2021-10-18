@@ -29,7 +29,10 @@ namespace SG
 
 			bool bHasNegative = false;
 			if (value.minCoeff() < 0)
+			{
 				bHasNegative = true;
+				++maxBit;
+			}
 
 			for (UInt32 i = 0; i < width; i++)
 			{

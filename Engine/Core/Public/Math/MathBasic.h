@@ -27,6 +27,19 @@ namespace SG
 
 #define SG_ENGINE_UP_VEC() Vector3f(0.0f, 1.0f, 0.0f) // Seagull engine is y-up right hand-side coordinate
 
+	// Seagull Engine Take Right-Hand Y-Up Coordinate System
+	// 
+	//            y
+	//            ^
+	//            |
+	//            |
+	//            0--------->  x
+	//           -
+	//          -
+	//         -
+	//        z
+	//
+
 	SG_INLINE float DegreesToRadians(float degrees)
 	{
 		return degrees * PI / 180.0f;
@@ -60,7 +73,7 @@ namespace SG
 		res.col(0) << right(0), right(1), right(2), 0.0f;
 		res.col(1) << u(0), u(1), u(2), 0.0f;
 		res.col(2) << -front(0), -front(1), -front(2), 0.0f;
-		res.col(3) << -right.dot(view), -u.dot(view), front.dot(view), 1.0f;
+		res.col(3) << -(right.dot(view)), -(u.dot(view)), front.dot(view), 1.0f;
 		return eastl::move(res);
 	}
 
@@ -83,6 +96,7 @@ namespace SG
 		result(2, 2) = zFar / (zNear - zFar); // 0 to 1 z Clip space
 		result(2, 3) = -1.0f;
 		result(3, 2) = -(zFar * zNear) / (zFar - zNear);
+
 		return eastl::move(result);
 	}
 #endif

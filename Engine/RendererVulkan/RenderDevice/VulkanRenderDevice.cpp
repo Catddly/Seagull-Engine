@@ -34,16 +34,14 @@ namespace SG
 
 	void VulkanRenderDevice::OnInit()
 	{
-		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -1.0f));
-		Vector3f modelPos      = { 0.0f, 0.0f, 0.1f };
+		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, 4.0f));
+		Vector3f modelPos      = { 0.0f, 0.0f, -7.0f };
 		Vector3f modelScale    = { 0.5f, 0.5f, 1.0f };
 		Vector3f modelRatation = { 0.0f, 0.0f, 0.0f };
 
 		mCameraUBO.model = BuildTransformMatrix(modelPos, modelScale, modelRatation);
 		mCameraUBO.view  = mpCamera->GetViewMatrix();
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mCameraUBO.view, "View");
 		mCameraUBO.proj  = mpCamera->GetProjMatrix();
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mCameraUBO.proj, "Proj");
 
 		ShaderCompiler compiler;
 		compiler.CompileGLSLShader("basic", mBasicShader);
