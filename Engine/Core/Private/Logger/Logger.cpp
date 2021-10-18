@@ -8,11 +8,11 @@
 namespace SG
 {
 
-	char CLogger::sTempBuffer[SG_MAX_TEMP_BUFFER_SIZE] = { 0 };
-	int  CLogger::sTempBufferSize = 0;
-	string CLogger::sBuffer;
+	char Logger::sTempBuffer[SG_MAX_TEMP_BUFFER_SIZE] = { 0 };
+	int  Logger::sTempBufferSize = 0;
+	string Logger::sBuffer;
 
-	void CLogger::OnInit()
+	void Logger::OnInit()
 	{
 		SetToDefaultFormat();
 
@@ -26,7 +26,7 @@ namespace SG
 		sBuffer.clear();
 	}
 
-	void CLogger::OnShutdown()
+	void Logger::OnShutdown()
 	{
 		if (sBuffer.length())
 		{
@@ -35,7 +35,7 @@ namespace SG
 		}
 	}
 
-	void CLogger::LogToConsole(ELogLevel logLevel, const char* format, ...)
+	void Logger::LogToConsole(ELogLevel logLevel, const char* format, ...)
 	{
 		if (mLogMode == ELogMode::eLog_Mode_Quite || mLogMode == ELogMode::eLog_Mode_Quite_No_File)
 		{
@@ -66,12 +66,12 @@ namespace SG
 		sTempBuffer[0] = { 0 };
 	}
 
-	int CLogger::AddPrefix(char* pBuf)
+	int Logger::AddPrefix(char* pBuf)
 	{
 		return sprintf_s(pBuf, SG_MAX_TEMP_BUFFER_SIZE, "%s ", mFormatter.GetFormattedString().c_str());
 	}
 
-	void CLogger::LogToFile() const
+	void Logger::LogToFile() const
 	{
 		auto* pSysMgr = SSystem();
 		IFileSystem* pFs = pSysMgr->GetFileSystem();
@@ -83,12 +83,12 @@ namespace SG
 		}
 	}
 
-	void CLogger::Flush()
+	void Logger::Flush()
 	{
 		sBuffer.clear();
 	}
 
-	void CLogger::LogOut(ELogLevel logLevel, char* pBuffer)
+	void Logger::LogOut(ELogLevel logLevel, char* pBuffer)
 	{
 		bool isError = SG_HAS_ENUM_FLAG(logLevel, ELogLevel::efLog_Level_Error | ELogLevel::efLog_Level_Criticle);
 		FILE* out = isError ? stderr : stdout;

@@ -7,39 +7,39 @@
 namespace SG
 {
 
-	void COperatingSystem::OnInit()
+	void OperatingSystem::OnInit()
 	{
 		mDeviceManager.OnInit();
 		mWindowManager.OnInit(mDeviceManager.GetPrimaryMonitor());
 	}
 
-	void COperatingSystem::OnShutdown()
+	void OperatingSystem::OnShutdown()
 	{
 		mWindowManager.OnShutdown();
 		mDeviceManager.OnShutdown();
 	}
 
-	SG::Monitor* COperatingSystem::GetMainMonitor()
+	SG::Monitor* OperatingSystem::GetMainMonitor()
 	{
 		return mDeviceManager.GetPrimaryMonitor();
 	}
 
-	UInt32 COperatingSystem::GetAdapterCount()
+	UInt32 OperatingSystem::GetAdapterCount()
 	{
 		return mDeviceManager.GetAdapterCount();
 	}
 
-	Adapter* COperatingSystem::GetPrimaryAdapter()
+	Adapter* OperatingSystem::GetPrimaryAdapter()
 	{
 		return mDeviceManager.GetPrimaryAdapter();
 	}
 
-	SG::Window* COperatingSystem::GetMainWindow()
+	SG::Window* OperatingSystem::GetMainWindow()
 	{
 		return mWindowManager.GetMainWindow();
 	}
 
-	Vector2i COperatingSystem::GetMousePos() const
+	Vector2i OperatingSystem::GetMousePos() const
 	{
 		POINT pos = {};
 		::GetCursorPos(&pos);
@@ -47,7 +47,7 @@ namespace SG
 		return eastl::move(p);
 	}
 
-	bool COperatingSystem::IsMainWindowOutOfScreen() const
+	bool OperatingSystem::IsMainWindowOutOfScreen() const
 	{
 		Window* mainWindow = mWindowManager.GetMainWindow();
 		Monitor* mainMonitor = mDeviceManager.GetPrimaryMonitor();

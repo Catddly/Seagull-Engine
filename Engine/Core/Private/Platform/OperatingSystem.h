@@ -12,7 +12,7 @@
 namespace SG
 {
 	
-	class COperatingSystem : public IOperatingSystem
+	class OperatingSystem : public IOperatingSystem
 	{
 	public:
 		SG_CORE_API virtual void OnInit() override;

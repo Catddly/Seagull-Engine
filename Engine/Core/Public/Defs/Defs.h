@@ -16,6 +16,9 @@
 #define SG_ENGINE_VERSION_MINOR 2
 #define SG_ENGINE_VERSION_PATCH 0
 
+// TODO: intelligence
+#define SG_GRAPHICS_API_VULKAN 1
+
 #if   defined(SG_PLATFORM_X64)
 #	define SG_PTR_SIZE 8
 #else

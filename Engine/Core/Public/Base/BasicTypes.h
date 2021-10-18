@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <numeric>
 
 namespace SG
 {
@@ -33,6 +34,9 @@ namespace SG
 	using UIntPtr = uintptr_t;
 
 	typedef void* Handle;
+
+#define SG_FLOAT_EPSILON  std::numeric_limits<float>::epsilon()
+#define SG_DOUBLE_EPSILON std::numeric_limits<double>::epsilon()
 
 #ifdef __cplusplus
 #	define SG_ENUM_CLASS_FLAG(VALUE_TYPE, ENUM_TYPE)																		 \

@@ -16,7 +16,7 @@ namespace SG
 		ModuleManager();
 		~ModuleManager();
 
-		SG_CORE_API static void Update();
+		SG_CORE_API static void Update(float deltaTime);
 		SG_CORE_API static void Draw();
 		// In order to ensure the order of core modules' destructions, we separate two independent register function.
 		SG_CORE_API static bool RegisterCoreModule(IModule* pModule);

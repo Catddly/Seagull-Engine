@@ -13,7 +13,7 @@ namespace SG
 		//! Engine core initialization
 		SG_3DENGINE_API virtual void OnInit() override;
 		//! Engine update per frame
-		SG_3DENGINE_API virtual void OnUpdate() override;
+		SG_3DENGINE_API virtual void OnUpdate(float deltaTime) override;
 		//! Engine core shutdown
 		SG_3DENGINE_API virtual void OnShutdown() override;
 	};

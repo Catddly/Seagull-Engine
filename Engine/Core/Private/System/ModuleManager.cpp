@@ -66,12 +66,12 @@ namespace SG
 		return nullptr;
 	}
 
-	void ModuleManager::Update()
+	void ModuleManager::Update(float deltaTime)
 	{
 		for (auto e : mUserModuleMap)
-			e.second->OnUpdate();
+			e.second->OnUpdate(deltaTime);
 		for (auto e : mCoreModuleMap)
-			e.second->OnUpdate();
+			e.second->OnUpdate(deltaTime);
 	}
 
 	void ModuleManager::Draw()
