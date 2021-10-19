@@ -13,13 +13,13 @@
 
 namespace SG
 {
-	typedef Eigen::Vector2f Vector2f;
-	typedef Eigen::Vector3f Vector3f;
-	typedef Eigen::Vector4f Vector4f;
+	//typedef Eigen::Vector2f Vector2f;
+	//typedef Eigen::Vector3f Vector3f;
+	//typedef Eigen::Vector4f Vector4f;
 
-	typedef Eigen::Vector2i Vector2i;
-	typedef Eigen::Vector3i Vector3i;
-	typedef Eigen::Vector4i Vector4i;
+	//typedef Eigen::Vector2i Vector2i;
+	//typedef Eigen::Vector3i Vector3i;
+	//typedef Eigen::Vector4i Vector4i;
 
 	// overload log out functions
 	namespace impl

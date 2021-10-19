@@ -38,7 +38,7 @@ namespace SG
 
 	void VulkanRenderContext::CmdSetViewport(VkCommandBuffer buf, float width, float height, float minDepth, float maxDepth)
 	{
-		// enable VK_KHR_Maintenance1 to filp y coordinate in screen space.
+		// enable VK_KHR_Maintenance1 to filp y coordinate in screen space(viewport).
 		VkViewport viewport = {};
 		viewport.x = 0.0f;
 		viewport.y = (float)height;

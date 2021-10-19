@@ -27,17 +27,15 @@ namespace SG
 
 #define SG_ENGINE_UP_VEC() Vector3f(0.0f, 1.0f, 0.0f) // Seagull engine is y-up right hand-side coordinate
 
-	// Seagull Engine Take Right-Hand Y-Up Coordinate System
+	// Seagull Engine Take Left-Hand Y-Up Coordinate System
 	// 
 	//            y
 	//            ^
-	//            |
-	//            |
+	//            |       z
+	//            |     -
+	//            |   -
+	//            | -
 	//            0--------->  x
-	//           -
-	//          -
-	//         -
-	//        z
 	//
 
 	SG_INLINE float DegreesToRadians(float degrees)
@@ -57,7 +55,6 @@ namespace SG
 	SG_INLINE int   Abs(int v)   { return ::abs(v); }
 
 #ifdef SG_GRAPHICS_API_VULKAN
-
 	//! Build a view matrix.
 	//! @param [view] Point where the eyes on.
 	//! @param [center] Point where the eyes look at.
@@ -65,15 +62,15 @@ namespace SG
 	//! @return a 4x4 matrix represent the view matrix.
 	SG_INLINE Matrix4f BuildViewMatrix(const Vector3f& view, const Vector3f& center, const Vector3f& up)
 	{
-		const Vector3f front((center - view).normalized());
+		const Vector3f front((view - center).normalized());
 		const Vector3f right(front.cross(up).normalized());
 		const Vector3f u(right.cross(front));
 
 		Matrix4f res = Matrix4f::Identity();
 		res.col(0) << right(0), right(1), right(2), 0.0f;
-		res.col(1) << u(0), u(1), u(2), 0.0f;
-		res.col(2) << -front(0), -front(1), -front(2), 0.0f;
-		res.col(3) << -(right.dot(view)), -(u.dot(view)), front.dot(view), 1.0f;
+		res.col(1) << u(0), -u(1), u(2), 0.0f;
+		res.col(2) << front(0), front(1), front(2), 0.0f;
+		res.col(3) << -(right.dot(view)), -(u.dot(view)), -(front.dot(view)), 1.0f;
 		return eastl::move(res);
 	}
 
@@ -88,14 +85,19 @@ namespace SG
 		// the aspect should not be zero
 		SG_ASSERT(Abs(aspect - SG_FLOAT_EPSILON) > 0.0f);
 
-		const float TAN_HALF_FOVY = Tan(fovYInRadians / 2.0f);
+		float focal_length = 1.0f / Tan(fovYInRadians / 2.0f);
+
+		float x = focal_length / aspect;
+		float y = -focal_length;
+		float A = zNear / (zFar - zNear);
+		float B = zFar * A;
 
 		Matrix4f result = Matrix4f::Zero();
-		result(0, 0) = 1.0f / (aspect * TAN_HALF_FOVY);
-		result(1, 1) = 1.0f / (TAN_HALF_FOVY);
-		result(2, 2) = zFar / (zNear - zFar); // 0 to 1 z Clip space
-		result(2, 3) = -1.0f;
-		result(3, 2) = -(zFar * zNear) / (zFar - zNear);
+		result(0, 0) = x;
+		result(1, 1) = y;
+		result(2, 2) = A;
+		result(2, 3) = B;
+		result(3, 2) = -1.0f;
 
 		return eastl::move(result);
 	}

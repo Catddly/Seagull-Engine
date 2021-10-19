@@ -34,9 +34,9 @@ namespace SG
 
 	void VulkanRenderDevice::OnInit()
 	{
-		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, 4.0f));
-		Vector3f modelPos      = { 0.0f, 0.0f, -7.0f };
-		Vector3f modelScale    = { 0.5f, 0.5f, 1.0f };
+		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -2.0f));
+		Vector3f modelPos      = { 0.0f, 0.0f, 0.0f };
+		Vector3f modelScale    = { 0.25f, 0.25f, 1.0f };
 		Vector3f modelRatation = { 0.0f, 0.0f, 0.0f };
 
 		mCameraUBO.model = BuildTransformMatrix(modelPos, modelScale, modelRatation);
@@ -165,14 +165,14 @@ namespace SG
 
 	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
-		//static float totalTime = 0.0f;
-		//static float speed = 0.005f;
-		//Vector3f pos = { 0.5f * Sin(totalTime), 0.0f, -4.0f };
-		//TranslateTo(mCameraUBO.model, pos);
+		static float totalTime = 0.0f;
+		static float speed = 0.005f;
+		Vector3f pos = { 0.5f * Sin(totalTime), 0.0f, 0.0f };
+		TranslateTo(mCameraUBO.model, pos);
 		//Rotate(mCameraUBO.model, SG_ENGINE_UP_VEC(), deltaTime * 0.5f);
 
-		//mpCameraUBOBuffer->UploadData(&mCameraUBO);
-		//totalTime += deltaTime * speed;
+		mpCameraUBOBuffer->UploadData(&mCameraUBO);
+		totalTime += deltaTime * speed;
 	}
 
 	void VulkanRenderDevice::OnDraw()

@@ -47,7 +47,7 @@ namespace SG
 		const UInt32 WIDTH  = pWindow->GetWidth();
 		const UInt32 HEIGHT = pWindow->GetHeight();
 
-		mPerspectiveMatrix = BuildPerspectiveMatrix(DegreesToRadians(45.0f), (float)WIDTH / (float)HEIGHT, 1.0f, 1000.0f);
+		mProjectionMatrix = BuildPerspectiveMatrix(DegreesToRadians(45.0f), (float)WIDTH / (float)HEIGHT, 0.001f, 1000.0f);
 	}
 
 }

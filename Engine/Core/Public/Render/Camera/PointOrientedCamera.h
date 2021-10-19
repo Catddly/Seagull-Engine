@@ -18,7 +18,7 @@ namespace SG
 		SG_CORE_API ~PointOrientedCamera();
 		SG_CLASS_NO_COPY_ASSIGNABLE(PointOrientedCamera);
 
-		SG_CORE_API virtual Matrix4f GetProjMatrix() const override { return mPerspectiveMatrix; }
+		SG_CORE_API virtual Matrix4f GetProjMatrix() const override { return mProjectionMatrix; }
 		SG_CORE_API virtual Matrix4f GetViewMatrix() const override { return mViewMatrix; }
 
 		SG_CORE_API virtual void SetPosition(const Vector3f& pos) { mPosition = pos; CalcViewMatrix(); }
@@ -34,7 +34,7 @@ namespace SG
 		Vector3f mPosition;
 		Vector3f mViewAtPoint;
 		Matrix4f mViewMatrix;
-		Matrix4f mPerspectiveMatrix;
+		Matrix4f mProjectionMatrix;
 	};
 
 }
