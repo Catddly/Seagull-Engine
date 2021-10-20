@@ -17,7 +17,7 @@ namespace SG
 		virtual Matrix4f GetViewMatrix() const = 0;
 
 		virtual void SetPerspective(float fovyInDegrees, float aspect, float zNear = 0.001f, float zFar = 1000.0f) = 0;
-		virtual void SetOrthographic(float left, float top, float right, float bottom, float near, float far) = 0;
+		virtual void SetOrthographic(float left, float right, float top, float bottom, float near, float far) = 0;
 
 		virtual void SetPosition(const Vector3f& pos) = 0;
 		virtual Vector3f GetPosition() const = 0;

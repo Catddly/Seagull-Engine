@@ -101,6 +101,19 @@ namespace SG
 
 		return eastl::move(result);
 	}
+
+	SG_INLINE Matrix4f BuildOrthographicMatrix(float left, float right, float top, float bottom, float zNear, float zFar)
+	{
+		Matrix4f result = Matrix4f::Identity();
+		result(0, 0) = 2.0f / (right - left);
+		result(1, 1) = -2.0f / (top - bottom);
+		result(2, 2) = -1.0f / (zFar - zNear);
+		result(0, 3) = -(right + left) / (right - left);
+		result(1, 3) = -(top + bottom) / (top - bottom);
+		result(2, 3) = zNear / (zFar - zNear);
+
+		return eastl::move(result);
+	}
 #endif
 
 }

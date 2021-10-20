@@ -32,7 +32,7 @@ namespace SG
 		virtual void MuteListener(IInputListener* pListener) override;
 		virtual void RemoveListener(IInputListener* pListener) override;
 
-		virtual void OnUpdate() override;
+		virtual void OnUpdate(float deltaTime) override;
 
 		virtual const char* GetRegisterName() const override { return "InputSystem"; }
 	private:

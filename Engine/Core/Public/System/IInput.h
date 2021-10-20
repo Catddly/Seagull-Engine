@@ -574,8 +574,6 @@ namespace SG
 		virtual void RegisterListener(IInputListener* pListener) = 0;
 		virtual void MuteListener(IInputListener* pListener) = 0;
 		virtual void RemoveListener(IInputListener* pListener) = 0;
-
-		virtual void OnUpdate() = 0;
 	};
 
 }

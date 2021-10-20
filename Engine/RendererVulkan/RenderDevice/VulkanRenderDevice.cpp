@@ -25,21 +25,25 @@ namespace SG
 		:mCurrentFrameInCPU(0)
 	{
 		SSystem()->RegisterSystemMessageListener(this);
+		SSystem()->GetInputSystem()->RegisterListener(this);
 	}
 
 	VulkanRenderDevice::~VulkanRenderDevice()
 	{
 		SSystem()->RemoveSystemMessageListener(this);
+		SSystem()->GetInputSystem()->RemoveListener(this);
 	}
 
 	void VulkanRenderDevice::OnInit()
 	{
 		auto* window = SSystem()->GetOS()->GetMainWindow();
-		const UInt32 WIDTH = window->GetWidth();
-		const UInt32 HEIGHT = window->GetHeight();
+		const float ASPECT = window->GetAspectRatio();
 
 		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -2.0f));
-		mpCamera->SetPerspective(45.0f, (float)WIDTH / HEIGHT);
+		if (mbUseOrtho)
+			mpCamera->SetOrthographic(-ASPECT, ASPECT, 1, -1, -1, 1);
+		else
+			mpCamera->SetPerspective(45.0f, ASPECT);
 		Vector3f modelPos      = { 0.0f, 0.0f, 0.0f };
 		Vector3f modelScale    = { 0.25f, 0.25f, 1.0f };
 		Vector3f modelRatation = { 0.0f, 0.0f, 0.0f };
@@ -210,6 +214,23 @@ namespace SG
 		return true;
 	}
 
+	bool VulkanRenderDevice::OnInputUpdate(EKeyCode keycode, EKeyState keyState)
+	{
+		if (keycode == KeyCode_Q && keyState == EKeyState::ePressed)
+		{
+			mbUseOrtho = !mbUseOrtho;
+			auto* window = SSystem()->GetOS()->GetMainWindow();
+			const float  ASPECT = window->GetAspectRatio();
+			if (mbUseOrtho)
+				mpCamera->SetOrthographic(-ASPECT, ASPECT, 1, -1, -1, 1);
+			else
+				mpCamera->SetPerspective(45.0f, ASPECT);
+			mCameraUBO.proj = mpCamera->GetProjMatrix();
+			mpCameraUBOBuffer->UploadData(&mCameraUBO);
+		}
+		return true;
+	}
+
 	bool VulkanRenderDevice::SelectPhysicalDeviceAndCreateDevice()
 	{
 		UInt32 gpuCount;
@@ -250,7 +271,11 @@ namespace SG
 		auto* window = SSystem()->GetOS()->GetMainWindow();
 		const UInt32 WIDTH = window->GetWidth();
 		const UInt32 HEIGHT = window->GetHeight();
-		mpCamera->SetPerspective(45.0f, (float)WIDTH / HEIGHT);
+		const float  ASPECT = (float)WIDTH / HEIGHT;
+		if (mbUseOrtho)
+			mpCamera->SetOrthographic(-ASPECT, ASPECT, 1, -1, -1, 1);
+		else
+			mpCamera->SetPerspective(45.0f, ASPECT);
 		mCameraUBO.proj = mpCamera->GetProjMatrix();
 
 		mpSwapchain->CreateOrRecreate(WIDTH, HEIGHT);

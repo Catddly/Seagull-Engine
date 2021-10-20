@@ -191,5 +191,10 @@ namespace SG
 		return GetRectHeight(GetCurrRect());
 	}
 
+	float Window::GetAspectRatio()
+	{
+		return (float)GetWidth() / (float)GetHeight();
+	}
+
 }
 #endif // SG_PLATFORM_WINDOWS

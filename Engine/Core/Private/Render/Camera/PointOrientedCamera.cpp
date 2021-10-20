@@ -28,11 +28,12 @@ namespace SG
 
 	void PointOrientedCamera::SetPerspective(float fovyInDegrees, float aspect, float zNear, float zFar)
 	{
-		CalcPerspectiveMatrix(DegreesToRadians(fovyInDegrees), aspect, zNear, zFar);
+		mProjectionMatrix = BuildPerspectiveMatrix(DegreesToRadians(fovyInDegrees), aspect, zNear, zFar);
 	}
 
-	void PointOrientedCamera::SetOrthographic(float left, float top, float right, float bottom, float, float)
+	void PointOrientedCamera::SetOrthographic(float left, float right, float top, float bottom, float zNear, float zFar)
 	{
+		mProjectionMatrix = BuildOrthographicMatrix(left, right, top, bottom, zNear, zFar);
 	}
 
 	bool PointOrientedCamera::OnInputUpdate(EKeyCode keycode, EKeyState keyState)
@@ -43,11 +44,6 @@ namespace SG
 	void PointOrientedCamera::CalcViewMatrix()
 	{
 		mViewMatrix = BuildViewMatrix(mPosition, mViewAtPoint, SG_ENGINE_UP_VEC());
-	}
-
-	void PointOrientedCamera::CalcPerspectiveMatrix(float fovyInRadians, float aspect, float zNear, float zFar)
-	{
-		mProjectionMatrix = BuildPerspectiveMatrix(fovyInRadians, aspect, zNear, zFar);
 	}
 
 }

@@ -36,7 +36,7 @@ namespace SG
 		}
 	}
 
-	void InputSystem::OnUpdate()
+	void InputSystem::OnUpdate(float deltaTime)
 	{
 		for (auto& input : mFrameInputDelta)
 		{

@@ -4,6 +4,7 @@
 #include "Render/IRenderDevice.h"
 #include "Render/Shader.h"
 #include "System/ISystemMessage.h"
+#include "System/IInput.h"
 
 #include "Render/Camera/ICamera.h"
 
@@ -27,7 +28,7 @@ namespace SG
 	struct VulkanFrameBuffer;
 	struct VulkanBuffer;
 
-	class VulkanRenderDevice : public IRenderDevice, public ISystemMessageListener
+	class VulkanRenderDevice : public IRenderDevice, public ISystemMessageListener, public IInputListener
 	{
 	public:
 		SG_RENDERER_VK_API VulkanRenderDevice();
@@ -42,6 +43,7 @@ namespace SG
 		SG_RENDERER_VK_API virtual const char* GetRegisterName() const { return "RenderDevice"; }
 
 		SG_RENDERER_VK_API virtual bool OnSystemMessage(ESystemMessage msg) override;
+		SG_RENDERER_VK_API virtual bool OnInputUpdate(EKeyCode keycode, EKeyState keyState) override;
 
 		// TODO: replace it to reflection
 		SG_RENDERER_VK_API static const char* GetModuleName() { return "RenderDevice"; }
@@ -58,6 +60,7 @@ namespace SG
 	private:
 		bool mbBlockEvent    = true;
 		bool mbWindowMinimal = false;
+		bool mbUseOrtho = false;
 
 		VulkanInstance*      mpInstance = nullptr;
 		VulkanDevice*        mpDevice = nullptr;
