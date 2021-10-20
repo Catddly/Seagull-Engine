@@ -362,6 +362,7 @@ namespace SG
 		KeyCode_H,
 		KeyCode_I,
 		KeyCode_J,
+		KeyCode_K,
 		KeyCode_L,
 		KeyCode_M,
 		KeyCode_N,

@@ -216,7 +216,7 @@ namespace SG
 
 	bool VulkanRenderDevice::OnInputUpdate(EKeyCode keycode, EKeyState keyState)
 	{
-		if (keycode == KeyCode_Q && keyState == EKeyState::ePressed)
+		if (keycode == KeyCode_T && keyState == EKeyState::ePressed)
 		{
 			mbUseOrtho = !mbUseOrtho;
 			auto* window = SSystem()->GetOS()->GetMainWindow();
