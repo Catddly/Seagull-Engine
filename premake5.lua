@@ -4,7 +4,7 @@ workspace "Seagull"
 
     configurations
     {
-        "Debug", 
+        "Debug",
 		"Release"
     }
 

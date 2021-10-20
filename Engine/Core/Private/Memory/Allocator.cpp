@@ -27,7 +27,9 @@ namespace SG
 	}
 
 	CDefaultAllocator::CDefaultAllocator(const char* pName)
+#ifdef _DEBUG
 		: mName(pName)
+#endif
 	{}
 
 	CDefaultAllocator::CDefaultAllocator(const CDefaultAllocator& x)
@@ -36,19 +38,27 @@ namespace SG
 	}
 
 	CDefaultAllocator::CDefaultAllocator(const CDefaultAllocator& x, const char* pName)
+#ifdef _DEBUG
 		:mName(pName)
+#endif
 	{
 		*this = x;
 	}
 
 	const char* CDefaultAllocator::get_name() const
 	{
+#ifdef _DEBUG
 		return mName;
+#else
+		return "DefaultAllocator";
+#endif
 	}
 
 	void CDefaultAllocator::set_name(const char* pName)
 	{
+#ifdef _DEBUG
 		mName = pName;
+#endif
 	}
 
 	SG_CORE_API inline bool operator==(const CDefaultAllocator& a, const CDefaultAllocator& b)

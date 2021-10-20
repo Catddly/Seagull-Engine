@@ -1,9 +1,6 @@
 #include "StdAfx.h"
 #include "Render/Camera/PointOrientedCamera.h"
 
-#include "System/System.h"
-#include "Platform/Window.h"
-
 #include "Math/MathBasic.h"
 #include "Math/Transform.h"
 
@@ -14,7 +11,6 @@ namespace SG
 		:mViewMatrix(Matrix4f::Identity()), mPosition({ 0.0f, 0.0f, -3.0f }), mViewAtPoint(Vector3f::Zero())
 	{
 		CalcViewMatrix();
-		CalcPerspectiveMatrix();
 		SSystem()->GetInputSystem()->RegisterListener(this);
 	}
 
@@ -22,13 +18,21 @@ namespace SG
 		:mPosition(pos), mViewAtPoint(viewAt)
 	{
 		CalcViewMatrix();
-		CalcPerspectiveMatrix();
 		SSystem()->GetInputSystem()->RegisterListener(this);
 	}
 
 	PointOrientedCamera::~PointOrientedCamera()
 	{
 		SSystem()->GetInputSystem()->RemoveListener(this);
+	}
+
+	void PointOrientedCamera::SetPerspective(float fovyInDegrees, float aspect, float zNear, float zFar)
+	{
+		CalcPerspectiveMatrix(DegreesToRadians(fovyInDegrees), aspect, zNear, zFar);
+	}
+
+	void PointOrientedCamera::SetOrthographic(float left, float top, float right, float bottom, float, float)
+	{
 	}
 
 	bool PointOrientedCamera::OnInputUpdate(EKeyCode keycode, EKeyState keyState)
@@ -41,13 +45,9 @@ namespace SG
 		mViewMatrix = BuildViewMatrix(mPosition, mViewAtPoint, SG_ENGINE_UP_VEC());
 	}
 
-	void PointOrientedCamera::CalcPerspectiveMatrix()
+	void PointOrientedCamera::CalcPerspectiveMatrix(float fovyInRadians, float aspect, float zNear, float zFar)
 	{
-		auto* pWindow = SSystem()->GetOS()->GetMainWindow();
-		const UInt32 WIDTH  = pWindow->GetWidth();
-		const UInt32 HEIGHT = pWindow->GetHeight();
-
-		mProjectionMatrix = BuildPerspectiveMatrix(DegreesToRadians(45.0f), (float)WIDTH / (float)HEIGHT, 0.001f, 1000.0f);
+		mProjectionMatrix = BuildPerspectiveMatrix(fovyInRadians, aspect, zNear, zFar);
 	}
 
 }

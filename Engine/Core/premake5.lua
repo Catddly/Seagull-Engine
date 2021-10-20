@@ -54,7 +54,7 @@ filter "configurations:Debug"
 
 filter "configurations:Release"
     runtime "Release"
-    optimize "on"
+    optimize "Size"
     postbuildcommands
     {
         ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\"")

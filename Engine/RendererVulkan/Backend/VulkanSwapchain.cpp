@@ -273,6 +273,7 @@ namespace SG
 
 	VulkanRenderTarget* VulkanSwapchain::GetRenderTarget(UInt32 index) const
 	{
+		SG_ASSERT(index >= 0 && index < imageCount);
 		if (mpRts.empty())
 			SG_LOG_WARN("Swapchain not created yet!");
 		return mpRts[index];

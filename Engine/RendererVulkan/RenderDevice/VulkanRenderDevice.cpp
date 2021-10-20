@@ -34,7 +34,12 @@ namespace SG
 
 	void VulkanRenderDevice::OnInit()
 	{
+		auto* window = SSystem()->GetOS()->GetMainWindow();
+		const UInt32 WIDTH = window->GetWidth();
+		const UInt32 HEIGHT = window->GetHeight();
+
 		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -2.0f));
+		mpCamera->SetPerspective(45.0f, (float)WIDTH / HEIGHT);
 		Vector3f modelPos      = { 0.0f, 0.0f, 0.0f };
 		Vector3f modelScale    = { 0.25f, 0.25f, 1.0f };
 		Vector3f modelRatation = { 0.0f, 0.0f, 0.0f };
@@ -243,8 +248,12 @@ namespace SG
 		mpDevice->WaitIdle();
 
 		auto* window = SSystem()->GetOS()->GetMainWindow();
-		Rect& rect = window->GetCurrRect();
-		mpSwapchain->CreateOrRecreate(GetRectWidth(rect), GetRectHeight(rect));
+		const UInt32 WIDTH = window->GetWidth();
+		const UInt32 HEIGHT = window->GetHeight();
+		mpCamera->SetPerspective(45.0f, (float)WIDTH / HEIGHT);
+		mCameraUBO.proj = mpCamera->GetProjMatrix();
+
+		mpSwapchain->CreateOrRecreate(WIDTH, HEIGHT);
 		for (UInt32 i = 0; i < mpColorRts.size(); ++i)
 			mpColorRts[i] = mpSwapchain->GetRenderTarget(i);
 

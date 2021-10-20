@@ -21,13 +21,16 @@ namespace SG
 		SG_CORE_API virtual Matrix4f GetProjMatrix() const override { return mProjectionMatrix; }
 		SG_CORE_API virtual Matrix4f GetViewMatrix() const override { return mViewMatrix; }
 
+		SG_CORE_API virtual void SetPerspective(float fovyInDegrees, float aspect, float zNear = 0.001f, float zFar = 1000.0f) override;
+		SG_CORE_API virtual void SetOrthographic(float left, float top, float right, float bottom, float near, float far) override;
+
 		SG_CORE_API virtual void SetPosition(const Vector3f& pos) { mPosition = pos; CalcViewMatrix(); }
 		SG_CORE_API virtual Vector3f GetPosition() const override { return mPosition; }
 
 		SG_CORE_API virtual void Update(float deltaTime) override {}
 	private:
 		SG_CORE_API void CalcViewMatrix();
-		SG_CORE_API void CalcPerspectiveMatrix();
+		SG_CORE_API void CalcPerspectiveMatrix(float fovyInRadians, float aspect, float zNear, float zFar);
 
 		virtual bool OnInputUpdate(EKeyCode keycode, EKeyState keyState) override;
 	private:
