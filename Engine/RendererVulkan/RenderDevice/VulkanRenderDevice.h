@@ -43,7 +43,7 @@ namespace SG
 		SG_RENDERER_VK_API virtual const char* GetRegisterName() const { return "RenderDevice"; }
 
 		SG_RENDERER_VK_API virtual bool OnSystemMessage(ESystemMessage msg) override;
-		SG_RENDERER_VK_API virtual bool OnInputUpdate(EKeyCode keycode, EKeyState keyState) override;
+		SG_RENDERER_VK_API virtual bool OnInputUpdate(EKeyCode keycode, EKeyState keyState, int xPos, int yPos) override;
 
 		// TODO: replace it to reflection
 		SG_RENDERER_VK_API static const char* GetModuleName() { return "RenderDevice"; }
@@ -55,7 +55,7 @@ namespace SG
 		bool CreateDepthRT();
 		void DestroyDepthRT();
 
-		bool CreateAndUploadBuffers(float* vertices, UInt32* indices);
+		bool CreateBuffers(float* vertices, UInt32* indices);
 		void DestroyBuffers();
 	private:
 		bool mbBlockEvent    = true;
@@ -94,8 +94,8 @@ namespace SG
 			Matrix4f proj;
 		};
 
-		Camera* mpCamera;
-		UBO     mCameraUBO;
+		ICamera* mpCamera;
+		UBO      mCameraUBO;
 		VulkanBuffer* mpCameraUBOBuffer;
 	};
 

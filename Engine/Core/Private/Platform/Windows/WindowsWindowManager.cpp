@@ -32,9 +32,9 @@ namespace SG
 		case WM_KEYDOWN:
 		{
 			if (gPrevKey == wParam)
-				InputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eHold);
+				InputSystem::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eHold);
 			else
-				InputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::ePressed);
+				InputSystem::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::ePressed);
 			gPrevKey = (int)wParam;
 			break;
 		}
@@ -42,9 +42,28 @@ namespace SG
 		{
 			if (gPrevKey == wParam) // reset
 				gPrevKey = -1;
-			InputSystem::OnSystemInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eRelease);
+			InputSystem::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eRelease);
 			if (wParam == VK_ESCAPE)
 				PostQuitMessage(0);
+			break;
+		}
+		case WM_LBUTTONUP:
+		{
+			InputSystem::OnSystemMouseInputEvent(KeyCode_MouseLeft, EKeyState::eRelease, -1, -1);
+			break;
+		}
+		case WM_LBUTTONDOWN:
+		{
+			int xPos = GET_X_LPARAM(lParam);
+			int yPos = GET_Y_LPARAM(lParam);
+			InputSystem::OnSystemMouseInputEvent(KeyCode_MouseLeft, EKeyState::ePressed, xPos, yPos);
+			break;
+		}
+		case WM_MOUSEMOVE:
+		{
+			int xPos = GET_X_LPARAM(lParam);
+			int yPos = GET_Y_LPARAM(lParam);
+			InputSystem::OnSystemMouseInputEvent(KeyCode_Null, EKeyState::eNull, xPos, yPos);
 			break;
 		}
 		// on window move and resize

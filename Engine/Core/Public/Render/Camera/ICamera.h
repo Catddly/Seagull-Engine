@@ -9,18 +9,20 @@
 namespace SG
 {
 
-	interface SG_CORE_API Camera
+	interface SG_CORE_API ICamera
 	{
-		virtual ~Camera() = default;
+		virtual ~ICamera() = default;
 
-		virtual Matrix4f GetProjMatrix() const = 0;
 		virtual Matrix4f GetViewMatrix() const = 0;
+		virtual Matrix4f GetProjMatrix() const = 0;
 
 		virtual void SetPerspective(float fovyInDegrees, float aspect, float zNear = 0.001f, float zFar = 1000.0f) = 0;
-		virtual void SetOrthographic(float left, float right, float top, float bottom, float near, float far) = 0;
+		virtual void SetOrthographic(float left, float right, float top, float bottom, float zNear, float zFar) = 0;
 
-		virtual void SetPosition(const Vector3f& pos) = 0;
+		virtual void     SetPosition(const Vector3f& pos) = 0;
 		virtual Vector3f GetPosition() const = 0;
+		virtual void     SetRotation(const Vector3f& rot) = 0;
+		virtual Vector3f GetRotation() const = 0;
 
 		virtual void Update(float deltaTime) = 0;
 	};

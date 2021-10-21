@@ -54,15 +54,17 @@ namespace SG
 	SG_INLINE float Abs(float v) { return ::abs(v); }
 	SG_INLINE int   Abs(int v)   { return ::abs(v); }
 
+	SG_INLINE float Clamp(float& v, float min, float max) { return v < min ? min : (v > max ? max : v); }
+
 #ifdef SG_GRAPHICS_API_VULKAN
-	//! Build a view matrix.
+	//! Build a view matrix based on a view direction vector.
 	//! @param [view] Point where the eyes on.
-	//! @param [center] Point where the eyes look at.
+	//! @param [direction] Direction where the eyes look at.
 	//! @param [up] Up vector of the world.
 	//! @return a 4x4 matrix represent the view matrix.
-	SG_INLINE Matrix4f BuildViewMatrix(const Vector3f& view, const Vector3f& center, const Vector3f& up)
+	SG_INLINE Matrix4f BuildViewMatrixDirection(const Vector3f& view, const Vector3f& direction, const Vector3f& up)
 	{
-		const Vector3f front((view - center).normalized());
+		const Vector3f front((-direction).normalized());
 		const Vector3f right(front.cross(up).normalized());
 		const Vector3f u(right.cross(front));
 
@@ -70,8 +72,18 @@ namespace SG
 		res.col(0) << right(0), right(1), right(2), 0.0f;
 		res.col(1) << u(0), -u(1), u(2), 0.0f;
 		res.col(2) << front(0), front(1), front(2), 0.0f;
-		res.col(3) << -(right.dot(view)), -(u.dot(view)), -(front.dot(view)), 1.0f;
+		res.col(3) << -(right.dot(view)), u.dot(view), -(front.dot(view)), 1.0f;
 		return eastl::move(res);
+	}
+
+	//! Build a view matrix based on a position vector.
+	//! @param [view] Point where the eyes on.
+	//! @param [center] Center point where the eyes look at.
+	//! @param [up] Up vector of the world.
+	//! @return a 4x4 matrix represent the view matrix.
+	SG_INLINE Matrix4f BuildViewMatrixCenter(const Vector3f& view, const Vector3f& center, const Vector3f& up)
+	{
+		return eastl::move(BuildViewMatrixDirection(view, center - view, up));
 	}
 
 	//! Build a perspective matrix.

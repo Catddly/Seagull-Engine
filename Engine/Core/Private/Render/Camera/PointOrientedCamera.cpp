@@ -7,43 +7,23 @@
 namespace SG
 {
 
-	PointOrientedCamera::PointOrientedCamera()
-		:mViewMatrix(Matrix4f::Identity()), mPosition({ 0.0f, 0.0f, -3.0f }), mViewAtPoint(Vector3f::Zero())
-	{
-		CalcViewMatrix();
-		SSystem()->GetInputSystem()->RegisterListener(this);
-	}
-
 	PointOrientedCamera::PointOrientedCamera(const Vector3f& pos, const Vector3f& viewAt)
-		:mPosition(pos), mViewAtPoint(viewAt)
+		:mViewAtPoint(viewAt), BasicCamera(pos, {})
 	{
-		CalcViewMatrix();
-		SSystem()->GetInputSystem()->RegisterListener(this);
 	}
 
 	PointOrientedCamera::~PointOrientedCamera()
 	{
-		SSystem()->GetInputSystem()->RemoveListener(this);
 	}
 
-	void PointOrientedCamera::SetPerspective(float fovyInDegrees, float aspect, float zNear, float zFar)
-	{
-		mProjectionMatrix = BuildPerspectiveMatrix(DegreesToRadians(fovyInDegrees), aspect, zNear, zFar);
-	}
-
-	void PointOrientedCamera::SetOrthographic(float left, float right, float top, float bottom, float zNear, float zFar)
-	{
-		mProjectionMatrix = BuildOrthographicMatrix(left, right, top, bottom, zNear, zFar);
-	}
-
-	bool PointOrientedCamera::OnInputUpdate(EKeyCode keycode, EKeyState keyState)
+	bool PointOrientedCamera::OnInputUpdate(EKeyCode keycode, EKeyState keyState, int xPos, int yPos)
 	{
 		return true;
 	}
 
-	void PointOrientedCamera::CalcViewMatrix()
+	void PointOrientedCamera::Update(float deltaTime)
 	{
-		mViewMatrix = BuildViewMatrix(mPosition, mViewAtPoint, SG_ENGINE_UP_VEC());
+
 	}
 
 }

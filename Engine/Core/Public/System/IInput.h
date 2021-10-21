@@ -549,6 +549,7 @@ namespace SG
 		ePressed,
 		eHold,
 		eRelease,
+		eNull,
 	};
 
 	struct IInput
@@ -565,7 +566,7 @@ namespace SG
 		//! @param (keycode) which key is changing.
 		//! @param (keyState) what is its state.
 		//! @return if you want to propagate this event.
-		virtual bool OnInputUpdate(EKeyCode keycode, EKeyState keyState) = 0;
+		virtual bool OnInputUpdate(EKeyCode keycode, EKeyState keyState, int xPos, int yPos) = 0;
 	};
 
 	interface IInputSystem : public IModule

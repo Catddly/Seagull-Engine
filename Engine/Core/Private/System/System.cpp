@@ -153,7 +153,7 @@ namespace SG
 		bool bIsSafeQuit = true;
 		bool bIsExit = false;
 
-		//FpsTimer renderTimer("RenderDevice::OnDraw()", 3.0f, 60);
+		//FpsTimer renderTimer("RenderDevice::OnDraw()", 1.0f, 60);
 		Timer deltaTimer;
 		while (!bIsExit)
 		{

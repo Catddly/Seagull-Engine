@@ -11,7 +11,7 @@ namespace SG
 	typedef Eigen::Transform<float, 3, Eigen::TransformTraits::Affine> Transform;
 
 	//! Represent rotation alone an axis with a fixed speed.
-	typedef Eigen::AngleAxis<float> AngleAxis;
+	typedef Eigen::AngleAxisf AngleAxis;
 	//! Represent translation with a fixed speed.
 	typedef Eigen::Translation<float, 3> Translation;
 	//! Represent scale operation with a fixed speed.
@@ -27,6 +27,21 @@ namespace SG
 	SG_INLINE void TranslateTo(Matrix4f& matrix, const Vector3f& pos)
 	{
 		matrix.col(3) << pos(0), pos(1), pos(2), 1.0f;
+	}
+
+	SG_INLINE void TranslateToX(Matrix4f& matrix, float x)
+	{
+		matrix(0, 3) = x;
+	}
+
+	SG_INLINE void TranslateToY(Matrix4f& matrix, float y)
+	{
+		matrix(1, 3) = y;
+	}
+
+	SG_INLINE void TranslateToZ(Matrix4f& matrix, float z)
+	{
+		matrix(2, 3) = z;
 	}
 
 	SG_INLINE void Scale(Matrix4f& matrix, const Vector3f& scale)
@@ -78,4 +93,18 @@ namespace SG
 			Scaler(scale);
 		return eastl::move(t.matrix());
 	}
+
+	SG_INLINE Vector3f PitchYawToUnitVector(const Vector3f& rotation)
+	{
+		Vector3f unitVec;
+		const float rx = DegreesToRadians(rotation(0));
+		const float ry = DegreesToRadians(rotation(1));
+
+		unitVec(0) = Sin(ry);
+		unitVec(1) = Sin(rx);
+		unitVec(2) = Cos(ry) * Cos(rx);
+
+		return eastl::move(unitVec.normalized());
+	}
+
 }

@@ -6,13 +6,10 @@
 
 #include <EASTL/set.h>
 #include <EASTL/utility.h>
+#include <EASTL/array.h>
 
 // forward declaration for windows' system Proc function
 #ifdef SG_PLATFORM_WINDOWS
-#	ifndef WIN32_LEAN_AND_MEAN
-#	define WIN32_LEAN_AND_MEAN
-#	include <windows.h>
-#	endif
 	static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #endif
 
@@ -39,10 +36,13 @@ namespace SG
 #ifdef SG_PLATFORM_WINDOWS
 		friend static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #endif
-		static void OnSystemInputEvent(EKeyCode keycode, EKeyState keyState);
+		static void OnSystemKeyInputEvent(EKeyCode keycode, EKeyState keyState);
+		static void OnSystemMouseInputEvent(EKeyCode keycode, EKeyState keyState, int xPos, int yPos);
 	private:
 		eastl::set<IInputListener*> mpListeners;
-		static eastl::vector<eastl::pair<EKeyCode, EKeyState>> mFrameInputDelta;
+		static eastl::vector<eastl::pair<EKeyCode, EKeyState>> msKeyFrameInputDelta;
+		static eastl::array<bool, 3> msMouseFrameInputDelta;
+		static eastl::pair<int, int> msMousePosDelta;
 	};
 
 }

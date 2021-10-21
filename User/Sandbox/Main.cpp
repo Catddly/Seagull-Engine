@@ -71,7 +71,7 @@ public:
 		SG_LOG_INFO("User OnExit()");
 	}
 
-	virtual bool OnInputUpdate(SG::EKeyCode keycode, SG::EKeyState keyState) override
+	virtual bool OnInputUpdate(SG::EKeyCode keycode, SG::EKeyState keyState, int xPos, int yPos) override
 	{
 		SG_LOG_INFO("User input %d (%d)", keycode, keyState);
 		return true;

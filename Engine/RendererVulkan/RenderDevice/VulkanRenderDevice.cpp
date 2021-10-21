@@ -8,7 +8,8 @@
 
 #include "Render/SwapChain.h"
 #include "Render/ShaderComiler.h"
-#include "Render/Camera/PointOrientedCamera.h"
+#include "Render/Camera/BasicCamera.h"
+//#include "Render/Camera/PointOrientedCamera.h"
 
 #include "Math/MathBasic.h"
 #include "Math/Transform.h"
@@ -39,11 +40,8 @@ namespace SG
 		auto* window = SSystem()->GetOS()->GetMainWindow();
 		const float ASPECT = window->GetAspectRatio();
 
-		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -2.0f));
-		if (mbUseOrtho)
-			mpCamera->SetOrthographic(-ASPECT, ASPECT, 1, -1, -1, 1);
-		else
-			mpCamera->SetPerspective(45.0f, ASPECT);
+		mpCamera = Memory::New<BasicCamera>(Vector3f(0.0f, 0.0f, -3.0f), Vector3f(0.0f, 0.0f, 0.0f));
+		mpCamera->SetPerspective(45.0f, ASPECT);
 		Vector3f modelPos      = { 0.0f, 0.0f, 0.0f };
 		Vector3f modelScale    = { 0.25f, 0.25f, 1.0f };
 		Vector3f modelRatation = { 0.0f, 0.0f, 0.0f };
@@ -94,7 +92,7 @@ namespace SG
 			0, 1, 2,
 			2, 3, 0
 		};
-		CreateAndUploadBuffers(vertices, indices);
+		CreateBuffers(vertices, indices);
 
 		mpPipeline = Memory::New<VulkanPipeline>();
 		mpPipeline->renderPass = mpDevice->CreateRenderPass(mpColorRts[0], mpDepthRt);
@@ -108,7 +106,7 @@ namespace SG
 
 		mpCameraUBOBuffer->descriptorSet = mpDevice->AllocateDescriptorSet(mpCameraUBOBuffer->descriptorSetLayout);
 		mpCameraUBOBuffer->UpdateDescriptor();
-		mpCameraUBOBuffer->UploadData(&mCameraUBO);
+		//mpCameraUBOBuffer->UploadData(&mCameraUBO);
 
 		mpFrameBuffers = Memory::New<VulkanFrameBuffer>();
 		mpFrameBuffers->frameBuffers.resize(mpSwapchain->imageCount);
@@ -176,9 +174,11 @@ namespace SG
 	{
 		static float totalTime = 0.0f;
 		static float speed = 0.005f;
-		Vector3f pos = { 0.5f * Sin(totalTime), 0.0f, 0.0f };
-		TranslateTo(mCameraUBO.model, pos);
+		TranslateToX(mCameraUBO.model, 0.5f * Sin(totalTime));
 		//Rotate(mCameraUBO.model, SG_ENGINE_UP_VEC(), deltaTime * 0.5f);
+
+		//mpCamera->SetRotation({ 0.0f, 0.0f, totalTime * 40.0f });
+		//mCameraUBO.view = mpCamera->GetViewMatrix();
 
 		mpCameraUBOBuffer->UploadData(&mCameraUBO);
 		totalTime += deltaTime * speed;
@@ -214,13 +214,13 @@ namespace SG
 		return true;
 	}
 
-	bool VulkanRenderDevice::OnInputUpdate(EKeyCode keycode, EKeyState keyState)
+	bool VulkanRenderDevice::OnInputUpdate(EKeyCode keycode, EKeyState keyState, int xPos, int yPos)
 	{
 		if (keycode == KeyCode_T && keyState == EKeyState::ePressed)
 		{
 			mbUseOrtho = !mbUseOrtho;
 			auto* window = SSystem()->GetOS()->GetMainWindow();
-			const float  ASPECT = window->GetAspectRatio();
+			const float ASPECT = window->GetAspectRatio();
 			if (mbUseOrtho)
 				mpCamera->SetOrthographic(-ASPECT, ASPECT, 1, -1, -1, 1);
 			else
@@ -356,7 +356,7 @@ namespace SG
 		Memory::Delete(mpDepthRt);
 	}
 
-	bool VulkanRenderDevice::CreateAndUploadBuffers(float* vertices, UInt32* indices)
+	bool VulkanRenderDevice::CreateBuffers(float* vertices, UInt32* indices)
 	{
 		bool bSuccess = true;
 

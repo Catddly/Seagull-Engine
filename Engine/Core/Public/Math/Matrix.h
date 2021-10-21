@@ -11,12 +11,6 @@
 
 namespace SG
 {
-	//typedef Eigen::Matrix<Float32, 3, 3> Matrix3f;
-	//typedef Eigen::Matrix<Float32, 4, 4> Matrix4f;
-
-	//typedef Eigen::Matrix<Int32, 3, 3>   Matrix3i;
-	//typedef Eigen::Matrix<Int32, 4, 4>   Matrix4i;
-
 	// overload log out function
 	namespace impl
 	{
