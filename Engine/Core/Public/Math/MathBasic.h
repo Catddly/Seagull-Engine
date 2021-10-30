@@ -25,7 +25,8 @@ namespace SG
 
 #define PI 3.141592653589793238462643383279f
 
-#define SG_ENGINE_UP_VEC() Vector3f(0.0f, 1.0f, 0.0f) // Seagull engine is y-up right hand-side coordinate
+#define SG_ENGINE_UP_VEC()    Vector3f(0.0f, 1.0f, 0.0f) // Seagull engine is y-up right hand-side coordinate
+#define SG_ENGINE_RIGHT_VEC() Vector3f(1.0f, 0.0f, 0.0f)
 
 	// Seagull Engine Take Left-Hand Y-Up Coordinate System
 	// 

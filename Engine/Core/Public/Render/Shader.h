@@ -3,7 +3,7 @@
 #include "Core/Config.h"
 #include "Base/BasicTypes.h"
 
-#include "System/ILogger.h"
+#include "System/Logger.h"
 
 #include <cstddef>
 #include <eastl/map.h>

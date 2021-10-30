@@ -1,15 +1,15 @@
 #include "StdAfx.h"
 #include "VulkanRenderDevice.h"
 
-#include "Platform/IOperatingSystem.h"
-#include "Platform/Window.h"
-#include "System/ILogger.h"
-#include "Memory/IMemory.h"
+#include "Platform/OS.h"
+#include "System/Logger.h"
+#include "System/Input.h"
+#include "Memory/Memory.h"
 
 #include "Render/SwapChain.h"
 #include "Render/ShaderComiler.h"
 #include "Render/Camera/BasicCamera.h"
-//#include "Render/Camera/PointOrientedCamera.h"
+#include "Render/Camera/PointOrientedCamera.h"
 
 #include "Math/MathBasic.h"
 #include "Math/Transform.h"
@@ -26,23 +26,23 @@ namespace SG
 		:mCurrentFrameInCPU(0)
 	{
 		SSystem()->RegisterSystemMessageListener(this);
-		SSystem()->GetInputSystem()->RegisterListener(this);
+		Input::RegisterListener(this);
 	}
 
 	VulkanRenderDevice::~VulkanRenderDevice()
 	{
 		SSystem()->RemoveSystemMessageListener(this);
-		SSystem()->GetInputSystem()->RemoveListener(this);
+		Input::RemoveListener(this);
 	}
 
 	void VulkanRenderDevice::OnInit()
 	{
-		auto* window = SSystem()->GetOS()->GetMainWindow();
+		auto* window = OperatingSystem::GetMainWindow();
 		const float ASPECT = window->GetAspectRatio();
 
-		mpCamera = Memory::New<BasicCamera>(Vector3f(0.0f, 0.0f, -3.0f), Vector3f(0.0f, 0.0f, 0.0f));
+		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -3.0f));
 		mpCamera->SetPerspective(45.0f, ASPECT);
-		Vector3f modelPos      = { 0.0f, 0.0f, 0.0f };
+		Vector3f modelPos      = { 0.0f, 0.0f, -2.0f };
 		Vector3f modelScale    = { 0.25f, 0.25f, 1.0f };
 		Vector3f modelRatation = { 0.0f, 0.0f, 0.0f };
 
@@ -69,7 +69,7 @@ namespace SG
 		mpSwapchain->BindDevice(mpDevice->physicalDevice, mpDevice->logicalDevice);
 		mpSwapchain->CheckSurfacePresentable(mpQueue);
 
-		Window* mainWindow = SSystem()->GetOS()->GetMainWindow();
+		Window* mainWindow = OperatingSystem::GetMainWindow();
 		Rect rect = mainWindow->GetCurrRect();
 		mpSwapchain->CreateOrRecreate(GetRectWidth(rect), GetRectHeight(rect));
 		mpColorRts.resize(mpSwapchain->imageCount);
@@ -172,16 +172,16 @@ namespace SG
 
 	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
-		static float totalTime = 0.0f;
-		static float speed = 0.005f;
-		TranslateToX(mCameraUBO.model, 0.5f * Sin(totalTime));
+		//static float totalTime = 0.0f;
+		//static float speed = 0.005f;
+		//TranslateToX(mCameraUBO.model, 0.5f * Sin(totalTime));
 		//Rotate(mCameraUBO.model, SG_ENGINE_UP_VEC(), deltaTime * 0.5f);
 
 		//mpCamera->SetRotation({ 0.0f, 0.0f, totalTime * 40.0f });
-		//mCameraUBO.view = mpCamera->GetViewMatrix();
 
+		mCameraUBO.view = mpCamera->GetViewMatrix();
 		mpCameraUBOBuffer->UploadData(&mCameraUBO);
-		totalTime += deltaTime * speed;
+		//totalTime += deltaTime * speed;
 	}
 
 	void VulkanRenderDevice::OnDraw()
@@ -214,12 +214,12 @@ namespace SG
 		return true;
 	}
 
-	bool VulkanRenderDevice::OnInputUpdate(EKeyCode keycode, EKeyState keyState, int xPos, int yPos)
+	bool VulkanRenderDevice::OnKeyInputUpdate(EKeyCode keycode, EKeyState keyState)
 	{
 		if (keycode == KeyCode_T && keyState == EKeyState::ePressed)
 		{
 			mbUseOrtho = !mbUseOrtho;
-			auto* window = SSystem()->GetOS()->GetMainWindow();
+			auto* window = OperatingSystem::GetMainWindow();
 			const float ASPECT = window->GetAspectRatio();
 			if (mbUseOrtho)
 				mpCamera->SetOrthographic(-ASPECT, ASPECT, 1, -1, -1, 1);
@@ -268,7 +268,7 @@ namespace SG
 	{
 		mpDevice->WaitIdle();
 
-		auto* window = SSystem()->GetOS()->GetMainWindow();
+		auto* window = OperatingSystem::GetMainWindow();
 		const UInt32 WIDTH = window->GetWidth();
 		const UInt32 HEIGHT = window->GetHeight();
 		const float  ASPECT = (float)WIDTH / HEIGHT;

@@ -2,12 +2,13 @@
 #include "VulkanSwapchain.h"
 
 #include "System/System.h"
-#include "Platform/IOperatingSystem.h"
-#include "Platform/Window.h"
+#include "Platform/OS.h"
 
 #include "VulkanDevice.h"
 #include "VulkanSynchronizePrimitive.h"
 #include "RendererVulkan/Utils/VkConvert.h"
+
+#include "Memory/Memory.h"
 
 #ifdef SG_PLATFORM_WINDOWS
 #	include <vulkan/vulkan_win32.h>
@@ -314,8 +315,7 @@ namespace SG
 	bool VulkanSwapchain::CreateSurface()
 	{
 #ifdef SG_PLATFORM_WINDOWS
-		auto* pOS = SSystem()->GetOS();
-		Window* mainWindow = pOS->GetMainWindow();
+		Window* mainWindow = OperatingSystem::GetMainWindow();
 
 		VkWin32SurfaceCreateInfoKHR createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;

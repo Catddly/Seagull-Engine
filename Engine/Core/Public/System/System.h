@@ -1,48 +1,61 @@
 #pragma once
 
 #include "Core/Config.h"
-#include "Thread/IThread.h"
+#include "Thread/Thread.h"
 
-#include "System/IFileSystem.h"
-#include "Platform/IOperatingSystem.h"
+#include "System/FileSystem.h"
+#include "Platform/OS.h"
 #include "Core/Private/System/ModuleManager.h"
-#include "System/ISystemMessage.h"
 
 #include "Stl/string.h"
+#include <eastl/set.h>
 
-#ifdef SG_PLATFORM_WINDOWS
-#	ifndef WIN32_LEAN_AND_MEAN
+#ifndef WIN32_LEAN_AND_MEAN
 #	define WIN32_LEAN_AND_MEAN
-#		include <windows.h>
-#	endif
+#	include <windows.h>
 #endif
 
 namespace SG
 {
-
-	interface ILogger;
-	interface IInputSystem;
-
 	interface IProcess;
 
-	class System final
+	enum class ESystemMessage
+	{
+		eWindowResize = 0,
+		eWindowMove,
+		eWindowMinimal,
+		eTerminate,
+	};
+
+	interface SG_CORE_API ISystemMessageListener
+	{
+		virtual bool OnSystemMessage(ESystemMessage msg) = 0;
+	};
+
+	class SystemMessageBus
+	{
+	public:
+		void Update();
+
+		void RegisterListener(ISystemMessageListener* pListener);
+		void RemoveListener(ISystemMessageListener* pListener);
+
+		void PushEvent(ESystemMessage msg);
+	private:
+		eastl::set<ESystemMessage>          mMessages;
+		eastl::set<ISystemMessageListener*> mpListeners;
+	};
+
+	class System
 	{
 	public:
 		~System() = default;
 
 		SG_CORE_API void Initialize();
-		SG_CORE_API bool InitCoreModules();
 		SG_CORE_API void Shutdown();
 
-		SG_CORE_API ILogger*          GetLogger() const;
-		SG_CORE_API IFileSystem*      GetFileSystem() const;
-		SG_CORE_API IInputSystem*     GetInputSystem() const;
-		SG_CORE_API IOperatingSystem* GetOS() const;
-
-		//! Check if all the core modules is loaded.
-		SG_CORE_API bool ValidateCoreModules() const;
 		//! Check if all the modules is loaded.
-		SG_CORE_API bool ValidateAllModules() const;
+		SG_CORE_API bool ValidateModules() const;
 
 		SG_CORE_API bool SystemMainLoop();
 

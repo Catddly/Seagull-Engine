@@ -5,10 +5,9 @@
 #include "System/System.h"
 #include "User/IApp.h"
 
+#include "Memory/Memory.h"
+
 #include "3DEngine/3DEngine/3DEngine.h"
-
-#include "Memory/IMemory.h"
-
 #include "RendererVulkan/RenderDevice/VulkanRenderDevice.h"
 
 #include <eastl/unique_ptr.h>

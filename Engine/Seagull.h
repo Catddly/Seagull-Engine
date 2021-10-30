@@ -7,8 +7,8 @@
 //----------------------------------------------------------
 // System Modules
 //----------------------------------------------------------
-#include "System/IFileSystem.h"
-#include "System/ILogger.h"
+#include "System/FileSystem.h"
+#include "System/Logger.h"
 #include "User/IApp.h"
 
 //----------------------------------------------------------
@@ -19,24 +19,18 @@
 //----------------------------------------------------------
 // Platform Specification Modules
 //----------------------------------------------------------
-#include "Platform/IOperatingSystem.h"
+#include "Platform/OS.h"
 #include "Platform/SystemTime.h"
 
-#include "Thread/IThread.h"
+#include "Thread/Thread.h"
 #include "Thread/IJobSystem.h"
 
-#include "System/IInput.h"
-#include "Memory/IMemory.h"
+#include "System/Input.h"
+#include "Memory/Memory.h"
 
 //----------------------------------------------------------
 // Render Relative
 //----------------------------------------------------------
-
-//----------------------------------------------------------
-// System Data
-//----------------------------------------------------------
-#include "Platform/Window.h"
-#include "Platform/OsDevices.h"
 
 //----------------------------------------------------------
 // System Utility

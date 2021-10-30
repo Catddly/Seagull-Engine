@@ -2,7 +2,7 @@
 
 #include "Base/BasicTypes.h"
 
-#include "Platform/IOperatingSystem.h"
+#include "Platform/OS.h"
 
 namespace SG
 {

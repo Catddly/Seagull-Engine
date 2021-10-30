@@ -58,5 +58,5 @@ extern "C"
 }
 
 #ifdef SG_PLATFORM_WINDOWS
-#	include "Thread/IThread_Windows.h"
+#	include "Thread/Thread.Windows.h"
 #endif

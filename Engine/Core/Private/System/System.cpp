@@ -1,16 +1,14 @@
 #include "StdAfx.h"
 #include "System/System.h"
 
-#include "Core/Private/Logger/Logger.h"
-#include "Core/Private/FileSystem/FileSystem.h"
-#include "Core/Private/System/InputSystem.h"
-#include "Core/Private/Platform/OperatingSystem.h"
-
+#include "System/FileSystem.h"
+#include "System/Logger.h"
+#include "System/Input.h"
 #include "User/IApp.h"
 
 #include "Profile/Timer.h"
 #include "Profile/FpsTimer.h"
-#include "Memory/IMemory.h"
+#include "Memory/Memory.h"
 
 #include <windows.h>
 
@@ -45,27 +43,24 @@ namespace SG
 		mMainThread.pHandle = nullptr;
 		mMainThread.pUser = nullptr;
 
-		if (!InitCoreModules())
-			SG_LOG_ERROR("Failed to initialized core modules");
+		FileSystem::OnInit();
+		Logger::OnInit();
+		Input::OnInit();
+		OperatingSystem::OnInit();
 	}
 
 	void System::Shutdown()
 	{
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
 		Memory::Delete(mpCurrActiveProcess);
+
+		OperatingSystem::OnShutdown();
+		Input::OnShutdown();
+		Logger::OnShutdown();
+		FileSystem::OnShutdown();
 	}
 
-	bool System::ValidateCoreModules() const
-	{
-		// TODO: fix it
-		//bool isReady = (mSystemModules.pLog != nullptr) &&
-		//	(mSystemModules.pFileSystem != nullptr) &&
-		//	(mSystemModules.pOS != nullptr) &&
-		//	(mSystemModules.pInputSystem != nullptr);
-		return true;
-	}
-
-	bool System::ValidateAllModules() const
+	bool System::ValidateModules() const
 	{
 		//bool isReady = ValidateCoreModules() &&
 		//	(mSystemModules.p2DEngine != nullptr) &&
@@ -133,21 +128,6 @@ namespace SG
 		}
 	}
 
-	bool System::InitCoreModules()
-	{
-		IFileSystem* pFileSystem = Memory::New<FileSystem>();
-		ILogger* pLogger = Memory::New<Logger>();
-		IOperatingSystem* pOS = Memory::New<OperatingSystem>();
-		IInputSystem* pInputSystem = Memory::New<InputSystem>();
-
-		mModuleManager.RegisterCoreModule(pFileSystem);
-		mModuleManager.RegisterCoreModule(pLogger);
-		mModuleManager.RegisterCoreModule(pOS);
-		mModuleManager.RegisterCoreModule(pInputSystem);
-
-		return ValidateCoreModules();
-	}
-
 	bool System::SystemMainLoop()
 	{
 		bool bIsSafeQuit = true;
@@ -158,6 +138,7 @@ namespace SG
 		while (!bIsExit)
 		{
 			deltaTimer.Tick();
+			float deltaTime = deltaTimer.GetDurationMs();
 
 			// collect all the messages
 			EOsMessage msg = EOsMessage::eNull;
@@ -167,10 +148,12 @@ namespace SG
 			// dispatch all the system messages
 			mMessageBus.Update();
 			
+			Input::OnUpdate(deltaTime);
+
 			// modules OnUpdate()
-			mModuleManager.Update(deltaTimer.GetDurationMs());
+			mModuleManager.Update(deltaTime);
 			if (mpCurrActiveProcess)
-				mpCurrActiveProcess->OnUpdate(deltaTimer.GetDurationMs());
+				mpCurrActiveProcess->OnUpdate(deltaTime);
 
 			// modules OnDraw()
 			{
@@ -203,11 +186,6 @@ namespace SG
 		mRootPath = filepath;
 		_chdir(filepath);
 	}
-
-	ILogger*          System::GetLogger()      const { return mModuleManager.GetModule<ILogger*>("Logger", true); }
-	IFileSystem*      System::GetFileSystem()  const { return mModuleManager.GetModule<IFileSystem*>("FileSystem", true); }
-	IInputSystem*     System::GetInputSystem() const { return mModuleManager.GetModule<IInputSystem*>("InputSystem", true); }
-	IOperatingSystem* System::GetOS()          const { return mModuleManager.GetModule<IOperatingSystem*>("OS", true); }
 
 	System* const System::Instance()
 	{

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "Platform/OsDevices.h"
+#include "Platform/OS.h"
 
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG

@@ -2,8 +2,8 @@
 
 #include "Base/BasicTypes.h"
 
-#include "System/ILogger.h"
-#include "Memory/IMemory.h" // overload global new and delete
+#include "System/Logger.h"
+#include "Memory/Memory.h"
 
 #include <eigen/Dense>
 

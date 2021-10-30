@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "Memory/IMemory.h"
+#include "Memory/Memory.h"
 
 // TODO: add memory tracking
 namespace SG

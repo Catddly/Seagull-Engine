@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "System/ISystemMessage.h"
+#include "System/System.h"
 
 #include <eastl/type_traits.h>
 

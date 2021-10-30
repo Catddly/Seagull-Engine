@@ -5,7 +5,7 @@
 
 #include "Thread/IThread.h"
 #include "RID.h"
-#include "Memory/IMemory.h"
+#include "Memory/Memory.h"
 
 #include <EASTL/type_traits.h>
 

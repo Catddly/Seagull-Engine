@@ -1,6 +1,6 @@
 #pragma once
 
-#include "System/IFileSystem.h"
+#include "System/FileSystem.h"
 
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG

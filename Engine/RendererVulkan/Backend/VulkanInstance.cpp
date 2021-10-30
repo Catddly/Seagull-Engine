@@ -1,12 +1,11 @@
 #include "StdAfx.h"
 #include "VulkanInstance.h"
 
-#include "System/ILogger.h"
-#include "Platform/IOperatingSystem.h"
-#include "Platform/Window.h"
-#include "Memory/IMemory.h"
+#include "System/Logger.h"
+#include "Platform/OS.h"
 
 #include "Render/Shader.h"
+#include "Memory/Memory.h"
 
 #include "Stl/vector.h"
 

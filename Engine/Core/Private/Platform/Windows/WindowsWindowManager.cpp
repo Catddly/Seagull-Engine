@@ -1,13 +1,9 @@
 #include "StdAfx.h"
-#include "Core/Private/Platform/WindowManager.h"
+#include "Platform/OS.h"
 
-#include "System/IInput.h"
-#include "Core/Private/Platform/DeviceManager.h"
-#include "Core/Private/System/InputSystem.h"
-#include "Platform/Window.h"
-
-#include "System/ILogger.h"
-#include "Memory/IMemory.h"
+#include "System/Input.h"
+#include "System/Logger.h"
+#include "Memory/Memory.h"
 
 namespace SG
 {
@@ -32,9 +28,9 @@ namespace SG
 		case WM_KEYDOWN:
 		{
 			if (gPrevKey == wParam)
-				InputSystem::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eHold);
+				Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eHold);
 			else
-				InputSystem::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::ePressed);
+				Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::ePressed);
 			gPrevKey = (int)wParam;
 			break;
 		}
@@ -42,28 +38,32 @@ namespace SG
 		{
 			if (gPrevKey == wParam) // reset
 				gPrevKey = -1;
-			InputSystem::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eRelease);
+			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eRelease);
 			if (wParam == VK_ESCAPE)
 				PostQuitMessage(0);
 			break;
 		}
 		case WM_LBUTTONUP:
 		{
-			InputSystem::OnSystemMouseInputEvent(KeyCode_MouseLeft, EKeyState::eRelease, -1, -1);
+			Input::OnSystemMouseKeyInputEvent(KeyCode_MouseLeft, EKeyState::eRelease);
 			break;
 		}
 		case WM_LBUTTONDOWN:
 		{
-			int xPos = GET_X_LPARAM(lParam);
-			int yPos = GET_Y_LPARAM(lParam);
-			InputSystem::OnSystemMouseInputEvent(KeyCode_MouseLeft, EKeyState::ePressed, xPos, yPos);
+			Input::OnSystemMouseKeyInputEvent(KeyCode_MouseLeft, EKeyState::ePressed);
 			break;
 		}
 		case WM_MOUSEMOVE:
 		{
 			int xPos = GET_X_LPARAM(lParam);
 			int yPos = GET_Y_LPARAM(lParam);
-			InputSystem::OnSystemMouseInputEvent(KeyCode_Null, EKeyState::eNull, xPos, yPos);
+			Input::OnSystemMouseMoveInputEvent(xPos, yPos);
+			break;
+		}
+		case WM_MOUSEWHEEL:
+		{
+			int direction = GET_Y_LPARAM(wParam);
+			Input::OnSystemMouseWheelInputEvent(direction / 120);
 			break;
 		}
 		// on window move and resize

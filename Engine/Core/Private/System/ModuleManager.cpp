@@ -1,12 +1,12 @@
 #include "StdAfx.h"
 #include "System/System.h"
+#include "System/Module.h"
 
-#include "Memory/IMemory.h"
+#include "Memory/Memory.h"
 
 namespace SG
 {
 
-	eastl::map<const char*, IModule*> ModuleManager::mCoreModuleMap;
 	eastl::map<const char*, IModule*> ModuleManager::mUserModuleMap;
 
 	ModuleManager::ModuleManager()
@@ -21,24 +21,6 @@ namespace SG
 			beg->second->OnShutdown();
 			Memory::Delete(beg->second);
 		}
-
-		for (auto beg = mCoreModuleMap.rbegin(); beg != mCoreModuleMap.rend(); beg++)
-		{
-			beg->second->OnShutdown();
-			Memory::Delete(beg->second);
-		}
-	}
-
-	bool ModuleManager::RegisterCoreModule(IModule* pModule)
-	{
-		if (pModule)
-		{
-			pModule->OnInit();
-			mCoreModuleMap[pModule->GetRegisterName()] = pModule;
-			return true;
-		}
-		else
-			return false;
 	}
 
 	bool ModuleManager::RegisterUserModule(IModule* pModule)
@@ -69,8 +51,6 @@ namespace SG
 	void ModuleManager::Update(float deltaTime)
 	{
 		for (auto e : mUserModuleMap)
-			e.second->OnUpdate(deltaTime);
-		for (auto e : mCoreModuleMap)
 			e.second->OnUpdate(deltaTime);
 	}
 

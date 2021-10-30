@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "VulkanBuffer.h"
 
-#include "System/ILogger.h"
+#include "System/Logger.h"
 
 #include "VulkanInstance.h"
 

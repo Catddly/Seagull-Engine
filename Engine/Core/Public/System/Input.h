@@ -3,9 +3,15 @@
 #include "Core/Config.h"
 #include "Base/BasicTypes.h"
 
-#include "System/IModule.h"
+#include "Reflection/Name.h"
 
-#ifdef SG_PLATFORM_WINDOWS
+#include "Stl/vector.h"
+#include <EASTL/set.h>
+#include <EASTL/utility.h>
+#include <EASTL/array.h>
+
+#ifndef WIN32_LEAN_AND_MEAN
+#	define WIN32_LEAN_AND_MEAN
 #	include <windows.h>
 #endif
 
@@ -552,30 +558,49 @@ namespace SG
 		eNull,
 	};
 
-	struct IInput
-	{
-		SG_CORE_API static bool IsKeyPressed(EKeyCode keycode);
-	};
-
 	//! Observer design pattern, can be register by any class which inherits this class.
 	interface SG_CORE_API IInputListener
 	{
 		virtual ~IInputListener() = default;
 
-		//! Call when there is any input.
-		//! @param (keycode) which key is changing.
-		//! @param (keyState) what is its state.
-		//! @return if you want to propagate this event.
-		virtual bool OnInputUpdate(EKeyCode keycode, EKeyState keyState, int xPos, int yPos) = 0;
+		//! Call when system received any input.
+		//! @param (keycode) Which key is changing.
+		//! @param (keyState) Which state it is.
+		//! @return If you want to propagate this event.
+		virtual bool OnKeyInputUpdate(EKeyCode keycode, EKeyState keyState) { return true; }
+		virtual bool OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos) { return true; }
+		virtual bool OnMouseWheelInputUpdate(int direction) { return true; }
 	};
 
-	interface IInputSystem : public IModule
+	class Input
 	{
-		virtual ~IInputSystem() = default;
+	public:
+		SG_CORE_API static void RegisterListener(IInputListener* pListener);
+		SG_CORE_API static void MuteListener(IInputListener* pListener);
+		SG_CORE_API static void RemoveListener(IInputListener* pListener);
 
-		virtual void RegisterListener(IInputListener* pListener) = 0;
-		virtual void MuteListener(IInputListener* pListener) = 0;
-		virtual void RemoveListener(IInputListener* pListener) = 0;
+		SG_CORE_API static bool IsKeyPressed(EKeyCode keycode);
+	private:
+		friend class System;
+		static void OnInit();
+		static void OnShutdown();
+
+		static void OnUpdate(float deltaTime);
+	private:
+#ifdef SG_PLATFORM_WINDOWS
+		friend static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif
+		static void OnSystemKeyInputEvent(EKeyCode keycode, EKeyState keyState);
+		static void OnSystemMouseKeyInputEvent(EKeyCode keycode, EKeyState keyState);
+		static void OnSystemMouseMoveInputEvent(int xPos, int yPos);
+		static void OnSystemMouseWheelInputEvent(int direction);
+	private:
+		friend struct IInput;
+
+		static eastl::set<IInputListener*> mpListeners;
+		static eastl::vector<eastl::pair<EKeyCode, EKeyState>> msKeyFrameInputDelta;
+		static eastl::array<bool, 3> msMouseFrameInputDelta;
+		static eastl::array<bool, 3> msMousePrevFrameInputDelta;
 	};
 
 }

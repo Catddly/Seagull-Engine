@@ -1,6 +1,6 @@
 #pragma once
 
-#include "System/IInput.h"
+#include "System/Input.h"
 #include "Render/Camera/ICamera.h"
 
 #include "Math/Vector.h"
@@ -27,9 +27,8 @@ namespace SG
 		SG_CORE_API virtual void     SetRotation(const Vector3f& rot) override { mRotation = rot; UpdateViewMatrix(); }
 		SG_CORE_API virtual Vector3f GetRotation() const override { return mRotation; }
 
-		SG_CORE_API virtual void Update(float deltaTime) override;
+		SG_CORE_API virtual void Update(float deltaTime) override {}
 	protected:
-		SG_CORE_API virtual bool OnInputUpdate(EKeyCode keycode, EKeyState keyState, int xPos, int yPos) override;
 		SG_CORE_API void UpdateViewMatrix();
 	protected:
 		Vector3f mPosition;

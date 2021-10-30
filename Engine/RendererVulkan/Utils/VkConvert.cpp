@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "VkConvert.h"
 
-#include "System/ILogger.h"
+#include "System/Logger.h"
 
 namespace SG
 {

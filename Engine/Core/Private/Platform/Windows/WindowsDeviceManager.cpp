@@ -1,12 +1,15 @@
 #include "StdAfx.h"
-#include "Core/Private/Platform/DeviceManager.h"
+#include "Platform/OS.h"
 
-#include "Platform/OsDevices.h"
-#include "System/ILogger.h"
+#include "System/Logger.h"
 
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+/// DeviceManager
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// used to avoid using friend function in Monitor.
 	// TODO: have issues on PC having more than one monitor.

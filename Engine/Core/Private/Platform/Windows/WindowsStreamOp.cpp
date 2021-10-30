@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 
-#include "Core/Private/FileSystem/FileSystem.h"
+#include "System/FileSystem.h"
 #include "Core/Private/Platform/Windows/WindowsStreamOp.h"
 
 #ifdef SG_PLATFORM_WINDOWS

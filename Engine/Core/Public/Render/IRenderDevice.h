@@ -2,7 +2,8 @@
 
 #include "Defs/Defs.h"
 #include "Core/Config.h"
-#include "System/IModule.h"
+
+#include "System/Module.h"
 
 namespace SG
 {

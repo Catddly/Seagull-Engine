@@ -1,11 +1,16 @@
 #include "StdAfx.h"
-#include "OperatingSystem.h"
+#include "Platform/OS.h"
 
-#include "System/ILogger.h"
-#include "Platform/Window.h"
+#include "System/Logger.h"
+#include "System/Input.h"
+
+#include "Memory/Memory.h"
 
 namespace SG
 {
+
+	DeviceManager OperatingSystem::mDeviceManager;
+	WindowManager OperatingSystem::mWindowManager;
 
 	void OperatingSystem::OnInit()
 	{
@@ -39,7 +44,7 @@ namespace SG
 		return mWindowManager.GetMainWindow();
 	}
 
-	Vector2i OperatingSystem::GetMousePos() const
+	Vector2i OperatingSystem::GetMousePos()
 	{
 		POINT pos = {};
 		::GetCursorPos(&pos);
@@ -47,9 +52,9 @@ namespace SG
 		return eastl::move(p);
 	}
 
-	bool OperatingSystem::IsMainWindowOutOfScreen() const
+	bool OperatingSystem::IsMainWindowOutOfScreen()
 	{
-		Window* mainWindow = mWindowManager.GetMainWindow();
+		Window*  mainWindow = mWindowManager.GetMainWindow();
 		Monitor* mainMonitor = mDeviceManager.GetPrimaryMonitor();
 		Vector2i RPos = mainWindow->GetMousePosRelative();
 		Vector2i APos = GetMousePos();

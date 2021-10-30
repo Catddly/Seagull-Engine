@@ -2,7 +2,7 @@
 #include "Allocator.h"
 
 #include "Defs/Defs.h"
-#include "Memory/IMemory.h"
+#include "Memory/Memory.h"
 
 namespace SG
 {

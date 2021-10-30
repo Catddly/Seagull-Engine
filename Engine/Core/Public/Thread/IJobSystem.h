@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Defs/Defs.h"
-#include "Thread/IThread.h"
+#include "Thread/Thread.h"
 
 namespace SG
 {

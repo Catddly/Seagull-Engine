@@ -1,8 +1,8 @@
 #include "StdAfx.h"
 #include "VulkanDevice.h"
 
-#include "System/ILogger.h"
-#include "Memory/IMemory.h"
+#include "System/Logger.h"
+#include "Memory/Memory.h"
 
 #include "VulkanInstance.h"
 #include "VulkanSwapchain.h"

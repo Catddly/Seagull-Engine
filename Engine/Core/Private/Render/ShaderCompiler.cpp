@@ -2,19 +2,17 @@
 #include "Render/ShaderComiler.h"
 
 #include "System/System.h"
-#include "System/IFileSystem.h"
-#include "System/ILogger.h"
-#include "Memory/IMemory.h"
+#include "System/FileSystem.h"
+#include "System/Logger.h"
+#include "Memory/Memory.h"
 
 namespace SG
 {
 
 	bool ShaderCompiler::LoadSPIRVShader(const string& binShaderName, Shader& outStages)
 	{
-		auto* pIO = SSystem()->GetFileSystem();
-
 		UInt8 shaderBits = 0;
-		if (!pIO->Exist(EResourceDirectory::eShader_Binarires, ""))
+		if (!FileSystem::Exist(EResourceDirectory::eShader_Binarires, ""))
 		{
 			SG_LOG_WARN("You must put all the SPIRV binaries in the ShaderBin folder!");
 			return false;
@@ -33,16 +31,16 @@ namespace SG
 			case 5:	actualName += "-comp.spv"; break;
 			}
 
-			if (pIO->Open(EResourceDirectory::eShader_Binarires, actualName.c_str(), EFileMode::efRead_Binary))
+			if (FileSystem::Open(EResourceDirectory::eShader_Binarires, actualName.c_str(), EFileMode::efRead_Binary))
 			{
 				ShaderData data;
-				data.binarySize = pIO->FileSize();
+				data.binarySize = FileSystem::FileSize();
 				data.pBinary = (std::byte*)(Memory::Malloc(data.binarySize));
-				pIO->Read(data.pBinary, data.binarySize);
+				FileSystem::Read(data.pBinary, data.binarySize);
 				outStages.insert_or_assign((EShaderStages)(1 << i), data);
 
 				shaderBits |= (1 << i);
-				pIO->Close();
+				FileSystem::Close();
 			}
 			//else
 			//{
@@ -69,8 +67,6 @@ namespace SG
 
 	bool ShaderCompiler::CompileGLSLShader(const string& binShaderName, Shader& outStages)
 	{
-		auto* pIO = SSystem()->GetFileSystem();
-
 		char* glslc = "";
 		Size num = 1;
 		_dupenv_s(&glslc, &num, "VULKAN_SDK");
@@ -78,7 +74,7 @@ namespace SG
 		glslcPath += "\\Bin32\\glslc.exe ";
 
 		UInt8 shaderBits = 0;
-		pIO->ExistOrCreate(EResourceDirectory::eShader_Binarires, ""); // create ShaderBin folder if it doesn't exist
+		FileSystem::ExistOrCreate(EResourceDirectory::eShader_Binarires, ""); // create ShaderBin folder if it doesn't exist
 
 		for (UInt32 i = 0; i < (UInt32)EShaderStages::NUM_STAGES; ++i)
 		{
@@ -98,14 +94,14 @@ namespace SG
 			compiledName[actualName.find('.')] = '-';
 			compiledName += ".spv";
 
-			if (pIO->Exist(EResourceDirectory::eShader_Binarires, compiledName.c_str())) // already compiled this shader once, skip it.
+			if (FileSystem::Exist(EResourceDirectory::eShader_Binarires, compiledName.c_str())) // already compiled this shader once, skip it.
 			{
 				shaderBits |= (1 << i); // mark as exist.
 				continue;
 			}
 
 			const char* prefix = "..//..//..//Resources//";
-			if (pIO->Exist(EResourceDirectory::eShader_Sources, actualName.c_str(), prefix))
+			if (FileSystem::Exist(EResourceDirectory::eShader_Sources, actualName.c_str(), prefix))
 			{
 				string shaderPath = prefix;
 				shaderPath += "ShaderSrc//";

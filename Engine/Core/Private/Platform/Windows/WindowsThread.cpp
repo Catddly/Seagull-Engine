@@ -2,7 +2,7 @@
 
 #include "Defs/Defs.h"
 #include "Thread/IThread.h"
-#include "Memory/IMemory.h"
+#include "Memory/Memory.h"
 
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG

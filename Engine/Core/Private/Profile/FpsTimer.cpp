@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "Profile/FpsTimer.h"
 
-#include "System/ILogger.h"
+#include "System/Logger.h"
 
 #include <eastl/algorithm.h>
 

@@ -1,8 +1,7 @@
 #include "StdAfx.h"
+#include "System/Logger.h"
 
 #include "Base/BasicTypes.h"
-#include "Logger.h"
-
 #include "System/System.h"
 
 namespace SG
@@ -12,15 +11,16 @@ namespace SG
 	int  Logger::sTempBufferSize = 0;
 	string Logger::sBuffer;
 
+	ELogMode Logger::mLogMode = ELogMode::eLog_Mode_Default;
+	fmt::CFormatter Logger::mFormatter;
+
 	void Logger::OnInit()
 	{
 		SetToDefaultFormat();
 
-		auto* pSysMgr = SSystem();
-		IFileSystem* pFs = pSysMgr->GetFileSystem();
-		if (pFs->Open(EResourceDirectory::eLog, "log.txt", EFileMode::efWrite)) // reopen to clean up the log file
+		if (FileSystem::Open(EResourceDirectory::eLog, "log.txt", EFileMode::efWrite)) // reopen to clean up the log file
 		{
-			pFs->Close();
+			FileSystem::Close();
 		}
 		sBuffer.resize(SG_MAX_LOG_BUFFER_SIZE);
 		sBuffer.clear();
@@ -71,15 +71,12 @@ namespace SG
 		return sprintf_s(pBuf, SG_MAX_TEMP_BUFFER_SIZE, "%s ", mFormatter.GetFormattedString().c_str());
 	}
 
-	void Logger::LogToFile() const
+	void Logger::LogToFile()
 	{
-		auto* pSysMgr = SSystem();
-		IFileSystem* pFs = pSysMgr->GetFileSystem();
-
-		if (pFs->Open(EResourceDirectory::eLog, "log.txt", EFileMode::efAppend))
+		if (FileSystem::Open(EResourceDirectory::eLog, "log.txt", EFileMode::efAppend))
 		{
-			pFs->Write(sBuffer.data(), sBuffer.length());
-			pFs->Close();
+			FileSystem::Write(sBuffer.data(), sBuffer.length());
+			FileSystem::Close();
 		}
 	}
 

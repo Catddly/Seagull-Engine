@@ -1,8 +1,8 @@
 #include "StdAfx.h"
-#include "FileSystem.h"
+#include "System/FileSystem.h"
 
 #include "Core/Private/Platform/Windows/WindowsStreamOp.h"
-#include "Memory/IMemory.h"
+#include "Memory/Memory.h"
 
 #include "stl/string.h"
 
@@ -20,6 +20,9 @@ namespace SG
 		"Script",
 		""
 	};
+
+	IStreamOps* FileSystem::mStreamOp = nullptr;
+	FileStream  FileSystem::mStream;
 
 	void FileSystem::OnInit()
 	{
@@ -58,12 +61,12 @@ namespace SG
 		return mStreamOp->Seek(&mStream, baseOffset, offset);
 	}
 
-	Size FileSystem::Tell() const
+	Size FileSystem::Tell()
 	{
 		return mStreamOp->Tell(&mStream);
 	}
 
-	Size FileSystem::FileSize() const
+	Size FileSystem::FileSize()
 	{
 		return mStreamOp->FileSize(&mStream);
 	}
@@ -73,7 +76,7 @@ namespace SG
 		return mStreamOp->Flush(&mStream);
 	}
 
-	bool FileSystem::IsEndOfFile() const
+	bool FileSystem::IsEndOfFile()
 	{
 		return mStreamOp->IsEndOfFile(&mStream);
 	}

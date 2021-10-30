@@ -71,7 +71,7 @@ public:
 		SG_LOG_INFO("User OnExit()");
 	}
 
-	virtual bool OnInputUpdate(SG::EKeyCode keycode, SG::EKeyState keyState, int xPos, int yPos) override
+	virtual bool OnKeyInputUpdate(SG::EKeyCode keycode, SG::EKeyState keyState) override
 	{
 		SG_LOG_INFO("User input %d (%d)", keycode, keyState);
 		return true;
@@ -143,21 +143,20 @@ private:
 	void FileSystemTest()
 	{
 		using namespace SG;
-		auto pIO = SSystem()->GetFileSystem();
-		if (pIO->Open(EResourceDirectory::eRoot, "test.spv", EFileMode::efWrite_Binary))
+		if (FileSystem::Open(EResourceDirectory::eRoot, "test.spv", EFileMode::efWrite_Binary))
 		{
 			int a = 4;
-			pIO->Write(&a, 4);
-			pIO->Close();
+			FileSystem::Write(&a, 4);
+			FileSystem::Close();
 		}
 
-		if (pIO->Open(EResourceDirectory::eRoot, "test.spv", EFileMode::efRead_Binary))
+		if (FileSystem::Open(EResourceDirectory::eRoot, "test.spv", EFileMode::efRead_Binary))
 		{
-			SG_LOG_DEBUG("FileSize: %d", pIO->FileSize());
-			void* buf = Memory::Malloc(pIO->FileSize());
-			pIO->Read(buf, pIO->FileSize());
+			SG_LOG_DEBUG("FileSize: %d", FileSystem::FileSize());
+			void* buf = Memory::Malloc(FileSystem::FileSize());
+			FileSystem::Read(buf, FileSystem::FileSize());
 			SG_LOG_DEBUG("a = %d", *(int*)buf);
-			pIO->Close();
+			FileSystem::Close();
 			Memory::Free(buf);
 		}
 	}

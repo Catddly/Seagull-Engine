@@ -1,8 +1,8 @@
 #include "StdAfx.h"
-#include "Platform/IOperatingSystem.h"
+#include "Platform/OS.h"
 
 #include "Defs/Defs.h"
-#include "System/ILogger.h"
+#include "System/Logger.h"
 
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG
