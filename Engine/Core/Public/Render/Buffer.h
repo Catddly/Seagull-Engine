@@ -25,6 +25,8 @@ namespace SG
 		void*        pData;
 		EBufferType  type;
 		UInt32       totalSizeInByte;
+
+		bool         bLocal : 1;
 	};
 
 }

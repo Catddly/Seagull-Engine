@@ -3,8 +3,6 @@
 #include "Core/Config.h"
 #include "Base/BasicTypes.h"
 
-#include "Reflection/Name.h"
-
 #include "Stl/vector.h"
 #include <EASTL/set.h>
 #include <EASTL/utility.h>

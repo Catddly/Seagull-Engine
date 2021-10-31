@@ -14,7 +14,6 @@ namespace SG
 
 		SG_CORE_API virtual void Update(float deltaTime) override;
 	private:
-		//SG_CORE_API virtual bool OnKeyInputUpdate(EKeyCode keycode, EKeyState keyState) override;
 		SG_CORE_API virtual bool OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos) override;
 		SG_CORE_API virtual bool OnMouseWheelInputUpdate(int direction) override;
 

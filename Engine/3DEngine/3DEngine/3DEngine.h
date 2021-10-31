@@ -1,7 +1,6 @@
 #pragma once
 #include "3DEngine/Config.h"
 
-#include "System/Logger.h"
 #include "System/I3DEngine.h"
 
 namespace SG

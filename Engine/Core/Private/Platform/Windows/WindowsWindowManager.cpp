@@ -2,7 +2,7 @@
 #include "Platform/OS.h"
 
 #include "System/Input.h"
-#include "System/Logger.h"
+#include "System/System.h"
 #include "Memory/Memory.h"
 
 namespace SG

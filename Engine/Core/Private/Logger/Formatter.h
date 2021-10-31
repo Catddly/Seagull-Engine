@@ -11,18 +11,15 @@ namespace SG
 		//! %h, %m, %s are system hour, minute and second
 		//! %y, %o, %d are system year, month and day
 		//! %t means thread name
-		class CFormatter
+		class Formatter
 		{
 		public:
-			CFormatter() = default;
-			~CFormatter() = default;
-
 			//! Set the format of the formatter.
-			void SetFormat(string_view format);
+			SG_CORE_API static void SetFormat(const char* format);
 			//! Get the formatted string.
-			string GetFormattedString();
+			SG_CORE_API static string GetFormattedString();
 		private:
-			string mCurrFormat;
+			static string mCurrFormat;
 		};
 
 	}

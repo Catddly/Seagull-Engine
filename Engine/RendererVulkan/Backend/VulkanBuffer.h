@@ -2,26 +2,30 @@
 
 #include "Render/Buffer.h"
 
+#include "VulkanDevice.h"
+
 #include <vulkan/vulkan_core.h>
 
 namespace SG
 {
 
-	struct VulkanBuffer
+	class VulkanBuffer
 	{
-		VkDevice       device; // TODO: remove it from buffer.
+	public:
+		VulkanBuffer(VulkanDevice& d, const BufferCreateDesc& CI, bool bLocal);
+		~VulkanBuffer();
+
+		bool UploadData(void* pData);
+
+		VkBuffer& NativeHandle() { return buffer; }
+		static VulkanBuffer* Create(VulkanDevice& device, const BufferCreateDesc& CI, bool bLocal);
+	private:
+		VulkanDevice&  device;
+
 		VkDeviceMemory memory;
 		VkBuffer       buffer;
 		UInt32         totalSizeInByte;
 		EBufferType    type;
-
-		// descriptor for GPU to get the resource.
-		VkDescriptorSetLayout  descriptorSetLayout;
-		VkDescriptorSet        descriptorSet;
-		VkDescriptorBufferInfo descriptor;
-
-		bool UploadData(void* pData);
-		bool UpdateDescriptor();
 	};
 
 }

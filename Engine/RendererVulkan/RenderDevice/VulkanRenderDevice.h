@@ -5,28 +5,24 @@
 #include "Render/Shader.h"
 
 #include "System/Input.h"
-
+#include "System/System.h"
 #include "Render/Camera/ICamera.h"
 
 #include "Math/Matrix.h"
-
 #include "stl/vector.h"
 
 namespace SG
 {
-
-	class VulkanInstance;
-	class VulkanDevice;
-	class VulkanSwapchain;
+	class VulkanContext;
 	class VulkanRenderContext;
 	
-	struct VulkanRenderTarget;
+	class VulkanBuffer;
+
 	struct VulkanPipeline;
 	struct VulkanSemaphore;
 	struct VulkanFence;
 	struct VulkanQueue;
 	struct VulkanFrameBuffer;
-	struct VulkanBuffer;
 
 	class VulkanRenderDevice : public IRenderDevice, public ISystemMessageListener, public IInputListener
 	{
@@ -48,12 +44,8 @@ namespace SG
 		// TODO: replace it to reflection
 		SG_RENDERER_VK_API static const char* GetModuleName() { return "RenderDevice"; }
 	protected:
-		bool SelectPhysicalDeviceAndCreateDevice();
 		void WindowResize();
 		void RecordRenderCommands();
-
-		bool CreateDepthRT();
-		void DestroyDepthRT();
 
 		bool CreateBuffers(float* vertices, UInt32* indices);
 		void DestroyBuffers();
@@ -62,14 +54,10 @@ namespace SG
 		bool mbWindowMinimal = false;
 		bool mbUseOrtho = false;
 
-		VulkanInstance*      mpInstance = nullptr;
-		VulkanDevice*        mpDevice = nullptr;
-		VulkanSwapchain*     mpSwapchain = nullptr;
-		VulkanFrameBuffer*   mpFrameBuffers = nullptr;
-		VulkanRenderContext* mpRenderContext = nullptr;
+		VulkanContext* mpContext = nullptr;
 
-		vector<VulkanRenderTarget*> mpColorRts;
-		VulkanRenderTarget*         mpDepthRt;
+		VulkanFrameBuffer* mpFrameBuffers = nullptr;
+		VulkanRenderContext* mpRenderContext = nullptr;
 
 		VulkanPipeline* mpPipeline;
 		Shader          mBasicShader;

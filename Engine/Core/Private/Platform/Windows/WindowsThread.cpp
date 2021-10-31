@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 
 #include "Defs/Defs.h"
-#include "Thread/IThread.h"
+#include "Thread/Thread.h"
 #include "Memory/Memory.h"
 
 #ifdef SG_PLATFORM_WINDOWS

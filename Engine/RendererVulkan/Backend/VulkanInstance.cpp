@@ -59,6 +59,7 @@ namespace SG
 			SG_LOG_ERROR("Failed to create vulkan instance!");
 			SG_ASSERT(false);
 		}
+		SelectPhysicalDevice();
 	}
 
 	VulkanInstance::~VulkanInstance()
@@ -231,6 +232,39 @@ namespace SG
 
 		if (_CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &mDebugLayer) != VK_SUCCESS)
 			SG_ASSERT(false);
+	}
+
+	bool VulkanInstance::SelectPhysicalDevice()
+	{
+		UInt32 gpuCount;
+		vkEnumeratePhysicalDevices(instance, &gpuCount, nullptr);
+		vector<VkPhysicalDevice> devices(gpuCount);
+		vkEnumeratePhysicalDevices(instance, &gpuCount, devices.data());
+
+		// TODO: add more conditions to choose the best device(adapter)
+		for (auto& device : devices)
+		{
+			VkPhysicalDeviceProperties deviceProperties;
+			VkPhysicalDeviceFeatures   deviceFeatures;
+			vkGetPhysicalDeviceProperties(device, &deviceProperties);
+			vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+			//SG_LOG_DEBUG("VkAdapter Name: %s", deviceProperties.deviceName);
+
+			if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+			{
+				physicalDevice = device;
+				return true;
+			}
+
+			if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
+			{
+				physicalDevice = device;
+				SG_LOG_WARN("Integrated GPU detected!");
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 }

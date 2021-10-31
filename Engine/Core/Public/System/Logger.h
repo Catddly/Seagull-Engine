@@ -3,8 +3,6 @@
 #include "Core/Config.h"
 #include "Base/BasicTypes.h"
 
-#include "System/System.h"
-
 #include "Core/Private/Logger/Formatter.h"
 
 #include <EASTL/string.h>
@@ -12,6 +10,14 @@
 
 namespace SG
 {
+
+	enum class ELogMode
+	{
+		eLog_Mode_Default = 0,   //! Log all messages and log to file.
+		eLog_Mode_No_File,       //! Do not log out as file.
+		eLog_Mode_Quite,         //! Only log out the warn, error and criticle message.
+		eLog_Mode_Quite_No_File,
+	};
 
 	enum class ELogLevel : UInt32
 	{
@@ -23,23 +29,15 @@ namespace SG
 	};
 	SG_ENUM_CLASS_FLAG(UInt32, ELogLevel);
 
-	enum class ELogMode
-	{
-		eLog_Mode_Default = 0,   //! Log all messages and log to file.
-		eLog_Mode_No_File,       //! Do not log out as file.
-		eLog_Mode_Quite,         //! Only log out the warn, error and criticle message.
-		eLog_Mode_Quite_No_File,
-	};
-
 	class Logger
 	{
 	public:
 		//! Set log format
-		static void SetFormat(string_view format) { mFormatter.SetFormat(format); }
-		static void SetToDefaultFormat() { SetFormat("[%y:%o:%d]-[%h:%m:%s]-[%t]"); }
+		SG_CORE_API static void SetFormat(const char* format) { fmt::Formatter::SetFormat(format); }
+		SG_CORE_API static void SetToDefaultFormat() { SetFormat("[%y:%o:%d]-[%h:%m:%s]-[%t]"); }
 		//! Log to console
 		SG_CORE_API static void LogToConsole(ELogLevel logLevel, const char* format, ...);
-		static void LogToFile();
+		SG_CORE_API static void LogToFile();
 
 		static void SetLogMode(ELogMode logMode) { mLogMode = logMode; }
 	private:
@@ -62,7 +60,6 @@ namespace SG
 		static string sBuffer;
 
 		static ELogMode mLogMode;
-		static fmt::CFormatter mFormatter;
 	};
 
 namespace impl

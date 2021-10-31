@@ -1,22 +1,21 @@
 #include "StdAfx.h"
 #include "System/Logger.h"
 
-#include "Base/BasicTypes.h"
-#include "System/System.h"
+#include "System/FileSystem.h"
 
 namespace SG
 {
 
-	char Logger::sTempBuffer[SG_MAX_TEMP_BUFFER_SIZE] = { 0 };
-	int  Logger::sTempBufferSize = 0;
+	char   Logger::sTempBuffer[SG_MAX_TEMP_BUFFER_SIZE] = { 0 };
+	int    Logger::sTempBufferSize = 0;
 	string Logger::sBuffer;
 
 	ELogMode Logger::mLogMode = ELogMode::eLog_Mode_Default;
-	fmt::CFormatter Logger::mFormatter;
 
 	void Logger::OnInit()
 	{
-		SetToDefaultFormat();
+		//SetToDefaultFormat();
+		SetFormat("[%y:%o:%d]-[%h:%m:%s]");
 
 		if (FileSystem::Open(EResourceDirectory::eLog, "log.txt", EFileMode::efWrite)) // reopen to clean up the log file
 		{
@@ -68,7 +67,7 @@ namespace SG
 
 	int Logger::AddPrefix(char* pBuf)
 	{
-		return sprintf_s(pBuf, SG_MAX_TEMP_BUFFER_SIZE, "%s ", mFormatter.GetFormattedString().c_str());
+		return sprintf_s(pBuf, SG_MAX_TEMP_BUFFER_SIZE, "%s ", fmt::Formatter::GetFormattedString().c_str());
 	}
 
 	void Logger::LogToFile()

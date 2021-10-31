@@ -4,6 +4,7 @@
 #include "System/System.h"
 #include "Platform/OS.h"
 
+#include "VulkanInstance.h"
 #include "VulkanDevice.h"
 #include "VulkanSynchronizePrimitive.h"
 #include "RendererVulkan/Utils/VkConvert.h"
@@ -17,69 +18,15 @@
 namespace SG
 {
 
-	VulkanSwapchain::VulkanSwapchain(VkInstance instance)
-		:mInstance(instance), mPhysicalDevice(VK_NULL_HANDLE), mLogicalDevice(VK_NULL_HANDLE)
+	VulkanSwapchain::VulkanSwapchain(VulkanInstance& instance, VulkanDevice& device)
+		:mInstance(instance), mDevice(device)
 	{
+		CreateSurface();
 	}
 
 	VulkanSwapchain::~VulkanSwapchain()
 	{
-	}
-
-	void VulkanSwapchain::BindDevice(VkPhysicalDevice physicalDevice, VkDevice device)
-	{
-		if (physicalDevice != VK_NULL_HANDLE && device != VK_NULL_HANDLE)
-		{
-			mPhysicalDevice = physicalDevice;
-			mLogicalDevice = device;
-
-			// Get list of supported surface formats
-			uint32_t formatCount;
-			vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, mPresentSurface, &formatCount, NULL);
-			vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, mPresentSurface, &formatCount, surfaceFormats.data());
-
-			// If the surface format list only includes one entry with VK_FORMAT_UNDEFINED,
-			// there is no preferred format, so we assume VK_FORMAT_B8G8R8A8_UNORM
-			if ((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
-			{
-				mFormat = VK_FORMAT_B8G8R8A8_UNORM;
-				mColorSpace = surfaceFormats[0].colorSpace;
-			}
-			else
-			{
-				// iterate over the list of available surface format and
-				// check for the presence of VK_FORMAT_B8G8R8A8_UNORM
-				bool found_B8G8R8A8_UNORM = false;
-				for (auto&& surfaceFormat : surfaceFormats)
-				{
-					if (surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
-					{
-						mFormat = surfaceFormat.format;
-						mColorSpace = surfaceFormat.colorSpace;
-						found_B8G8R8A8_UNORM = true;
-						break;
-					}
-				}
-
-				// in case VK_FORMAT_B8G8R8A8_UNORM is not available
-				// select the first available color format
-				if (!found_B8G8R8A8_UNORM)
-				{
-					mFormat = surfaceFormats[0].format;
-					mColorSpace = surfaceFormats[0].colorSpace;
-				}
-			}
-
-			bSwapchainAdequate = true;
-		}
-		else
-		{
-			mPhysicalDevice = physicalDevice;
-			mLogicalDevice = device;
-
-			bSwapchainAdequate = false;
-		}
+		DestroySurface();
 	}
 
 	bool VulkanSwapchain::CreateOrRecreate(UInt32 width, UInt32 height, bool vsync)
@@ -91,22 +38,22 @@ namespace SG
 		vector<VkSurfaceFormatKHR> formats;
 		vector<VkPresentModeKHR> presentModes;
 
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mPhysicalDevice, mPresentSurface, &capabilities);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mInstance.physicalDevice, mPresentSurface, &capabilities);
 
 		UInt32 formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, mPresentSurface, &formatCount, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(mInstance.physicalDevice, mPresentSurface, &formatCount, nullptr);
 		if (formatCount != 0)
 		{
 			formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, mPresentSurface, &formatCount, formats.data());
+			vkGetPhysicalDeviceSurfaceFormatsKHR(mInstance.physicalDevice, mPresentSurface, &formatCount, formats.data());
 		}
 
 		UInt32 presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(mPhysicalDevice, mPresentSurface, &presentModeCount, nullptr);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(mInstance.physicalDevice, mPresentSurface, &presentModeCount, nullptr);
 		if (presentModeCount != 0)
 		{
 			presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(mPhysicalDevice, mPresentSurface, &presentModeCount, presentModes.data());
+			vkGetPhysicalDeviceSurfacePresentModesKHR(mInstance.physicalDevice, mPresentSurface, &presentModeCount, presentModes.data());
 		}
 
 		// if the swapchain can do presenting
@@ -138,7 +85,7 @@ namespace SG
 		}
 
 		VkSurfaceCapabilitiesKHR surfCaps;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mPhysicalDevice, mPresentSurface, &surfCaps);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mInstance.physicalDevice, mPresentSurface, &surfCaps);
 
 		// find the transformation of the surface
 		VkSurfaceTransformFlagsKHR preTransform;
@@ -194,7 +141,7 @@ namespace SG
 
 		createInfo.oldSwapchain = oldSwapchain;
 
-		if (vkCreateSwapchainKHR(mLogicalDevice, &createInfo, nullptr, &swapchain) != VK_SUCCESS)
+		if (vkCreateSwapchainKHR(mDevice.logicalDevice, &createInfo, nullptr, &swapchain) != VK_SUCCESS)
 		{
 			SG_LOG_ERROR("Failed to create swapchain");
 			return false;
@@ -204,15 +151,15 @@ namespace SG
 		if (oldSwapchain != VK_NULL_HANDLE)
 		{
 			for (auto& e : imageViews)
-			{
-				vkDestroyImageView(mLogicalDevice, e, nullptr);
-			}
-			vkDestroySwapchainKHR(mLogicalDevice, oldSwapchain, nullptr);
+				vkDestroyImageView(mDevice.logicalDevice, e, nullptr);
+			vkDestroySwapchainKHR(mDevice.logicalDevice, oldSwapchain, nullptr);
+			for (UInt32 i = 0; i < imageCount; ++i)
+				Memory::Delete(mpRts[i]);
 		}
 
-		vkGetSwapchainImagesKHR(mLogicalDevice, swapchain, &imageCount, nullptr);
+		vkGetSwapchainImagesKHR(mDevice.logicalDevice, swapchain, &imageCount, nullptr);
 		images.resize(imageCount);
-		vkGetSwapchainImagesKHR(mLogicalDevice, swapchain, &imageCount, images.data());
+		vkGetSwapchainImagesKHR(mDevice.logicalDevice, swapchain, &imageCount, images.data());
 
 		imageViews.resize(imageCount);
 		mpRts.resize(imageCount);
@@ -238,9 +185,9 @@ namespace SG
 
 			colorAttachmentView.image = images[i];
 
-			vkCreateImageView(mLogicalDevice, &colorAttachmentView, nullptr, &imageViews[i]);
+			vkCreateImageView(mDevice.logicalDevice, &colorAttachmentView, nullptr, &imageViews[i]);
 
-			mpRts[i] = Memory::New<VulkanRenderTarget>();
+			mpRts[i] = Memory::New<VulkanRenderTarget>(mDevice);
 			mpRts[i]->width  = swapchainExtent.width;
 			mpRts[i]->height = swapchainExtent.height;
 			mpRts[i]->depth  = 1;
@@ -260,16 +207,10 @@ namespace SG
 		return true;
 	}
 
-	void VulkanSwapchain::Destroy()
+	void VulkanSwapchain::DestroySurface()
 	{
-		for (auto* ptr : mpRts)
-			Memory::Delete(ptr);
-		for (UInt32 i = 0; i < imageCount; ++i)
-			vkDestroyImageView(mLogicalDevice, imageViews[i], nullptr);
-		if (swapchain != VK_NULL_HANDLE)
-			vkDestroySwapchainKHR(mLogicalDevice, swapchain, nullptr);
 		if (mPresentSurface != VK_NULL_HANDLE)
-			vkDestroySurfaceKHR(mInstance, mPresentSurface, nullptr);
+			vkDestroySurfaceKHR(mInstance.instance, mPresentSurface, nullptr);
 	}
 
 	VulkanRenderTarget* VulkanSwapchain::GetRenderTarget(UInt32 index) const
@@ -280,9 +221,19 @@ namespace SG
 		return mpRts[index];
 	}
 
+	void VulkanSwapchain::CleanUp()
+	{
+		for (UInt32 i = 0; i < imageCount; ++i)
+			vkDestroyImageView(mDevice.logicalDevice, imageViews[i], nullptr);
+		for (auto* ptr : mpRts)
+			Memory::Delete(ptr);
+		if (swapchain != VK_NULL_HANDLE)
+			vkDestroySwapchainKHR(mDevice.logicalDevice, swapchain, nullptr);
+	}
+
 	bool VulkanSwapchain::AcquireNextImage(VulkanSemaphore* signalSemaphore, UInt32& imageIndex)
 	{
-		if (vkAcquireNextImageKHR(mLogicalDevice, swapchain, UINT64_MAX, signalSemaphore->semaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
+		if (vkAcquireNextImageKHR(mDevice.logicalDevice, swapchain, UINT64_MAX, signalSemaphore->semaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
 		{
 			SG_LOG_WARN("Failed to acquire next image!");
 			return false;
@@ -322,23 +273,145 @@ namespace SG
 		createInfo.hwnd = (HWND)mainWindow->GetNativeHandle();
 		createInfo.hinstance = ::GetModuleHandle(NULL);
 		
-		if (vkCreateWin32SurfaceKHR(mInstance, &createInfo, nullptr, &mPresentSurface) != VK_SUCCESS)
+		if (vkCreateWin32SurfaceKHR(mInstance.instance, &createInfo, nullptr, &mPresentSurface) != VK_SUCCESS)
 			return false;
+
+		CheckSurfacePresentable(mDevice.queueFamilyIndices.graphics);
+
+		// Get list of supported surface formats
+		uint32_t formatCount;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(mInstance.physicalDevice, mPresentSurface, &formatCount, NULL);
+		vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(mInstance.physicalDevice, mPresentSurface, &formatCount, surfaceFormats.data());
+
+		// If the surface format list only includes one entry with VK_FORMAT_UNDEFINED,
+		// there is no preferred format, so we assume VK_FORMAT_B8G8R8A8_UNORM
+		if ((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
+		{
+			mFormat = VK_FORMAT_B8G8R8A8_UNORM;
+			mColorSpace = surfaceFormats[0].colorSpace;
+		}
+		else
+		{
+			// iterate over the list of available surface format and
+			// check for the presence of VK_FORMAT_B8G8R8A8_UNORM
+			bool found_B8G8R8A8_UNORM = false;
+			for (auto& surfaceFormat : surfaceFormats)
+			{
+				if (surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
+				{
+					mFormat = surfaceFormat.format;
+					mColorSpace = surfaceFormat.colorSpace;
+					found_B8G8R8A8_UNORM = true;
+					break;
+				}
+			}
+
+			// in case VK_FORMAT_B8G8R8A8_UNORM is not available
+			// select the first available color format
+			if (!found_B8G8R8A8_UNORM)
+			{
+				mFormat = surfaceFormats[0].format;
+				mColorSpace = surfaceFormats[0].colorSpace;
+			}
+		}
+
 		return true;
 #endif
 	}
 
-	bool VulkanSwapchain::CheckSurfacePresentable(VulkanQueue* queue)
+	bool VulkanSwapchain::CheckSurfacePresentable(UInt32 familyIndex)
 	{
 		// check if the graphic queue can do the presentation job
 		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, queue->familyIndex, mPresentSurface, &presentSupport);
+		vkGetPhysicalDeviceSurfaceSupportKHR(mInstance.physicalDevice, familyIndex, mPresentSurface, &presentSupport);
 		if (!presentSupport)
 		{
 			SG_LOG_ERROR("Current physical device not support surface presentation");
 			return false;
 		}
 		return true;
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// VulkanRenderTarget
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	VulkanRenderTarget::VulkanRenderTarget(VulkanDevice& d, const RenderTargetCreateDesc& CI)
+		:device(d), memory(0)
+	{
+		width  = CI.width;
+		height = CI.height;
+		depth  = CI.depth;
+		mipmap = CI.mipmap;
+		array  = CI.array;
+
+		format = ToVkImageFormat(CI.format);
+		type   = ToVkImageType(CI.type);
+		sample = ToVkSampleCount(CI.sample);
+		usage  = ToVkImageUsage(CI.usage);
+
+		VkImageCreateInfo imageCI = {};
+		imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageCI.imageType = type;
+		imageCI.format = format;
+		imageCI.extent = { width, height, depth };
+		imageCI.mipLevels = mipmap;
+		imageCI.arrayLayers = array;
+		imageCI.samples = sample;
+		imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageCI.usage = usage;
+
+		VK_CHECK(vkCreateImage(device.logicalDevice, &imageCI, nullptr, &image),
+			SG_LOG_ERROR("Failed to create render targets' image!"););
+
+		VkMemoryRequirements memReqs = {};
+		vkGetImageMemoryRequirements(device.logicalDevice, image, &memReqs);
+
+		VkMemoryAllocateInfo memAllloc = {};
+		memAllloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		memAllloc.allocationSize = memReqs.size;
+		memAllloc.memoryTypeIndex = device.GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		vkAllocateMemory(device.logicalDevice, &memAllloc, nullptr, &memory);
+
+		vkBindImageMemory(device.logicalDevice, image, memory, 0);
+
+		VkImageViewCreateInfo imageViewCI = {};
+		imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewCI.viewType = ToVkImageViewType(type, array);
+		imageViewCI.image  = image;
+		imageViewCI.format = format;
+		imageViewCI.subresourceRange.baseMipLevel = 0;
+		imageViewCI.subresourceRange.levelCount = 1;
+		imageViewCI.subresourceRange.baseArrayLayer = 0;
+		imageViewCI.subresourceRange.layerCount = array;
+
+		if (usage == VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+		{
+			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+			// stencil aspect should only be set on depth + stencil formats (VK_FORMAT_D16_UNORM_S8_UINT..VK_FORMAT_D32_SFLOAT_S8_UINT
+			if (format >= VK_FORMAT_D16_UNORM_S8_UINT) {
+				imageViewCI.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+			}
+		}
+
+		VK_CHECK(vkCreateImageView(device.logicalDevice, &imageViewCI, nullptr, &imageView),
+			SG_LOG_ERROR("Failed to create render targets' image view!"););
+	}
+
+	VulkanRenderTarget::~VulkanRenderTarget()
+	{
+		if (memory != 0)
+		{
+			vkDestroyImageView(device.logicalDevice, imageView, nullptr);
+			vkDestroyImage(device.logicalDevice, image, nullptr);
+			vkFreeMemory(device.logicalDevice, memory, nullptr);
+		}
+	}
+
+	SG::VulkanRenderTarget* VulkanRenderTarget::Create(VulkanDevice& d, const RenderTargetCreateDesc& CI)
+	{
+		return Memory::New<VulkanRenderTarget>(d, CI);
 	}
 
 }

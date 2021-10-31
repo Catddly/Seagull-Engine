@@ -8,8 +8,6 @@
 #include "Render/SwapChain.h"
 #include "Render/Buffer.h"
 
-#include "RendererVulkan/Backend/VulkanBuffer.h"
-
 #include <vulkan/vulkan_core.h>
 
 #include <Stl/vector.h>
@@ -37,26 +35,19 @@ namespace SG
 		virtual void WaitIdle() const override;
 	};
 
-	struct VulkanRenderTarget;
-	class  VulkanRenderContext;
+	class VulkanBuffer;
+	class VulkanRenderTarget;
+	class VulkanRenderContext;
 
 	//! @brief All the device relative data are stored in here.
 	//! Should be initialized by VulkanInstace.
 	class VulkanDevice
 	{
 	public:
-		VulkanDevice(VkPhysicalDevice device);
+		VulkanDevice(VkPhysicalDevice& device);
 		~VulkanDevice();
 
-		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 		VkDevice         logicalDevice = VK_NULL_HANDLE;
-
-		VkCommandPool    graphicCommandPool;
-		VkCommandPool    computeCommandPool;
-		VkCommandPool    transferCommandPool;
-		VkRenderPass     defaultRenderPass;
-
-		VkDescriptorPool defaultDescriptorPool;
 
 		vector<VkExtensionProperties>   supportedExtensions;
 		vector<VkQueueFamilyProperties> queueFamilyProperties;
@@ -68,10 +59,6 @@ namespace SG
 		} queueFamilyIndices;
 
 		void WaitIdle() const;
-
-		//! @brief Fetch all the queue family indices and create a logical device.
-		bool CreateLogicalDevice(void* pNext);
-		void DestroyLogicalDevice();
 
 		//! @brief Create a command pool.
 		VkCommandPool CreateCommandPool(UInt32 queueFamilyIndices, VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
@@ -87,14 +74,14 @@ namespace SG
 		bool AllocateCommandBuffers(VulkanRenderContext* pContext);
 		void FreeCommandBuffers(VulkanRenderContext* pContext);
 
-		VulkanRenderContext* CreateRenderContext(UInt32 numBuffers, EQueueType type);
+		VulkanRenderContext* CreateRenderContext(UInt32 numBuffers, VkCommandPool pool);
 		void                 DestroyRenderContext(VulkanRenderContext* pContext);
 
 		VkFramebuffer CreateFrameBuffer(VkRenderPass renderPass, VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt);
 		void DestroyFrameBuffer(VkFramebuffer frameBuffer);
 
-		VulkanRenderTarget* CreateRenderTarget(const RenderTargetCreateDesc& rt);
-		void DestroyRenderTarget(VulkanRenderTarget* rt);
+		//VulkanRenderTarget* CreateRenderTarget(const RenderTargetCreateDesc& rt);
+		//void DestroyRenderTarget(VulkanRenderTarget* rt);
 
 		VkRenderPass CreateRenderPass(VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt); // relative to rts
 		void DestroyRenderPass(VkRenderPass renderPass);
@@ -105,23 +92,25 @@ namespace SG
 		VkPipelineLayout CreatePipelineLayout(VulkanBuffer* pBuffer);
 		void             DestroyPipelineLayout(VkPipelineLayout layout);
 		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkPipelineLayout layout, VkRenderPass renderPass, Shader& shader, BufferLayout* pLayout);
-		void DestroyPipeline(VkPipeline pipeline);
+		void       DestroyPipeline(VkPipeline pipeline);
 
 		VulkanQueue* GetQueue(EQueueType type) const;
 
-		// resources (TODO: move to asset manager)
-		VulkanBuffer* CreateBuffer(const BufferCreateDesc& bufferCI);
-		void          DestroyBuffer(VulkanBuffer* pBuffer);
-
 		VkDescriptorPool CreateDescriptorPool();
 		void             DestroyDescriptorPool(VkDescriptorPool pool);
-		VkDescriptorSet  AllocateDescriptorSet(VkDescriptorSetLayout layout);
-		void             FreeDescriptorSet(VkDescriptorSet set);
+		VkDescriptorSet  AllocateDescriptorSet(VkDescriptorSetLayout layout, VkDescriptorPool pool);
+		void             FreeDescriptorSet(VkDescriptorSet set, VkDescriptorPool pool);
 
 		bool SupportExtension(const string& extension);
-	private:
-		int FetchQueueFamilyIndicies(VkQueueFlagBits type);
 		UInt32 GetMemoryType(UInt32 typeBits, VkMemoryPropertyFlags properties, VkBool32* memTypeFound = nullptr) const;
+	private:
+		VkPhysicalDevice& physicalDevice;
+
+		//! @brief Fetch all the queue family indices and create a logical device.
+		bool CreateLogicalDevice(void* pNext);
+		void DestroyLogicalDevice();
+
+		int FetchQueueFamilyIndicies(VkQueueFlagBits type);
 	};
 
 }

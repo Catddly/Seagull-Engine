@@ -2,7 +2,7 @@
 
 #include "Base/BasicTypes.h"
 #include "Platform/SystemTime.h"
-#include "Thread/IThread.h"
+#include "Thread/Thread.h"
 
 #include "Stl/string.h"
 #include <EASTL/type_traits.h>

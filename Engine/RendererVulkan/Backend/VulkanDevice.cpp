@@ -6,6 +6,7 @@
 
 #include "VulkanInstance.h"
 #include "VulkanSwapchain.h"
+#include "VulkanBuffer.h"
 #include "VulkanRenderContext.h"
 #include "VulkanSynchronizePrimitive.h"
 #include "RendererVulkan/Utils/VkConvert.h"
@@ -18,7 +19,7 @@
 namespace SG
 {
 
-	VulkanDevice::VulkanDevice(VkPhysicalDevice device)
+	VulkanDevice::VulkanDevice(VkPhysicalDevice& device)
 		:physicalDevice(device)
 	{
 		// get all the extensions supported by device
@@ -34,17 +35,12 @@ namespace SG
 		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 		queueFamilyProperties.resize(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilyProperties.data());
+	
+		CreateLogicalDevice(nullptr);
 	}
 
 	VulkanDevice::~VulkanDevice()
 	{
-		DestroyDescriptorPool(defaultDescriptorPool);
-		if (graphicCommandPool != VK_NULL_HANDLE)
-			DestroyCommandPool(graphicCommandPool);
-		if (transferCommandPool != VK_NULL_HANDLE && queueFamilyIndices.graphics != queueFamilyIndices.transfer)
-			DestroyCommandPool(transferCommandPool);
-		if (computeCommandPool != VK_NULL_HANDLE && queueFamilyIndices.graphics != queueFamilyIndices.compute)
-			DestroyCommandPool(computeCommandPool);
 		if (logicalDevice != VK_NULL_HANDLE)
 			DestroyLogicalDevice();
 	}
@@ -152,47 +148,6 @@ namespace SG
 			SG_LOG_ERROR("Failed to create logical device!");
 			return false;
 		}
-
-		// create a default command pool to allocate commands to graphic queue.
-		graphicCommandPool = CreateCommandPool(queueFamilyIndices.graphics);
-		if (graphicCommandPool == VK_NULL_HANDLE)
-		{
-			SG_LOG_ERROR("Failed to create default graphic command pool!");
-			return false;
-		}
-
-		// create a default command pool to allocate commands to transfer queue.
-		if (queueFamilyIndices.transfer == queueFamilyIndices.graphics)
-		{
-			transferCommandPool = graphicCommandPool;
-		}
-		else
-		{
-			transferCommandPool = CreateCommandPool(queueFamilyIndices.transfer);
-			if (transferCommandPool == VK_NULL_HANDLE)
-			{
-				SG_LOG_ERROR("Failed to create default transfer command pool!");
-				return false;
-			}
-		}
-
-		// create a default command pool to allocate commands to compute queue.
-		if (queueFamilyIndices.compute == queueFamilyIndices.graphics)
-		{
-			computeCommandPool = graphicCommandPool;
-		}
-		else
-		{
-			computeCommandPool = CreateCommandPool(queueFamilyIndices.compute);
-			if (computeCommandPool == VK_NULL_HANDLE)
-			{
-				SG_LOG_ERROR("Failed to create default compute command pool!");
-				return false;
-			}
-		}
-
-		defaultDescriptorPool = CreateDescriptorPool();
-
 		return true;
 	}
 
@@ -265,18 +220,19 @@ namespace SG
 		vkResetFences(logicalDevice, 1, &fence);
 	}
 
-	SG::VulkanRenderContext* VulkanDevice::CreateRenderContext(UInt32 numBuffers, EQueueType type)
+	SG::VulkanRenderContext* VulkanDevice::CreateRenderContext(UInt32 numBuffers, VkCommandPool pool)
 	{
 		auto* pRenderContext = Memory::New<VulkanRenderContext>(numBuffers);
-		switch (type)
-		{
-		case SG::EQueueType::eGraphic:  pRenderContext->commandPool = graphicCommandPool; break;
-		case SG::EQueueType::eTransfer: pRenderContext->commandPool = transferCommandPool; break;
-		case SG::EQueueType::eCompute:  pRenderContext->commandPool = computeCommandPool; break;
-		case SG::EQueueType::eNull:
-		case SG::EQueueType::MAX_COUNT:
-		default: SG_LOG_ERROR("Invalid queue type to create render context!"); break;
-		}
+		//switch (type)
+		//{
+		//case SG::EQueueType::eGraphic:  pRenderContext->commandPool = graphicCommandPool; break;
+		//case SG::EQueueType::eTransfer: pRenderContext->commandPool = transferCommandPool; break;
+		//case SG::EQueueType::eCompute:  pRenderContext->commandPool = computeCommandPool; break;
+		//case SG::EQueueType::eNull:
+		//case SG::EQueueType::MAX_COUNT:
+		//default: SG_LOG_ERROR("Invalid queue type to create render context!"); break;
+		//}
+		pRenderContext->commandPool = pool;
 
 		AllocateCommandBuffers(pRenderContext);
 		return pRenderContext;
@@ -348,77 +304,6 @@ namespace SG
 	void VulkanDevice::DestroyFrameBuffer(VkFramebuffer frameBuffer)
 	{
 		vkDestroyFramebuffer(logicalDevice, frameBuffer, nullptr);
-	}
-
-	VulkanRenderTarget* VulkanDevice::CreateRenderTarget(const RenderTargetCreateDesc& rt)
-	{
-		// TODO: use resource system to store the resource
-		VulkanRenderTarget* renderTarget = Memory::New<VulkanRenderTarget>();
-		renderTarget->width  = rt.width;
-		renderTarget->height = rt.height;
-		renderTarget->depth  = rt.depth;
-		renderTarget->mipmap = rt.mipmap;
-		renderTarget->array  = rt.array;
-
-		renderTarget->format = ToVkImageFormat(rt.format);
-		renderTarget->type   = ToVkImageType(rt.type);
-		renderTarget->sample = ToVkSampleCount(rt.sample);
-		renderTarget->usage  = ToVkImageUsage(rt.usage);
-
-		VkImageCreateInfo imageCI = {};
-		imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageCI.imageType = renderTarget->type;
-		imageCI.format = renderTarget->format;
-		imageCI.extent = { rt.width, rt.height, rt.depth };
-		imageCI.mipLevels = rt.mipmap;
-		imageCI.arrayLayers = rt.array;
-		imageCI.samples = renderTarget->sample;
-		imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageCI.usage = renderTarget->usage;
-
-		VK_CHECK(vkCreateImage(logicalDevice, &imageCI, nullptr, &renderTarget->image),
-			SG_LOG_ERROR("Failed to create render targets' image!"); Memory::Delete(renderTarget); return false;);
-
-		VkMemoryRequirements memReqs = {};
-		vkGetImageMemoryRequirements(logicalDevice, renderTarget->image, &memReqs);
-
-		VkMemoryAllocateInfo memAllloc = {};
-		memAllloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		memAllloc.allocationSize = memReqs.size;
-		memAllloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		vkAllocateMemory(logicalDevice, &memAllloc, nullptr, &renderTarget->memory);
-		vkBindImageMemory(logicalDevice, renderTarget->image, renderTarget->memory, 0);
-
-		VkImageViewCreateInfo imageViewCI = {};
-		imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCI.viewType = ToVkImageViewType(renderTarget->type, renderTarget->array);
-		imageViewCI.image = renderTarget->image;
-		imageViewCI.format = renderTarget->format;
-		imageViewCI.subresourceRange.baseMipLevel = 0;
-		imageViewCI.subresourceRange.levelCount = 1;
-		imageViewCI.subresourceRange.baseArrayLayer = 0;
-		imageViewCI.subresourceRange.layerCount = renderTarget->array;
-
-		if (renderTarget->usage == VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-		{
-			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-			// stencil aspect should only be set on depth + stencil formats (VK_FORMAT_D16_UNORM_S8_UINT..VK_FORMAT_D32_SFLOAT_S8_UINT
-			if (renderTarget->format >= VK_FORMAT_D16_UNORM_S8_UINT) {
-				imageViewCI.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-			}
-		}
-
-		VK_CHECK(vkCreateImageView(logicalDevice, &imageViewCI, nullptr, &renderTarget->imageView),
-			SG_LOG_ERROR("Failed to create render targets' image view!"); Memory::Delete(renderTarget); return nullptr;);
-
-		return renderTarget;
-	}
-
-	void VulkanDevice::DestroyRenderTarget(VulkanRenderTarget* rt)
-	{
-		vkDestroyImageView(logicalDevice, rt->imageView, nullptr);
-		vkDestroyImage(logicalDevice, rt->image, nullptr);
-		vkFreeMemory(logicalDevice, rt->memory, nullptr);
 	}
 
 	VkRenderPass VulkanDevice::CreateRenderPass(VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt)
@@ -561,7 +446,7 @@ namespace SG
 
 			VK_CHECK(vkCreateDescriptorSetLayout(logicalDevice, &descriptorLayout, nullptr, &descriptorSetLayout),
 				SG_LOG_ERROR("Failed to create descriptor set layout!"); return VK_NULL_HANDLE; );
-			pBuffer->descriptorSetLayout = descriptorSetLayout;
+			//pBuffer->descriptorSetLayout = descriptorSetLayout;
 		}
 
 		VkPipelineLayout layout;
@@ -756,96 +641,87 @@ namespace SG
 		return queue;
 	}
 
-	SG::VulkanBuffer* VulkanDevice::CreateBuffer(const BufferCreateDesc& bufferCI)
-	{
-		VkMemoryAllocateInfo memAlloc = {};
-		memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		VkMemoryRequirements memReqs;
+	//SG::VulkanBuffer* VulkanDevice::CreateBuffer(const BufferCreateDesc& bufferCI, VkCommandPool pool)
+	//{
+	//	VkMemoryAllocateInfo memAlloc = {};
+	//	memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	//	VkMemoryRequirements memReqs;
 
-		VulkanBuffer       stagingBuffer = {};
-		VkBufferCreateInfo bufferInfo = {};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		if (SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efVertex) || SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efIndex))
-		{
-			// staging buffer creation
-			bufferInfo.size = bufferCI.totalSizeInByte;
-			stagingBuffer.totalSizeInByte = bufferCI.totalSizeInByte;
-			stagingBuffer.device = logicalDevice;
-			bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; // used to copy data
+	//	VulkanBuffer       stagingBuffer = {};
+	//	VkBufferCreateInfo bufferInfo = {};
+	//	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	//	if (SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efVertex) || SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efIndex))
+	//	{
+	//		// staging buffer creation
+	//		bufferInfo.size = bufferCI.totalSizeInByte;
+	//		stagingBuffer.totalSizeInByte = bufferCI.totalSizeInByte;
+	//		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; // used to copy data
 
-			VK_CHECK(vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &stagingBuffer.buffer),
-				SG_LOG_ERROR("Failed to create staging buffer!"); return nullptr; );
-			vkGetBufferMemoryRequirements(logicalDevice, stagingBuffer.buffer, &memReqs);
-			memAlloc.allocationSize = memReqs.size;
-			memAlloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-			VK_CHECK(vkAllocateMemory(logicalDevice, &memAlloc, nullptr, &stagingBuffer.memory),
-				SG_LOG_ERROR("Failed to alloc memory for staging buffer!"); return nullptr;);
+	//		VK_CHECK(vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &stagingBuffer.buffer),
+	//			SG_LOG_ERROR("Failed to create staging buffer!"); return nullptr; );
+	//		vkGetBufferMemoryRequirements(logicalDevice, stagingBuffer.buffer, &memReqs);
+	//		memAlloc.allocationSize = memReqs.size;
+	//		memAlloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	//		VK_CHECK(vkAllocateMemory(logicalDevice, &memAlloc, nullptr, &stagingBuffer.memory),
+	//			SG_LOG_ERROR("Failed to alloc memory for staging buffer!"); return nullptr;);
 
-			stagingBuffer.UploadData(bufferCI.pData);
-			VK_CHECK(vkBindBufferMemory(logicalDevice, stagingBuffer.buffer, stagingBuffer.memory, 0),
-				SG_LOG_ERROR("Failed to bind buffer memory!"); return nullptr; );
-		}
+	//		stagingBuffer.UploadData(logicalDevice, bufferCI.pData);
+	//		VK_CHECK(vkBindBufferMemory(logicalDevice, stagingBuffer.buffer, stagingBuffer.memory, 0),
+	//			SG_LOG_ERROR("Failed to bind buffer memory!"); return nullptr; );
+	//	}
 
-		// buffer creation
-		auto* pBuffer = Memory::New<VulkanBuffer>();
-		pBuffer->totalSizeInByte = bufferCI.totalSizeInByte;
-		pBuffer->device = logicalDevice;
-		pBuffer->type   = bufferCI.type;
+	//	// buffer creation
+	//	auto* pBuffer = Memory::New<VulkanBuffer>();
+	//	pBuffer->totalSizeInByte = bufferCI.totalSizeInByte;
+	//	pBuffer->type   = bufferCI.type;
 
-		bufferInfo.size = bufferCI.totalSizeInByte;
-		bufferInfo.usage = ToVkBufferUsage(bufferCI.type);
-		VK_CHECK(vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &pBuffer->buffer),
-			SG_LOG_ERROR("Failed to create vulkan buffer!"); Memory::Delete(pBuffer); return nullptr; );
-		vkGetBufferMemoryRequirements(logicalDevice, pBuffer->buffer, &memReqs);
-		memAlloc.allocationSize = memReqs.size;
-		if (SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efVertex) || SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efIndex))
-			memAlloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT); // device-local buffer
-		else
-			memAlloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		VK_CHECK(vkAllocateMemory(logicalDevice, &memAlloc, nullptr, &pBuffer->memory), 
-			SG_LOG_ERROR("Failed to alloc memory for buffer!"); Memory::Delete(pBuffer); return nullptr; );
+	//	bufferInfo.size = bufferCI.totalSizeInByte;
+	//	bufferInfo.usage = ToVkBufferUsage(bufferCI.type);
+	//	VK_CHECK(vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &pBuffer->buffer),
+	//		SG_LOG_ERROR("Failed to create vulkan buffer!"); Memory::Delete(pBuffer); return nullptr; );
+	//	vkGetBufferMemoryRequirements(logicalDevice, pBuffer->buffer, &memReqs);
+	//	memAlloc.allocationSize = memReqs.size;
+	//	if (SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efVertex) || SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efIndex))
+	//		memAlloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT); // device-local buffer
+	//	else
+	//		memAlloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	//	VK_CHECK(vkAllocateMemory(logicalDevice, &memAlloc, nullptr, &pBuffer->memory), 
+	//		SG_LOG_ERROR("Failed to alloc memory for buffer!"); Memory::Delete(pBuffer); return nullptr; );
 
-		// TODO: support memory offset.
-		VK_CHECK(vkBindBufferMemory(logicalDevice, pBuffer->buffer, pBuffer->memory, 0), 
-			SG_LOG_ERROR("Failed to bind vulkan memory to buffer!"); Memory::Delete(pBuffer); return false;);
+	//	// TODO: support memory offset.
+	//	VK_CHECK(vkBindBufferMemory(logicalDevice, pBuffer->buffer, pBuffer->memory, 0), 
+	//		SG_LOG_ERROR("Failed to bind vulkan memory to buffer!"); Memory::Delete(pBuffer); return false;);
 
-		if (SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efVertex) || SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efIndex))
-		{
-			// add copy commands to transfer queue
-			// TODO: not to submit once at one buffer, but submit them together.
-			VulkanRenderContext context(1);
-			context.commandPool = transferCommandPool;
-			AllocateCommandBuffers(&context);
+	//	if (SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efVertex) || SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efIndex))
+	//	{
+	//		// add copy commands to transfer queue
+	//		// TODO: not to submit once at one buffer, but submit them together.
+	//		VulkanRenderContext context(1);
+	//		context.commandPool = pool;
+	//		AllocateCommandBuffers(&context);
 
-			context.CmdBeginCommandBuf(context.commandBuffers[0]);
-			context.CmdCopyBuffer(context.commandBuffers[0], stagingBuffer.buffer, pBuffer->buffer, bufferCI.totalSizeInByte);
-			context.CmdEndCommandBuf(context.commandBuffers[0]);
+	//		context.CmdBeginCommandBuf(context.commandBuffers[0]);
+	//		context.CmdCopyBuffer(context.commandBuffers[0], stagingBuffer.buffer, pBuffer->buffer, bufferCI.totalSizeInByte);
+	//		context.CmdEndCommandBuf(context.commandBuffers[0]);
 
-			VulkanQueue* pTransferQueue = GetQueue(EQueueType::eTransfer);
-			VulkanFence  waitFence;
-			waitFence.fence = CreateFence();
-			pTransferQueue->SubmitCommands(&context, 0, nullptr, nullptr, &waitFence);
-			ResetFence(waitFence.fence);
+	//		VulkanQueue* pTransferQueue = GetQueue(EQueueType::eTransfer);
+	//		VulkanFence  waitFence;
+	//		waitFence.fence = CreateFence();
+	//		pTransferQueue->SubmitCommands(&context, 0, nullptr, nullptr, &waitFence);
+	//		ResetFence(waitFence.fence);
 
-			DestroyFence(waitFence.fence);
-			FreeCommandBuffers(&context);
+	//		DestroyFence(waitFence.fence);
+	//		FreeCommandBuffers(&context);
 
-			DestroyBuffer(&stagingBuffer);
-		}
+	//		DestroyBuffer(&stagingBuffer);
+	//	}
 
-		pBuffer->descriptor.buffer = pBuffer->buffer;
-		pBuffer->descriptor.offset = 0;
-		pBuffer->descriptor.range = bufferCI.totalSizeInByte;
+	//	pBuffer->descriptor.buffer = pBuffer->buffer;
+	//	pBuffer->descriptor.offset = 0;
+	//	pBuffer->descriptor.range = bufferCI.totalSizeInByte;
 
-		return pBuffer;
-	}
-
-	void VulkanDevice::DestroyBuffer(VulkanBuffer* pBuffer)
-	{
-		vkDestroyDescriptorSetLayout(logicalDevice, pBuffer->descriptorSetLayout, nullptr);
-		vkFreeMemory(logicalDevice, pBuffer->memory, nullptr);
-		vkDestroyBuffer(logicalDevice, pBuffer->buffer, nullptr);
-	}
+	//	return pBuffer;
+	//}
 
 	VkDescriptorPool VulkanDevice::CreateDescriptorPool()
 	{
@@ -871,12 +747,12 @@ namespace SG
 		vkDestroyDescriptorPool(logicalDevice, pool, nullptr);
 	}
 
-	VkDescriptorSet VulkanDevice::AllocateDescriptorSet(VkDescriptorSetLayout layout)
+	VkDescriptorSet VulkanDevice::AllocateDescriptorSet(VkDescriptorSetLayout layout, VkDescriptorPool pool)
 	{
 		VkDescriptorSet descriptorSet;
 		VkDescriptorSetAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = defaultDescriptorPool;
+		allocInfo.descriptorPool = pool;
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &layout;
 
@@ -885,9 +761,9 @@ namespace SG
 		return descriptorSet;
 	}
 
-	void VulkanDevice::FreeDescriptorSet(VkDescriptorSet set)
+	void VulkanDevice::FreeDescriptorSet(VkDescriptorSet set, VkDescriptorPool pool)
 	{
-		vkFreeDescriptorSets(logicalDevice, defaultDescriptorPool, 1, &set);
+		vkFreeDescriptorSets(logicalDevice, pool, 1, &set);
 	}
 
 	bool VulkanDevice::SupportExtension(const string& extension)

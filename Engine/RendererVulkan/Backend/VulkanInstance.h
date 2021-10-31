@@ -3,9 +3,6 @@
 #include "RendererVulkan/Config.h"
 #include "Render/SwapChain.h"
 
-#include "VulkanDevice.h"
-#include "VulkanSwapchain.h"
-
 #include <vulkan/vulkan_core.h>
 
 #include "Stl/vector.h"
@@ -31,13 +28,15 @@ namespace SG
 		VulkanInstance();
 		~VulkanInstance();
 
-		VkInstance instance = VK_NULL_HANDLE;
+		VkInstance       instance = VK_NULL_HANDLE;
+		VkPhysicalDevice physicalDevice;
 	private:
 		bool CreateVkInstance();
 		void ValidateExtensions(vector<const char*>& extens, VkInstanceCreateInfo* info);
 		void ValidateLayers(vector<const char*>& layers, VkInstanceCreateInfo* info);
 		void PopulateDebugMsgCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugMessager);
 		void SetupDebugMessenger();
+		bool SelectPhysicalDevice();
 	private:
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
 		VkDebugUtilsMessengerEXT mDebugLayer;
