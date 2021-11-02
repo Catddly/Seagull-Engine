@@ -32,10 +32,10 @@ namespace SG
 		virtual UInt32 GetNumArray()  const override { return array; };
 		virtual UInt32 GetNumMipmap() const override { return mipmap; };
 
-		virtual EImageFormat       GetFormat() const { return ToSGImageFormat(format); }
-		virtual ESampleCount       GetSample() const { return ToSGSampleCount(sample); }
-		virtual EImageType         GetType()   const { return ToSGImageType(type); }
-		virtual ERenderTargetUsage GetUsage()  const { return ToSGImageUsage(usage); }
+		virtual EImageFormat GetFormat() const { return ToSGImageFormat(format); }
+		virtual ESampleCount GetSample() const { return ToSGSampleCount(sample); }
+		virtual EImageType   GetType()   const { return ToSGImageType(type); }
+		virtual EImageUsage  GetUsage()  const { return ToSGImageUsage(usage); }
 
 		static VulkanRenderTarget* Create(VulkanDevice& d, const RenderTargetCreateDesc& CI);
 	private:
@@ -76,7 +76,6 @@ namespace SG
 		vector<VkImage>      images;
 		vector<VkImageView>  imageViews;
 
-		//void DeviceReady();
 		bool CreateOrRecreate(UInt32 width, UInt32 height, bool vsync = false);
 		VulkanRenderTarget* GetRenderTarget(UInt32 index) const;
 		void CleanUp();

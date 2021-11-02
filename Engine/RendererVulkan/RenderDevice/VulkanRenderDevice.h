@@ -14,9 +14,10 @@
 namespace SG
 {
 	class VulkanContext;
-	class VulkanRenderContext;
 	
 	class VulkanBuffer;
+	class VulkanDescriptorSetLayout;
+	class VulkanCommandBuffer;
 
 	struct VulkanPipeline;
 	struct VulkanSemaphore;
@@ -47,8 +48,11 @@ namespace SG
 		void WindowResize();
 		void RecordRenderCommands();
 
-		bool CreateBuffers(float* vertices, UInt32* indices);
-		void DestroyBuffers();
+		bool CreateGeoBuffers(float* vertices, UInt32* indices);
+		void DestroyGeoBuffers();
+
+		bool CreateUBOBuffers();
+		void DestroyUBOBuffers();
 	private:
 		bool mbBlockEvent    = true;
 		bool mbWindowMinimal = false;
@@ -56,8 +60,8 @@ namespace SG
 
 		VulkanContext* mpContext = nullptr;
 
+		vector<VulkanCommandBuffer> mpCommandBuffers;
 		VulkanFrameBuffer* mpFrameBuffers = nullptr;
-		VulkanRenderContext* mpRenderContext = nullptr;
 
 		VulkanPipeline* mpPipeline;
 		Shader          mBasicShader;
@@ -83,8 +87,10 @@ namespace SG
 		};
 
 		ICamera* mpCamera;
+
 		UBO      mCameraUBO;
 		VulkanBuffer* mpCameraUBOBuffer;
+		VulkanDescriptorSetLayout* mpCameraUBOSetLayout;
 	};
 
 }

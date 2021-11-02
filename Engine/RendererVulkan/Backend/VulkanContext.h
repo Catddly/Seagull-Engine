@@ -11,6 +11,9 @@
 namespace SG
 {
 
+	class VulkanDescriptorPool;
+	class VulkanCommandPool;
+
 	class VulkanContext
 	{
 	public:
@@ -22,12 +25,15 @@ namespace SG
 		VulkanSwapchain swapchain;
 		VulkanDevice    device;
 
-		VkCommandPool    graphicCommandPool;
-		VkCommandPool    computeCommandPool;
-		VkCommandPool    transferCommandPool;
-		VkRenderPass     defaultRenderPass;
+		VulkanCommandPool* graphicCommandPool;
+		VulkanCommandPool* computeCommandPool;
+		VulkanCommandPool* transferCommandPool;
+		VkRenderPass       defaultRenderPass;
 
-		VkDescriptorPool defaultDescriptorPool;
+		VulkanDescriptorPool* pDefaultDescriptorPool;
+
+		// should be moved to other place
+		VkDescriptorSet cameraUBOSet;
 
 		vector<VulkanRenderTarget*> colorRts;
 		VulkanRenderTarget*         depthRt;

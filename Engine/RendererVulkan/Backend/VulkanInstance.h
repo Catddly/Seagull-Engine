@@ -3,20 +3,13 @@
 #include "RendererVulkan/Config.h"
 #include "Render/SwapChain.h"
 
+#include "VulkanConfig.h"
 #include <vulkan/vulkan_core.h>
 
 #include "Stl/vector.h"
 
 namespace SG
 {
-
-#define VK_CHECK(EXPR, FAILEDEXPR) do { if (EXPR != VK_SUCCESS) { FAILEDEXPR } } while(false)
-
-#ifdef SG_DEBUG
-#	define SG_ENABLE_VK_VALIDATION_LAYER 1
-#else
-#	define SG_ENABLE_VK_VALIDATION_LAYER 0
-#endif
 
 	//! @brief All the singleton data in one render device.
 	//! Should be initialized just once and its life cycle is the same

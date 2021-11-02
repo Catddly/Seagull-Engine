@@ -14,6 +14,9 @@ namespace SG
 	VkFormat     ToVkImageFormat(EImageFormat format);
 	EImageFormat ToSGImageFormat(VkFormat format);
 
+	VkDescriptorType ToVkDescriptorType(EBufferType type);
+	VkDescriptorType ToVkDescriptorType(EImageUsage usage);
+
 	VkFormat     ToVkShaderDataFormat(EShaderDataType type);
 
 	VkImageType  ToVkImageType(EImageType type);
@@ -22,8 +25,8 @@ namespace SG
 	VkSampleCountFlagBits ToVkSampleCount(ESampleCount cnt);
 	ESampleCount ToSGSampleCount(VkSampleCountFlagBits cnt);
 
-	VkImageUsageFlags  ToVkImageUsage(ERenderTargetUsage usage);
-	ERenderTargetUsage ToSGImageUsage(VkImageUsageFlags usage);
+	VkImageUsageFlags  ToVkImageUsage(EImageUsage type);
+	EImageUsage ToSGImageUsage(VkImageUsageFlags usage);
 
 	VkBufferUsageFlags ToVkBufferUsage(EBufferType type);
 

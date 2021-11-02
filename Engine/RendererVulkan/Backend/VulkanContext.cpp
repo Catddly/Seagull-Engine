@@ -4,6 +4,9 @@
 #include "Platform/OS.h"
 #include "Memory/Memory.h"
 
+#include "VulkanCommand.h"
+#include "VulkanDescriptor.h"
+
 namespace SG
 {
 
@@ -28,7 +31,7 @@ namespace SG
 		depthRtCI.format = EImageFormat::eUnorm_D24_uint_S8;
 		depthRtCI.sample = ESampleCount::eSample_1;
 		depthRtCI.type  = EImageType::e2D;
-		depthRtCI.usage = ERenderTargetUsage::efDepth_Stencil;
+		depthRtCI.usage = EImageUsage::efDepth_Stencil;
 
 		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
 	}
@@ -61,7 +64,7 @@ namespace SG
 		depthRtCI.format = EImageFormat::eUnorm_D24_uint_S8;
 		depthRtCI.sample = ESampleCount::eSample_1;
 		depthRtCI.type = EImageType::e2D;
-		depthRtCI.usage = ERenderTargetUsage::efDepth_Stencil;
+		depthRtCI.usage = EImageUsage::efDepth_Stencil;
 
 		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
 	}
@@ -69,8 +72,8 @@ namespace SG
 	void VulkanContext::CreateDefaultResource()
 	{
 		// create a default command pool to allocate commands to graphic queue.
-		graphicCommandPool = device.CreateCommandPool(device.queueFamilyIndices.graphics);
-		if (graphicCommandPool == VK_NULL_HANDLE)
+		graphicCommandPool = VulkanCommandPool::Create(device, VK_QUEUE_GRAPHICS_BIT);
+		if (!graphicCommandPool)
 			SG_LOG_ERROR("Failed to create default graphic command pool!");
 
 		// create a default command pool to allocate commands to transfer queue.
@@ -78,8 +81,8 @@ namespace SG
 			transferCommandPool = graphicCommandPool;
 		else
 		{
-			transferCommandPool = device.CreateCommandPool(device.queueFamilyIndices.transfer);
-			if (transferCommandPool == VK_NULL_HANDLE)
+			transferCommandPool = VulkanCommandPool::Create(device, VK_QUEUE_TRANSFER_BIT);
+			if (!transferCommandPool)
 				SG_LOG_ERROR("Failed to create default transfer command pool!");
 		}
 
@@ -88,25 +91,29 @@ namespace SG
 			computeCommandPool = graphicCommandPool;
 		else
 		{
-			computeCommandPool = device.CreateCommandPool(device.queueFamilyIndices.compute);
-			if (computeCommandPool == VK_NULL_HANDLE)
+			computeCommandPool = VulkanCommandPool::Create(device, VK_QUEUE_COMPUTE_BIT);
+			if (!computeCommandPool)
 				SG_LOG_ERROR("Failed to create default compute command pool!");
 		}
 
-		defaultDescriptorPool = device.CreateDescriptorPool();
-		if (defaultDescriptorPool == VK_NULL_HANDLE)
+		pDefaultDescriptorPool = VulkanDescriptorPool::Builder()
+			.AddPoolElement(EBufferType::efUniform, 1)
+			.SetMaxSets(1)
+			.Build(device);
+
+		if (!pDefaultDescriptorPool)
 			SG_LOG_ERROR("Failed to create default descriptor pool!");
 	}
 
 	void VulkanContext::DestroyDefaultResource()
 	{
-		device.DestroyDescriptorPool(defaultDescriptorPool);
-		if (computeCommandPool != VK_NULL_HANDLE && device.queueFamilyIndices.graphics != device.queueFamilyIndices.compute)
-			device.DestroyCommandPool(computeCommandPool);
-		if (transferCommandPool != VK_NULL_HANDLE && device.queueFamilyIndices.graphics != device.queueFamilyIndices.transfer)
-			device.DestroyCommandPool(transferCommandPool);
-		if (graphicCommandPool != VK_NULL_HANDLE)
-			device.DestroyCommandPool(graphicCommandPool);
+		Memory::Delete(pDefaultDescriptorPool);
+		if (computeCommandPool && device.queueFamilyIndices.graphics != device.queueFamilyIndices.compute)
+			Memory::Delete(computeCommandPool);
+		if (transferCommandPool && device.queueFamilyIndices.graphics != device.queueFamilyIndices.transfer)
+			Memory::Delete(transferCommandPool);
+		if (graphicCommandPool)
+			Memory::Delete(graphicCommandPool);
 	}
 
 }

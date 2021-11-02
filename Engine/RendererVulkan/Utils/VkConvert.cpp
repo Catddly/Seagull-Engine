@@ -362,6 +362,44 @@ namespace SG
 		return EImageFormat::eNull;
 	}
 
+	VkDescriptorType ToVkDescriptorType(EBufferType type)
+	{
+		switch (type)
+		{
+		case SG::EBufferType::efTexel_Uniform: return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER; break;
+		case SG::EBufferType::efTexel_Storage: return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
+		case SG::EBufferType::efUniform: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
+		case SG::EBufferType::efStorage: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
+		case SG::EBufferType::efTransfer_Src:
+		case SG::EBufferType::efTransfer_Dst:
+		case SG::EBufferType::efIndex:
+		case SG::EBufferType::efVertex:
+		case SG::EBufferType::efIndirect:
+		default: SG_LOG_ERROR("Can not bind this type of buffer into descriptor!"); break;
+		}
+		return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+	}
+
+	VkDescriptorType ToVkDescriptorType(EImageUsage usage)
+	{
+		switch (usage)
+		{
+		case SG::EImageUsage::efSample: return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE; break;
+		case SG::EImageUsage::efStorage: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE; break;
+		case SG::EImageUsage::efInput: return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT; break;
+		case SG::EImageUsage::efTransfer_Src:
+		case SG::EImageUsage::efTransfer_Dst:
+		case SG::EImageUsage::efColor: 
+		case SG::EImageUsage::efDepth_Stencil:
+		case SG::EImageUsage::efTransient:
+		case SG::EImageUsage::efShading_Rate_Image:
+		case SG::EImageUsage::efFragment_Density_Map:
+		case SG::EImageUsage::efFragment_Shading_Rate_Image:
+		default: SG_LOG_ERROR("Can not bind this type of image into descriptor!"); break;
+		}
+		return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+	}
+
 	VkFormat ToVkShaderDataFormat(EShaderDataType type)
 	{
 		switch (type)
@@ -442,45 +480,64 @@ namespace SG
 		return ESampleCount::eSample_1;
 	}
 
-	VkImageUsageFlags ToVkImageUsage(ERenderTargetUsage usage)
+	VkImageUsageFlags ToVkImageUsage(EImageUsage type)
 	{
-		switch (usage)
-		{
-		case SG::ERenderTargetUsage::efTransfer_Src:                return VK_IMAGE_USAGE_TRANSFER_SRC_BIT; break;
-		case SG::ERenderTargetUsage::efTransfer_Dst:                return VK_IMAGE_USAGE_TRANSFER_DST_BIT; break;
-		case SG::ERenderTargetUsage::efSampled:                     return VK_IMAGE_USAGE_SAMPLED_BIT; break;
-		case SG::ERenderTargetUsage::efStorage:                     return VK_IMAGE_USAGE_STORAGE_BIT; break;
-		case SG::ERenderTargetUsage::efColor:                       return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; break;
-		case SG::ERenderTargetUsage::efDepth_Stencil:               return VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT; break;
-		case SG::ERenderTargetUsage::efTransient:                   return VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT; break;
-		case SG::ERenderTargetUsage::efInput:                       return VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT; break;
-		case SG::ERenderTargetUsage::efShading_Rate_Image:          return VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV; break;
-		case SG::ERenderTargetUsage::efFragment_Density_Map:        return VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT; break;
-		case SG::ERenderTargetUsage::efFragment_Shading_Rate_Image: return VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR; break;
-		default: SG_LOG_ERROR("Wrong render target usage!"); break;
-		}
-		return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		VkBufferUsageFlags flags = {};
+
+		if (SG_HAS_ENUM_FLAG(type, EImageUsage::efTransfer_Src))
+			flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EImageUsage::efTransfer_Dst))
+			flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EImageUsage::efSample))
+			flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EImageUsage::efStorage))
+			flags |= VK_IMAGE_USAGE_STORAGE_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EImageUsage::efColor))
+			flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EImageUsage::efDepth_Stencil))
+			flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EImageUsage::efTransient))
+			flags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EImageUsage::efInput))
+			flags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+		if (SG_HAS_ENUM_FLAG(type, EImageUsage::efShading_Rate_Image))
+			flags |= VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV;
+		if (SG_HAS_ENUM_FLAG(type, EImageUsage::efFragment_Density_Map))
+			flags |= VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT;
+		if (SG_HAS_ENUM_FLAG(type, EImageUsage::efFragment_Shading_Rate_Image))
+			flags |= VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
+
+		return flags;
 	}
 
-	SG::ERenderTargetUsage ToSGImageUsage(VkImageUsageFlags usage)
+	EImageUsage ToSGImageUsage(VkImageUsageFlags usage)
 	{
-		switch (usage)
-		{
-		case VK_IMAGE_USAGE_TRANSFER_SRC_BIT: return ERenderTargetUsage::efTransfer_Src; break;
-		case VK_IMAGE_USAGE_TRANSFER_DST_BIT: return ERenderTargetUsage::efTransfer_Src; break;
-		case VK_IMAGE_USAGE_SAMPLED_BIT: return ERenderTargetUsage::efSampled; break;
-		case VK_IMAGE_USAGE_STORAGE_BIT: return ERenderTargetUsage::efStorage; break;
-		case VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT: return ERenderTargetUsage::efColor; break;
-		case VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT: return ERenderTargetUsage::efDepth_Stencil; break;
-		case VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT: return ERenderTargetUsage::efTransient; break;
-		case VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT: return ERenderTargetUsage::efInput; break;
-		case VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV: return ERenderTargetUsage::efShading_Rate_Image; break;
-		case VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT: return ERenderTargetUsage::efFragment_Density_Map; break;
-		case VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM:
-		default:
-			SG_LOG_ERROR("Unknown vulkan image usage!"); break;
-		}
-		return ERenderTargetUsage::efColor;
+		EImageUsage flags = {};
+
+		if (SG_HAS_ENUM_FLAG(usage, VK_BUFFER_USAGE_TRANSFER_SRC_BIT))
+			flags |= EImageUsage::efTransfer_Src;
+		if (SG_HAS_ENUM_FLAG(usage, VK_BUFFER_USAGE_TRANSFER_DST_BIT))
+			flags |= EImageUsage::efTransfer_Dst;
+		if (SG_HAS_ENUM_FLAG(usage, VK_IMAGE_USAGE_SAMPLED_BIT))
+			flags |= EImageUsage::efSample;
+		if (SG_HAS_ENUM_FLAG(usage, VK_IMAGE_USAGE_STORAGE_BIT))
+			flags |= EImageUsage::efStorage;
+		if (SG_HAS_ENUM_FLAG(usage, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
+			flags |= EImageUsage::efColor;
+		if (SG_HAS_ENUM_FLAG(usage, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT))
+			flags |= EImageUsage::efDepth_Stencil;
+		if (SG_HAS_ENUM_FLAG(usage, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT))
+			flags |= EImageUsage::efTransient;
+		if (SG_HAS_ENUM_FLAG(usage, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT))
+			flags |= EImageUsage::efInput;
+		if (SG_HAS_ENUM_FLAG(usage, VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV))
+			flags |= EImageUsage::efShading_Rate_Image;
+		if (SG_HAS_ENUM_FLAG(usage, VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT))
+			flags |= EImageUsage::efFragment_Density_Map;
+		if (SG_HAS_ENUM_FLAG(usage, VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR))
+			flags |= EImageUsage::efFragment_Shading_Rate_Image;
+
+		return flags;
 	}
 
 	VkBufferUsageFlags ToVkBufferUsage(EBufferType type)

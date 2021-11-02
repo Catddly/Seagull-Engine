@@ -4,7 +4,7 @@
 #include "System/Logger.h"
 #include "Memory/Memory.h"
 
-#include "VulkanInstance.h"
+#include "VulkanConfig.h"
 #include "RendererVulkan/Utils/VkConvert.h"
 
 namespace SG
@@ -18,6 +18,7 @@ namespace SG
 
 		VkMemoryRequirements memReqs;
 		VkBufferCreateInfo bufferInfo = {};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.size  = totalSizeInByte;
 		bufferInfo.usage = ToVkBufferUsage(type);
 		VK_CHECK(vkCreateBuffer(device.logicalDevice, &bufferInfo, nullptr, &buffer),

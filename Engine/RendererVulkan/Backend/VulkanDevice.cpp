@@ -4,14 +4,14 @@
 #include "System/Logger.h"
 #include "Memory/Memory.h"
 
-#include "VulkanInstance.h"
+#include "VulkanConfig.h"
 #include "VulkanSwapchain.h"
 #include "VulkanBuffer.h"
-#include "VulkanRenderContext.h"
+#include "VulkanCommand.h"
 #include "VulkanSynchronizePrimitive.h"
 #include "RendererVulkan/Utils/VkConvert.h"
 
-#include "RendererVulkan/Backend/VulkanRenderContext.h"
+#include "VulkanCommand.h"
 
 #include "Stl/vector.h"
 #include <eastl/array.h>
@@ -156,23 +156,6 @@ namespace SG
 		vkDestroyDevice(logicalDevice, nullptr);
 	}
 
-	VkCommandPool VulkanDevice::CreateCommandPool(UInt32 queueFamilyIndices, VkCommandPoolCreateFlags createFlags)
-	{
-		VkCommandPoolCreateInfo cmdPoolInfo = {};
-		cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		cmdPoolInfo.queueFamilyIndex = queueFamilyIndices;
-		cmdPoolInfo.flags = createFlags;
-		VkCommandPool cmdPool;
-		if (vkCreateCommandPool(logicalDevice, &cmdPoolInfo, nullptr, &cmdPool) != VK_SUCCESS)
-			return VK_NULL_HANDLE;
-		return cmdPool;
-	}
-
-	void VulkanDevice::DestroyCommandPool(VkCommandPool pool)
-	{
-		vkDestroyCommandPool(logicalDevice, pool, nullptr);
-	}
-
 	VkSemaphore VulkanDevice::CreateSemaphore()
 	{
 		VkSemaphore semaphore;
@@ -218,51 +201,6 @@ namespace SG
 	{
 		vkWaitForFences(logicalDevice, 1, &fence, VK_TRUE, UINT64_MAX);
 		vkResetFences(logicalDevice, 1, &fence);
-	}
-
-	SG::VulkanRenderContext* VulkanDevice::CreateRenderContext(UInt32 numBuffers, VkCommandPool pool)
-	{
-		auto* pRenderContext = Memory::New<VulkanRenderContext>(numBuffers);
-		//switch (type)
-		//{
-		//case SG::EQueueType::eGraphic:  pRenderContext->commandPool = graphicCommandPool; break;
-		//case SG::EQueueType::eTransfer: pRenderContext->commandPool = transferCommandPool; break;
-		//case SG::EQueueType::eCompute:  pRenderContext->commandPool = computeCommandPool; break;
-		//case SG::EQueueType::eNull:
-		//case SG::EQueueType::MAX_COUNT:
-		//default: SG_LOG_ERROR("Invalid queue type to create render context!"); break;
-		//}
-		pRenderContext->commandPool = pool;
-
-		AllocateCommandBuffers(pRenderContext);
-		return pRenderContext;
-	}
-
-	void VulkanDevice::DestroyRenderContext(VulkanRenderContext* pContext)
-	{
-		FreeCommandBuffers(pContext);
-		Memory::Delete(pContext);
-	}
-
-	bool VulkanDevice::AllocateCommandBuffers(VulkanRenderContext* pContext)
-	{
-		VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
-		commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		commandBufferAllocateInfo.commandPool = pContext->commandPool;
-		commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		commandBufferAllocateInfo.commandBufferCount = (UInt32)pContext->commandBuffers.size();
-		
-		if (vkAllocateCommandBuffers(logicalDevice, &commandBufferAllocateInfo, pContext->commandBuffers.data()) != VK_SUCCESS)
-		{
-			SG_LOG_ERROR("Failed to allocate command buffer");
-			return false;
-		}
-		return true;
-	}
-
-	void VulkanDevice::FreeCommandBuffers(VulkanRenderContext* pContext)
-	{
-		vkFreeCommandBuffers(logicalDevice, pContext->commandPool, (UInt32)pContext->commandBuffers.size(), pContext->commandBuffers.data());
 	}
 
 	VkFramebuffer VulkanDevice::CreateFrameBuffer(VkRenderPass renderPass, VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt)
@@ -425,35 +363,13 @@ namespace SG
 		vkDestroyPipelineCache(logicalDevice, pipelineCache, nullptr);
 	}
 
-	VkPipelineLayout VulkanDevice::CreatePipelineLayout(VulkanBuffer* pBuffer)
+	VkPipelineLayout VulkanDevice::CreatePipelineLayout(const VkDescriptorSetLayout* descriptorSetLayout)
 	{
-		// bind descriptors layout to pipeline
-		VkDescriptorSetLayout descriptorSetLayout;
-		if (pBuffer)
-		{
-			VkDescriptorSetLayoutBinding layoutBinding = {};
-			layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; // TODO: change it dynamically
-			layoutBinding.binding = 0;
-			layoutBinding.descriptorCount = 1;
-			layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-			layoutBinding.pImmutableSamplers = nullptr;
-
-			VkDescriptorSetLayoutCreateInfo descriptorLayout = {};
-			descriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-			descriptorLayout.pNext = nullptr;
-			descriptorLayout.bindingCount = 1;
-			descriptorLayout.pBindings    = &layoutBinding;
-
-			VK_CHECK(vkCreateDescriptorSetLayout(logicalDevice, &descriptorLayout, nullptr, &descriptorSetLayout),
-				SG_LOG_ERROR("Failed to create descriptor set layout!"); return VK_NULL_HANDLE; );
-			//pBuffer->descriptorSetLayout = descriptorSetLayout;
-		}
-
 		VkPipelineLayout layout;
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = pBuffer ? 1 : 0;
-		pipelineLayoutInfo.pSetLayouts = pBuffer ? &descriptorSetLayout : nullptr;
+		pipelineLayoutInfo.setLayoutCount = 1;
+		pipelineLayoutInfo.pSetLayouts = descriptorSetLayout;
 		pipelineLayoutInfo.pushConstantRangeCount = 0;
 		pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
@@ -641,112 +557,6 @@ namespace SG
 		return queue;
 	}
 
-	//SG::VulkanBuffer* VulkanDevice::CreateBuffer(const BufferCreateDesc& bufferCI, VkCommandPool pool)
-	//{
-	//	VkMemoryAllocateInfo memAlloc = {};
-	//	memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	//	VkMemoryRequirements memReqs;
-
-	//	VulkanBuffer       stagingBuffer = {};
-	//	VkBufferCreateInfo bufferInfo = {};
-	//	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	//	if (SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efVertex) || SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efIndex))
-	//	{
-	//		// staging buffer creation
-	//		bufferInfo.size = bufferCI.totalSizeInByte;
-	//		stagingBuffer.totalSizeInByte = bufferCI.totalSizeInByte;
-	//		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; // used to copy data
-
-	//		VK_CHECK(vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &stagingBuffer.buffer),
-	//			SG_LOG_ERROR("Failed to create staging buffer!"); return nullptr; );
-	//		vkGetBufferMemoryRequirements(logicalDevice, stagingBuffer.buffer, &memReqs);
-	//		memAlloc.allocationSize = memReqs.size;
-	//		memAlloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	//		VK_CHECK(vkAllocateMemory(logicalDevice, &memAlloc, nullptr, &stagingBuffer.memory),
-	//			SG_LOG_ERROR("Failed to alloc memory for staging buffer!"); return nullptr;);
-
-	//		stagingBuffer.UploadData(logicalDevice, bufferCI.pData);
-	//		VK_CHECK(vkBindBufferMemory(logicalDevice, stagingBuffer.buffer, stagingBuffer.memory, 0),
-	//			SG_LOG_ERROR("Failed to bind buffer memory!"); return nullptr; );
-	//	}
-
-	//	// buffer creation
-	//	auto* pBuffer = Memory::New<VulkanBuffer>();
-	//	pBuffer->totalSizeInByte = bufferCI.totalSizeInByte;
-	//	pBuffer->type   = bufferCI.type;
-
-	//	bufferInfo.size = bufferCI.totalSizeInByte;
-	//	bufferInfo.usage = ToVkBufferUsage(bufferCI.type);
-	//	VK_CHECK(vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &pBuffer->buffer),
-	//		SG_LOG_ERROR("Failed to create vulkan buffer!"); Memory::Delete(pBuffer); return nullptr; );
-	//	vkGetBufferMemoryRequirements(logicalDevice, pBuffer->buffer, &memReqs);
-	//	memAlloc.allocationSize = memReqs.size;
-	//	if (SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efVertex) || SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efIndex))
-	//		memAlloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT); // device-local buffer
-	//	else
-	//		memAlloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	//	VK_CHECK(vkAllocateMemory(logicalDevice, &memAlloc, nullptr, &pBuffer->memory), 
-	//		SG_LOG_ERROR("Failed to alloc memory for buffer!"); Memory::Delete(pBuffer); return nullptr; );
-
-	//	// TODO: support memory offset.
-	//	VK_CHECK(vkBindBufferMemory(logicalDevice, pBuffer->buffer, pBuffer->memory, 0), 
-	//		SG_LOG_ERROR("Failed to bind vulkan memory to buffer!"); Memory::Delete(pBuffer); return false;);
-
-	//	if (SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efVertex) || SG_HAS_ENUM_FLAG(bufferCI.type, EBufferType::efIndex))
-	//	{
-	//		// add copy commands to transfer queue
-	//		// TODO: not to submit once at one buffer, but submit them together.
-	//		VulkanRenderContext context(1);
-	//		context.commandPool = pool;
-	//		AllocateCommandBuffers(&context);
-
-	//		context.CmdBeginCommandBuf(context.commandBuffers[0]);
-	//		context.CmdCopyBuffer(context.commandBuffers[0], stagingBuffer.buffer, pBuffer->buffer, bufferCI.totalSizeInByte);
-	//		context.CmdEndCommandBuf(context.commandBuffers[0]);
-
-	//		VulkanQueue* pTransferQueue = GetQueue(EQueueType::eTransfer);
-	//		VulkanFence  waitFence;
-	//		waitFence.fence = CreateFence();
-	//		pTransferQueue->SubmitCommands(&context, 0, nullptr, nullptr, &waitFence);
-	//		ResetFence(waitFence.fence);
-
-	//		DestroyFence(waitFence.fence);
-	//		FreeCommandBuffers(&context);
-
-	//		DestroyBuffer(&stagingBuffer);
-	//	}
-
-	//	pBuffer->descriptor.buffer = pBuffer->buffer;
-	//	pBuffer->descriptor.offset = 0;
-	//	pBuffer->descriptor.range = bufferCI.totalSizeInByte;
-
-	//	return pBuffer;
-	//}
-
-	VkDescriptorPool VulkanDevice::CreateDescriptorPool()
-	{
-		VkDescriptorPool pool;
-		VkDescriptorPoolSize typeCounts[1];
-		typeCounts[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		typeCounts[0].descriptorCount = 1;
-
-		VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
-		descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		descriptorPoolInfo.pNext = nullptr;
-		descriptorPoolInfo.poolSizeCount = 1;
-		descriptorPoolInfo.pPoolSizes = typeCounts;
-		descriptorPoolInfo.maxSets = 1;
-
-		VK_CHECK(vkCreateDescriptorPool(logicalDevice, &descriptorPoolInfo, nullptr, &pool),
-			SG_LOG_ERROR("Failed to create descriptor pool!"); return VK_NULL_HANDLE; );
-		return pool;
-	}
-
-	void VulkanDevice::DestroyDescriptorPool(VkDescriptorPool pool)
-	{
-		vkDestroyDescriptorPool(logicalDevice, pool, nullptr);
-	}
-
 	VkDescriptorSet VulkanDevice::AllocateDescriptorSet(VkDescriptorSetLayout layout, VkDescriptorPool pool)
 	{
 		VkDescriptorSet descriptorSet;
@@ -859,16 +669,14 @@ namespace SG
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// VulkanQueue
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	bool VulkanQueue::SubmitCommands(RenderContext* pContext, UInt32 bufferIndex, RenderSemaphore* renderSemaphore, RenderSemaphore* presentSemaphore, RenderFence* fence)
+
+	bool VulkanQueue::SubmitCommands(VulkanCommandBuffer* pCmdBuf, RenderSemaphore* renderSemaphore, RenderSemaphore* presentSemaphore, RenderFence* fence)
 	{
-		auto* pVkContext   = static_cast<VulkanRenderContext*>(pContext);
-		auto* pVkFence     = static_cast<VulkanFence*>(fence);
-		auto* pVkRenderSP  = static_cast<VulkanSemaphore*>(renderSemaphore);
+		auto* pVkFence = static_cast<VulkanFence*>(fence);
+		auto* pVkRenderSP = static_cast<VulkanSemaphore*>(renderSemaphore);
 		auto* pVkPresentSP = static_cast<VulkanSemaphore*>(presentSemaphore);
 
 		// pipeline stage at which the queue submission will wait (via pWaitSemaphores)
-
 		// the submit info structure specifies a command buffer queue submission batch
 		VkPipelineStageFlags waitStageMask = {};
 		VkSubmitInfo submitInfo = {};
@@ -889,7 +697,7 @@ namespace SG
 			submitInfo.pSignalSemaphores = &pVkRenderSP->semaphore;
 			submitInfo.signalSemaphoreCount = 1;
 		}
-		submitInfo.pCommandBuffers = &pVkContext->commandBuffers[bufferIndex];
+		submitInfo.pCommandBuffers = &pCmdBuf->commandBuffer;
 		submitInfo.commandBufferCount = 1;
 
 		if (vkQueueSubmit(handle, 1, &submitInfo, pVkFence->fence) != VK_SUCCESS)

@@ -7,6 +7,7 @@
 #include "Render/Pipeline.h"
 #include "Render/SwapChain.h"
 #include "Render/Buffer.h"
+#include "Render/Synchronize.h"
 
 #include <vulkan/vulkan_core.h>
 
@@ -16,6 +17,8 @@
 namespace SG
 {
 
+	class VulkanCommandBuffer;
+
 	struct VulkanPipeline : public Pipeline
 	{
 		VkPipeline       pipeline;
@@ -24,18 +27,19 @@ namespace SG
 		VkRenderPass     renderPass;
 	};
 
-	struct VulkanQueue : public Queue
+	struct VulkanQueue
 	{
 		UInt32         familyIndex;
-		EQueueType     type = EQueueType::eNull;
+		EQueueType     type     = EQueueType::eNull;
 		EQueuePriority priority = EQueuePriority::eNormal;
-		VkQueue        handle = VK_NULL_HANDLE;
+		VkQueue        handle   = VK_NULL_HANDLE;
 
-		virtual bool SubmitCommands(RenderContext* pContext, UInt32 bufferIndex, RenderSemaphore* renderSemaphore, RenderSemaphore* presentSemaphore, RenderFence* fence) override;
-		virtual void WaitIdle() const override;
+		bool SubmitCommands(VulkanCommandBuffer* pCmdBuf, RenderSemaphore* renderSemaphore, RenderSemaphore* presentSemaphore, RenderFence* fence);
+		void WaitIdle() const;
 	};
 
 	class VulkanBuffer;
+	class VulkanCommandPool;
 	class VulkanRenderTarget;
 	class VulkanRenderContext;
 
@@ -60,10 +64,6 @@ namespace SG
 
 		void WaitIdle() const;
 
-		//! @brief Create a command pool.
-		VkCommandPool CreateCommandPool(UInt32 queueFamilyIndices, VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
-		void DestroyCommandPool(VkCommandPool pool);
-
 		VkSemaphore CreateSemaphore();
 		void        DestroySemaphore(VkSemaphore semaphore);
 		VkFence     CreateFence(bool bSignaled = false);
@@ -71,17 +71,8 @@ namespace SG
 
 		void        ResetFence(VkFence fence);
 
-		bool AllocateCommandBuffers(VulkanRenderContext* pContext);
-		void FreeCommandBuffers(VulkanRenderContext* pContext);
-
-		VulkanRenderContext* CreateRenderContext(UInt32 numBuffers, VkCommandPool pool);
-		void                 DestroyRenderContext(VulkanRenderContext* pContext);
-
 		VkFramebuffer CreateFrameBuffer(VkRenderPass renderPass, VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt);
 		void DestroyFrameBuffer(VkFramebuffer frameBuffer);
-
-		//VulkanRenderTarget* CreateRenderTarget(const RenderTargetCreateDesc& rt);
-		//void DestroyRenderTarget(VulkanRenderTarget* rt);
 
 		VkRenderPass CreateRenderPass(VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt); // relative to rts
 		void DestroyRenderPass(VkRenderPass renderPass);
@@ -89,15 +80,13 @@ namespace SG
 		VkPipelineCache CreatePipelineCache();
 		void DestroyPipelineCache(VkPipelineCache pipelineCache);
 		// TODO: remove layout to set descriptions layout (Root Signature)
-		VkPipelineLayout CreatePipelineLayout(VulkanBuffer* pBuffer);
+		VkPipelineLayout CreatePipelineLayout(const VkDescriptorSetLayout* descriptorSetLayout);
 		void             DestroyPipelineLayout(VkPipelineLayout layout);
 		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkPipelineLayout layout, VkRenderPass renderPass, Shader& shader, BufferLayout* pLayout);
 		void       DestroyPipeline(VkPipeline pipeline);
 
 		VulkanQueue* GetQueue(EQueueType type) const;
 
-		VkDescriptorPool CreateDescriptorPool();
-		void             DestroyDescriptorPool(VkDescriptorPool pool);
 		VkDescriptorSet  AllocateDescriptorSet(VkDescriptorSetLayout layout, VkDescriptorPool pool);
 		void             FreeDescriptorSet(VkDescriptorSet set, VkDescriptorPool pool);
 

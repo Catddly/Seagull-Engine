@@ -131,11 +131,11 @@ namespace SG
 		e3D,
 	};
 
-	enum class ERenderTargetUsage : UInt32
+	enum class EImageUsage : UInt32
 	{
 		efTransfer_Src                = 1 << 0,
 		efTransfer_Dst                = 1 << 1,
-		efSampled                     = 1 << 2,
+		efSample                      = 1 << 2,
 		efStorage                     = 1 << 3,
 		efColor                       = 1 << 4,
 		efDepth_Stencil               = 1 << 5,
@@ -145,7 +145,7 @@ namespace SG
 		efFragment_Density_Map        = 1 << 9,
 		efFragment_Shading_Rate_Image = 1 << 10,
 	};
-	SG_ENUM_CLASS_FLAG(UInt32, ERenderTargetUsage);
+	SG_ENUM_CLASS_FLAG(UInt32, EImageUsage);
 
 	enum class EImageState
 	{
@@ -156,10 +156,10 @@ namespace SG
 
 	struct RenderTargetCreateDesc
 	{
-		EImageFormat       format;
-		ESampleCount       sample;
-		EImageType         type;
-		ERenderTargetUsage usage;
+		EImageFormat   format;
+		ESampleCount   sample;
+		EImageType     type;
+		EImageUsage    usage;
 
 		UInt32         width;
 		UInt32         height;
@@ -178,10 +178,10 @@ namespace SG
 		virtual UInt32 GetNumArray()  const = 0;
 		virtual UInt32 GetNumMipmap() const = 0;
 
-		virtual EImageFormat       GetFormat() const = 0;
-		virtual ESampleCount       GetSample() const = 0;
-		virtual EImageType         GetType()   const = 0;
-		virtual ERenderTargetUsage GetUsage()  const = 0;
+		virtual EImageFormat GetFormat() const = 0;
+		virtual ESampleCount GetSample() const = 0;
+		virtual EImageType   GetType()   const = 0;
+		virtual EImageUsage  GetUsage()  const = 0;
 	};
 
 }
