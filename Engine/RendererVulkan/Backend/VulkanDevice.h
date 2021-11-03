@@ -27,15 +27,19 @@ namespace SG
 		VkRenderPass     renderPass;
 	};
 
-	struct VulkanQueue
+	class VulkanQueue
 	{
-		UInt32         familyIndex;
-		EQueueType     type     = EQueueType::eNull;
-		EQueuePriority priority = EQueuePriority::eNormal;
-		VkQueue        handle   = VK_NULL_HANDLE;
-
+	public:
 		bool SubmitCommands(VulkanCommandBuffer* pCmdBuf, RenderSemaphore* renderSemaphore, RenderSemaphore* presentSemaphore, RenderFence* fence);
 		void WaitIdle() const;
+	private:
+		friend class VulkanSwapchain;
+		friend class VulkanDevice;
+
+		UInt32         familyIndex;
+		EQueueType     type = EQueueType::eNull;
+		EQueuePriority priority = EQueuePriority::eNormal;
+		VkQueue        handle = VK_NULL_HANDLE;
 	};
 
 	class VulkanBuffer;
@@ -85,7 +89,7 @@ namespace SG
 		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkPipelineLayout layout, VkRenderPass renderPass, Shader& shader, BufferLayout* pLayout);
 		void       DestroyPipeline(VkPipeline pipeline);
 
-		VulkanQueue* GetQueue(EQueueType type) const;
+		VulkanQueue GetQueue(EQueueType type) const;
 
 		VkDescriptorSet  AllocateDescriptorSet(VkDescriptorSetLayout layout, VkDescriptorPool pool);
 		void             FreeDescriptorSet(VkDescriptorSet set, VkDescriptorPool pool);

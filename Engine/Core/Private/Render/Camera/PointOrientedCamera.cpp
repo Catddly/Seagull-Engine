@@ -26,8 +26,8 @@ namespace SG
 	{
 		if (Input::IsKeyPressed(KeyCode_MouseLeft))
 		{
-			if (deltaXPos != 0) Rotate(mViewMatrix, SG_ENGINE_UP_VEC(), -deltaXPos * mMoveSpeed);
-			if (deltaYPos != 0) Rotate(mViewMatrix, -SG_ENGINE_RIGHT_VEC(), -deltaYPos * mMoveSpeed);
+			if (deltaXPos != 0) { Rotate(mViewMatrix, SG_ENGINE_UP_VEC(), -deltaXPos * mMoveSpeed); mbIsViewDirty = true; }
+			if (deltaYPos != 0) { Rotate(mViewMatrix, -SG_ENGINE_RIGHT_VEC(), -deltaYPos * mMoveSpeed); mbIsViewDirty = true; }
 		}
 		return true;
 	}
@@ -35,9 +35,15 @@ namespace SG
 	bool PointOrientedCamera::OnMouseWheelInputUpdate(int direction)
 	{
 		if (direction > 0) 
-			{ TranslateZ(mViewMatrix, mWheelScale); }
+		{
+			TranslateZ(mViewMatrix, mWheelScale); 
+			mbIsViewDirty = true;
+		}
 		else 
-			{ TranslateZ(mViewMatrix, -mWheelScale); }
+		{
+			TranslateZ(mViewMatrix, -mWheelScale);
+			mbIsViewDirty = true;
+		}
 		return true;
 	}
 

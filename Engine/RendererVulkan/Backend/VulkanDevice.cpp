@@ -532,28 +532,28 @@ namespace SG
 		vkDestroyPipeline(logicalDevice, pipeline, nullptr);
 	}
 
-	VulkanQueue* VulkanDevice::GetQueue(EQueueType type) const
+	VulkanQueue VulkanDevice::GetQueue(EQueueType type) const
 	{
-		VulkanQueue* queue = Memory::New<VulkanQueue>();
+		VulkanQueue queue;
 		switch (type)
 		{
 		case SG::EQueueType::eNull: SG_LOG_ERROR("Wrong queue type!"); break;
 		case SG::EQueueType::eGraphic:  
-			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.graphics, 0, &queue->handle); 
-			queue->familyIndex = queueFamilyIndices.graphics;
+			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.graphics, 0, &queue.handle); 
+			queue.familyIndex = queueFamilyIndices.graphics;
 			break;
 		case SG::EQueueType::eCompute:
-			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.compute, 0, &queue->handle);
-			queue->familyIndex = queueFamilyIndices.compute;
+			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.compute, 0, &queue.handle);
+			queue.familyIndex = queueFamilyIndices.compute;
 			break;
 		case SG::EQueueType::eTransfer: 
-			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.transfer, 0, &queue->handle);
-			queue->familyIndex = queueFamilyIndices.transfer;
+			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.transfer, 0, &queue.handle);
+			queue.familyIndex = queueFamilyIndices.transfer;
 			break;
 		default: SG_LOG_ERROR("Unknown queue type!"); break;
 		}
-		queue->type = type;
-		queue->priority = EQueuePriority::eNormal;
+		queue.type     = type;
+		queue.priority = EQueuePriority::eNormal;
 		return queue;
 	}
 
@@ -672,6 +672,13 @@ namespace SG
 
 	bool VulkanQueue::SubmitCommands(VulkanCommandBuffer* pCmdBuf, RenderSemaphore* renderSemaphore, RenderSemaphore* presentSemaphore, RenderFence* fence)
 	{
+		if (pCmdBuf->queueFamilyIndex != familyIndex) // check if the command is submitted to the right queue
+		{
+			SG_LOG_ERROR("Vulkan command buffer had been submit to the wrong queue! (Submit To: %s)", 
+				(type == EQueueType::eGraphic) ? "Graphic" : (type == EQueueType::eCompute ? "Compute" : "Transfer"));
+			return false;
+		}
+
 		auto* pVkFence = static_cast<VulkanFence*>(fence);
 		auto* pVkRenderSP = static_cast<VulkanSemaphore*>(renderSemaphore);
 		auto* pVkPresentSP = static_cast<VulkanSemaphore*>(presentSemaphore);

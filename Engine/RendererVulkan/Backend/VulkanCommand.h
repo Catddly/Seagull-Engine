@@ -15,9 +15,6 @@ namespace SG
 	class VulkanCommandBuffer
 	{
 	public:
-		VulkanCommandBuffer() = default;
-		~VulkanCommandBuffer() = default;
-
 		void BeginRecord(bool bPermanent = false);
 		void EndRecord();
 
@@ -40,8 +37,10 @@ namespace SG
 		void CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer);
 	private:
 		friend class VulkanCommandPool;
-		friend struct VulkanQueue;
+		friend class VulkanQueue;
+
 		VkCommandBuffer commandBuffer;
+		UInt32          queueFamilyIndex; // which queue this command buffer should submit to.
 	};
 
 	class VulkanCommandPool
@@ -58,6 +57,7 @@ namespace SG
 	private:
 		VulkanDevice& device;
 		VkCommandPool commandPool;
+		UInt32        queueFamilyIndex;
 	};
 
 }

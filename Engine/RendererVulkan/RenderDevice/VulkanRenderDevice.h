@@ -22,7 +22,6 @@ namespace SG
 	struct VulkanPipeline;
 	struct VulkanSemaphore;
 	struct VulkanFence;
-	struct VulkanQueue;
 	struct VulkanFrameBuffer;
 
 	class VulkanRenderDevice : public IRenderDevice, public ISystemMessageListener, public IInputListener
@@ -72,7 +71,6 @@ namespace SG
 		// [CPU 2 GPU Synchronization]
 		vector<VulkanFence*> mpBufferFences;
 
-		VulkanQueue*         mpQueue;
 		UInt32               mCurrentFrameInCPU;
 
 		VulkanBuffer* mpVertexBuffer;

@@ -15,6 +15,10 @@ namespace SG
 	{
 		CreateDefaultResource();
 
+		graphicQueue  = device.GetQueue(EQueueType::eGraphic);
+		computeQueue  = device.GetQueue(EQueueType::eCompute);
+		transferQueue = device.GetQueue(EQueueType::eTransfer);
+
 		Window* pMainWindow = OperatingSystem::GetMainWindow();
 		swapchain.CreateOrRecreate(pMainWindow->GetWidth(), pMainWindow->GetHeight());
 

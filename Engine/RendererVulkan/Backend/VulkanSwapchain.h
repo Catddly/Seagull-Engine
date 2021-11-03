@@ -15,7 +15,7 @@
 namespace SG
 {
 
-	struct VulkanQueue;
+	class  VulkanQueue;
 	struct VulkanSemaphore;
 
 	// TODO: abstract to IResource

@@ -7,7 +7,7 @@ namespace SG
 {
 
 	BasicCamera::BasicCamera(const Vector3f& position, const Vector3f& rotation)
-		:mPosition(position), mRotation(rotation)
+		:mPosition(position), mRotation(rotation), mbIsViewDirty(true), mbIsProjDirty(true)
 	{
 		UpdateViewMatrix();
 		Input::RegisterListener(this);
@@ -20,12 +20,36 @@ namespace SG
 
 	void BasicCamera::SetPerspective(float fovyInDegrees, float aspect, float zNear, float zFar)
 	{
-		mProjectionMatrix = BuildPerspectiveMatrix(fovyInDegrees, aspect, zNear, zFar);
+		static float sFovyInDegrees = 0, sAspect = 0, sZNear = 0, sZFar = 0;
+
+		if (fovyInDegrees != sFovyInDegrees || aspect != sAspect || zNear != sZNear || zFar != sZNear)
+		{
+			mbIsProjDirty = true;
+			mProjectionMatrix = BuildPerspectiveMatrix(fovyInDegrees, aspect, zNear, zFar);
+
+			sFovyInDegrees = fovyInDegrees;
+			sAspect        = aspect;
+			sZNear         = zNear;
+			sZFar          = zFar;
+		}
 	}
 
 	void BasicCamera::SetOrthographic(float left, float right, float top, float bottom, float zNear, float zFar)
 	{
-		mProjectionMatrix = BuildOrthographicMatrix(left, right, top, bottom, zNear, zFar);
+		static float sLeft = 0, sRight = 0, sTop = 0, sBottom = 0, sZNear = 0, sZFar = 0;
+
+		if (left != sLeft || right != sRight || top != sTop || bottom != sBottom || zNear != sZNear || zFar != sZFar)
+		{
+			mbIsViewDirty = true;
+			mProjectionMatrix = BuildOrthographicMatrix(left, right, top, bottom, zNear, zFar);
+
+			sLeft   = left;
+			sRight  = right;
+			sTop    = top;
+			sBottom = bottom;
+			sZNear  = zNear;
+			sZFar   = zFar;
+		}
 	}
 
 	void BasicCamera::UpdateViewMatrix()

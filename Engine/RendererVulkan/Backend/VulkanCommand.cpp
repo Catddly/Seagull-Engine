@@ -13,8 +13,8 @@ namespace SG
 	/// VulkanCommandPool
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanCommandPool::VulkanCommandPool(VulkanDevice& d, UInt32 queueFamilyIndex, VkCommandPoolCreateFlags flag)
-		:device(d)
+	VulkanCommandPool::VulkanCommandPool(VulkanDevice& d, UInt32 qFamilyIndex, VkCommandPoolCreateFlags flag)
+		:device(d), queueFamilyIndex(qFamilyIndex)
 	{
 		VkCommandPoolCreateInfo cmdPoolInfo = {};
 		cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -39,6 +39,8 @@ namespace SG
 
 		VK_CHECK(vkAllocateCommandBuffers(device.logicalDevice, &commandBufferAllocateInfo, &buffer.commandBuffer),
 			SG_LOG_ERROR("Failed to allocate command buffer"); return false;);
+
+		buffer.queueFamilyIndex = this->queueFamilyIndex;
 		return true;
 	}
 

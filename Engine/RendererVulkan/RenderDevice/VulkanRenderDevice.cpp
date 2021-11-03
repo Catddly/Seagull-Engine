@@ -56,7 +56,6 @@ namespace SG
 		/// end  outer resource preparation
 
 		mpContext = Memory::New<VulkanContext>();
-		mpQueue = mpContext->device.GetQueue(EQueueType::eGraphic);
 
 		// create command buffer
 		mpCommandBuffers.resize(mpContext->swapchain.imageCount);
@@ -121,8 +120,7 @@ namespace SG
 
 	void VulkanRenderDevice::OnShutdown()
 	{
-		mpQueue->WaitIdle();
-		Memory::Delete(mpQueue);
+		mpContext->graphicQueue.WaitIdle();
 
 		mpContext->device.DestroySemaphore(mpRenderCompleteSemaphore->semaphore);
 		mpContext->device.DestroySemaphore(mpPresentCompleteSemaphore->semaphore);
@@ -161,9 +159,10 @@ namespace SG
 		static float speed = 0.005f;
 		TranslateToX(mCameraUBO.model, 0.5f * Sin(totalTime));
 
-		mCameraUBO.view = mpCamera->GetViewMatrix();
-		mpCameraUBOBuffer->UploadData(&mCameraUBO);
+		if (mpCamera->IsViewDirty())
+			mCameraUBO.view = mpCamera->GetViewMatrix();
 
+		mpCameraUBOBuffer->UploadData(&mCameraUBO);
 		totalTime += deltaTime * speed;
 	}
 
@@ -175,8 +174,8 @@ namespace SG
 		mpContext->swapchain.AcquireNextImage(mpPresentCompleteSemaphore, mCurrentFrameInCPU);
 		mpContext->device.ResetFence(mpBufferFences[mCurrentFrameInCPU]->fence);
 
-		mpQueue->SubmitCommands(&mpCommandBuffers[mCurrentFrameInCPU], mpRenderCompleteSemaphore, mpPresentCompleteSemaphore, mpBufferFences[mCurrentFrameInCPU]);
-		mpContext->swapchain.Present(mpQueue, mCurrentFrameInCPU, mpRenderCompleteSemaphore);
+		mpContext->graphicQueue.SubmitCommands(&mpCommandBuffers[mCurrentFrameInCPU], mpRenderCompleteSemaphore, mpPresentCompleteSemaphore, mpBufferFences[mCurrentFrameInCPU]);
+		mpContext->swapchain.Present(&mpContext->graphicQueue, mCurrentFrameInCPU, mpRenderCompleteSemaphore);
 
 		mbBlockEvent = false;
 	}
@@ -306,11 +305,9 @@ namespace SG
 
 		auto* pFence = Memory::New<VulkanFence>();
 		pFence->fence = mpContext->device.CreateFence();
-		auto* transferQueue = mpContext->device.GetQueue(EQueueType::eTransfer);
-		transferQueue->SubmitCommands(&pCmd, nullptr, nullptr, pFence);
-		transferQueue->WaitIdle();
+		mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, pFence);
+		mpContext->transferQueue.WaitIdle();
 
-		Memory::Delete(transferQueue);
 		Memory::Delete(pVertexStagingBuffer);
 		Memory::Delete(pIndexStagingBuffer);
 		mpContext->device.DestroyFence(pFence->fence);

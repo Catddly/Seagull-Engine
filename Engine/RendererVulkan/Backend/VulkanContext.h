@@ -28,6 +28,11 @@ namespace SG
 		VulkanCommandPool* graphicCommandPool;
 		VulkanCommandPool* computeCommandPool;
 		VulkanCommandPool* transferCommandPool;
+
+		VulkanQueue        graphicQueue;
+		VulkanQueue        computeQueue;
+		VulkanQueue        transferQueue;
+
 		VkRenderPass       defaultRenderPass;
 
 		VulkanDescriptorPool* pDefaultDescriptorPool;
