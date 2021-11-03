@@ -23,7 +23,7 @@ namespace SG
 {
 
 	VulkanRenderDevice::VulkanRenderDevice()
-		:mCurrentFrameInCPU(0)
+		:mCurrentFrameInCPU(0), mbBlockEvent(true)
 	{
 		SSystem()->RegisterSystemMessageListener(this);
 		Input::RegisterListener(this);
@@ -214,9 +214,7 @@ namespace SG
 	void VulkanRenderDevice::WindowResize()
 	{
 		auto* window = OperatingSystem::GetMainWindow();
-		const UInt32 WIDTH = window->GetWidth();
-		const UInt32 HEIGHT = window->GetHeight();
-		const float  ASPECT = (float)WIDTH / HEIGHT;
+		const float  ASPECT = window->GetAspectRatio();
 		if (mbUseOrtho)
 			mpCamera->SetOrthographic(-ASPECT, ASPECT, 1, -1, -1, 1);
 		else

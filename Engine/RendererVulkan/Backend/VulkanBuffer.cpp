@@ -10,8 +10,8 @@
 namespace SG
 {
 
-	VulkanBuffer::VulkanBuffer(VulkanDevice& d, const BufferCreateDesc& CI, bool bLocal)
-		:device(d)
+	VulkanBuffer::VulkanBuffer(VulkanDevice& d, const BufferCreateDesc& CI, bool local)
+		:device(d), bLocal(local)
 	{
 		totalSizeInByte = CI.totalSizeInByte;
 		type = CI.type;
@@ -49,6 +49,12 @@ namespace SG
 
 	bool VulkanBuffer::UploadData(void* pData)
 	{
+		if (bLocal) // device local in GPU
+		{
+			SG_LOG_WARN("Try to upload data to device local memory!");
+			return false;
+		}
+
 		UInt8* pUpload = nullptr;
 		VK_CHECK(vkMapMemory(device.logicalDevice, memory, 0, totalSizeInByte, 0, (void**)&pUpload), 
 			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);

@@ -29,6 +29,7 @@ namespace SG
 		VkBuffer       buffer;
 		UInt32         totalSizeInByte;
 		EBufferType    type;
+		bool           bLocal;
 	};
 
 }
