@@ -13,6 +13,7 @@ namespace SG
 
 	class VulkanDescriptorPool;
 	class VulkanCommandPool;
+	class VulkanRenderPass;
 
 	class VulkanContext
 	{
@@ -33,7 +34,7 @@ namespace SG
 		VulkanQueue        computeQueue;
 		VulkanQueue        transferQueue;
 
-		VkRenderPass       defaultRenderPass;
+		VulkanRenderPass*  pCurrRenderPass;
 
 		VulkanDescriptorPool* pDefaultDescriptorPool;
 

@@ -20,14 +20,6 @@ namespace SG
 	class VulkanCommandBuffer;
 	class VulkanRenderPass;
 
-	struct VulkanPipeline : public Pipeline
-	{
-		VkPipeline        pipeline;
-		VkPipelineLayout  layout;
-		VkPipelineCache   pipelineCache;
-		VulkanRenderPass* pRenderPass = nullptr;
-	};
-
 	class VulkanQueue
 	{
 	public:
@@ -82,13 +74,13 @@ namespace SG
 		//VkRenderPass CreateRenderPass(VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt); // relative to rts
 		//void DestroyRenderPass(VkRenderPass renderPass);
 
-		VkPipelineCache CreatePipelineCache();
-		void DestroyPipelineCache(VkPipelineCache pipelineCache);
-		// TODO: remove layout to set descriptions layout (Root Signature)
-		VkPipelineLayout CreatePipelineLayout(const VkDescriptorSetLayout* descriptorSetLayout);
-		void             DestroyPipelineLayout(VkPipelineLayout layout);
-		VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkPipelineLayout layout, VkRenderPass renderPass, Shader& shader, BufferLayout* pLayout);
-		void       DestroyPipeline(VkPipeline pipeline);
+		//VkPipelineCache CreatePipelineCache();
+		//void DestroyPipelineCache(VkPipelineCache pipelineCache);
+		//// TODO: remove layout to set descriptions layout (Root Signature)
+		//VkPipelineLayout CreatePipelineLayout(const VkDescriptorSetLayout* descriptorSetLayout);
+		//void             DestroyPipelineLayout(VkPipelineLayout layout);
+		//VkPipeline CreatePipeline(VkPipelineCache pipelineCache, VkPipelineLayout layout, VkRenderPass renderPass, Shader& shader, BufferLayout* pLayout);
+		//void       DestroyPipeline(VkPipeline pipeline);
 
 		VulkanQueue GetQueue(EQueueType type) const;
 

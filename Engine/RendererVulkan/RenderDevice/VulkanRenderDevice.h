@@ -18,8 +18,9 @@ namespace SG
 	class VulkanBuffer;
 	class VulkanDescriptorSetLayout;
 	class VulkanCommandBuffer;
+	class VulkanPipelineLayout;
+	class VulkanPipeline;
 
-	struct VulkanPipeline;
 	struct VulkanSemaphore;
 	struct VulkanFence;
 	struct VulkanFrameBuffer;
@@ -62,7 +63,8 @@ namespace SG
 		vector<VulkanCommandBuffer> mpCommandBuffers;
 		VulkanFrameBuffer* mpFrameBuffers = nullptr;
 
-		VulkanPipeline* mpPipeline;
+		VulkanPipelineLayout* mpPipelineLayout;
+		VulkanPipeline*       mpPipeline;
 		Shader          mBasicShader;
 
 		// [GPU 2 GPU Synchronization]

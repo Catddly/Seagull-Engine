@@ -12,6 +12,9 @@
 namespace SG
 {
 
+	class VulkanPipelineLayout;
+	class VulkanPipeline;
+
 	class VulkanCommandBuffer
 	{
 	public:
@@ -27,8 +30,8 @@ namespace SG
 		void BindVertexBuffer(UInt32 firstBinding, UInt32 bindingCount, VulkanBuffer& buffer, const UInt64* pOffsets);
 		void BindIndexBuffer(VulkanBuffer& buffer, UInt32 offset, VkIndexType type = VK_INDEX_TYPE_UINT32);
 
-		void BindDescriptorSet(VkPipelineLayout layout, UInt32 firstSet, VkDescriptorSet descriptorSet); // TODO: change param.
-		void BindPipeline(VkPipeline pipeline); // TODO: change param.
+		void BindDescriptorSet(VulkanPipelineLayout* pLayout, UInt32 firstSet, VkDescriptorSet descriptorSet);
+		void BindPipeline(VulkanPipeline* pPipeline);
 
 		void Draw(UInt32 vertexCount, UInt32 instanceCount, UInt32 firstVertex, UInt32 firstInstance);
 		void DrawIndexed(UInt32 indexCount, UInt32 instanceCount, UInt32 firstIndex, UInt32 vertexOffset, UInt32 firstInstance);

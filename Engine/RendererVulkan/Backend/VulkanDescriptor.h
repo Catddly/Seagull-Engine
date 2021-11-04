@@ -48,7 +48,7 @@ namespace SG
 		~VulkanDescriptorSetLayout();
 		SG_CLASS_NO_COPY_ASSIGNABLE(VulkanDescriptorSetLayout);
 
-		const VkDescriptorSetLayout* NativeHandle() const { return &descriptorSetLayout; }// TODO: remove it!
+		VkDescriptorSetLayout& NativeHandle() { return descriptorSetLayout; }
 
 		class Builder
 		{
@@ -82,8 +82,8 @@ namespace SG
 	private:
 		void OverWriteData(VkDescriptorSet& set);
 	private:
-		VulkanDescriptorPool& pool;
-		VulkanDescriptorSetLayout& layout;
+		VulkanDescriptorPool&        pool;
+		VulkanDescriptorSetLayout&   layout;
 		vector<VkWriteDescriptorSet> writes;
 	};
 

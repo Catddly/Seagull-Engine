@@ -87,24 +87,34 @@ namespace SG
 			.BindBuffer(0, mpCameraUBOBuffer)
 			.Build(mpContext->cameraUBOSet);
 
-		mpPipeline = Memory::New<VulkanPipeline>();
-		mpPipeline->pRenderPass = VulkanRenderPass::Builder(mpContext->device)
+		mpContext->pCurrRenderPass = VulkanRenderPass::Builder(mpContext->device)
 			.BindColorRenderTarget(*mpContext->colorRts[0], EResourceBarrier::efUndefined, EResourceBarrier::efPresent)
 			.BindDepthRenderTarget(*mpContext->depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth)
 			.CombineAsSubpass()
 			.Build();
-		mpPipeline->pipelineCache = mpContext->device.CreatePipelineCache();
-		mpPipeline->layout        = mpContext->device.CreatePipelineLayout(mpCameraUBOSetLayout->NativeHandle());
+
+		vector<VulkanDescriptorSetLayout*> layouts;
+		layouts.emplace_back(mpCameraUBOSetLayout);
+		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
+			.BindDescriptorSetLayout(mpCameraUBOSetLayout)
+			.Build();
+
+		// TODO: use shader reflection
 		BufferLayout vertexBufferLayout = {
 			{ EShaderDataType::eFloat3, "position" },
 			{ EShaderDataType::eFloat3, "color" },
 		};
-		mpPipeline->pipeline = mpContext->device.CreatePipeline(mpPipeline->pipelineCache, mpPipeline->layout, mpPipeline->pRenderPass->NativeHandle(), mBasicShader, &vertexBufferLayout);
+		mpPipeline = VulkanPipeline::Builder(mpContext->device)
+			.SetVertexLayout(vertexBufferLayout)
+			.BindLayout(mpPipelineLayout)
+			.BindRenderPass(mpContext->pCurrRenderPass)
+			.BindShader(&mBasicShader)
+			.Build();
 
 		mpFrameBuffers = Memory::New<VulkanFrameBuffer>();
 		mpFrameBuffers->frameBuffers.resize(mpContext->swapchain.imageCount);
 		for (UInt32 i = 0; i < mpFrameBuffers->frameBuffers.size(); ++i)
-			mpFrameBuffers->frameBuffers[i] = mpContext->device.CreateFrameBuffer(mpPipeline->pRenderPass->NativeHandle(), mpContext->colorRts[i], mpContext->depthRt);
+			mpFrameBuffers->frameBuffers[i] = mpContext->device.CreateFrameBuffer(mpContext->pCurrRenderPass->NativeHandle(), mpContext->colorRts[i], mpContext->depthRt);
 
 		mpRenderCompleteSemaphore = Memory::New<VulkanSemaphore>();
 		mpRenderCompleteSemaphore->semaphore = mpContext->device.CreateSemaphore();
@@ -141,14 +151,12 @@ namespace SG
 			mpContext->device.DestroyFrameBuffer(mpFrameBuffers->frameBuffers[i]);
 		Memory::Delete(mpFrameBuffers);
 
-		Memory::Delete(mpCameraUBOSetLayout);
-
-		mpContext->device.DestroyPipeline(mpPipeline->pipeline);
-		mpContext->device.DestroyPipelineLayout(mpPipeline->layout);
-		mpContext->device.DestroyPipelineCache(mpPipeline->pipelineCache);
-		Memory::Delete(mpPipeline->pRenderPass);
+		Memory::Delete(mpPipelineLayout);
 		Memory::Delete(mpPipeline);
 
+		Memory::Delete(mpContext->pCurrRenderPass);
+
+		Memory::Delete(mpCameraUBOSetLayout);
 		DestroyUBOBuffers();
 		DestroyGeoBuffers();
 
@@ -232,7 +240,7 @@ namespace SG
 		{
 			auto* colorRt = mpContext->colorRts[i];
 			mpContext->device.DestroyFrameBuffer(frameBuffers[i]);
-			frameBuffers[i] = mpContext->device.CreateFrameBuffer(mpPipeline->pRenderPass->NativeHandle(), colorRt, mpContext->depthRt);
+			frameBuffers[i] = mpContext->device.CreateFrameBuffer(mpContext->pCurrRenderPass->NativeHandle(), colorRt, mpContext->depthRt);
 		}
 
 		for (auto& pCmdBuf : mpCommandBuffers)
@@ -262,9 +270,9 @@ namespace SG
 			cv.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 			cv.depthStencil = { 1.0f, 0 };
 
-			pBuf.BeginRenderPass(pipeline->pRenderPass->NativeHandle(), pFb, cv, pColorRt->width, pColorRt->height);
-				pBuf.BindDescriptorSet(pipeline->layout, 0, mpContext->cameraUBOSet);
-				pBuf.BindPipeline(pipeline->pipeline);
+			pBuf.BeginRenderPass(mpContext->pCurrRenderPass->NativeHandle(), pFb, cv, pColorRt->width, pColorRt->height);
+				pBuf.BindDescriptorSet(mpPipelineLayout, 0, mpContext->cameraUBOSet);
+				pBuf.BindPipeline(mpPipeline);
 
 				UInt64 offset[1] = { 0 };
 				pBuf.BindVertexBuffer(0, 1, *mpVertexBuffer, offset);

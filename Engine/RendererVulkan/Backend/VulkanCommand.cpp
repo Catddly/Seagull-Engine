@@ -5,6 +5,7 @@
 
 #include "VulkanConfig.h"
 #include "VulkanBuffer.h"
+#include "VulkanPipeline.h"
 
 namespace SG
 {
@@ -148,14 +149,14 @@ namespace SG
 		vkCmdBindIndexBuffer(commandBuffer, buffer.NativeHandle(), offset, type);
 	}
 
-	void VulkanCommandBuffer::BindDescriptorSet(VkPipelineLayout layout, UInt32 firstSet, VkDescriptorSet descriptorSet)
+	void VulkanCommandBuffer::BindDescriptorSet(VulkanPipelineLayout* layout, UInt32 firstSet, VkDescriptorSet descriptorSet)
 	{
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, firstSet, 1, &descriptorSet, 0, nullptr);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout->layout, firstSet, 1, &descriptorSet, 0, nullptr);
 	}
 
-	void VulkanCommandBuffer::BindPipeline(VkPipeline pipeline)
+	void VulkanCommandBuffer::BindPipeline(VulkanPipeline* pipeline)
 	{
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
 	}
 
 	void VulkanCommandBuffer::Draw(UInt32 vertexCount, UInt32 instanceCount, UInt32 firstVertex, UInt32 firstInstance)
