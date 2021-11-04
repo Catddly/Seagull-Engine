@@ -581,49 +581,51 @@ namespace SG
 		}
 	}
 
-	VkAccessFlags ToVkAccessFlags(EResoureceBarrier barrier)
+	VkAccessFlags ToVkAccessFlags(EResourceBarrier barrier)
 	{
 		VkAccessFlags ret = 0;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efCopy_Source, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efCopy_Source, barrier))
 			ret |= VK_ACCESS_TRANSFER_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efCopy_Dest, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efCopy_Dest, barrier))
 			ret |= VK_ACCESS_TRANSFER_WRITE_BIT;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efVertex_And_Constant_Buffer, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efVertex_And_Constant_Buffer, barrier))
 			ret |= VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efIndexBuffer, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efIndexBuffer, barrier))
 			ret |= VK_ACCESS_INDEX_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efUnordered_Access, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efUnordered_Access, barrier))
 			ret |= VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efIndirect_Argument, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efIndirect_Argument, barrier))
 			ret |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efRenderTarget, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efRenderTarget, barrier))
 			ret |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efDepth_Write, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efDepth_Write, barrier))
 			ret |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efShader_Resource, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efShader_Resource, barrier))
 			ret |= VK_ACCESS_SHADER_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efPresent, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efPresent, barrier))
 			ret |= VK_ACCESS_MEMORY_READ_BIT;
 		return ret;
 	}
 
-	VkImageLayout ToVkImageLayout(EResoureceBarrier barrier)
+	VkImageLayout ToVkImageLayout(EResourceBarrier barrier)
 	{
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efCopy_Source, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efUndefined, barrier))
+			return VK_IMAGE_LAYOUT_UNDEFINED;
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efCopy_Source, barrier))
 			return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efCopy_Dest, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efCopy_Dest, barrier))
 			return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efRenderTarget, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efRenderTarget, barrier))
 			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efDepth_Write, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efDepth, barrier))
 			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efUnordered_Access, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efUnordered_Access, barrier))
 			return VK_IMAGE_LAYOUT_GENERAL;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efShader_Resource, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efShader_Resource, barrier))
 			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		if (SG_HAS_ENUM_FLAG(EResoureceBarrier::efPresent, barrier))
+		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efPresent, barrier))
 			return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		if (barrier == EResoureceBarrier::efCommon)
+		if (barrier == EResourceBarrier::efCommon)
 			return VK_IMAGE_LAYOUT_GENERAL;
 		return VK_IMAGE_LAYOUT_UNDEFINED;
 	}

@@ -32,9 +32,8 @@ namespace SG
 
 	VkPresentModeKHR ToVkPresentMode(EPresentMode pmode);
 
-	VkAccessFlags ToVkAccessFlags(EResoureceBarrier barrier);
-
-	VkImageLayout ToVkImageLayout(EResoureceBarrier barrier);
+	VkAccessFlags ToVkAccessFlags(EResourceBarrier barrier);
+	VkImageLayout ToVkImageLayout(EResourceBarrier barrier);
 
 	VkImageViewType ToVkImageViewType(VkImageType imageType, UInt32 array);
 

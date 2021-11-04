@@ -42,6 +42,7 @@ namespace SG
 
 		mutable bool mbIsViewDirty = false;
 		mutable bool mbIsProjDirty = false;
+		bool mbUseOrtho = false;
 	};
 
 }

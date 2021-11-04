@@ -18,13 +18,14 @@ namespace SG
 {
 
 	class VulkanCommandBuffer;
+	class VulkanRenderPass;
 
 	struct VulkanPipeline : public Pipeline
 	{
-		VkPipeline       pipeline;
-		VkPipelineLayout layout;
-		VkPipelineCache  pipelineCache;
-		VkRenderPass     renderPass;
+		VkPipeline        pipeline;
+		VkPipelineLayout  layout;
+		VkPipelineCache   pipelineCache;
+		VulkanRenderPass* pRenderPass = nullptr;
 	};
 
 	class VulkanQueue
@@ -78,8 +79,8 @@ namespace SG
 		VkFramebuffer CreateFrameBuffer(VkRenderPass renderPass, VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt);
 		void DestroyFrameBuffer(VkFramebuffer frameBuffer);
 
-		VkRenderPass CreateRenderPass(VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt); // relative to rts
-		void DestroyRenderPass(VkRenderPass renderPass);
+		//VkRenderPass CreateRenderPass(VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt); // relative to rts
+		//void DestroyRenderPass(VkRenderPass renderPass);
 
 		VkPipelineCache CreatePipelineCache();
 		void DestroyPipelineCache(VkPipelineCache pipelineCache);

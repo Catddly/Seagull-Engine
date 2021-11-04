@@ -5,7 +5,7 @@
 namespace SG
 {
 
-	enum class EResoureceBarrier : UInt32
+	enum class EResourceBarrier : UInt32
 	{
 		efUndefined = 0,
 		efVertex_And_Constant_Buffer = 0x1,
@@ -24,7 +24,8 @@ namespace SG
 		efGeneric_Read = (((((0x1 | 0x2) | 0x40) | 0x80) | 0x200) | 0x800),
 		efPresent = 0x1000,
 		efCommon = 0x2000,
+		efDepth = efDepth_Write | efDepth_Read,
 	};
-	SG_ENUM_CLASS_FLAG(UInt32, EResoureceBarrier);
+	SG_ENUM_CLASS_FLAG(UInt32, EResourceBarrier);
 
 }

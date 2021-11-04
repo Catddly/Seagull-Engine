@@ -22,9 +22,10 @@ namespace SG
 	{
 		static float sFovyInDegrees = 0, sAspect = 0, sZNear = 0, sZFar = 0;
 
-		if (fovyInDegrees != sFovyInDegrees || aspect != sAspect || zNear != sZNear || zFar != sZNear)
+		if (mbUseOrtho || fovyInDegrees != sFovyInDegrees || aspect != sAspect || zNear != sZNear || zFar != sZNear)
 		{
 			mbIsProjDirty = true;
+			mbUseOrtho = false;
 			mProjectionMatrix = BuildPerspectiveMatrix(fovyInDegrees, aspect, zNear, zFar);
 
 			sFovyInDegrees = fovyInDegrees;
@@ -38,9 +39,10 @@ namespace SG
 	{
 		static float sLeft = 0, sRight = 0, sTop = 0, sBottom = 0, sZNear = 0, sZFar = 0;
 
-		if (left != sLeft || right != sRight || top != sTop || bottom != sBottom || zNear != sZNear || zFar != sZFar)
+		if (!mbUseOrtho || left != sLeft || right != sRight || top != sTop || bottom != sBottom || zNear != sZNear || zFar != sZFar)
 		{
 			mbIsViewDirty = true;
+			mbUseOrtho = true;
 			mProjectionMatrix = BuildOrthographicMatrix(left, right, top, bottom, zNear, zFar);
 
 			sLeft   = left;
