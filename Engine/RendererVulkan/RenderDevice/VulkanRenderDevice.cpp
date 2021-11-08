@@ -82,7 +82,6 @@ namespace SG
 		mpCameraUBOSetLayout = VulkanDescriptorSetLayout::Builder(mpContext->device)
 			.AddBinding(EBufferType::efUniform, 0, 1)
 			.Build();
-
 		VulkanDescriptorDataBinder(*mpContext->pDefaultDescriptorPool, *mpCameraUBOSetLayout)
 			.BindBuffer(0, mpCameraUBOBuffer)
 			.Build(mpContext->cameraUBOSet);
@@ -217,6 +216,7 @@ namespace SG
 				mpCamera->SetOrthographic(-ASPECT, ASPECT, 1, -1, -1, 1);
 			else
 				mpCamera->SetPerspective(45.0f, ASPECT);
+
 			mCameraUBO.proj = mpCamera->GetProjMatrix();
 			mpCameraUBOBuffer->UploadData(&mCameraUBO);
 		}
@@ -254,12 +254,11 @@ namespace SG
 
 	void VulkanRenderDevice::RecordRenderCommands()
 	{
-		auto* pipeline = static_cast<VulkanPipeline*>(mpPipeline);
 		for (UInt32 i = 0; i < mpCommandBuffers.size(); ++i)
 		{
 			auto& pBuf = mpCommandBuffers[i];
 			auto* pFb  = mpFrameBuffers->frameBuffers[i];
-			auto* pColorRt = static_cast<VulkanRenderTarget*>(mpContext->colorRts[i]);
+			auto* pColorRt = mpContext->colorRts[i];
 
 			pBuf.BeginRecord(true);
 
@@ -267,7 +266,7 @@ namespace SG
 			pBuf.SetScissor({ 0, 0, (int)pColorRt->width, (int)pColorRt->height });
 
 			ClearValue cv;
-			cv.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+			cv.color = { 0.03f, 0.05f, 0.03f, 0.0f };
 			cv.depthStencil = { 1.0f, 0 };
 
 			pBuf.BeginRenderPass(mpContext->pCurrRenderPass->NativeHandle(), pFb, cv, pColorRt->width, pColorRt->height);
@@ -291,7 +290,6 @@ namespace SG
 		// vertex buffer
 		BufferCreateDesc BufferCI = {};
 		BufferCI.totalSizeInByte = sizeof(float) * 6 * 4;
-		BufferCI.pData = vertices;
 		BufferCI.type  = EBufferType::efVertex | EBufferType::efTransfer_Dst;
 		mpVertexBuffer = VulkanBuffer::Create(mpContext->device, BufferCI, true);
 		BufferCI.type = EBufferType::efTransfer_Src;
@@ -300,7 +298,6 @@ namespace SG
 
 		// index buffer
 		BufferCI.totalSizeInByte = sizeof(UInt32) * 6;
-		BufferCI.pData = indices;
 		BufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
 		mpIndexBuffer = VulkanBuffer::Create(mpContext->device, BufferCI, true);
 		BufferCI.type = EBufferType::efTransfer_Src;
@@ -342,7 +339,6 @@ namespace SG
 	{
 		BufferCreateDesc BufferCI = {};
 		BufferCI.totalSizeInByte = sizeof(UBO);
-		BufferCI.pData = &mCameraUBO;
 		BufferCI.type = EBufferType::efUniform;
 		mpCameraUBOBuffer = VulkanBuffer::Create(mpContext->device, BufferCI, false);
 		return mpCameraUBOBuffer != nullptr;
