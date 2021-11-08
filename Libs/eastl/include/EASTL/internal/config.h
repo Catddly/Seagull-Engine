@@ -26,7 +26,7 @@ namespace eastl
 {
 #define EASTL_USER_DEFINED_ALLOCATOR 1
 #define EASTL_ALLOCATOR_SG 1
-#define EASTLAllocatorType SG::CDefaultAllocator
+#define EASTLAllocatorType SG::DefaultAllocator
 #define EASTLAllocatorDefault SG::GetDefaultAllocator
 }
 #include "Defs/Defs.h"

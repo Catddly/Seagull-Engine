@@ -14,6 +14,8 @@ namespace SG
 	class VulkanDescriptorPool;
 	class VulkanCommandPool;
 	class VulkanRenderPass;
+	class VulkanSemaphore;
+	class VulkanFence;
 
 	class VulkanContext
 	{
@@ -33,6 +35,12 @@ namespace SG
 		VulkanQueue        graphicQueue;
 		VulkanQueue        computeQueue;
 		VulkanQueue        transferQueue;
+
+		// [GPU To GPU Synchronization]
+		VulkanSemaphore* pRenderCompleteSemaphore;
+		VulkanSemaphore* pPresentCompleteSemaphore;
+		// [CPU To GPU Synchronization]
+		vector<VulkanFence*> pFences;
 
 		VulkanRenderPass*  pCurrRenderPass;
 

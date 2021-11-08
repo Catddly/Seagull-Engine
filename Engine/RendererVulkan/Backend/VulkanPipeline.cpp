@@ -218,7 +218,7 @@ namespace SG
 			default:                    SG_LOG_ERROR("Unknown type of shader stage!"); break;
 			}
 
-			VkShaderModule shaderModule;
+			VkShaderModule shaderModule = {};
 			VkShaderModuleCreateInfo moduleCreateInfo = {};
 			moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 			moduleCreateInfo.codeSize = beg->second.binarySize;

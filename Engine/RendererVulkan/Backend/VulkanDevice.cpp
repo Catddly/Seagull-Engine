@@ -11,8 +11,6 @@
 #include "VulkanSynchronizePrimitive.h"
 #include "RendererVulkan/Utils/VkConvert.h"
 
-#include "VulkanCommand.h"
-
 #include "Stl/vector.h"
 #include <eastl/array.h>
 
@@ -154,53 +152,6 @@ namespace SG
 	void VulkanDevice::DestroyLogicalDevice()
 	{
 		vkDestroyDevice(logicalDevice, nullptr);
-	}
-
-	VkSemaphore VulkanDevice::CreateSemaphore()
-	{
-		VkSemaphore semaphore;
-		VkSemaphoreCreateInfo semaphoreCI = {};
-		semaphoreCI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-		semaphoreCI.pNext = nullptr;
-
-		if (vkCreateSemaphore(logicalDevice, &semaphoreCI, nullptr, &semaphore) != VK_SUCCESS)
-		{
-			SG_LOG_ERROR("Failed to create vulkan semaphore!");
-			return VK_NULL_HANDLE;
-		}
-		return semaphore;
-	}
-
-	void VulkanDevice::DestroySemaphore(VkSemaphore semaphore)
-	{
-		vkDestroySemaphore(logicalDevice, semaphore, nullptr);
-	}
-
-	VkFence VulkanDevice::CreateFence(bool bSignaled)
-	{
-		VkFence fence;
-		VkFenceCreateInfo fenceCreateInfo = {};
-		fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-		// create in signaled state so we don't wait on first render of each command buffer.
-		if (bSignaled)
-			fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-		if (vkCreateFence(logicalDevice, &fenceCreateInfo, nullptr, &fence) != VK_SUCCESS)
-		{
-			SG_LOG_ERROR("Failed to create vulkan fence");
-			return VK_NULL_HANDLE;
-		}
-		return fence;
-	}
-
-	void VulkanDevice::DestroyFence(VkFence fence)
-	{
-		vkDestroyFence(logicalDevice, fence, nullptr);
-	}
-
-	void VulkanDevice::ResetFence(VkFence fence)
-	{
-		vkWaitForFences(logicalDevice, 1, &fence, VK_TRUE, UINT64_MAX);
-		vkResetFences(logicalDevice, 1, &fence);
 	}
 
 	VkFramebuffer VulkanDevice::CreateFrameBuffer(VkRenderPass renderPass, VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt)
@@ -382,7 +333,7 @@ namespace SG
 	/// VulkanQueue
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool VulkanQueue::SubmitCommands(VulkanCommandBuffer* pCmdBuf, RenderSemaphore* renderSemaphore, RenderSemaphore* presentSemaphore, RenderFence* fence)
+	bool VulkanQueue::SubmitCommands(VulkanCommandBuffer* pCmdBuf, VulkanSemaphore* pSignalSemaphore, VulkanSemaphore* pWaitSemaphore, VulkanFence* fence)
 	{
 		if (pCmdBuf->queueFamilyIndex != familyIndex) // check if the command is submitted to the right queue
 		{
@@ -391,39 +342,33 @@ namespace SG
 			return false;
 		}
 
-		auto* pVkFence = static_cast<VulkanFence*>(fence);
-		auto* pVkRenderSP = static_cast<VulkanSemaphore*>(renderSemaphore);
-		auto* pVkPresentSP = static_cast<VulkanSemaphore*>(presentSemaphore);
-
 		// pipeline stage at which the queue submission will wait (via pWaitSemaphores)
 		// the submit info structure specifies a command buffer queue submission batch
 		VkPipelineStageFlags waitStageMask = {};
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		if (renderSemaphore && presentSemaphore)
+		if (pSignalSemaphore && pWaitSemaphore)
 		{
 			waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		}
 		submitInfo.pWaitDstStageMask = &waitStageMask;
 
-		if (presentSemaphore)
+		if (pSignalSemaphore)
 		{
-			submitInfo.pWaitSemaphores = &pVkPresentSP->semaphore;
+			submitInfo.pWaitSemaphores = &pWaitSemaphore->semaphore;
 			submitInfo.waitSemaphoreCount = 1;
 		}
-		if (renderSemaphore)
+		if (pWaitSemaphore)
 		{
-			submitInfo.pSignalSemaphores = &pVkRenderSP->semaphore;
+			submitInfo.pSignalSemaphores = &pSignalSemaphore->semaphore;
 			submitInfo.signalSemaphoreCount = 1;
 		}
 		submitInfo.pCommandBuffers = &pCmdBuf->commandBuffer;
 		submitInfo.commandBufferCount = 1;
 
-		if (vkQueueSubmit(handle, 1, &submitInfo, pVkFence->fence) != VK_SUCCESS)
-		{
+		VK_CHECK(vkQueueSubmit(handle, 1, &submitInfo, fence->fence),
 			SG_LOG_ERROR("Failed to submit render commands to queue!");
-			return false;
-		}
+			return false;);
 		return true;
 	}
 

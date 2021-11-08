@@ -1,20 +1,43 @@
 #pragma once
 
 #include "Render/Synchronize.h"
+#include "VulkanDevice.h"
 
 #include <vulkan/vulkan_core.h>
+#include <stdint.h>
 
 namespace SG
 {
 
-	struct VulkanSemaphore : public RenderSemaphore
+	class VulkanSemaphore
 	{
-		VkSemaphore semaphore;
+	public:
+		VulkanSemaphore(VulkanDevice& d);
+		~VulkanSemaphore();
+
+		static VulkanSemaphore* Create(VulkanDevice& d);
+	private:
+		friend class VulkanQueue;
+		friend class VulkanSwapchain;
+
+		VulkanDevice& device;
+		VkSemaphore   semaphore;
 	};
 
-	struct VulkanFence : public RenderFence
+	class VulkanFence
 	{
-		VkFence fence;
-	};
+	public:
+		VulkanFence(VulkanDevice& d, bool bSignaled);
+		~VulkanFence();
 
+		void Reset();
+		void WaitAndReset(UInt64 timeOut = UINT64_MAX);
+
+		static VulkanFence* Create(VulkanDevice& d, bool bSignaled = false);
+	private:
+		friend class VulkanQueue;
+
+		VulkanDevice& device;
+		VkFence       fence;
+	};
 }

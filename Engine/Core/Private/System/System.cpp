@@ -23,6 +23,11 @@ namespace SG
 
 	void System::Initialize()
 	{
+		FileSystem::OnInit();
+		Logger::OnInit();
+		Input::OnInit();
+		OperatingSystem::OnInit();
+
 		char abPath[SG_MAX_FILE_PATH] = { 0 };
 		::GetModuleFileNameA(NULL, abPath, sizeof(abPath));
 		char drivePath[SG_MAX_DRIVE_PATH] = { 0 };
@@ -33,7 +38,7 @@ namespace SG
 
 		string tempRootPath(drivePath);
 		tempRootPath.append(directoryPath);
-		mRootPath = move(tempRootPath);
+		mRootPath = eastl::move(tempRootPath);
 		// set root directory to where the .exe file is
 		_chdir(mRootPath.c_str());
 
@@ -42,11 +47,6 @@ namespace SG
 		mMainThread.pFunc = nullptr;
 		mMainThread.pHandle = nullptr;
 		mMainThread.pUser = nullptr;
-
-		FileSystem::OnInit();
-		Logger::OnInit();
-		Input::OnInit();
-		OperatingSystem::OnInit();
 	}
 
 	void System::Shutdown()
@@ -187,12 +187,6 @@ namespace SG
 		_chdir(filepath);
 	}
 
-	System* const System::Instance()
-	{
-		static System instance;
-		return &instance;
-	}
-
 	void System::RegisterSystemMessageListener(ISystemMessageListener* pListener)
 	{
 		mMessageBus.RegisterListener(pListener);
@@ -201,6 +195,12 @@ namespace SG
 	void System::RemoveSystemMessageListener(ISystemMessageListener* pListener)
 	{
 		mMessageBus.RemoveListener(pListener);
+	}
+
+	System* const System::Instance()
+	{
+		static System instance;
+		return &instance;
 	}
 
 }

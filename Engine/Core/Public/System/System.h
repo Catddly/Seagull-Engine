@@ -10,9 +10,11 @@
 #include "Stl/string.h"
 #include <eastl/set.h>
 
-#ifndef WIN32_LEAN_AND_MEAN
-#	define WIN32_LEAN_AND_MEAN
-#	include <windows.h>
+#ifdef SG_PLATFORM_WINDOWS
+#	ifndef WIN32_LEAN_AND_MEAN
+#		define WIN32_LEAN_AND_MEAN
+#		include <windows.h>
+#	endif
 #endif
 
 namespace SG
@@ -105,9 +107,9 @@ namespace SG
 		ModuleManager    mModuleManager;
 		SystemMessageBus mMessageBus;
 
-		IProcess* mpCurrActiveProcess;
-		Thread  mMainThread;
-		string  mRootPath;
+		IProcess*     mpCurrActiveProcess;
+		Thread        mMainThread;
+		string        mRootPath;
 	};
 
 	template <class T>

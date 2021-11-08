@@ -115,18 +115,6 @@ namespace SG
 		for (UInt32 i = 0; i < mpFrameBuffers->frameBuffers.size(); ++i)
 			mpFrameBuffers->frameBuffers[i] = mpContext->device.CreateFrameBuffer(mpContext->pCurrRenderPass->NativeHandle(), mpContext->colorRts[i], mpContext->depthRt);
 
-		mpRenderCompleteSemaphore = Memory::New<VulkanSemaphore>();
-		mpRenderCompleteSemaphore->semaphore = mpContext->device.CreateSemaphore();
-		mpPresentCompleteSemaphore = Memory::New<VulkanSemaphore>();
-		mpPresentCompleteSemaphore->semaphore = mpContext->device.CreateSemaphore();
-
-		mpBufferFences.resize(mpContext->swapchain.imageCount);
-		for (UInt32 i = 0; i < mpContext->swapchain.imageCount; ++i)
-		{
-			mpBufferFences[i] = Memory::New<VulkanFence>();
-			mpBufferFences[i]->fence = mpContext->device.CreateFence(true);
-		}
-
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
 		RecordRenderCommands();
@@ -135,16 +123,6 @@ namespace SG
 	void VulkanRenderDevice::OnShutdown()
 	{
 		mpContext->graphicQueue.WaitIdle();
-
-		mpContext->device.DestroySemaphore(mpRenderCompleteSemaphore->semaphore);
-		mpContext->device.DestroySemaphore(mpPresentCompleteSemaphore->semaphore);
-		Memory::Delete(mpRenderCompleteSemaphore);
-		Memory::Delete(mpPresentCompleteSemaphore);
-		for (UInt32 i = 0; i < mpContext->swapchain.imageCount; ++i)
-		{
-			mpContext->device.DestroyFence(mpBufferFences[i]->fence);
-			Memory::Delete(mpBufferFences[i]);
-		}
 
 		for (UInt32 i = 0; i < mpFrameBuffers->frameBuffers.size(); ++i)
 			mpContext->device.DestroyFrameBuffer(mpFrameBuffers->frameBuffers[i]);
@@ -183,11 +161,12 @@ namespace SG
 		if (mbWindowMinimal)
 			return;
 
-		mpContext->swapchain.AcquireNextImage(mpPresentCompleteSemaphore, mCurrentFrameInCPU);
-		mpContext->device.ResetFence(mpBufferFences[mCurrentFrameInCPU]->fence);
+		mpContext->swapchain.AcquireNextImage(mpContext->pPresentCompleteSemaphore, mCurrentFrameInCPU); // check if next image is presented, and get it as the available image
+		mpContext->pFences[mCurrentFrameInCPU]->WaitAndReset(); // wait for the render commands running on the new image
 
-		mpContext->graphicQueue.SubmitCommands(&mpCommandBuffers[mCurrentFrameInCPU], mpRenderCompleteSemaphore, mpPresentCompleteSemaphore, mpBufferFences[mCurrentFrameInCPU]);
-		mpContext->swapchain.Present(&mpContext->graphicQueue, mCurrentFrameInCPU, mpRenderCompleteSemaphore);
+		mpContext->graphicQueue.SubmitCommands(&mpCommandBuffers[mCurrentFrameInCPU], 
+			mpContext->pRenderCompleteSemaphore, mpContext->pPresentCompleteSemaphore, mpContext->pFences[mCurrentFrameInCPU]); // submit new render commands to the available image
+		mpContext->swapchain.Present(&mpContext->graphicQueue, mCurrentFrameInCPU, mpContext->pRenderCompleteSemaphore); // present the available image
 
 		mbBlockEvent = false;
 	}
@@ -313,14 +292,12 @@ namespace SG
 		pCmd.CopyBuffer(*pIndexStagingBuffer, *mpIndexBuffer);
 		pCmd.EndRecord();
 
-		auto* pFence = Memory::New<VulkanFence>();
-		pFence->fence = mpContext->device.CreateFence();
+		auto* pFence = VulkanFence::Create(mpContext->device);
 		mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, pFence);
 		mpContext->transferQueue.WaitIdle();
 
 		Memory::Delete(pVertexStagingBuffer);
 		Memory::Delete(pIndexStagingBuffer);
-		mpContext->device.DestroyFence(pFence->fence);
 		Memory::Delete(pFence);
 		/// end copy buffers
 

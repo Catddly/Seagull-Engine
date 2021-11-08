@@ -7,15 +7,15 @@ namespace SG
 {
 
 	//! Seagull's default allocator using mimalloc lib
-	class SG_CORE_API CDefaultAllocator final : public IAllocator
+	class SG_CORE_API DefaultAllocator final : public IAllocator
 	{
 	public:
-		explicit CDefaultAllocator(const char* pName = "SG_DefaultAllocator");
-		CDefaultAllocator(const CDefaultAllocator& x);
-		CDefaultAllocator(const CDefaultAllocator& x, const char* pName);
-		~CDefaultAllocator() {}
+		explicit DefaultAllocator(const char* pName = "SG_DefaultAllocator");
+		DefaultAllocator(const DefaultAllocator& x);
+		DefaultAllocator(const DefaultAllocator& x, const char* pName);
+		~DefaultAllocator() {}
 
-		virtual CDefaultAllocator& operator=(const CDefaultAllocator& x) { return *this; }
+		virtual DefaultAllocator& operator=(const DefaultAllocator& x) { return *this; }
 
 		virtual void* allocate(Size size) noexcept override;
 		virtual void* allocate(Size size, Size alignment, Size alignmentOffset, int flags = 0) noexcept override;
@@ -30,10 +30,10 @@ namespace SG
 #endif
 	};
 
-	SG_CORE_API inline bool operator==(const CDefaultAllocator& a, const CDefaultAllocator& b);
-	SG_CORE_API inline bool operator!=(const CDefaultAllocator& a, const CDefaultAllocator& b);
+	SG_CORE_API inline bool operator==(const DefaultAllocator& a, const DefaultAllocator& b);
+	SG_CORE_API inline bool operator!=(const DefaultAllocator& a, const DefaultAllocator& b);
 
-	SG_CORE_API CDefaultAllocator* GetDefaultAllocator();
-	SG_CORE_API CDefaultAllocator* SetDefaultAllocator(CDefaultAllocator* pAllocator);
+	SG_CORE_API DefaultAllocator* GetDefaultAllocator();
+	SG_CORE_API DefaultAllocator* SetDefaultAllocator(DefaultAllocator* pAllocator);
 
 }

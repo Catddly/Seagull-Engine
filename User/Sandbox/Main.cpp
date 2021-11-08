@@ -21,8 +21,9 @@ class MyApp : public SG::IApp, public SG::IInputListener
 public:
 	virtual void OnInit() override
 	{
-		SG_LOG_INFO("User OnInit()");
 		using namespace SG;
+
+		SG_LOG_INFO("User OnInit()");
 
 		//auto* pInputSystem = SG::System::GetInstance()->GetIInputSystem();
 		//pInputSystem->RegisterListener(this);
@@ -41,6 +42,7 @@ public:
 		job.Execute(a, b);
 		SG_LOG_INFO("b is %.2llf", b);
 
+		//MemoryLeakTest();
 		//MathTest();
 		//ThreadTest();
 	}
@@ -159,6 +161,51 @@ private:
 			FileSystem::Close();
 			Memory::Free(buf);
 		}
+	}
+
+	void MemoryLeakTest()
+	{
+		using namespace SG;
+		MemoryScopeTracker mtc("Memory Leak Test");
+
+		struct BigChunk
+		{
+			char pad1[1024];
+			char pad2[1024];
+			char pad3[1024];
+			char pad4[1024];
+		};
+
+		auto* ptrB = MallocTrack(double); // this memory leaked
+		auto* ptrC = MallocTrack(char);
+
+		int* pOuter = nullptr;
+		BigChunk* pDeepOuter = nullptr;
+		{
+			MemoryScopeTracker scope2("Inside");
+
+			auto* ptrA = MallocTrack(int);
+			*ptrA = 5;
+
+			auto* ptr = MallocTrack(BigChunk);
+			Memory::Free(ptr);
+
+			{
+				MemoryScopeTracker scope3("Deep Inside");
+
+				auto* ptrD = MallocTrack(long);
+				Memory::Free(ptrD);
+
+				auto* pHello = MallocTrack(BigChunk); // this memory leaked
+				pDeepOuter = pHello;
+			}
+
+			pOuter = ptrA;
+		}
+
+		Memory::Free(pOuter);
+		Memory::Free(ptrC);
+		//Memory::Free(pDeepOuter);
 	}
 private:
 	static SG::Mutex  sMutex;

@@ -6,6 +6,7 @@
 
 #include "VulkanCommand.h"
 #include "VulkanDescriptor.h"
+#include "VulkanSynchronizePrimitive.h"
 
 namespace SG
 {
@@ -38,11 +39,26 @@ namespace SG
 		depthRtCI.usage = EImageUsage::efDepth_Stencil;
 
 		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
+
+		pFences.resize(swapchain.imageCount);
+		for (Size i = 0; i < swapchain.imageCount; ++i)
+		{
+			VulkanFence** ppFence = &pFences[i];
+			*ppFence = VulkanFence::Create(device, true);
+		}
+
+		pRenderCompleteSemaphore  = VulkanSemaphore::Create(device);
+		pPresentCompleteSemaphore = VulkanSemaphore::Create(device);
 	}
 
 	VulkanContext::~VulkanContext()
 	{
 		DestroyDefaultResource();
+
+		Memory::Delete(pRenderCompleteSemaphore);
+		Memory::Delete(pPresentCompleteSemaphore);
+		for (auto* pFence : pFences)
+			Memory::Delete(pFence);
 
 		swapchain.CleanUp();
 		Memory::Delete(depthRt);

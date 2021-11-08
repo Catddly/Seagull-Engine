@@ -15,8 +15,8 @@
 namespace SG
 {
 
-	class  VulkanQueue;
-	struct VulkanSemaphore;
+	class VulkanQueue;
+	class VulkanSemaphore;
 
 	// TODO: abstract to IResource
 	class VulkanRenderTarget : public RenderTarget
