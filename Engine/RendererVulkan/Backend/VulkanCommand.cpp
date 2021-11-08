@@ -6,6 +6,7 @@
 #include "VulkanConfig.h"
 #include "VulkanBuffer.h"
 #include "VulkanPipeline.h"
+#include "VulkanFrameBuffer.h"
 
 namespace SG
 {
@@ -89,7 +90,7 @@ namespace SG
 			SG_LOG_ERROR("Failed to end command buffer!"); SG_ASSERT(false););
 	}
 
-	void VulkanCommandBuffer::BeginRenderPass(VkRenderPass renderPass, VkFramebuffer frameBuffer, const ClearValue& clear, UInt32 width, UInt32 height)
+	void VulkanCommandBuffer::BeginRenderPass(VulkanFrameBuffer* pFrameBuffer, const ClearValue& clear)
 	{
 		VkClearValue clearValues[2];
 		clearValues[0].color = { clear.color[0], clear.color[1], clear.color[2], clear.color[3], };
@@ -98,15 +99,16 @@ namespace SG
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.pNext = nullptr;
-		renderPassBeginInfo.renderPass = renderPass;
 		renderPassBeginInfo.renderArea.offset.x = 0;
 		renderPassBeginInfo.renderArea.offset.y = 0;
-		renderPassBeginInfo.renderArea.extent.width = width;
-		renderPassBeginInfo.renderArea.extent.height = height;
-		renderPassBeginInfo.clearValueCount = 2;
-		renderPassBeginInfo.pClearValues = clearValues;
+		renderPassBeginInfo.renderArea.extent.width  = pFrameBuffer->width;
+		renderPassBeginInfo.renderArea.extent.height = pFrameBuffer->height;
 
-		renderPassBeginInfo.framebuffer = frameBuffer;
+		renderPassBeginInfo.clearValueCount = 2;
+		renderPassBeginInfo.pClearValues    = clearValues;
+
+		renderPassBeginInfo.renderPass = pFrameBuffer->currRenderPass;
+		renderPassBeginInfo.framebuffer = pFrameBuffer->frameBuffer;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}

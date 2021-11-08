@@ -14,6 +14,7 @@ namespace SG
 
 	class VulkanPipelineLayout;
 	class VulkanPipeline;
+	class VulkanFrameBuffer;
 
 	class VulkanCommandBuffer
 	{
@@ -21,7 +22,7 @@ namespace SG
 		void BeginRecord(bool bPermanent = false);
 		void EndRecord();
 
-		void BeginRenderPass(VkRenderPass renderPass, VkFramebuffer frameBuffer, const ClearValue& clear, UInt32 width, UInt32 height); // TODO: change param
+		void BeginRenderPass(VulkanFrameBuffer* pFrameBuffer, const ClearValue& clear); // TODO: change param
 		void EndRenderPass();
 
 		void SetViewport(float width, float height, float minDepth, float maxDepth);

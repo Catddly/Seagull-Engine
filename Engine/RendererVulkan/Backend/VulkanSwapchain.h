@@ -40,6 +40,7 @@ namespace SG
 		static VulkanRenderTarget* Create(VulkanDevice& d, const RenderTargetCreateDesc& CI);
 	private:
 		friend class VulkanSwapchain;
+		friend class VulkanFrameBuffer;
 	public:
 		VulkanDevice&         device;
 
@@ -56,13 +57,6 @@ namespace SG
 		VkImageType           type;
 		VkSampleCountFlagBits sample;
 		VkImageUsageFlags     usage;
-	};
-
-	struct VulkanFrameBuffer
-	{
-		vector<VkFramebuffer>       frameBuffers;
-		//VkRenderPass                renderPass;
-		//vector<VulkanRenderTarget*> renderTargets;
 	};
 
 	class VulkanSwapchain

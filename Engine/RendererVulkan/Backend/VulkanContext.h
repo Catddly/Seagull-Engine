@@ -16,6 +16,8 @@ namespace SG
 	class VulkanRenderPass;
 	class VulkanSemaphore;
 	class VulkanFence;
+	class VulkanRenderPass;
+	class VulkanFrameBuffer;
 
 	class VulkanContext
 	{
@@ -42,8 +44,6 @@ namespace SG
 		// [CPU To GPU Synchronization]
 		vector<VulkanFence*> pFences;
 
-		VulkanRenderPass*  pCurrRenderPass;
-
 		VulkanDescriptorPool* pDefaultDescriptorPool;
 
 		// should be moved to other place
@@ -51,6 +51,9 @@ namespace SG
 
 		vector<VulkanRenderTarget*> colorRts;
 		VulkanRenderTarget*         depthRt;
+
+		VulkanRenderPass*           renderPass;
+		vector<VulkanFrameBuffer*>  frameBuffers;
 
 		void WindowResize();
 	private:

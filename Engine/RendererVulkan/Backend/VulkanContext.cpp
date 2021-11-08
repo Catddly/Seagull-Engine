@@ -7,6 +7,7 @@
 #include "VulkanCommand.h"
 #include "VulkanDescriptor.h"
 #include "VulkanSynchronizePrimitive.h"
+#include "VulkanFrameBuffer.h"
 
 namespace SG
 {
@@ -14,14 +15,14 @@ namespace SG
 	VulkanContext::VulkanContext()
 		:instance(), swapchain(instance, device), device(instance.physicalDevice)
 	{
-		CreateDefaultResource();
-
 		graphicQueue  = device.GetQueue(EQueueType::eGraphic);
 		computeQueue  = device.GetQueue(EQueueType::eCompute);
 		transferQueue = device.GetQueue(EQueueType::eTransfer);
 
 		Window* pMainWindow = OperatingSystem::GetMainWindow();
 		swapchain.CreateOrRecreate(pMainWindow->GetWidth(), pMainWindow->GetHeight());
+
+		CreateDefaultResource();
 
 		colorRts.resize(swapchain.imageCount);
 		for (UInt32 i = 0; i < colorRts.size(); ++i)
@@ -40,27 +41,33 @@ namespace SG
 
 		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
 
-		pFences.resize(swapchain.imageCount);
-		for (Size i = 0; i < swapchain.imageCount; ++i)
-		{
-			VulkanFence** ppFence = &pFences[i];
-			*ppFence = VulkanFence::Create(device, true);
-		}
+		renderPass = VulkanRenderPass::Builder(device)
+			.BindColorRenderTarget(*colorRts[0], EResourceBarrier::efUndefined, EResourceBarrier::efPresent)
+			.BindDepthRenderTarget(*depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth)
+			.CombineAsSubpass()
+			.Build();
 
-		pRenderCompleteSemaphore  = VulkanSemaphore::Create(device);
-		pPresentCompleteSemaphore = VulkanSemaphore::Create(device);
+		frameBuffers.resize(swapchain.imageCount);
+		for (UInt32 i = 0; i < swapchain.imageCount; ++i)
+		{
+			VulkanFrameBuffer** ppFrameBuffer = &frameBuffers[i];
+			*ppFrameBuffer = VulkanFrameBuffer::Builder(device)
+				.AddRenderTarget(colorRts[i])
+				.AddRenderTarget(depthRt)
+				.BindRenderPass(renderPass)
+				.Build();
+		}
 	}
 
 	VulkanContext::~VulkanContext()
 	{
-		DestroyDefaultResource();
-
-		Memory::Delete(pRenderCompleteSemaphore);
-		Memory::Delete(pPresentCompleteSemaphore);
-		for (auto* pFence : pFences)
-			Memory::Delete(pFence);
+		for (UInt32 i = 0; i < swapchain.imageCount; ++i)
+			Memory::Delete(frameBuffers[i]);
+		Memory::Delete(renderPass);
 
 		swapchain.CleanUp();
+		DestroyDefaultResource();
+
 		Memory::Delete(depthRt);
 	}
 
@@ -87,6 +94,17 @@ namespace SG
 		depthRtCI.usage = EImageUsage::efDepth_Stencil;
 
 		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
+
+		for (UInt32 i = 0; i < swapchain.imageCount; ++i) // recreate the frame buffers
+		{
+			Memory::Delete(frameBuffers[i]);
+			VulkanFrameBuffer** ppFrameBuffer = &frameBuffers[i];
+			*ppFrameBuffer = VulkanFrameBuffer::Builder(device)
+				.AddRenderTarget(colorRts[i])
+				.AddRenderTarget(depthRt)
+				.BindRenderPass(renderPass)
+				.Build();
+		}
 	}
 
 	void VulkanContext::CreateDefaultResource()
@@ -123,10 +141,25 @@ namespace SG
 
 		if (!pDefaultDescriptorPool)
 			SG_LOG_ERROR("Failed to create default descriptor pool!");
+
+		pFences.resize(swapchain.imageCount);
+		for (Size i = 0; i < swapchain.imageCount; ++i)
+		{
+			VulkanFence** ppFence = &pFences[i];
+			*ppFence = VulkanFence::Create(device, true);
+		}
+
+		pRenderCompleteSemaphore = VulkanSemaphore::Create(device);
+		pPresentCompleteSemaphore = VulkanSemaphore::Create(device);
 	}
 
 	void VulkanContext::DestroyDefaultResource()
 	{
+		Memory::Delete(pRenderCompleteSemaphore);
+		Memory::Delete(pPresentCompleteSemaphore);
+		for (auto* pFence : pFences)
+			Memory::Delete(pFence);
+
 		Memory::Delete(pDefaultDescriptorPool);
 		if (computeCommandPool && device.queueFamilyIndices.graphics != device.queueFamilyIndices.compute)
 			Memory::Delete(computeCommandPool);

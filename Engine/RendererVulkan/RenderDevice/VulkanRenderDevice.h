@@ -21,8 +21,6 @@ namespace SG
 	class VulkanPipelineLayout;
 	class VulkanPipeline;
 
-	struct VulkanFrameBuffer;
-
 	class VulkanRenderDevice : public IRenderDevice, public ISystemMessageListener, public IInputListener
 	{
 	public:
@@ -59,7 +57,6 @@ namespace SG
 		VulkanContext* mpContext = nullptr;
 
 		vector<VulkanCommandBuffer> mpCommandBuffers;
-		VulkanFrameBuffer* mpFrameBuffers = nullptr;
 
 		VulkanPipelineLayout* mpPipelineLayout;
 		VulkanPipeline*       mpPipeline;
