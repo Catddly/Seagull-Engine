@@ -15,18 +15,18 @@ namespace SG
 	/// VulkanRenderPass
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindColorRenderTarget(VulkanRenderTarget& color, EResourceBarrier initStatus, EResourceBarrier dstStatus)
+	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindColorRenderTarget(VulkanRenderTarget* color, EResourceBarrier initStatus, EResourceBarrier dstStatus)
 	{
 		VkAttachmentDescription attachDesc = {};
-		attachDesc.format = color.format;
-		attachDesc.samples = color.sample;
+		attachDesc.format  = color->format;
+		attachDesc.samples = color->sample;
 		// TODO: add load store mask
 		attachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		attachDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		attachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		attachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		attachDesc.initialLayout = ToVkImageLayout(initStatus);
-		attachDesc.finalLayout = ToVkImageLayout(dstStatus);
+		attachDesc.finalLayout   = ToVkImageLayout(dstStatus);
 
 		VkSubpassDependency subpass = {};
 		subpass.srcSubpass = VK_SUBPASS_EXTERNAL;                             // Producer of the dependency
@@ -44,7 +44,7 @@ namespace SG
 		return *this;
 	}
 
-	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindDepthRenderTarget(VulkanRenderTarget& depth, EResourceBarrier initStatus, EResourceBarrier dstStatus)
+	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindDepthRenderTarget(VulkanRenderTarget* depth, EResourceBarrier initStatus, EResourceBarrier dstStatus)
 	{
 		if (bHaveDepth)
 		{
@@ -53,8 +53,8 @@ namespace SG
 		}
 
 		VkAttachmentDescription attachDesc = {};
-		attachDesc.format = depth.format;
-		attachDesc.samples = depth.sample;
+		attachDesc.format  = depth->format;
+		attachDesc.samples = depth->sample;
 		attachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		attachDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // We don't need depth after render pass has finished (DONT_CARE may result in better performance)
 		attachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -89,7 +89,7 @@ namespace SG
 		VkSubpassDescription  subpassDesc = {};
 		for (Size i = 0; i < attachments.size(); ++i)
 		{
-			if (bHaveDepth && (attachments[i].format == VK_FORMAT_D24_UNORM_S8_UINT || attachments[i].format == VK_FORMAT_D32_SFLOAT_S8_UINT))
+			if (bHaveDepth && (attachments[i].stencilLoadOp == VK_ATTACHMENT_LOAD_OP_CLEAR))
 			{
 				VkAttachmentReference depthRef = {};
 				depthRef.attachment = index++;

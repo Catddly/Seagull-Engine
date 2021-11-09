@@ -68,9 +68,10 @@ namespace SG
 		VulkanBuffer* mpIndexBuffer;
 
 		// Temporary
+		Vector3f mModelPos;
+		Matrix4f mModelMatrix;
 		struct SG_ALIGN(64) UBO
 		{
-			Matrix4f model;
 			Matrix4f view;
 			Matrix4f proj;
 		};

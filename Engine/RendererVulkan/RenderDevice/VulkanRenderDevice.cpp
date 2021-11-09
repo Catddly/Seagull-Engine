@@ -44,13 +44,12 @@ namespace SG
 
 		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -3.0f));
 		mpCamera->SetPerspective(45.0f, ASPECT);
-		Vector3f modelPos      = { 0.0f, 0.0f, -1.0f };
+		mCameraUBO.proj  = mpCamera->GetProjMatrix();
+
+		mModelPos              = { 0.0f, 0.0f, -1.0f };
 		Vector3f modelScale    = { 0.25f, 0.25f, 1.0f };
 		Vector3f modelRatation = { 0.0f, 0.0f, 0.0f };
-
-		mCameraUBO.model = BuildTransformMatrix(modelPos, modelScale, modelRatation);
-		mCameraUBO.view  = mpCamera->GetViewMatrix();
-		mCameraUBO.proj  = mpCamera->GetProjMatrix();
+		mModelMatrix = BuildTransformMatrix(mModelPos, modelScale, modelRatation);
 
 		ShaderCompiler compiler;
 		compiler.CompileGLSLShader("basic", mBasicShader);
@@ -96,6 +95,7 @@ namespace SG
 		layouts.emplace_back(mpCameraUBOSetLayout);
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
 			.BindDescriptorSetLayout(mpCameraUBOSetLayout)
+			.BindPushConstantRange(sizeof(Matrix4f), 0, EShaderStage::efVert)
 			.Build();
 		mpPipeline = VulkanPipeline::Builder(mpContext->device)
 			.SetVertexLayout(vertexBufferLayout)
@@ -106,7 +106,7 @@ namespace SG
 
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
-		RecordRenderCommands();
+		//RecordRenderCommands();
 	}
 
 	void VulkanRenderDevice::OnShutdown()
@@ -130,12 +130,16 @@ namespace SG
 	{
 		static float totalTime = 0.0f;
 		static float speed = 0.005f;
-		TranslateToX(mCameraUBO.model, 0.5f * Sin(totalTime));
+		TranslateToX(mModelMatrix, 0.5f * Sin(totalTime));
+		mModelPos(0) = 0.5f * Sin(totalTime);
+		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mModelMatrix, "Model Maxtrix");
 
 		if (mpCamera->IsViewDirty())
+		{
 			mCameraUBO.view = mpCamera->GetViewMatrix();
+			mpCameraUBOBuffer->UploadData(&mCameraUBO);
+		}
 
-		mpCameraUBOBuffer->UploadData(&mCameraUBO);
 		totalTime += deltaTime * speed;
 	}
 
@@ -147,6 +151,34 @@ namespace SG
 		mpContext->swapchain.AcquireNextImage(mpContext->pPresentCompleteSemaphore, mCurrentFrameInCPU); // check if next image is presented, and get it as the available image
 		mpContext->pFences[mCurrentFrameInCPU]->WaitAndReset(); // wait for the render commands running on the new image
 
+		auto& pBuf = mpCommandBuffers[mCurrentFrameInCPU];
+		auto* pColorRt = mpContext->colorRts[mCurrentFrameInCPU];
+
+		pBuf.BeginRecord();
+		pBuf.SetViewport((float)pColorRt->width, (float)pColorRt->height, 0.0f, 1.0f);
+		pBuf.SetScissor({ 0, 0, (int)pColorRt->width, (int)pColorRt->height });
+
+		ClearValue cv;
+		cv.color = { 0.03f, 0.05f, 0.03f, 0.0f };
+		cv.depthStencil = { 1.0f, 0 };
+
+		pBuf.BeginRenderPass(mpContext->frameBuffers[mCurrentFrameInCPU], cv);
+			pBuf.BindDescriptorSet(mpPipelineLayout, 0, mpContext->cameraUBOSet);
+			pBuf.BindPipeline(mpPipeline);
+
+			UInt64 offset[1] = { 0 };
+			pBuf.BindVertexBuffer(0, 1, *mpVertexBuffer, offset);
+			pBuf.BindIndexBuffer(*mpIndexBuffer, 0);
+
+			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &mModelMatrix);
+			pBuf.DrawIndexed(6, 1, 0, 0, 1);
+			Matrix4f otherModelMatrix = mModelMatrix;
+			TranslateX(otherModelMatrix, 0.75f);
+			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &otherModelMatrix);
+			pBuf.DrawIndexed(6, 1, 0, 0, 1);
+		pBuf.EndRenderPass();
+		pBuf.EndRecord();
+	
 		mpContext->graphicQueue.SubmitCommands(&mpCommandBuffers[mCurrentFrameInCPU], 
 			mpContext->pRenderCompleteSemaphore, mpContext->pPresentCompleteSemaphore, mpContext->pFences[mCurrentFrameInCPU]); // submit new render commands to the available image
 		mpContext->swapchain.Present(&mpContext->graphicQueue, mCurrentFrameInCPU, mpContext->pRenderCompleteSemaphore); // present the available image
@@ -203,7 +235,7 @@ namespace SG
 			mpContext->graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
 		}
 
-		RecordRenderCommands();
+		//RecordRenderCommands();
 	}
 
 	void VulkanRenderDevice::RecordRenderCommands()
@@ -229,6 +261,8 @@ namespace SG
 				UInt64 offset[1] = { 0 };
 				pBuf.BindVertexBuffer(0, 1, *mpVertexBuffer, offset);
 				pBuf.BindIndexBuffer(*mpIndexBuffer, 0);
+
+				pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &mModelMatrix);
 				pBuf.DrawIndexed(6, 1, 0, 0, 1);
 			pBuf.EndRenderPass();
 

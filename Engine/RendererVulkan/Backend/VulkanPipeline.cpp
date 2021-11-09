@@ -22,6 +22,33 @@ namespace SG
 		return *this;
 	}
 
+	VulkanPipelineLayout::Builder& VulkanPipelineLayout::Builder::BindPushConstantRange(UInt32 size, UInt32 offset, EShaderStage stage)
+	{
+		if (size % 4 != 0) // must be the multiple of 4
+		{
+			SG_LOG_WARN("The size of the push constant range must be the multiple of 4!");
+			return *this;
+		}
+		if (offset % 4 != 0) // must be the multiple of 4
+		{
+			SG_LOG_WARN("The offset of the push constant range must be the multiple of 4!");
+			return *this;
+		}
+		if (size > device.physicalDeviceLimits.maxPushConstantsSize || offset >= device.physicalDeviceLimits.maxPushConstantsSize)
+		{
+			SG_LOG_WARN("Push constant size or offset exceed the limits!");
+			return *this;
+		}
+
+		VkPushConstantRange pushConstantRange = {};
+		pushConstantRange.size   = size;
+		pushConstantRange.offset = offset;
+		pushConstantRange.stageFlags = ToVkShaderStageFlags(stage);
+
+		pushConstantRanges.emplace_back(pushConstantRange);
+		return *this;
+	}
+
 	SG::VulkanPipelineLayout* VulkanPipelineLayout::Builder::Build()
 	{
 		return Memory::New<VulkanPipelineLayout>(device, descriptorLayouts, pushConstantRanges);
@@ -61,12 +88,12 @@ namespace SG
 			createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			switch (beg->first)
 			{
-			case EShaderStages::efVert:	createInfo.stage = VK_SHADER_STAGE_VERTEX_BIT; break;
-			case EShaderStages::efTesc:	createInfo.stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT; break;
-			case EShaderStages::efTese:	createInfo.stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT; break;
-			case EShaderStages::efGeom:	createInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT; break;
-			case EShaderStages::efFrag:	createInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT; break;
-			case EShaderStages::efComp:	createInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT; break;
+			case EShaderStage::efVert:	createInfo.stage = VK_SHADER_STAGE_VERTEX_BIT; break;
+			case EShaderStage::efTesc:	createInfo.stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT; break;
+			case EShaderStage::efTese:	createInfo.stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT; break;
+			case EShaderStage::efGeom:	createInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT; break;
+			case EShaderStage::efFrag:	createInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT; break;
+			case EShaderStage::efComp:	createInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT; break;
 			default:                    SG_LOG_ERROR("Unknown type of shader stage!"); break;
 			}
 

@@ -21,7 +21,7 @@ namespace SG
 		eMetal,
 	};
 
-	enum class EShaderStages : UInt32
+	enum class EShaderStage : UInt32
 	{
 		efVert = 1 << 0,
 		efTesc = 1 << 1,
@@ -31,7 +31,7 @@ namespace SG
 		efComp = 1 << 5,
 		NUM_STAGES = 6,
 	};
-	SG_ENUM_CLASS_FLAG(UInt32, EShaderStages);
+	SG_ENUM_CLASS_FLAG(UInt32, EShaderStage);
 
 	enum class EShaderDataType
 	{
@@ -113,6 +113,6 @@ namespace SG
 		Size          binarySize;
 	};
 
-	typedef eastl::map<EShaderStages, ShaderData> Shader;
+	typedef eastl::map<EShaderStage, ShaderData> Shader;
 
 }

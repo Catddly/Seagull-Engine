@@ -33,7 +33,11 @@ namespace SG
 		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 		queueFamilyProperties.resize(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilyProperties.data());
-	
+
+		VkPhysicalDeviceProperties physicalDeviceProps;
+		vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProps);
+		physicalDeviceLimits = physicalDeviceProps.limits;
+
 		CreateLogicalDevice(nullptr);
 	}
 

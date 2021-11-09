@@ -18,7 +18,7 @@ namespace SG
 			return false;
 		}
 
-		for (UInt32 i = 0; i < (UInt32)EShaderStages::NUM_STAGES; ++i)
+		for (UInt32 i = 0; i < (UInt32)EShaderStage::NUM_STAGES; ++i)
 		{
 			string actualName = binShaderName;
 			switch (i)
@@ -37,7 +37,7 @@ namespace SG
 				data.binarySize = FileSystem::FileSize();
 				data.pBinary = (std::byte*)(Memory::Malloc(data.binarySize));
 				FileSystem::Read(data.pBinary, data.binarySize);
-				outStages.insert_or_assign((EShaderStages)(1 << i), data);
+				outStages.insert_or_assign((EShaderStage)(1 << i), data);
 
 				shaderBits |= (1 << i);
 				FileSystem::Close();
@@ -76,7 +76,7 @@ namespace SG
 		UInt8 shaderBits = 0;
 		FileSystem::ExistOrCreate(EResourceDirectory::eShader_Binarires, ""); // create ShaderBin folder if it doesn't exist
 
-		for (UInt32 i = 0; i < (UInt32)EShaderStages::NUM_STAGES; ++i)
+		for (UInt32 i = 0; i < (UInt32)EShaderStage::NUM_STAGES; ++i)
 		{
 			string extension;
 			string commandLine = glslcPath;

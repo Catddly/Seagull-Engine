@@ -151,6 +151,16 @@ namespace SG
 		vkCmdBindIndexBuffer(commandBuffer, buffer.NativeHandle(), offset, type);
 	}
 
+	void VulkanCommandBuffer::PushConstants(VulkanPipelineLayout* layout, EShaderStage shaderStage, UInt32 size, UInt32 offset, void* pConstants)
+	{
+		if (pConstants == nullptr)
+		{
+			SG_LOG_WARN("Can not push nullptr data!");
+			return;
+		}
+		vkCmdPushConstants(commandBuffer, layout->layout, ToVkShaderStageFlags(shaderStage), offset, size, pConstants);
+	}
+
 	void VulkanCommandBuffer::BindDescriptorSet(VulkanPipelineLayout* layout, UInt32 firstSet, VkDescriptorSet descriptorSet)
 	{
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout->layout, firstSet, 1, &descriptorSet, 0, nullptr);

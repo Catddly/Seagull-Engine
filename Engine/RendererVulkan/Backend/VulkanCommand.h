@@ -31,6 +31,7 @@ namespace SG
 		void BindVertexBuffer(UInt32 firstBinding, UInt32 bindingCount, VulkanBuffer& buffer, const UInt64* pOffsets);
 		void BindIndexBuffer(VulkanBuffer& buffer, UInt32 offset, VkIndexType type = VK_INDEX_TYPE_UINT32);
 
+		void PushConstants(VulkanPipelineLayout* layout, EShaderStage shaderStage, UInt32 size, UInt32 offset, void* pConstants);
 		void BindDescriptorSet(VulkanPipelineLayout* pLayout, UInt32 firstSet, VkDescriptorSet descriptorSet);
 		void BindPipeline(VulkanPipeline* pPipeline);
 

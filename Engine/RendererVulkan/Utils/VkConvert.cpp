@@ -400,6 +400,25 @@ namespace SG
 		return VK_DESCRIPTOR_TYPE_MAX_ENUM;
 	}
 
+	VkShaderStageFlags ToVkShaderStageFlags(EShaderStage stage)
+	{
+		VkShaderStageFlags flags = {};
+		if (SG_HAS_ENUM_FLAG(stage, EShaderStage::efVert))
+			flags |= VK_SHADER_STAGE_VERTEX_BIT;
+		if (SG_HAS_ENUM_FLAG(stage, EShaderStage::efTesc))
+			flags |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+		if (SG_HAS_ENUM_FLAG(stage, EShaderStage::efTese))
+			flags |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+		if (SG_HAS_ENUM_FLAG(stage, EShaderStage::efGeom))
+			flags |= VK_SHADER_STAGE_GEOMETRY_BIT;
+		if (SG_HAS_ENUM_FLAG(stage, EShaderStage::efFrag))
+			flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+		if (SG_HAS_ENUM_FLAG(stage, EShaderStage::efComp))
+			flags |= VK_SHADER_STAGE_COMPUTE_BIT;
+		
+		return flags;
+	}
+
 	VkFormat ToVkShaderDataFormat(EShaderDataType type)
 	{
 		switch (type)

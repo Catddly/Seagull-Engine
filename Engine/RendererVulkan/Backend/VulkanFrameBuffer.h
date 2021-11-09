@@ -1,7 +1,6 @@
 #pragma once
 
 #include "VulkanDevice.h"
-
 #include "Render/ResourceBarriers.h"
 
 namespace SG
@@ -24,8 +23,8 @@ namespace SG
 			Builder(VulkanDevice& d) : device(d), bHaveDepth(false), depthReference({}) {}
 			~Builder() = default;
 
-			Builder& BindColorRenderTarget(VulkanRenderTarget& color, EResourceBarrier initStatus, EResourceBarrier dstStatus);
-			Builder& BindDepthRenderTarget(VulkanRenderTarget& depth, EResourceBarrier initStatus, EResourceBarrier dstStatus);
+			Builder& BindColorRenderTarget(VulkanRenderTarget* color, EResourceBarrier initStatus, EResourceBarrier dstStatus);
+			Builder& BindDepthRenderTarget(VulkanRenderTarget* depth, EResourceBarrier initStatus, EResourceBarrier dstStatus);
 			/**
 			 * @brief Combine the render targets you had binded to a subpass.
 			 * The firstly binded render target will be attachment 0, the second render target will be 1 and so on.
@@ -60,7 +59,10 @@ namespace SG
 		public:
 			Builder(VulkanDevice& d) : device(d), bHaveSwapChainRT(false), pRenderPass(nullptr) {}
 			~Builder() = default;
-
+			/**
+			 * @brief In the VulkanFrameBuffer we bind the render target for a reference of image view,
+			 * it tell the whole render device where to draw on.
+			 */
 			Builder& AddRenderTarget(VulkanRenderTarget* pRenderTarget);
 			Builder& BindRenderPass(VulkanRenderPass* pRenderPass);
 			VulkanFrameBuffer* Build();

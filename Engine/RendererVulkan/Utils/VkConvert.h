@@ -17,6 +17,8 @@ namespace SG
 	VkDescriptorType ToVkDescriptorType(EBufferType type);
 	VkDescriptorType ToVkDescriptorType(EImageUsage usage);
 
+	VkShaderStageFlags ToVkShaderStageFlags(EShaderStage stage);
+
 	VkFormat     ToVkShaderDataFormat(EShaderDataType type);
 
 	VkImageType  ToVkImageType(EImageType type);

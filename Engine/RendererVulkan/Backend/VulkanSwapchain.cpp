@@ -147,7 +147,7 @@ namespace SG
 			return false;
 		}
 
-		// clean up old resoureces
+		// clean up old resources
 		if (oldSwapchain != VK_NULL_HANDLE)
 		{
 			for (auto& e : imageViews)
@@ -361,6 +361,7 @@ namespace SG
 		imageCI.samples = sample;
 		imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageCI.usage = usage;
+		imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 		VK_CHECK(vkCreateImage(device.logicalDevice, &imageCI, nullptr, &image),
 			SG_LOG_ERROR("Failed to create render targets' image!"););

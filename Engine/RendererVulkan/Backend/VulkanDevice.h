@@ -49,10 +49,13 @@ namespace SG
 		VulkanDevice(VkPhysicalDevice& device);
 		~VulkanDevice();
 
-		VkDevice         logicalDevice = VK_NULL_HANDLE;
+		VkDevice logicalDevice = VK_NULL_HANDLE;
 
 		vector<VkExtensionProperties>   supportedExtensions;
 		vector<VkQueueFamilyProperties> queueFamilyProperties;
+
+		VkPhysicalDeviceLimits          physicalDeviceLimits;
+
 		struct
 		{
 			UInt32 graphics;

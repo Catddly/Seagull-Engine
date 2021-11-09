@@ -42,8 +42,8 @@ namespace SG
 		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
 
 		renderPass = VulkanRenderPass::Builder(device)
-			.BindColorRenderTarget(*colorRts[0], EResourceBarrier::efUndefined, EResourceBarrier::efPresent)
-			.BindDepthRenderTarget(*depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth)
+			.BindColorRenderTarget(colorRts[0], EResourceBarrier::efUndefined, EResourceBarrier::efPresent)
+			.BindDepthRenderTarget(depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth)
 			.CombineAsSubpass()
 			.Build();
 

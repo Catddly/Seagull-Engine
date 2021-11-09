@@ -27,7 +27,7 @@ namespace SG
 			~Builder() = default;
 
 			Builder& BindDescriptorSetLayout(VulkanDescriptorSetLayout* pLayout);
-			//Builder& BindPushConstantRange(const VulkanDescriptorSetLayout& pLayout);
+			Builder& BindPushConstantRange(UInt32 size, UInt32 offset, EShaderStage stage);
 			VulkanPipelineLayout* Build();
 		private:
 			VulkanDevice& device;
