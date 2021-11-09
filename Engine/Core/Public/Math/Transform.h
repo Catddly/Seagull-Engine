@@ -90,7 +90,7 @@ namespace SG
 
 	SG_FORCE_INLINE void Rotate(Matrix4f& matrix, const Vector3f& axis, float degrees)
 	{
-		Transform t(AngleAxis(DegreesToRadians(degrees), axis));
+		Transform t(AngleAxis(DegreesToRadians(degrees), axis.normalized()));
 		matrix *= t.matrix();
 	}
 
@@ -106,11 +106,11 @@ namespace SG
 
 	SG_FORCE_INLINE Matrix4f BuildTransformMatrix(const Vector3f& position, const Vector3f& scale, const Vector3f& rotation)
 	{
-		Transform t = Translation(position) * 
-			AngleAxis(DegreesToRadians(rotation(0)), Vector3f{ 1.0f, 0.0f, 0.0f }) * 
-			AngleAxis(DegreesToRadians(rotation(1)), Vector3f{ 0.0f, 1.0f, 0.0f }) * 
+		Transform t = Translation(position) *
+			AngleAxis(DegreesToRadians(rotation(0)), Vector3f{ 1.0f, 0.0f, 0.0f }) *
+			AngleAxis(DegreesToRadians(rotation(1)), Vector3f{ 0.0f, 1.0f, 0.0f }) *
 			AngleAxis(DegreesToRadians(rotation(2)), Vector3f{ 0.0f, 0.0f, 1.0f });
-		ScaleTo(t.matrix(), scale);
+		Scale(t.matrix(), scale);
 		return eastl::move(t.matrix());
 	}
 

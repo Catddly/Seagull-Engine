@@ -636,7 +636,9 @@ namespace SG
 			return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efRenderTarget, barrier))
 			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efDepth, barrier))
+		if (barrier == EResourceBarrier::efDepth)
+			return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+		if (barrier == EResourceBarrier::efDepth_Stencil)
 			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efUnordered_Access, barrier))
 			return VK_IMAGE_LAYOUT_GENERAL;

@@ -2,6 +2,7 @@
 
 #include "Base/BasicTypes.h"
 #include "Render/Command.h"
+#include "Render/ResourceBarriers.h"
 
 #include "VulkanDevice.h"
 
@@ -15,6 +16,7 @@ namespace SG
 	class VulkanPipelineLayout;
 	class VulkanPipeline;
 	class VulkanFrameBuffer;
+	class VulkanRenderTarget;
 
 	class VulkanCommandBuffer
 	{
@@ -40,6 +42,10 @@ namespace SG
 
 		// transfer
 		void CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer);
+
+		//void BufferBarrier();
+		void ImageBarrier(VulkanRenderTarget* pRenderTarget, EResourceBarrier oldBarrier, EResourceBarrier newBarrier);
+		//void MemoryBarrier();
 	private:
 		friend class VulkanCommandPool;
 		friend class VulkanQueue;

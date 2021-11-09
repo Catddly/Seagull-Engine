@@ -42,14 +42,13 @@ namespace SG
 		auto* window = OperatingSystem::GetMainWindow();
 		const float ASPECT = window->GetAspectRatio();
 
-		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -3.0f));
+		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -2.0f));
 		mpCamera->SetPerspective(45.0f, ASPECT);
 		mCameraUBO.proj  = mpCamera->GetProjMatrix();
 
-		mModelPos              = { 0.0f, 0.0f, -1.0f };
-		Vector3f modelScale    = { 0.25f, 0.25f, 1.0f };
-		Vector3f modelRatation = { 0.0f, 0.0f, 0.0f };
-		mModelMatrix = BuildTransformMatrix(mModelPos, modelScale, modelRatation);
+		mModelPosition = { 0.0f, 0.0f, 0.0f };
+		mModelScale    = 0.5f;
+		mModelRotation = { 0.0f, 0.0f, 0.0f };
 
 		ShaderCompiler compiler;
 		compiler.CompileGLSLShader("basic", mBasicShader);
@@ -61,6 +60,20 @@ namespace SG
 		mpCommandBuffers.resize(mpContext->swapchain.imageCount);
 		for (auto& pCmdBuf : mpCommandBuffers)
 			mpContext->graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
+
+		///// begin transition
+		//VulkanCommandBuffer pCmd;
+		//mpContext->transferCommandPool->AllocateCommandBuffer(pCmd);
+
+		//pCmd.BeginRecord();
+		//pCmd.ImageBarrier(mpContext->depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil);
+		//pCmd.EndRecord();
+
+		//auto* pFence = VulkanFence::Create(mpContext->device);
+		//mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, pFence);
+		//pFence->Wait();
+		//Memory::Delete(pFence);
+		///// end transition
 
 		// data for a triangle
 		float vertices[24] = {
@@ -105,8 +118,6 @@ namespace SG
 			.Build();
 
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
-
-		//RecordRenderCommands();
 	}
 
 	void VulkanRenderDevice::OnShutdown()
@@ -130,8 +141,7 @@ namespace SG
 	{
 		static float totalTime = 0.0f;
 		static float speed = 0.005f;
-		TranslateToX(mModelMatrix, 0.5f * Sin(totalTime));
-		mModelPos(0) = 0.5f * Sin(totalTime);
+		//mModelPosition(0) = 0.5f * Sin(totalTime);
 		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mModelMatrix, "Model Maxtrix");
 
 		if (mpCamera->IsViewDirty())
@@ -155,6 +165,8 @@ namespace SG
 		auto* pColorRt = mpContext->colorRts[mCurrentFrameInCPU];
 
 		pBuf.BeginRecord();
+		pBuf.ImageBarrier(mpContext->depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil);
+
 		pBuf.SetViewport((float)pColorRt->width, (float)pColorRt->height, 0.0f, 1.0f);
 		pBuf.SetScissor({ 0, 0, (int)pColorRt->width, (int)pColorRt->height });
 
@@ -170,11 +182,20 @@ namespace SG
 			pBuf.BindVertexBuffer(0, 1, *mpVertexBuffer, offset);
 			pBuf.BindIndexBuffer(*mpIndexBuffer, 0);
 
-			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &mModelMatrix);
+			Matrix4f modelMatrix = BuildTransformMatrix(mModelPosition, mModelScale, mModelRotation);
+			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &modelMatrix);
 			pBuf.DrawIndexed(6, 1, 0, 0, 1);
-			Matrix4f otherModelMatrix = mModelMatrix;
-			TranslateX(otherModelMatrix, 0.75f);
-			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &otherModelMatrix);
+
+			Vector3f position = mModelPosition + Vector3f{ 0.0f, 0.5f, 0.5f };
+			Vector3f rotation = mModelRotation + Vector3f{ 90.0f, 0.0f, 0.0f };
+			modelMatrix = BuildTransformMatrix(position, mModelScale, rotation);
+			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &modelMatrix);
+			pBuf.DrawIndexed(6, 1, 0, 0, 1);
+
+			position -= Vector3f{ 0.0f, 1.0f, 0.0f };
+			rotation += Vector3f{ 180.0f, 0.0f, 0.0f };
+			modelMatrix = BuildTransformMatrix(position, mModelScale, rotation);
+			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &modelMatrix);
 			pBuf.DrawIndexed(6, 1, 0, 0, 1);
 		pBuf.EndRenderPass();
 		pBuf.EndRecord();
@@ -234,40 +255,6 @@ namespace SG
 			mpContext->graphicCommandPool->FreeCommandBuffer(pCmdBuf);
 			mpContext->graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
 		}
-
-		//RecordRenderCommands();
-	}
-
-	void VulkanRenderDevice::RecordRenderCommands()
-	{
-		for (UInt32 i = 0; i < mpCommandBuffers.size(); ++i)
-		{
-			auto& pBuf = mpCommandBuffers[i];
-			auto* pColorRt = mpContext->colorRts[i];
-
-			pBuf.BeginRecord(true);
-
-			pBuf.SetViewport((float)pColorRt->width, (float)pColorRt->height, 0.0f, 1.0f);
-			pBuf.SetScissor({ 0, 0, (int)pColorRt->width, (int)pColorRt->height });
-
-			ClearValue cv;
-			cv.color = { 0.03f, 0.05f, 0.03f, 0.0f };
-			cv.depthStencil = { 1.0f, 0 };
-
-			pBuf.BeginRenderPass(mpContext->frameBuffers[i], cv);
-				pBuf.BindDescriptorSet(mpPipelineLayout, 0, mpContext->cameraUBOSet);
-				pBuf.BindPipeline(mpPipeline);
-
-				UInt64 offset[1] = { 0 };
-				pBuf.BindVertexBuffer(0, 1, *mpVertexBuffer, offset);
-				pBuf.BindIndexBuffer(*mpIndexBuffer, 0);
-
-				pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &mModelMatrix);
-				pBuf.DrawIndexed(6, 1, 0, 0, 1);
-			pBuf.EndRenderPass();
-
-			pBuf.EndRecord();
-		}
 	}
 
 	bool VulkanRenderDevice::CreateGeoBuffers(float* vertices, UInt32* indices)
@@ -302,7 +289,7 @@ namespace SG
 
 		auto* pFence = VulkanFence::Create(mpContext->device);
 		mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, pFence);
-		mpContext->transferQueue.WaitIdle();
+		pFence->Wait();
 
 		Memory::Delete(pVertexStagingBuffer);
 		Memory::Delete(pIndexStagingBuffer);

@@ -43,7 +43,7 @@ namespace SG
 
 		renderPass = VulkanRenderPass::Builder(device)
 			.BindColorRenderTarget(colorRts[0], EResourceBarrier::efUndefined, EResourceBarrier::efPresent)
-			.BindDepthRenderTarget(depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth)
+			.BindDepthRenderTarget(depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil)
 			.CombineAsSubpass()
 			.Build();
 

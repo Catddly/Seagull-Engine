@@ -59,9 +59,14 @@ namespace SG
 		vkResetFences(device.logicalDevice, 1, &fence);
 	}
 
-	void VulkanFence::WaitAndReset(UInt64 timeOut)
+	void VulkanFence::Wait(UInt64 timeOut)
 	{
 		vkWaitForFences(device.logicalDevice, 1, &fence, VK_TRUE, timeOut);
+	}
+
+	void VulkanFence::WaitAndReset(UInt64 timeOut)
+	{
+		Wait(timeOut);
 		Reset();
 	}
 

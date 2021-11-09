@@ -42,7 +42,7 @@ namespace SG
 		SG_RENDERER_VK_API static const char* GetModuleName() { return "RenderDevice"; }
 	protected:
 		void WindowResize();
-		void RecordRenderCommands();
+		//void RecordRenderCommands();
 
 		bool CreateGeoBuffers(float* vertices, UInt32* indices);
 		void DestroyGeoBuffers();
@@ -68,8 +68,9 @@ namespace SG
 		VulkanBuffer* mpIndexBuffer;
 
 		// Temporary
-		Vector3f mModelPos;
-		Matrix4f mModelMatrix;
+		Vector3f mModelPosition;
+		float    mModelScale;
+		Vector3f mModelRotation;
 		struct SG_ALIGN(64) UBO
 		{
 			Matrix4f view;

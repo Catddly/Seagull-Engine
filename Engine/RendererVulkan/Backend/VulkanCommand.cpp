@@ -7,6 +7,7 @@
 #include "VulkanBuffer.h"
 #include "VulkanPipeline.h"
 #include "VulkanFrameBuffer.h"
+#include "VulkanSwapchain.h"
 
 namespace SG
 {
@@ -189,6 +190,67 @@ namespace SG
 		copyRegion.size = srcBuffer.SizeInByte();
 
 		vkCmdCopyBuffer(commandBuffer, srcBuffer.NativeHandle(), dstBuffer.NativeHandle(), 1, &copyRegion);
+	}
+
+	void VulkanCommandBuffer::ImageBarrier(VulkanRenderTarget* pRenderTarget, EResourceBarrier oldBarrier, EResourceBarrier newBarrier)
+	{
+		VkImageMemoryBarrier barrier;
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.image = pRenderTarget->image;
+		barrier.oldLayout = ToVkImageLayout(oldBarrier);
+		barrier.newLayout = ToVkImageLayout(newBarrier);
+	
+		VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM,
+			dstStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;
+
+		if (barrier.newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) 
+		{
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+			//if (hasStencilComponent(format)) {
+			//	barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+			//}
+		}
+		else 
+		{
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		}
+
+		if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && 
+			barrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (barrier.oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+			barrier.newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) 
+		{
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+			barrier.newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		{
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+			srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		}
+		else 
+		{
+			SG_LOG_ERROR("Unsupported resource transition!");
+			return;
+		}
+
+		vkCmdPipelineBarrier(commandBuffer, srcStage, dstStage, 0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier);
 	}
 
 }
