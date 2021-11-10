@@ -194,7 +194,7 @@ namespace SG
 
 	void VulkanCommandBuffer::ImageBarrier(VulkanRenderTarget* pRenderTarget, EResourceBarrier oldBarrier, EResourceBarrier newBarrier)
 	{
-		VkImageMemoryBarrier barrier;
+		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		barrier.image = pRenderTarget->image;
 		barrier.oldLayout = ToVkImageLayout(oldBarrier);
@@ -214,6 +214,10 @@ namespace SG
 		{
 			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		}
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.levelCount = 1;
 
 		if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && 
 			barrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {

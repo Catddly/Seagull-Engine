@@ -46,7 +46,7 @@ namespace SG
 		mpCamera->SetPerspective(45.0f, ASPECT);
 		mCameraUBO.proj  = mpCamera->GetProjMatrix();
 
-		mModelPosition = { 0.0f, 0.0f, 0.0f };
+		mModelPosition = { 0.0f, 0.0f, -0.5f };
 		mModelScale    = 0.5f;
 		mModelRotation = { 0.0f, 0.0f, 0.0f };
 
@@ -60,20 +60,6 @@ namespace SG
 		mpCommandBuffers.resize(mpContext->swapchain.imageCount);
 		for (auto& pCmdBuf : mpCommandBuffers)
 			mpContext->graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
-
-		///// begin transition
-		//VulkanCommandBuffer pCmd;
-		//mpContext->transferCommandPool->AllocateCommandBuffer(pCmd);
-
-		//pCmd.BeginRecord();
-		//pCmd.ImageBarrier(mpContext->depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil);
-		//pCmd.EndRecord();
-
-		//auto* pFence = VulkanFence::Create(mpContext->device);
-		//mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, pFence);
-		//pFence->Wait();
-		//Memory::Delete(pFence);
-		///// end transition
 
 		// data for a triangle
 		float vertices[24] = {
@@ -104,8 +90,6 @@ namespace SG
 			{ EShaderDataType::eFloat3, "color" },
 		};
 
-		vector<VulkanDescriptorSetLayout*> layouts;
-		layouts.emplace_back(mpCameraUBOSetLayout);
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
 			.BindDescriptorSetLayout(mpCameraUBOSetLayout)
 			.BindPushConstantRange(sizeof(Matrix4f), 0, EShaderStage::efVert)
@@ -165,7 +149,6 @@ namespace SG
 		auto* pColorRt = mpContext->colorRts[mCurrentFrameInCPU];
 
 		pBuf.BeginRecord();
-		pBuf.ImageBarrier(mpContext->depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil);
 
 		pBuf.SetViewport((float)pColorRt->width, (float)pColorRt->height, 0.0f, 1.0f);
 		pBuf.SetScissor({ 0, 0, (int)pColorRt->width, (int)pColorRt->height });
@@ -183,8 +166,8 @@ namespace SG
 			pBuf.BindIndexBuffer(*mpIndexBuffer, 0);
 
 			Matrix4f modelMatrix = BuildTransformMatrix(mModelPosition, mModelScale, mModelRotation);
-			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &modelMatrix);
-			pBuf.DrawIndexed(6, 1, 0, 0, 1);
+			//pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &modelMatrix);
+			//pBuf.DrawIndexed(6, 1, 0, 0, 1);
 
 			Vector3f position = mModelPosition + Vector3f{ 0.0f, 0.5f, 0.5f };
 			Vector3f rotation = mModelRotation + Vector3f{ 90.0f, 0.0f, 0.0f };
@@ -193,7 +176,7 @@ namespace SG
 			pBuf.DrawIndexed(6, 1, 0, 0, 1);
 
 			position -= Vector3f{ 0.0f, 1.0f, 0.0f };
-			rotation += Vector3f{ 180.0f, 0.0f, 0.0f };
+			//rotation += Vector3f{ 180.0f, 0.0f, 0.0f };
 			modelMatrix = BuildTransformMatrix(position, mModelScale, rotation);
 			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &modelMatrix);
 			pBuf.DrawIndexed(6, 1, 0, 0, 1);
@@ -287,13 +270,11 @@ namespace SG
 		pCmd.CopyBuffer(*pIndexStagingBuffer, *mpIndexBuffer);
 		pCmd.EndRecord();
 
-		auto* pFence = VulkanFence::Create(mpContext->device);
-		mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, pFence);
-		pFence->Wait();
+		mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+		mpContext->transferQueue.WaitIdle();
 
 		Memory::Delete(pVertexStagingBuffer);
 		Memory::Delete(pIndexStagingBuffer);
-		Memory::Delete(pFence);
 		/// end copy buffers
 
 		if (!mpVertexBuffer || !mpIndexBuffer)

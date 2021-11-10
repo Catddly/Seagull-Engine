@@ -41,6 +41,19 @@ namespace SG
 
 		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
 
+		/// begin transition
+		VulkanCommandBuffer pCmd;
+		graphicCommandPool->AllocateCommandBuffer(pCmd);
+
+		pCmd.BeginRecord();
+		pCmd.ImageBarrier(depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil);
+		pCmd.EndRecord();
+
+		graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+		graphicQueue.WaitIdle();
+		graphicCommandPool->FreeCommandBuffer(pCmd);
+		/// end transition
+
 		renderPass = VulkanRenderPass::Builder(device)
 			.BindColorRenderTarget(colorRts[0], EResourceBarrier::efUndefined, EResourceBarrier::efPresent)
 			.BindDepthRenderTarget(depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil)

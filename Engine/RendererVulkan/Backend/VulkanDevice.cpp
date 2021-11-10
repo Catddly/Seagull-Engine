@@ -370,7 +370,7 @@ namespace SG
 		submitInfo.pCommandBuffers = &pCmdBuf->commandBuffer;
 		submitInfo.commandBufferCount = 1;
 
-		VK_CHECK(vkQueueSubmit(handle, 1, &submitInfo, fence->fence),
+		VK_CHECK(vkQueueSubmit(handle, 1, &submitInfo, fence ? fence->fence : nullptr),
 			SG_LOG_ERROR("Failed to submit render commands to queue!");
 			return false;);
 		return true;
