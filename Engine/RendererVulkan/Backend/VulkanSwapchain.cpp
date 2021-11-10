@@ -395,6 +395,8 @@ namespace SG
 				imageViewCI.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 			}
 		}
+		else
+			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
 		VK_CHECK(vkCreateImageView(device.logicalDevice, &imageViewCI, nullptr, &imageView),
 			SG_LOG_ERROR("Failed to create render targets' image view!"););

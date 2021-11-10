@@ -28,19 +28,17 @@ namespace SG
 		attachDesc.initialLayout = ToVkImageLayout(initStatus);
 		attachDesc.finalLayout   = ToVkImageLayout(dstStatus);
 
-		//VkSubpassDependency subpass = {};
-		//subpass.srcSubpass = VK_SUBPASS_EXTERNAL;                             // Producer of the dependency
-		//subpass.dstSubpass = 0;                                               // Consumer is our single subpass that will wait for the execution dependency
-		//subpass.srcStageMask = ToVkPipelineStageFlags(ToVkAccessFlags(EResourceBarrier::efRenderTarget), EQueueType::eGraphic); // Match our pWaitDstStageMask when we vkQueueSubmit
-		//subpass.dstStageMask = ToVkPipelineStageFlags(ToVkAccessFlags(EResourceBarrier::efRenderTarget), EQueueType::eGraphic); // is a loadOp stage for color attachments
-		//subpass.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // Match our pWaitDstStageMask when we vkQueueSubmit
-		//subpass.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // is a loadOp stage for color attachments
-		//subpass.srcAccessMask = 0;                                            // semaphore wait already does memory dependency for us
-		//subpass.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;         // is a loadOp CLEAR access mask for color attachments
-		//subpass.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		VkSubpassDependency dependency = {};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 		attachments.emplace_back(eastl::move(attachDesc));
-		//dependencies.emplace_back(eastl::move(subpass));
+		dependencies.emplace_back(eastl::move(dependency));
 		return *this;
 	}
 
@@ -62,20 +60,18 @@ namespace SG
 		attachDesc.initialLayout = ToVkImageLayout(initStatus);
 		attachDesc.finalLayout = ToVkImageLayout(dstStatus);
 
-		VkSubpassDependency subpass = {};
-		//subpass.srcSubpass = 0;                   // Producer of the dependency is our single subpass
-		//subpass.dstSubpass = VK_SUBPASS_EXTERNAL; // Consumer are all commands outside of the renderpass
-		//subpass.srcStageMask = ToVkPipelineStageFlags(ToVkAccessFlags(EResourceBarrier::efRenderTarget), EQueueType::eGraphic); // is a storeOp stage for color attachments
-		subpass.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		//subpass.dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;          // Do not block any subsequent work
-		subpass.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		//subpass.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;         // is a storeOp `STORE` access mask for color attachments
-		subpass.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;;
-		subpass.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		VkSubpassDependency dependency = {};
+		dependency.srcSubpass = 0;
+		dependency.dstSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependency.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 		bHaveDepth = true;
 		attachments.emplace_back(eastl::move(attachDesc));
-		dependencies.emplace_back(eastl::move(subpass));
+		dependencies.emplace_back(eastl::move(dependency));
 		return *this;
 	}
 

@@ -94,7 +94,7 @@ namespace SG
 	void VulkanCommandBuffer::BeginRenderPass(VulkanFrameBuffer* pFrameBuffer, const ClearValue& clear)
 	{
 		VkClearValue clearValues[2];
-		clearValues[0].color = { clear.color[0], clear.color[1], clear.color[2], clear.color[3], };
+		clearValues[0].color = { clear.color[0], clear.color[1], clear.color[2], clear.color[3] };
 		clearValues[1].depthStencil = { clear.depthStencil.depth, clear.depthStencil.stencil };
 
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -196,9 +196,16 @@ namespace SG
 	{
 		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.image = pRenderTarget->image;
 		barrier.oldLayout = ToVkImageLayout(oldBarrier);
 		barrier.newLayout = ToVkImageLayout(newBarrier);
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = pRenderTarget->image;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
 	
 		VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM,
 			dstStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;
@@ -210,14 +217,6 @@ namespace SG
 			//	barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 			//}
 		}
-		else 
-		{
-			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		}
-		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
-		barrier.subresourceRange.levelCount = 1;
 
 		if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && 
 			barrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
@@ -236,15 +235,15 @@ namespace SG
 			srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		}
-		else if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
-			barrier.newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-		{
-			barrier.srcAccessMask = 0;
-			barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		//else if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+		//	barrier.newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		//{
+		//	barrier.srcAccessMask = 0;
+		//	barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-			srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-			dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		}
+		//	srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		//	dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		//}
 		else 
 		{
 			SG_LOG_ERROR("Unsupported resource transition!");

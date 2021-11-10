@@ -46,8 +46,8 @@ namespace SG
 		mpCamera->SetPerspective(45.0f, ASPECT);
 		mCameraUBO.proj  = mpCamera->GetProjMatrix();
 
-		mModelPosition = { 0.0f, 0.0f, -0.5f };
-		mModelScale    = 0.5f;
+		mModelPosition = { 0.0f, 0.0f, 0.0f };
+		mModelScale    = 1.0f;
 		mModelRotation = { 0.0f, 0.0f, 0.0f };
 
 		ShaderCompiler compiler;
@@ -62,16 +62,33 @@ namespace SG
 			mpContext->graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
 
 		// data for a triangle
-		float vertices[24] = {
-			 1.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+		//float vertices[24] = {
+		//	 1.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+		//	-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		//	-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		//	 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+		//};
+
+		//UInt32 indices[6] = {
+		//	0, 1, 2,
+		//	2, 3, 0
+		//};
+
+		float vertices[] = {
+			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+			0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+			0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+			-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
+
+			-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+			0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+			0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+			-0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f
 		};
 
-		UInt32 indices[6] = {
-			0, 1, 2,
-			2, 3, 0
+		UInt32 indices[] = {
+			0, 1, 2, 2, 3, 0,
+			4, 5, 6, 6, 7, 4
 		};
 
 		CreateGeoBuffers(vertices, indices);
@@ -92,7 +109,7 @@ namespace SG
 
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
 			.BindDescriptorSetLayout(mpCameraUBOSetLayout)
-			.BindPushConstantRange(sizeof(Matrix4f), 0, EShaderStage::efVert)
+			//.BindPushConstantRange(sizeof(Matrix4f), 0, EShaderStage::efVert)
 			.Build();
 		mpPipeline = VulkanPipeline::Builder(mpContext->device)
 			.SetVertexLayout(vertexBufferLayout)
@@ -165,21 +182,7 @@ namespace SG
 			pBuf.BindVertexBuffer(0, 1, *mpVertexBuffer, offset);
 			pBuf.BindIndexBuffer(*mpIndexBuffer, 0);
 
-			Matrix4f modelMatrix = BuildTransformMatrix(mModelPosition, mModelScale, mModelRotation);
-			//pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &modelMatrix);
-			//pBuf.DrawIndexed(6, 1, 0, 0, 1);
-
-			Vector3f position = mModelPosition + Vector3f{ 0.0f, 0.5f, 0.5f };
-			Vector3f rotation = mModelRotation + Vector3f{ 90.0f, 0.0f, 0.0f };
-			modelMatrix = BuildTransformMatrix(position, mModelScale, rotation);
-			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &modelMatrix);
-			pBuf.DrawIndexed(6, 1, 0, 0, 1);
-
-			position -= Vector3f{ 0.0f, 1.0f, 0.0f };
-			//rotation += Vector3f{ 180.0f, 0.0f, 0.0f };
-			modelMatrix = BuildTransformMatrix(position, mModelScale, rotation);
-			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &modelMatrix);
-			pBuf.DrawIndexed(6, 1, 0, 0, 1);
+			pBuf.DrawIndexed(12, 1, 0, 0, 1);
 		pBuf.EndRenderPass();
 		pBuf.EndRecord();
 	
@@ -246,7 +249,7 @@ namespace SG
 
 		// vertex buffer
 		BufferCreateDesc BufferCI = {};
-		BufferCI.totalSizeInByte = sizeof(float) * 6 * 4;
+		BufferCI.totalSizeInByte = sizeof(float) * 6 * 8;
 		BufferCI.type  = EBufferType::efVertex | EBufferType::efTransfer_Dst;
 		mpVertexBuffer = VulkanBuffer::Create(mpContext->device, BufferCI, true);
 		BufferCI.type = EBufferType::efTransfer_Src;
@@ -254,7 +257,7 @@ namespace SG
 		pVertexStagingBuffer->UploadData(vertices);
 
 		// index buffer
-		BufferCI.totalSizeInByte = sizeof(UInt32) * 6;
+		BufferCI.totalSizeInByte = sizeof(UInt32) * 12;
 		BufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
 		mpIndexBuffer = VulkanBuffer::Create(mpContext->device, BufferCI, true);
 		BufferCI.type = EBufferType::efTransfer_Src;

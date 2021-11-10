@@ -155,7 +155,7 @@ namespace SG
 	{
 		// set the default status of pipeline
 		SetInputAssembly();
-		SetRasterizer(VK_CULL_MODE_NONE);
+		SetRasterizer(VK_CULL_MODE_BACK_BIT);
 		SetColorBlend();
 		SetDepthStencil(true);
 		SetViewport();
@@ -245,13 +245,10 @@ namespace SG
 			depthStencilState.depthWriteEnable = VK_TRUE;
 			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 			depthStencilState.depthBoundsTestEnable = VK_FALSE;
+			depthStencilState.minDepthBounds = 0.0f;
+			depthStencilState.maxDepthBounds = 1.0f;
+
 			depthStencilState.stencilTestEnable = VK_FALSE;
-
-			depthStencilState.back.failOp = VK_STENCIL_OP_KEEP;
-			depthStencilState.back.passOp = VK_STENCIL_OP_KEEP;
-			depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
-
-			depthStencilState.front = depthStencilState.back;
 		}
 		else
 		{
