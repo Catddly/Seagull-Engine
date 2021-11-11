@@ -42,9 +42,9 @@ namespace SG
 		auto* window = OperatingSystem::GetMainWindow();
 		const float ASPECT = window->GetAspectRatio();
 
-		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -2.0f));
+		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -3.0f));
 		mpCamera->SetPerspective(45.0f, ASPECT);
-		mCameraUBO.proj  = mpCamera->GetProjMatrix();
+		mCameraUBO.proj = mpCamera->GetProjMatrix();
 
 		mModelPosition = { 0.0f, 0.0f, 0.0f };
 		mModelScale    = 1.0f;
@@ -60,19 +60,6 @@ namespace SG
 		mpCommandBuffers.resize(mpContext->swapchain.imageCount);
 		for (auto& pCmdBuf : mpCommandBuffers)
 			mpContext->graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
-
-		// data for a triangle
-		//float vertices[24] = {
-		//	 1.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-		//	-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		//	-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-		//	 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-		//};
-
-		//UInt32 indices[6] = {
-		//	0, 1, 2,
-		//	2, 3, 0
-		//};
 
 		float vertices[] = {
 			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
@@ -109,7 +96,7 @@ namespace SG
 
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
 			.BindDescriptorSetLayout(mpCameraUBOSetLayout)
-			//.BindPushConstantRange(sizeof(Matrix4f), 0, EShaderStage::efVert)
+			.BindPushConstantRange(sizeof(Matrix4f), 0, EShaderStage::efVert)
 			.Build();
 		mpPipeline = VulkanPipeline::Builder(mpContext->device)
 			.SetVertexLayout(vertexBufferLayout)
@@ -142,8 +129,7 @@ namespace SG
 	{
 		static float totalTime = 0.0f;
 		static float speed = 0.005f;
-		//mModelPosition(0) = 0.5f * Sin(totalTime);
-		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mModelMatrix, "Model Maxtrix");
+		mModelPosition(0) = 0.5f * Sin(totalTime);
 
 		if (mpCamera->IsViewDirty())
 		{
@@ -182,6 +168,8 @@ namespace SG
 			pBuf.BindVertexBuffer(0, 1, *mpVertexBuffer, offset);
 			pBuf.BindIndexBuffer(*mpIndexBuffer, 0);
 
+			Matrix4f modelMat = BuildTransformMatrix(mModelPosition, mModelScale, mModelRotation);
+			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &modelMat);
 			pBuf.DrawIndexed(12, 1, 0, 0, 1);
 		pBuf.EndRenderPass();
 		pBuf.EndRecord();

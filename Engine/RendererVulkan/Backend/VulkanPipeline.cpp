@@ -155,7 +155,7 @@ namespace SG
 	{
 		// set the default status of pipeline
 		SetInputAssembly();
-		SetRasterizer(VK_CULL_MODE_BACK_BIT);
+		SetRasterizer(VK_CULL_MODE_NONE);
 		SetColorBlend();
 		SetDepthStencil(true);
 		SetViewport();
@@ -198,6 +198,8 @@ namespace SG
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
 		inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		inputAssemblyState.topology = topology;
+		inputAssemblyState.primitiveRestartEnable = VK_FALSE;
+		inputAssemblyState.flags = 0;
 		
 		createInfos.inputAssemblyCI = eastl::move(inputAssemblyState);
 		return *this;
@@ -249,6 +251,7 @@ namespace SG
 			depthStencilState.maxDepthBounds = 1.0f;
 
 			depthStencilState.stencilTestEnable = VK_FALSE;
+			depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
 		}
 		else
 		{

@@ -17,7 +17,7 @@ namespace SG
 		SG_CORE_API virtual bool OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos) override;
 		SG_CORE_API virtual bool OnMouseWheelInputUpdate(int direction) override;
 
-		void UpdateViewMatrix();
+		virtual void UpdateViewMatrix() override;
 	private:
 		Vector3f mViewAtPoint;
 		float    mMoveSpeed;

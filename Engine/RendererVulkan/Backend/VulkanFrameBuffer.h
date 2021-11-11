@@ -11,10 +11,12 @@ namespace SG
 	class VulkanRenderPass
 	{
 	public:
+		VulkanRenderPass(VulkanDevice& d) : device(d) {} // temp
 		VulkanRenderPass(VulkanDevice& d, const vector<VkAttachmentDescription>& attachments, const vector<VkSubpassDependency>& dependencies, const vector<VkSubpassDescription>& subpasses);
 		~VulkanRenderPass();
 
 		const VkRenderPass& NativeHandle() const { return renderPass; }
+		VkRenderPass  renderPass;
 
 		// The data in the builder will not be cached!
 		class Builder
@@ -45,14 +47,19 @@ namespace SG
 		friend class VulkanFrameBuffer;
 
 		VulkanDevice& device;
-		VkRenderPass  renderPass;
 	};
 
 	class VulkanFrameBuffer
 	{
 	public:
+		VulkanFrameBuffer(VulkanDevice& d) : device(d) {} // temp
 		VulkanFrameBuffer(VulkanDevice& d, const vector<VulkanRenderTarget*>& pRenderTargets, VulkanRenderPass* pRenderPass);
 		~VulkanFrameBuffer();
+
+		VkFramebuffer frameBuffer;
+		VkRenderPass  currRenderPass;
+		UInt32 width;
+		UInt32 height;
 
 		class Builder
 		{
@@ -76,10 +83,6 @@ namespace SG
 		friend class VulkanCommandBuffer;
 
 		VulkanDevice& device;
-		VkFramebuffer frameBuffer;
-		VkRenderPass  currRenderPass;
-		UInt32 width;
-		UInt32 height;
 	};
 
 }

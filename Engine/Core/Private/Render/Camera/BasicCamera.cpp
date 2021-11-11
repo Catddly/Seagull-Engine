@@ -56,13 +56,13 @@ namespace SG
 
 	void BasicCamera::UpdateViewMatrix()
 	{
-		const Vector3f DIRECTION = PitchYawToUnitVector(mRotation);
-		mViewMatrix = BuildViewMatrixDirection(mPosition, DIRECTION, SG_ENGINE_UP_VEC());
-		if (mRotation(2) - 0.0f >= SG_FLOAT_EPSILON) // if the rotation have the roll part
-		{
-			Transform rotationZ(AngleAxis(DegreesToRadians(mRotation(2)), Vector3f(0, 0, -1)));
-			mViewMatrix = rotationZ.matrix() * mViewMatrix;
-		}
+		//const Vector3f DIRECTION = PitchYawToUnitVector(mRotation);
+		//mViewMatrix = BuildViewMatrixDirection(mPosition, DIRECTION, SG_ENGINE_UP_VEC());
+		//if (mRotation(2) - 0.0f >= SG_FLOAT_EPSILON) // if the rotation have the roll part
+		//{
+		//	Transform rotationZ(AngleAxis(DegreesToRadians(mRotation(2)), Vector3f(0, 0, -1)));
+		//	mViewMatrix = rotationZ.matrix() * mViewMatrix;
+		//}
 	}
 
 }

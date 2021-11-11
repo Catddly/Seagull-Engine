@@ -9,6 +9,8 @@
 #include "VulkanSynchronizePrimitive.h"
 #include "VulkanFrameBuffer.h"
 
+#include <eastl/array.h>
+
 namespace SG
 {
 
@@ -57,19 +59,6 @@ namespace SG
 				.BindRenderPass(renderPass)
 				.Build();
 		}
-
-		/// begin transition
-		//VulkanCommandBuffer pCmd;
-		//graphicCommandPool->AllocateCommandBuffer(pCmd);
-
-		//pCmd.BeginRecord();
-		//pCmd.ImageBarrier(depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil);
-		//pCmd.EndRecord();
-
-		//graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		//graphicQueue.WaitIdle();
-		//graphicCommandPool->FreeCommandBuffer(pCmd);
-		/// end transition
 	}
 
 	VulkanContext::~VulkanContext()

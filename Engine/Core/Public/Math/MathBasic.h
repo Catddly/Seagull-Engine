@@ -3,7 +3,6 @@
 #include "Defs/Defs.h"
 
 #include <eigen/Dense>
-
 #include <cmath>
 
 namespace SG
@@ -17,6 +16,7 @@ namespace SG
 	typedef Eigen::Vector3i Vector3i;
 	typedef Eigen::Vector4i Vector4i;
 
+	// column major matrix
 	typedef Eigen::Matrix<Float32, 3, 3> Matrix3f;
 	typedef Eigen::Matrix<Float32, 4, 4> Matrix4f;
 
@@ -65,16 +65,17 @@ namespace SG
 	//! @return a 4x4 matrix represent the view matrix.
 	SG_INLINE Matrix4f BuildViewMatrixDirection(const Vector3f& view, const Vector3f& direction, const Vector3f& up)
 	{
-		const Vector3f front((-direction).normalized());
-		const Vector3f right(front.cross(up).normalized());
-		const Vector3f u(right.cross(front));
+		const Vector3f z(direction.normalized());
+		const Vector3f x(z.cross(up).normalized());
+		const Vector3f y(x.cross(z));
 
-		Matrix4f res = Matrix4f::Identity();
-		res.col(0) << right(0), right(1), right(2), 0.0f;
-		res.col(1) << u(0), -u(1), u(2), 0.0f;
-		res.col(2) << front(0), front(1), front(2), 0.0f;
-		res.col(3) << -(right.dot(view)), u.dot(view), -(front.dot(view)), 1.0f;
-		return eastl::move(res);
+		Matrix4f result = Matrix4f::Identity();
+		result.col(0) << x(0), x(1), x(2), 0.0f;
+		result.col(1) << y(0), y(1), y(2), 0.0f;
+		result.col(2) << z(0), z(1), z(2), 0.0f;
+		result.col(3) << -x.dot(view), -y.dot(view), -z.dot(view), 1.0f;
+
+		return eastl::move(result);
 	}
 
 	//! Build a view matrix based on a position vector.
@@ -84,7 +85,7 @@ namespace SG
 	//! @return a 4x4 matrix represent the view matrix.
 	SG_INLINE Matrix4f BuildViewMatrixCenter(const Vector3f& view, const Vector3f& center, const Vector3f& up)
 	{
-		return eastl::move(BuildViewMatrixDirection(view, center - view, up));
+		return eastl::move(BuildViewMatrixDirection(view, view - center, up));
 	}
 
 	//! Build a perspective matrix.
@@ -98,20 +99,14 @@ namespace SG
 		// the aspect should not be zero
 		SG_ASSERT(Abs(aspect - SG_FLOAT_EPSILON) > 0.0f);
 
-		float focal_length = 1.0f / Tan(fovYInRadians / 2.0f);
-
-		float x = focal_length / aspect;
-		float y = -focal_length;
-		float A = zNear / (zFar - zNear);
-		float B = zFar * A;
+		float tanHalfFovy = Tan(fovYInRadians / 2.0f);
 
 		Matrix4f result = Matrix4f::Zero();
-		result(0, 0) = x;
-		result(1, 1) = y;
-		result(2, 2) = A;
-		result(2, 3) = B;
+		result(0, 0) = 1.0f / (aspect * tanHalfFovy);
+		result(1, 1) = 1.0f / (tanHalfFovy);
+		result(2, 2) = -(zFar + zNear) / (zFar - zNear);
+		result(2, 3) = -(2.0f * zFar * zNear) / (zFar - zNear);
 		result(3, 2) = -1.0f;
-
 		return eastl::move(result);
 	}
 
@@ -119,12 +114,12 @@ namespace SG
 	{
 		Matrix4f result = Matrix4f::Identity();
 		result(0, 0) = 2.0f / (right - left);
-		result(1, 1) = -2.0f / (top - bottom);
-		result(2, 2) = -1.0f / (zFar - zNear);
+		result(1, 1) = 2.0f / (top - bottom);
+		result(2, 2) = -2.0f / (zFar - zNear);
+
 		result(0, 3) = -(right + left) / (right - left);
 		result(1, 3) = -(top + bottom) / (top - bottom);
-		result(2, 3) = zNear / (zFar - zNear);
-
+		result(2, 3) = -(zFar + zNear) / (zFar - zNear);
 		return eastl::move(result);
 	}
 #endif

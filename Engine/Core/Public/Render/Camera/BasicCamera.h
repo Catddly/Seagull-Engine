@@ -32,7 +32,7 @@ namespace SG
 
 		SG_CORE_API virtual void Update(float deltaTime) override {}
 	protected:
-		SG_CORE_API void UpdateViewMatrix();
+		SG_CORE_API virtual void UpdateViewMatrix();
 	protected:
 		Vector3f mPosition;
 		Vector3f mRotation;

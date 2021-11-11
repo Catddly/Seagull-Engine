@@ -8,7 +8,7 @@ namespace SG
 {
 
 	PointOrientedCamera::PointOrientedCamera(const Vector3f& pos, const Vector3f& viewAt)
-		:mViewAtPoint(viewAt), mMoveSpeed(0.15f), mWheelScale(0.25f), BasicCamera(pos, {})
+		:mViewAtPoint(viewAt), mMoveSpeed(0.15f), mWheelScale(0.25f), BasicCamera(pos, Vector3f::Zero())
 	{
 		UpdateViewMatrix();
 	}
@@ -27,7 +27,7 @@ namespace SG
 		if (Input::IsKeyPressed(KeyCode_MouseLeft))
 		{
 			if (deltaXPos != 0) { Rotate(mViewMatrix, SG_ENGINE_UP_VEC(), -deltaXPos * mMoveSpeed); mbIsViewDirty = true; }
-			if (deltaYPos != 0) { Rotate(mViewMatrix, -SG_ENGINE_RIGHT_VEC(), -deltaYPos * mMoveSpeed); mbIsViewDirty = true; }
+			if (deltaYPos != 0) { Rotate(mViewMatrix, SG_ENGINE_RIGHT_VEC(), deltaYPos * mMoveSpeed); mbIsViewDirty = true; }
 		}
 		return true;
 	}
@@ -50,6 +50,8 @@ namespace SG
 	void PointOrientedCamera::UpdateViewMatrix()
 	{
 		mViewMatrix = BuildViewMatrixCenter(mPosition, mViewAtPoint, SG_ENGINE_UP_VEC());
+		//Matrix4f cameraMat = BuildTransformMatrix(mPosition, 1.0f, mRotation);
+		//mViewMatrix = cameraMat.inverse();
 	}
 
 }
