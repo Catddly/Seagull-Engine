@@ -42,7 +42,7 @@ namespace SG
 		auto* window = OperatingSystem::GetMainWindow();
 		const float ASPECT = window->GetAspectRatio();
 
-		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -3.0f));
+		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -4.0f));
 		mpCamera->SetPerspective(45.0f, ASPECT);
 		mCameraUBO.proj = mpCamera->GetProjMatrix();
 
@@ -64,13 +64,13 @@ namespace SG
 		float vertices[] = {
 			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
 			0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-			0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
-			-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
+			0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f,
+			-0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
 
 			-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
 			0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-			0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-			-0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f
+			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f,
+			-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f
 		};
 
 		UInt32 indices[] = {

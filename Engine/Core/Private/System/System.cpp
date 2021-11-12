@@ -134,9 +134,11 @@ namespace SG
 		bool bIsExit = false;
 
 		//FpsTimer renderTimer("RenderDevice::OnDraw()", 1.0f, 60);
+		//FpsTimer gameloopTimer("Game Loop", 1.0f, 60);
 		Timer deltaTimer;
 		while (!bIsExit)
 		{
+			//gameloopTimer.BeginProfile();
 			deltaTimer.Tick();
 			float deltaTime = deltaTimer.GetDurationMs();
 
@@ -161,6 +163,7 @@ namespace SG
 				mModuleManager.Draw();
 				//renderTimer.EndProfile();
 			}
+			//gameloopTimer.EndProfile();
 		}
 		return bIsSafeQuit;
 	}
