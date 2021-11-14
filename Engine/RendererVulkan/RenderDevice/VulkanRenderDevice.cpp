@@ -17,6 +17,8 @@
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
+#include "RendererVulkan/Resource/RenderResourceFactory.h"
+
 #include "Math/MathBasic.h"
 #include "Math/Transform.h"
 
@@ -49,12 +51,14 @@ namespace SG
 		mModelPosition = { 0.0f, 0.0f, 0.0f };
 		mModelScale    = 1.0f;
 		mModelRotation = { 0.0f, 0.0f, 0.0f };
+		mModelMatrix = BuildTransformMatrix(mModelPosition, mModelScale, mModelRotation);
 
 		ShaderCompiler compiler;
 		compiler.CompileGLSLShader("basic", mBasicShader);
 		/// end  outer resource preparation
 
 		mpContext = Memory::New<VulkanContext>();
+		VulkanResourceFactory::GetInstance()->Initialize(mpContext);
 
 		// create command buffer
 		mpCommandBuffers.resize(mpContext->swapchain.imageCount);
@@ -85,7 +89,7 @@ namespace SG
 			.AddBinding(EBufferType::efUniform, 0, 1)
 			.Build();
 		VulkanDescriptorDataBinder(*mpContext->pDefaultDescriptorPool, *mpCameraUBOSetLayout)
-			.BindBuffer(0, mpCameraUBOBuffer)
+			.BindBuffer(0, VulkanResourceFactory::GetInstance()->GetBuffer("CameraUniform"))
 			.Build(mpContext->cameraUBOSet);
 
 		// TODO: use shader reflection
@@ -95,8 +99,8 @@ namespace SG
 		};
 
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
-			.BindDescriptorSetLayout(mpCameraUBOSetLayout)
-			.BindPushConstantRange(sizeof(Matrix4f), 0, EShaderStage::efVert)
+			.AddDescriptorSetLayout(mpCameraUBOSetLayout)
+			.AddPushConstantRange(sizeof(Matrix4f), 0, EShaderStage::efVert)
 			.Build();
 		mpPipeline = VulkanPipeline::Builder(mpContext->device)
 			.SetVertexLayout(vertexBufferLayout)
@@ -116,9 +120,8 @@ namespace SG
 		Memory::Delete(mpPipeline);
 
 		Memory::Delete(mpCameraUBOSetLayout);
-		DestroyUBOBuffers();
-		DestroyGeoBuffers();
 
+		VulkanResourceFactory::GetInstance()->Shutdown();
 		Memory::Delete(mpContext);
 		SG_LOG_INFO("RenderDevice - Vulkan Shutdown");
 
@@ -130,11 +133,12 @@ namespace SG
 		static float totalTime = 0.0f;
 		static float speed = 0.005f;
 		mModelPosition(0) = 0.5f * Sin(totalTime);
+		TranslateToX(mModelMatrix, mModelPosition(0));
 
 		if (mpCamera->IsViewDirty())
 		{
 			mCameraUBO.view = mpCamera->GetViewMatrix();
-			mpCameraUBOBuffer->UploadData(&mCameraUBO);
+			VulkanResourceFactory::GetInstance()->UpdataBufferData("CameraUniform", &mCameraUBO);
 		}
 
 		totalTime += deltaTime * speed;
@@ -165,11 +169,10 @@ namespace SG
 			pBuf.BindPipeline(mpPipeline);
 
 			UInt64 offset[1] = { 0 };
-			pBuf.BindVertexBuffer(0, 1, *mpVertexBuffer, offset);
-			pBuf.BindIndexBuffer(*mpIndexBuffer, 0);
+			pBuf.BindVertexBuffer(0, 1, *VulkanResourceFactory::GetInstance()->GetBuffer("VertexBuffer"), offset);
+			pBuf.BindIndexBuffer(*VulkanResourceFactory::GetInstance()->GetBuffer("IndexBuffer"), 0);
 
-			Matrix4f modelMat = BuildTransformMatrix(mModelPosition, mModelScale, mModelRotation);
-			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &modelMat);
+			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &mModelMatrix);
 			pBuf.DrawIndexed(12, 1, 0, 0, 1);
 		pBuf.EndRenderPass();
 		pBuf.EndRecord();
@@ -207,7 +210,7 @@ namespace SG
 				mpCamera->SetPerspective(45.0f, ASPECT);
 
 			mCameraUBO.proj = mpCamera->GetProjMatrix();
-			mpCameraUBOBuffer->UploadData(&mCameraUBO);
+			VulkanResourceFactory::GetInstance()->UpdataBufferData("CameraUniform", &mCameraUBO);
 		}
 		return true;
 	}
@@ -237,60 +240,30 @@ namespace SG
 
 		// vertex buffer
 		BufferCreateDesc BufferCI = {};
+		BufferCI.name = "VertexBuffer";
 		BufferCI.totalSizeInByte = sizeof(float) * 6 * 8;
-		BufferCI.type  = EBufferType::efVertex | EBufferType::efTransfer_Dst;
-		mpVertexBuffer = VulkanBuffer::Create(mpContext->device, BufferCI, true);
-		BufferCI.type = EBufferType::efTransfer_Src;
-		VulkanBuffer* pVertexStagingBuffer = VulkanBuffer::Create(mpContext->device, BufferCI, false);
-		pVertexStagingBuffer->UploadData(vertices);
+		BufferCI.type  = EBufferType::efVertex;
+		BufferCI.pInitData = vertices;
+		bSuccess &= VulkanResourceFactory::GetInstance()->CreateBuffer(BufferCI, true);
 
 		// index buffer
+		BufferCI.name = "IndexBuffer";
 		BufferCI.totalSizeInByte = sizeof(UInt32) * 12;
-		BufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
-		mpIndexBuffer = VulkanBuffer::Create(mpContext->device, BufferCI, true);
-		BufferCI.type = EBufferType::efTransfer_Src;
-		VulkanBuffer* pIndexStagingBuffer = VulkanBuffer::Create(mpContext->device, BufferCI, false);
-		pIndexStagingBuffer->UploadData(indices);
+		BufferCI.type = EBufferType::efIndex;
+		BufferCI.pInitData = indices;
+		bSuccess &= VulkanResourceFactory::GetInstance()->CreateBuffer(BufferCI, true);
 
-		/// begin copy buffers
-		VulkanCommandBuffer pCmd;
-		mpContext->transferCommandPool->AllocateCommandBuffer(pCmd);
-
-		pCmd.BeginRecord();
-		pCmd.CopyBuffer(*pVertexStagingBuffer, *mpVertexBuffer);
-		pCmd.CopyBuffer(*pIndexStagingBuffer, *mpIndexBuffer);
-		pCmd.EndRecord();
-
-		mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mpContext->transferQueue.WaitIdle();
-
-		Memory::Delete(pVertexStagingBuffer);
-		Memory::Delete(pIndexStagingBuffer);
-		/// end copy buffers
-
-		if (!mpVertexBuffer || !mpIndexBuffer)
-			bSuccess &= false;
+		VulkanResourceFactory::GetInstance()->FlushBuffers();
 		return bSuccess;
-	}
-
-	void VulkanRenderDevice::DestroyGeoBuffers()
-	{
-		Memory::Delete(mpVertexBuffer);
-		Memory::Delete(mpIndexBuffer);
 	}
 
 	bool VulkanRenderDevice::CreateUBOBuffers()
 	{
 		BufferCreateDesc BufferCI = {};
+		BufferCI.name = "CameraUniform";
 		BufferCI.totalSizeInByte = sizeof(UBO);
 		BufferCI.type = EBufferType::efUniform;
-		mpCameraUBOBuffer = VulkanBuffer::Create(mpContext->device, BufferCI, false);
-		return mpCameraUBOBuffer != nullptr;
-	}
-
-	void VulkanRenderDevice::DestroyUBOBuffers()
-	{
-		Memory::Delete(mpCameraUBOBuffer);
+		return VulkanResourceFactory::GetInstance()->CreateBuffer(BufferCI);
 	}
 
 }

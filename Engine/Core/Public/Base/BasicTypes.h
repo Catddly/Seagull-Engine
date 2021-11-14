@@ -39,11 +39,11 @@ namespace SG
 #define SG_DOUBLE_EPSILON std::numeric_limits<double>::epsilon()
 
 #ifdef __cplusplus
-#	define SG_ENUM_CLASS_FLAG(VALUE_TYPE, ENUM_TYPE)																		 \
-	static inline ENUM_TYPE operator|(ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) | (VALUE_TYPE)(b)); } \
-	static inline ENUM_TYPE operator&(ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) & (VALUE_TYPE)(b)); } \
-	static inline ENUM_TYPE operator|=(ENUM_TYPE& a, ENUM_TYPE b) { return a = (a | b); }                                    \
-	static inline ENUM_TYPE operator&=(ENUM_TYPE& a, ENUM_TYPE b) { return a = (a & b); }
+#	define SG_ENUM_CLASS_FLAG(VALUE_TYPE, ENUM_TYPE)																		      \
+	static SG_INLINE ENUM_TYPE operator| (ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) | (VALUE_TYPE)(b)); }  \
+	static SG_INLINE ENUM_TYPE operator& (ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) & (VALUE_TYPE)(b)); }  \
+	static SG_INLINE ENUM_TYPE operator|=(ENUM_TYPE a, ENUM_TYPE b)   { return a | b; }                                           \
+	static SG_INLINE ENUM_TYPE operator&=(ENUM_TYPE a, ENUM_TYPE b)   { return a & b; } 
 #endif
 #define SG_HAS_ENUM_FLAG(VALUE, FLAG) static_cast<bool>((VALUE) & (FLAG))
 

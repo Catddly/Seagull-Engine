@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Base/BasicTypes.h"
 #include "Defs/Defs.h"
+#include "Base/BasicTypes.h"
 
 namespace SG
 {
@@ -22,8 +22,10 @@ namespace SG
 
 	struct BufferCreateDesc
 	{
+		const char*  name;
 		EBufferType  type;
 		UInt32       totalSizeInByte;
+		void*		 pInitData;
 
 		bool         bLocal : 1;
 	};

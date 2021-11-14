@@ -15,14 +15,14 @@ namespace SG
 	/// VulkanPipelineLayout
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanPipelineLayout::Builder& VulkanPipelineLayout::Builder::BindDescriptorSetLayout(VulkanDescriptorSetLayout* layout)
+	VulkanPipelineLayout::Builder& VulkanPipelineLayout::Builder::AddDescriptorSetLayout(VulkanDescriptorSetLayout* layout)
 	{
 		if (layout)
 			descriptorLayouts.emplace_back(layout->NativeHandle());
 		return *this;
 	}
 
-	VulkanPipelineLayout::Builder& VulkanPipelineLayout::Builder::BindPushConstantRange(UInt32 size, UInt32 offset, EShaderStage stage)
+	VulkanPipelineLayout::Builder& VulkanPipelineLayout::Builder::AddPushConstantRange(UInt32 size, UInt32 offset, EShaderStage stage)
 	{
 		if (size % 4 != 0) // must be the multiple of 4
 		{

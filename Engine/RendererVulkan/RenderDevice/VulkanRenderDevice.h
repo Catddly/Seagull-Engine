@@ -45,10 +45,7 @@ namespace SG
 		//void RecordRenderCommands();
 
 		bool CreateGeoBuffers(float* vertices, UInt32* indices);
-		void DestroyGeoBuffers();
-
 		bool CreateUBOBuffers();
-		void DestroyUBOBuffers();
 	private:
 		bool mbBlockEvent    = true;
 		bool mbWindowMinimal = false;
@@ -56,21 +53,18 @@ namespace SG
 
 		VulkanContext* mpContext = nullptr;
 
+		UInt32 mCurrentFrameInCPU;
 		vector<VulkanCommandBuffer> mpCommandBuffers;
 
 		VulkanPipelineLayout* mpPipelineLayout;
 		VulkanPipeline*       mpPipeline;
-		Shader          mBasicShader;
-
-		UInt32          mCurrentFrameInCPU;
-
-		VulkanBuffer* mpVertexBuffer;
-		VulkanBuffer* mpIndexBuffer;
+		Shader                mBasicShader;
 
 		// Temporary
 		Vector3f mModelPosition;
 		float    mModelScale;
 		Vector3f mModelRotation;
+		Matrix4f mModelMatrix;
 		struct SG_ALIGN(64) UBO
 		{
 			Matrix4f view;
@@ -80,7 +74,6 @@ namespace SG
 		ICamera* mpCamera;
 
 		UBO      mCameraUBO;
-		VulkanBuffer* mpCameraUBOBuffer;
 		VulkanDescriptorSetLayout* mpCameraUBOSetLayout;
 	};
 
