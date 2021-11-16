@@ -15,16 +15,16 @@ namespace SG
 	/// VulkanRenderPass
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindColorRenderTarget(VulkanRenderTarget* color, EResourceBarrier initStatus, EResourceBarrier dstStatus)
+	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindColorRenderTarget(VulkanRenderTarget* color, const LoadStoreClearOp& op, EResourceBarrier initStatus, EResourceBarrier dstStatus)
 	{
 		VkAttachmentDescription attachDesc = {};
 		attachDesc.format  = color->format;
 		attachDesc.samples = color->sample;
 		// TODO: add load store mask
-		attachDesc.loadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		attachDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		attachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		attachDesc.loadOp  = ToVkLoadOp(op.loadOp);
+		attachDesc.storeOp = ToVkStoreOp(op.storeOp);
+		attachDesc.stencilLoadOp = ToVkLoadOp(op.stencilLoadOp);
+		attachDesc.stencilStoreOp = ToVkStoreOp(op.stencilStoreOp);
 		attachDesc.initialLayout = ToVkImageLayout(initStatus);
 		attachDesc.finalLayout   = ToVkImageLayout(dstStatus);
 
@@ -42,7 +42,7 @@ namespace SG
 		return *this;
 	}
 
-	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindDepthRenderTarget(VulkanRenderTarget* depth, EResourceBarrier initStatus, EResourceBarrier dstStatus)
+	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindDepthRenderTarget(VulkanRenderTarget* depth, const LoadStoreClearOp& op, EResourceBarrier initStatus, EResourceBarrier dstStatus)
 	{
 		if (bHaveDepth)
 		{
@@ -53,10 +53,14 @@ namespace SG
 		VkAttachmentDescription attachDesc = {};
 		attachDesc.format  = depth->format;
 		attachDesc.samples = depth->sample;
-		attachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		attachDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // We don't need depth after render pass has finished (DONT_CARE may result in better performance)
-		attachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		attachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		attachDesc.loadOp = ToVkLoadOp(op.loadOp);
+		attachDesc.storeOp = ToVkStoreOp(op.storeOp);
+		attachDesc.stencilLoadOp = ToVkLoadOp(op.stencilLoadOp);
+		attachDesc.stencilStoreOp = ToVkStoreOp(op.stencilStoreOp);
+		//attachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		//attachDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // We don't need depth after render pass has finished (DONT_CARE may result in better performance)
+		//attachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		//attachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		attachDesc.initialLayout = ToVkImageLayout(initStatus);
 		attachDesc.finalLayout = ToVkImageLayout(dstStatus);
 

@@ -16,7 +16,7 @@ namespace SG
 		eDont_Care,
 	};
 
-	struct LoadStoreClearOP
+	struct LoadStoreClearOp
 	{
 		ELoadOp  loadOp;
 		EStoreOp storeOp;

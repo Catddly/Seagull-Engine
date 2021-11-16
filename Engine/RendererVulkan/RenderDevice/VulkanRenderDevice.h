@@ -8,9 +8,6 @@
 #include "System/System.h"
 #include "Render/Camera/ICamera.h"
 
-// TODO: add graphic api abstraction
-#include "RendererVulkan/RenderGraph/RenderGraph.h"
-
 #include "Math/Matrix.h"
 #include "stl/vector.h"
 
@@ -23,6 +20,8 @@ namespace SG
 	class VulkanCommandBuffer;
 	class VulkanPipelineLayout;
 	class VulkanPipeline;
+
+	class RenderGraph;
 
 	class VulkanRenderDevice : public IRenderDevice, public ISystemMessageListener, public IInputListener
 	{
@@ -55,13 +54,12 @@ namespace SG
 		bool mbWindowMinimal = false;
 		bool mbUseOrtho      = false;
 
-		RenderGraph mRenderGraph;
+		RenderGraph* mpRenderGraph;
 
 		VulkanContext* mpContext = nullptr;
 		ICamera* mpCamera;
 
 		UInt32 mCurrentFrameInCPU;
-		vector<VulkanCommandBuffer> mpCommandBuffers;
 
 		VulkanPipelineLayout* mpPipelineLayout;
 		VulkanPipeline*       mpPipeline;

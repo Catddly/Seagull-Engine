@@ -5,11 +5,15 @@
 #include "Render/ResourceBarriers.h"
 #include "Render/Buffer.h"
 #include "Render/Shader.h"
+#include "Render/FrameBuffer.h"
 
 #include <vulkan/vulkan_core.h>
 
 namespace SG
 {
+
+	VkAttachmentLoadOp ToVkLoadOp(ELoadOp  op);
+	VkAttachmentStoreOp ToVkStoreOp(EStoreOp op);
 
 	VkFormat     ToVkImageFormat(EImageFormat format);
 	EImageFormat ToSGImageFormat(VkFormat format);

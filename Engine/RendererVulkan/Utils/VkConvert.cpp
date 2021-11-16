@@ -6,6 +6,27 @@
 namespace SG
 {
 
+	VkAttachmentLoadOp ToVkLoadOp(ELoadOp op)
+	{
+		switch (op)
+		{
+		case SG::ELoadOp::eLoad: return VK_ATTACHMENT_LOAD_OP_LOAD; break;
+		case SG::ELoadOp::eClear: return VK_ATTACHMENT_LOAD_OP_CLEAR; break;
+		case SG::ELoadOp::eDont_Care: return VK_ATTACHMENT_LOAD_OP_DONT_CARE; break;
+		default: SG_LOG_ERROR("Invalid load operation!"); break;
+		}
+	}
+
+	VkAttachmentStoreOp ToVkStoreOp(EStoreOp op)
+	{
+		switch (op)
+		{
+		case SG::EStoreOp::eStore: return VK_ATTACHMENT_STORE_OP_STORE; break;
+		case SG::EStoreOp::eDont_Care: return VK_ATTACHMENT_STORE_OP_DONT_CARE; break;
+		default: SG_LOG_ERROR("Invalid store operation!"); break;
+		}
+	}
+
 	VkFormat ToVkImageFormat(EImageFormat format)
 	{
 		switch (format)

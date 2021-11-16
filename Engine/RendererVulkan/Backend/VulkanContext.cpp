@@ -43,30 +43,14 @@ namespace SG
 
 		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
 
-		renderPass = VulkanRenderPass::Builder(device)
-			.BindColorRenderTarget(colorRts[0], EResourceBarrier::efUndefined, EResourceBarrier::efPresent)
-			.BindDepthRenderTarget(depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil)
-			.CombineAsSubpass()
-			.Build();
-
-		frameBuffers.resize(swapchain.imageCount);
-		for (UInt32 i = 0; i < swapchain.imageCount; ++i)
-		{
-			VulkanFrameBuffer** ppFrameBuffer = &frameBuffers[i];
-			*ppFrameBuffer = VulkanFrameBuffer::Builder(device)
-				.AddRenderTarget(colorRts[i])
-				.AddRenderTarget(depthRt)
-				.BindRenderPass(renderPass)
-				.Build();
-		}
+		// create command buffer
+		commandBuffers.resize(swapchain.imageCount);
+		for (auto& pCmdBuf : commandBuffers)
+			graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
 	}
 
 	VulkanContext::~VulkanContext()
 	{
-		for (UInt32 i = 0; i < swapchain.imageCount; ++i)
-			Memory::Delete(frameBuffers[i]);
-		Memory::Delete(renderPass);
-
 		swapchain.CleanUp();
 		DestroyDefaultResource();
 
@@ -96,17 +80,6 @@ namespace SG
 		depthRtCI.usage = EImageUsage::efDepth_Stencil;
 
 		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
-
-		for (UInt32 i = 0; i < swapchain.imageCount; ++i) // recreate the frame buffers
-		{
-			Memory::Delete(frameBuffers[i]);
-			VulkanFrameBuffer** ppFrameBuffer = &frameBuffers[i];
-			*ppFrameBuffer = VulkanFrameBuffer::Builder(device)
-				.AddRenderTarget(colorRts[i])
-				.AddRenderTarget(depthRt)
-				.BindRenderPass(renderPass)
-				.Build();
-		}
 	}
 
 	void VulkanContext::CreateDefaultResource()

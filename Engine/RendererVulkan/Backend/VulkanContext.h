@@ -34,6 +34,8 @@ namespace SG
 		VulkanCommandPool* computeCommandPool;
 		VulkanCommandPool* transferCommandPool;
 
+		vector<VulkanCommandBuffer> commandBuffers;
+
 		VulkanQueue        graphicQueue;
 		VulkanQueue        computeQueue;
 		VulkanQueue        transferQueue;
@@ -51,9 +53,6 @@ namespace SG
 
 		vector<VulkanRenderTarget*> colorRts;
 		VulkanRenderTarget*         depthRt;
-
-		VulkanRenderPass*           renderPass;
-		vector<VulkanFrameBuffer*>  frameBuffers;
 
 		void WindowResize();
 	private:
