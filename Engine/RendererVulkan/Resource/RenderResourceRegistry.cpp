@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "RenderResourceFactory.h"
+#include "RenderResourceRegistry.h"
 
 #include "System/Logger.h"
 #include "Memory/Memory.h"
@@ -11,19 +11,19 @@
 namespace SG
 {
 
-	void VulkanResourceFactory::Initialize(const VulkanContext* pContext)
+	void VulkanResourceRegistry::Initialize(const VulkanContext* pContext)
 	{
 		mpContext = const_cast<VulkanContext*>(pContext);
 	}
 
-	void VulkanResourceFactory::Shutdown()
+	void VulkanResourceRegistry::Shutdown()
 	{
 		// release all the memory
 		for (auto beg = mBuffers.begin(); beg != mBuffers.end(); ++beg)
 			Memory::Delete(beg->second);
 	}
 
-	void VulkanResourceFactory::FlushBuffers() const
+	void VulkanResourceRegistry::FlushBuffers() const
 	{
 		VulkanCommandBuffer pCmd;
 		mpContext->transferCommandPool->AllocateCommandBuffer(pCmd);
@@ -49,7 +49,7 @@ namespace SG
 		mWaitToSubmitBuffers.clear();
 	}
 
-	bool VulkanResourceFactory::CreateBuffer(const BufferCreateDesc& bufferCI, bool bLocal)
+	bool VulkanResourceRegistry::CreateBuffer(const BufferCreateDesc& bufferCI, bool bLocal)
 	{
 		if (mBuffers.count(bufferCI.name) != 0)
 		{
@@ -79,12 +79,7 @@ namespace SG
 		return true;
 	}
 
-	bool VulkanResourceFactory::CreateRenderTarget()
-	{
-		return true;
-	}
-
-	VulkanBuffer* VulkanResourceFactory::GetBuffer(const char* name)
+	VulkanBuffer* VulkanResourceRegistry::GetBuffer(const char* name)
 	{
 		if (mBuffers.count(name) == 0)
 		{
@@ -94,7 +89,14 @@ namespace SG
 		return mBuffers[name];
 	}
 
-	bool VulkanResourceFactory::UpdataBufferData(const char* name, void* pData)
+	bool VulkanResourceRegistry::HaveBuffer(const char* name)
+	{
+		if (mBuffers.count(name) == 0)
+			return false;
+		return true;
+	}
+
+	bool VulkanResourceRegistry::UpdataBufferData(const char* name, void* pData)
 	{
 		if (mBuffers.count(name) == 0)
 		{
@@ -104,9 +106,9 @@ namespace SG
 		return mBuffers[name]->UploadData(pData);
 	}
 
-	VulkanResourceFactory* VulkanResourceFactory::GetInstance()
+	VulkanResourceRegistry* VulkanResourceRegistry::GetInstance()
 	{
-		static VulkanResourceFactory instance;
+		static VulkanResourceRegistry instance;
 		return &instance;
 	}
 

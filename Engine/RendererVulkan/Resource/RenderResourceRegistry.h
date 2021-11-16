@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RendererVulkan/Config.h"
 #include "Render/Buffer.h"
 #include "Render/Shader.h"
 
@@ -30,10 +31,10 @@ namespace SG
 		eastl::unordered_map<UInt32, VulkanDescriptorSet*> descriptorSetsMap;
 	};
 
-	class VulkanResourceFactory
+	class VulkanResourceRegistry
 	{
 	public:
-		~VulkanResourceFactory() = default;
+		~VulkanResourceRegistry() = default;
 
 		void Initialize(const VulkanContext* pContext);
 		void Shutdown();
@@ -42,14 +43,15 @@ namespace SG
 
 		// By default, create the buffer using HOST_VISIBLE bit.
 		bool CreateBuffer(const BufferCreateDesc& bufferCI, bool bLocal = false);
-		bool CreateRenderTarget();
+		//bool CreateRenderTarget();
 
-		VulkanBuffer* GetBuffer(const char* name);
+		SG_RENDERER_VK_API VulkanBuffer* GetBuffer(const char* name);
+		bool          HaveBuffer(const char* name);
 		bool          UpdataBufferData(const char* name, void* pData);
 
-		static VulkanResourceFactory* GetInstance();
+		SG_RENDERER_VK_API static VulkanResourceRegistry* GetInstance();
 	private:
-		VulkanResourceFactory() = default;
+		VulkanResourceRegistry() = default;
 	private:
 		VulkanContext* mpContext;
 		eastl::unordered_map<const char*, VulkanRenderTarget*> mRenderTargets;

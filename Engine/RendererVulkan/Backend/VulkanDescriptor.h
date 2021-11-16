@@ -78,7 +78,7 @@ namespace SG
 		VulkanDescriptorDataBinder& BindBuffer(UInt32 binding, const VulkanBuffer* info);
 		VulkanDescriptorDataBinder& BindImage(UInt32 binding, const VkDescriptorImageInfo* info);
 
-		bool Build(VkDescriptorSet& set);
+		bool Bind(VkDescriptorSet& set);
 	private:
 		void OverWriteData(VkDescriptorSet& set);
 	private:

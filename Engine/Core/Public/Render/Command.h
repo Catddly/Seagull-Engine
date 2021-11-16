@@ -18,9 +18,4 @@ namespace SG
 		} depthStencil;
 	};
 
-	interface RenderContext
-	{
-		virtual ~RenderContext() = default;
-	};
-
 }

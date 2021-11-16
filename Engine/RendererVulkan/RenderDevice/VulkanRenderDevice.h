@@ -8,6 +8,9 @@
 #include "System/System.h"
 #include "Render/Camera/ICamera.h"
 
+// TODO: add graphic api abstraction
+#include "RendererVulkan/RenderGraph/RenderGraph.h"
+
 #include "Math/Matrix.h"
 #include "stl/vector.h"
 
@@ -41,6 +44,7 @@ namespace SG
 		// TODO: replace it to reflection
 		SG_RENDERER_VK_API static const char* GetModuleName() { return "RenderDevice"; }
 	protected:
+		void BuildRenderGraph();
 		void WindowResize();
 		//void RecordRenderCommands();
 
@@ -49,9 +53,12 @@ namespace SG
 	private:
 		bool mbBlockEvent    = true;
 		bool mbWindowMinimal = false;
-		bool mbUseOrtho = false;
+		bool mbUseOrtho      = false;
+
+		RenderGraph mRenderGraph;
 
 		VulkanContext* mpContext = nullptr;
+		ICamera* mpCamera;
 
 		UInt32 mCurrentFrameInCPU;
 		vector<VulkanCommandBuffer> mpCommandBuffers;
@@ -70,8 +77,6 @@ namespace SG
 			Matrix4f view;
 			Matrix4f proj;
 		};
-
-		ICamera* mpCamera;
 
 		UBO      mCameraUBO;
 		VulkanDescriptorSetLayout* mpCameraUBOSetLayout;

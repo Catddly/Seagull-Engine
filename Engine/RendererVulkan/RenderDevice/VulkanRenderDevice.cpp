@@ -17,7 +17,7 @@
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
-#include "RendererVulkan/Resource/RenderResourceFactory.h"
+#include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
 #include "Math/MathBasic.h"
 #include "Math/Transform.h"
@@ -26,7 +26,7 @@ namespace SG
 {
 
 	VulkanRenderDevice::VulkanRenderDevice()
-		:mCurrentFrameInCPU(0), mbBlockEvent(true)
+		:mCurrentFrameInCPU(0), mbBlockEvent(true), mRenderGraph("Default")
 	{
 		SSystem()->RegisterSystemMessageListener(this);
 		Input::RegisterListener(this);
@@ -58,7 +58,7 @@ namespace SG
 		/// end  outer resource preparation
 
 		mpContext = Memory::New<VulkanContext>();
-		VulkanResourceFactory::GetInstance()->Initialize(mpContext);
+		VulkanResourceRegistry::GetInstance()->Initialize(mpContext);
 
 		// create command buffer
 		mpCommandBuffers.resize(mpContext->swapchain.imageCount);
@@ -89,8 +89,8 @@ namespace SG
 			.AddBinding(EBufferType::efUniform, 0, 1)
 			.Build();
 		VulkanDescriptorDataBinder(*mpContext->pDefaultDescriptorPool, *mpCameraUBOSetLayout)
-			.BindBuffer(0, VulkanResourceFactory::GetInstance()->GetBuffer("CameraUniform"))
-			.Build(mpContext->cameraUBOSet);
+			.BindBuffer(0, VulkanResourceRegistry::GetInstance()->GetBuffer("CameraUniform"))
+			.Bind(mpContext->cameraUBOSet);
 
 		// TODO: use shader reflection
 		BufferLayout vertexBufferLayout = {
@@ -110,6 +110,8 @@ namespace SG
 			.Build();
 
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
+
+		BuildRenderGraph();
 	}
 
 	void VulkanRenderDevice::OnShutdown()
@@ -121,7 +123,7 @@ namespace SG
 
 		Memory::Delete(mpCameraUBOSetLayout);
 
-		VulkanResourceFactory::GetInstance()->Shutdown();
+		VulkanResourceRegistry::GetInstance()->Shutdown();
 		Memory::Delete(mpContext);
 		SG_LOG_INFO("RenderDevice - Vulkan Shutdown");
 
@@ -138,7 +140,7 @@ namespace SG
 		if (mpCamera->IsViewDirty())
 		{
 			mCameraUBO.view = mpCamera->GetViewMatrix();
-			VulkanResourceFactory::GetInstance()->UpdataBufferData("CameraUniform", &mCameraUBO);
+			VulkanResourceRegistry::GetInstance()->UpdataBufferData("CameraUniform", &mCameraUBO);
 		}
 
 		totalTime += deltaTime * speed;
@@ -169,8 +171,8 @@ namespace SG
 			pBuf.BindPipeline(mpPipeline);
 
 			UInt64 offset[1] = { 0 };
-			pBuf.BindVertexBuffer(0, 1, *VulkanResourceFactory::GetInstance()->GetBuffer("VertexBuffer"), offset);
-			pBuf.BindIndexBuffer(*VulkanResourceFactory::GetInstance()->GetBuffer("IndexBuffer"), 0);
+			pBuf.BindVertexBuffer(0, 1, *VulkanResourceRegistry::GetInstance()->GetBuffer("VertexBuffer"), offset);
+			pBuf.BindIndexBuffer(*VulkanResourceRegistry::GetInstance()->GetBuffer("IndexBuffer"), 0);
 
 			pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &mModelMatrix);
 			pBuf.DrawIndexed(12, 1, 0, 0, 1);
@@ -210,9 +212,20 @@ namespace SG
 				mpCamera->SetPerspective(45.0f, ASPECT);
 
 			mCameraUBO.proj = mpCamera->GetProjMatrix();
-			VulkanResourceFactory::GetInstance()->UpdataBufferData("CameraUniform", &mCameraUBO);
+			VulkanResourceRegistry::GetInstance()->UpdataBufferData("CameraUniform", &mCameraUBO);
 		}
 		return true;
+	}
+
+	void VulkanRenderDevice::BuildRenderGraph()
+	{
+		RenderGraphBuilder builder(mRenderGraph);
+		//{
+		//	auto* pNode = Memory::New<RenderGraphNode>();
+		//	pNode->AttachResource("VertexBuffer");
+		//	pNode->AttachResource("IndexBuffer");
+		//	builder.NewRenderPass(pNode);
+		//}
 	}
 
 	void VulkanRenderDevice::WindowResize()
@@ -244,16 +257,16 @@ namespace SG
 		BufferCI.totalSizeInByte = sizeof(float) * 6 * 8;
 		BufferCI.type  = EBufferType::efVertex;
 		BufferCI.pInitData = vertices;
-		bSuccess &= VulkanResourceFactory::GetInstance()->CreateBuffer(BufferCI, true);
+		bSuccess &= VulkanResourceRegistry::GetInstance()->CreateBuffer(BufferCI, true);
 
 		// index buffer
 		BufferCI.name = "IndexBuffer";
 		BufferCI.totalSizeInByte = sizeof(UInt32) * 12;
 		BufferCI.type = EBufferType::efIndex;
 		BufferCI.pInitData = indices;
-		bSuccess &= VulkanResourceFactory::GetInstance()->CreateBuffer(BufferCI, true);
+		bSuccess &= VulkanResourceRegistry::GetInstance()->CreateBuffer(BufferCI, true);
 
-		VulkanResourceFactory::GetInstance()->FlushBuffers();
+		VulkanResourceRegistry::GetInstance()->FlushBuffers();
 		return bSuccess;
 	}
 
@@ -263,7 +276,7 @@ namespace SG
 		BufferCI.name = "CameraUniform";
 		BufferCI.totalSizeInByte = sizeof(UBO);
 		BufferCI.type = EBufferType::efUniform;
-		return VulkanResourceFactory::GetInstance()->CreateBuffer(BufferCI);
+		return VulkanResourceRegistry::GetInstance()->CreateBuffer(BufferCI);
 	}
 
 }

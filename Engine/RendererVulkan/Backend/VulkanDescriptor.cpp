@@ -191,7 +191,7 @@ namespace SG
 		return *this;
 	}
 
-	bool VulkanDescriptorDataBinder::Build(VkDescriptorSet& set)
+	bool VulkanDescriptorDataBinder::Bind(VkDescriptorSet& set)
 	{
 		if (!pool.AllocateDescriptorSet(layout.descriptorSetLayout, set))
 			return false;
