@@ -80,6 +80,12 @@ namespace SG
 		depthRtCI.usage = EImageUsage::efDepth_Stencil;
 
 		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
+
+		for (auto& pCmdBuf : commandBuffers)
+		{
+			graphicCommandPool->FreeCommandBuffer(pCmdBuf);
+			graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
+		}
 	}
 
 	void VulkanContext::CreateDefaultResource()

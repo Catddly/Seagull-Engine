@@ -31,7 +31,7 @@ namespace SG
 		~RenderGraph();
 
 		void Draw(UInt32 frameIndex) const;
-		void Resize();
+		void WindowResize();
 
 		SG_INLINE const char* GetName() const { return mName; }
 	private:

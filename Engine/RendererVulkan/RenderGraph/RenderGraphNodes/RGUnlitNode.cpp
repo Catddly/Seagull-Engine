@@ -50,21 +50,10 @@ namespace SG
 		mDepthRtLoadStoreOp = op;
 	}
 
-	void RGUnlitNode::BindPipeline(VulkanPipelineLayout* pLayout, Shader& shader)
+	void RGUnlitNode::BindPipeline(VulkanPipelineLayout* pLayout, Shader* pShader)
 	{
 		mpPipelineLayout = pLayout;
-		// TODO: use shader reflection
-		BufferLayout vertexBufferLayout = {
-			{ EShaderDataType::eFloat3, "position" },
-			{ EShaderDataType::eFloat3, "color" },
-		};
-
-		mpPipeline = VulkanPipeline::Builder(mDevice)
-			.SetVertexLayout(vertexBufferLayout)
-			.BindLayout(mpPipelineLayout)
-			.BindRenderPass(mpRenderPass)
-			.BindShader(&shader)
-			.Build();
+		mpShader = pShader;
 	}
 
 	void RGUnlitNode::AddDescriptorSet(UInt32 set, VkDescriptorSet handle)
@@ -84,35 +73,43 @@ namespace SG
 			.BindDepthRenderTarget(mpDepthRt, mDepthRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil)
 			.CombineAsSubpass()
 			.Build();
+
+		// TODO: use shader reflection
+		BufferLayout vertexBufferLayout = {
+			{ EShaderDataType::eFloat3, "position" },
+			{ EShaderDataType::eFloat3, "color" },
+		};
+
+		mpPipeline = VulkanPipeline::Builder(mDevice)
+			.SetVertexLayout(vertexBufferLayout)
+			.BindLayout(mpPipelineLayout)
+			.BindRenderPass(mpRenderPass)
+			.BindShader(mpShader)
+			.Build();
+
 		return mpRenderPass;
 	}
 
 	void RGUnlitNode::Execute(VulkanCommandBuffer& pBuf)
 	{
-		pBuf.SetViewport((float)mpColorRt->width, (float)mpColorRt->height, 0.0f, 1.0f);
-		pBuf.SetScissor({ 0, 0, (int)mpColorRt->width, (int)mpColorRt->height });
-
+		for (auto& e : mDescriptorSets)
+			pBuf.BindDescriptorSet(mpPipelineLayout, e.first, e.second);
 		pBuf.BindPipeline(mpPipeline);
 
 		UInt64 offset[1] = { 0 };
+		VulkanBuffer* pVertexBuffer = VulkanResourceRegistry::GetInstance()->GetBuffer("VertexBuffer");
 		VulkanBuffer* pIndexBuffer = VulkanResourceRegistry::GetInstance()->GetBuffer("IndexBuffer");
-		pBuf.BindVertexBuffer(0, 1, *VulkanResourceRegistry::GetInstance()->GetBuffer("VertexBuffer"), offset);
+		pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
 		pBuf.BindIndexBuffer(*pIndexBuffer, 0);
-
-		for (auto& e : mDescriptorSets)
-		{
-			pBuf.BindDescriptorSet(mpPipelineLayout, e.first, e.second);
-		}
 
 		UInt32 pushOffset = 0;
 		for (auto& e : mPushConstants)
 		{
-			pBuf.PushConstants(mpPipelineLayout, e.stage, e.size, pushOffset, &e.pData);
+			pBuf.PushConstants(mpPipelineLayout, e.stage, e.size, pushOffset, e.pData);
 			pushOffset += e.size;
+			UInt32 indexCount = pIndexBuffer->SizeInByte() / sizeof(UInt32);
+			pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
 		}
-
-		UInt32 indexCount = pIndexBuffer->SizeInByte() / sizeof(UInt32);
-		pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
 	}
 
 	void RGUnlitNode::Clear()

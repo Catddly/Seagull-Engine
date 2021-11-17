@@ -10,6 +10,10 @@
 namespace SG
 {
 
+	/////////////////////////////////////////////////////////////////////////////////////
+	/// RenderGraphBuilder
+	/////////////////////////////////////////////////////////////////////////////////////
+
 	RenderGraphBuilder& RenderGraphBuilder::NewRenderPass(RenderGraphNode* pNode)
 	{
 		if (!mRenderGraph.mpRootNode)
@@ -33,6 +37,10 @@ namespace SG
 		mRenderGraph.Build();
 	}
 
+	/////////////////////////////////////////////////////////////////////////////////////
+	/// RenderGraph
+	/////////////////////////////////////////////////////////////////////////////////////
+
 	RenderGraph::~RenderGraph()
 	{
 		Clear();
@@ -42,12 +50,16 @@ namespace SG
 	{
 		auto* pFrameBuffer = mpFrameBuffers[frameIndex];
 		auto& commandBuf = mpRenderContext->commandBuffers[frameIndex];
+		auto* pColorRt = mpRenderContext->colorRts[frameIndex];
 
 		commandBuf.BeginRecord();
 		ClearValue cv;
 		cv.color = { 0.03f, 0.05f, 0.03f, 0.0f };
 		cv.depthStencil = { 1.0f, 0 };
 		
+		commandBuf.SetViewport((float)pColorRt->width, (float)pColorRt->height, 0.0f, 1.0f);
+		commandBuf.SetScissor({ 0, 0, (int)pColorRt->width, (int)pColorRt->height });
+
 		auto* pCurrNode = mpRootNode;
 		while (pCurrNode)
 		{
@@ -59,7 +71,7 @@ namespace SG
 		commandBuf.EndRecord();
 	}
 
-	void RenderGraph::Resize()
+	void RenderGraph::WindowResize()
 	{
 		for (UInt32 i = 0; i < mpRenderContext->swapchain.imageCount; ++i) // recreate the frame buffers
 		{
@@ -101,7 +113,9 @@ namespace SG
 		while (pCurrNode)
 		{
 			pCurrNode->Clear();
+			auto* pNode = pCurrNode;
 			pCurrNode = pCurrNode->mpNext;
+			Memory::Delete(pNode);
 		}
 
 		for (UInt32 i = 0; i < mpRenderContext->swapchain.imageCount; ++i)

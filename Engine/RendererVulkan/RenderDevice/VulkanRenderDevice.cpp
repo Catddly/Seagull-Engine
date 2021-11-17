@@ -91,22 +91,10 @@ namespace SG
 			.BindBuffer(0, VulkanResourceRegistry::GetInstance()->GetBuffer("CameraUniform"))
 			.Bind(mpContext->cameraUBOSet);
 
-		// TODO: use shader reflection
-		BufferLayout vertexBufferLayout = {
-			{ EShaderDataType::eFloat3, "position" },
-			{ EShaderDataType::eFloat3, "color" },
-		};
-
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
 			.AddDescriptorSetLayout(mpCameraUBOSetLayout)
 			.AddPushConstantRange(sizeof(Matrix4f), 0, EShaderStage::efVert)
 			.Build();
-		//mpPipeline = VulkanPipeline::Builder(mpContext->device)
-		//	.SetVertexLayout(vertexBufferLayout)
-		//	.BindLayout(mpPipelineLayout)
-		//	.BindRenderPass(mpContext->renderPass)
-		//	.BindShader(&mBasicShader)
-		//	.Build();
 
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
@@ -118,7 +106,6 @@ namespace SG
 		mpContext->graphicQueue.WaitIdle();
 
 		Memory::Delete(mpPipelineLayout);
-		//Memory::Delete(mpPipeline);
 		Memory::Delete(mpCameraUBOSetLayout);
 
 		Memory::Delete(mpRenderGraph);
@@ -155,30 +142,6 @@ namespace SG
 
 		mpRenderGraph->Draw(mCurrentFrameInCPU);
 
-		//auto& pBuf = mpContext->commandBuffers[mCurrentFrameInCPU];
-		//auto* pColorRt = mpContext->colorRts[mCurrentFrameInCPU];
-
-		//pBuf.BeginRecord();
-
-		//ClearValue cv;
-		//cv.color = { 0.03f, 0.05f, 0.03f, 0.0f };
-		//cv.depthStencil = { 1.0f, 0 };
-
-		//pBuf.BeginRenderPass(mpContext->frameBuffers[mCurrentFrameInCPU], cv);
-		//pBuf.SetViewport((float)pColorRt->width, (float)pColorRt->height, 0.0f, 1.0f);
-		//pBuf.SetScissor({ 0, 0, (int)pColorRt->width, (int)pColorRt->height });
-		//	pBuf.BindDescriptorSet(mpPipelineLayout, 0, mpContext->cameraUBOSet);
-		//	pBuf.BindPipeline(mpPipeline);
-
-		//	UInt64 offset[1] = { 0 };
-		//	pBuf.BindVertexBuffer(0, 1, *VulkanResourceRegistry::GetInstance()->GetBuffer("VertexBuffer"), offset);
-		//	pBuf.BindIndexBuffer(*VulkanResourceRegistry::GetInstance()->GetBuffer("IndexBuffer"), 0);
-
-		//	pBuf.PushConstants(mpPipelineLayout, EShaderStage::efVert, sizeof(Matrix4f), 0, &mModelMatrix);
-		//	pBuf.DrawIndexed(12, 1, 0, 0, 1);
-		//pBuf.EndRenderPass();
-		//pBuf.EndRecord();
-	
 		mpContext->graphicQueue.SubmitCommands(&mpContext->commandBuffers[mCurrentFrameInCPU],
 			mpContext->pRenderCompleteSemaphore, mpContext->pPresentCompleteSemaphore, mpContext->pFences[mCurrentFrameInCPU]); // submit new render commands to the available image
 		mpContext->swapchain.Present(&mpContext->graphicQueue, mCurrentFrameInCPU, mpContext->pRenderCompleteSemaphore); // present the available image
@@ -223,22 +186,18 @@ namespace SG
 		{
 			auto* pNode = Memory::New<RGUnlitNode>(mpContext->device);
 			LoadStoreClearOp colorOp = {
-				ELoadOp::eClear,
-				EStoreOp::eStore,
-				ELoadOp::eDont_Care,
-				EStoreOp::eDont_Care,
+				ELoadOp::eClear, EStoreOp::eStore,
+				ELoadOp::eDont_Care, EStoreOp::eDont_Care,
 			};
 			LoadStoreClearOp depthOp = {
-				ELoadOp::eClear,
-				EStoreOp::eDont_Care,
-				ELoadOp::eClear,
-				EStoreOp::eDont_Care,
+				ELoadOp::eClear, EStoreOp::eDont_Care,
+				ELoadOp::eClear, EStoreOp::eDont_Care,
 			};
 			pNode->BindMainRenderTarget(mpContext->colorRts[0], colorOp);
 			pNode->BindMainDepthBuffer(mpContext->depthRt, depthOp);
-			pNode->BindPipeline(mpPipelineLayout, mBasicShader);
+			pNode->BindPipeline(mpPipelineLayout, &mBasicShader);
 			pNode->AddDescriptorSet(0, mpContext->cameraUBOSet);
-			pNode->AddConstantBuffer(EShaderStage::efVert, sizeof(Matrix4f), &mCameraUBO);
+			pNode->AddConstantBuffer(EShaderStage::efVert, sizeof(Matrix4f), &mModelMatrix);
 
 			builder.NewRenderPass(pNode).Complete();
 		}
@@ -255,13 +214,7 @@ namespace SG
 		mCameraUBO.proj = mpCamera->GetProjMatrix();
 
 		mpContext->WindowResize();
-		mpRenderGraph->Resize();
-
-		for (auto& pCmdBuf : mpContext->commandBuffers)
-		{
-			mpContext->graphicCommandPool->FreeCommandBuffer(pCmdBuf);
-			mpContext->graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
-		}
+		mpRenderGraph->WindowResize();
 	}
 
 	bool VulkanRenderDevice::CreateGeoBuffers(float* vertices, UInt32* indices)

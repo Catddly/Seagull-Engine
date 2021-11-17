@@ -24,7 +24,7 @@ namespace SG
 		void BindMainRenderTarget(VulkanRenderTarget* pColorRt, const LoadStoreClearOp& op);
 		void BindMainDepthBuffer(VulkanRenderTarget* pDepthRt, const LoadStoreClearOp& op);
 
-		void BindPipeline(VulkanPipelineLayout* pLayout, Shader& shader);
+		void BindPipeline(VulkanPipelineLayout* pLayout, Shader* pShader);
 		void AddDescriptorSet(UInt32 set, VkDescriptorSet handle);
 
 		void AddConstantBuffer(EShaderStage stage, UInt32 size, void* pData);
@@ -42,6 +42,7 @@ namespace SG
 		LoadStoreClearOp      mDepthRtLoadStoreOp;
 		VulkanPipeline*       mpPipeline;
 		VulkanPipelineLayout* mpPipelineLayout;
+		Shader*               mpShader;
 		
 		vector<eastl::pair<UInt32, VkDescriptorSet>> mDescriptorSets;
 		struct BindConstantData
