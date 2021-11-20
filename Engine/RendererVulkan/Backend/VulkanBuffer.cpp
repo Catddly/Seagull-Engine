@@ -13,21 +13,25 @@ namespace SG
 	VulkanBuffer::VulkanBuffer(VulkanDevice& d, const BufferCreateDesc& CI, bool local)
 		:device(d), bLocal(local)
 	{
-		totalSizeInByte = CI.totalSizeInByte;
+		sizeInByteCPU = CI.totalSizeInByte;
 		type = CI.type;
 
 		VkMemoryRequirements memReqs;
 		VkBufferCreateInfo bufferInfo = {};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size  = totalSizeInByte;
+		bufferInfo.size  = sizeInByteCPU;
 		bufferInfo.usage = ToVkBufferUsage(type);
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		VK_CHECK(vkCreateBuffer(device.logicalDevice, &bufferInfo, nullptr, &buffer),
 			SG_LOG_ERROR("Failed to create vulkan buffer!"););
-		vkGetBufferMemoryRequirements(device.logicalDevice, buffer, &memReqs);
 
+		vkGetBufferMemoryRequirements(device.logicalDevice, buffer, &memReqs);
 		VkMemoryAllocateInfo memAlloc = {};
 		memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		memAlloc.allocationSize = memReqs.size;
+
+		sizeInByteGPU = static_cast<UInt32>(memReqs.size);
+		alignment     = static_cast<UInt32>(memReqs.alignment);
 
 		if (bLocal)
 			memAlloc.memoryTypeIndex = device.GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -47,7 +51,7 @@ namespace SG
 		vkDestroyBuffer(device.logicalDevice, buffer, nullptr);
 	}
 
-	bool VulkanBuffer::UploadData(void* pData)
+	bool VulkanBuffer::UploadData(const void* pData)
 	{
 		if (bLocal) // device local in GPU
 		{
@@ -56,9 +60,9 @@ namespace SG
 		}
 
 		UInt8* pUpload = nullptr;
-		VK_CHECK(vkMapMemory(device.logicalDevice, memory, 0, totalSizeInByte, 0, (void**)&pUpload), 
+		VK_CHECK(vkMapMemory(device.logicalDevice, memory, 0, sizeInByteCPU, 0, (void**)&pUpload), 
 			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
-		memcpy(pUpload, pData, totalSizeInByte);
+		memcpy(pUpload, pData, sizeInByteCPU);
 		vkUnmapMemory(device.logicalDevice, memory);
 		return true;
 	}

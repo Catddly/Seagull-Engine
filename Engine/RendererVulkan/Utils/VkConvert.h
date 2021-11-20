@@ -2,6 +2,7 @@
 
 #include "Render/SwapChain.h"
 #include "Render/Queue.h"
+#include "Render/Descriptor.h"
 #include "Render/ResourceBarriers.h"
 #include "Render/Buffer.h"
 #include "Render/Shader.h"
@@ -12,13 +13,18 @@
 namespace SG
 {
 
+
+	VkFilter ToVkFilterMode(EFilterMode fm);
+	VkSamplerMipmapMode  ToVkMipmapMode(EFilterMode fm);
+	VkSamplerAddressMode ToVkAddressMode(EAddressMode am);
+
 	VkAttachmentLoadOp ToVkLoadOp(ELoadOp  op);
 	VkAttachmentStoreOp ToVkStoreOp(EStoreOp op);
 
 	VkFormat     ToVkImageFormat(EImageFormat format);
 	EImageFormat ToSGImageFormat(VkFormat format);
 
-	VkDescriptorType ToVkDescriptorType(EBufferType type);
+	VkDescriptorType ToVkDescriptorType(EDescriptorType type);
 	VkDescriptorType ToVkDescriptorType(EImageUsage usage);
 
 	VkShaderStageFlags ToVkShaderStageFlags(EShaderStage stage);

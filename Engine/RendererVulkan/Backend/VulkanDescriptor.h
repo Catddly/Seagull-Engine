@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Base/BasicTypes.h"
-#include "Render/Buffer.h"
+#include "Render/Descriptor.h"
 
 #include "VulkanDevice.h"
 
@@ -16,14 +16,14 @@ namespace SG
 	class VulkanDescriptorPool
 	{
 	public:
-		VulkanDescriptorPool(VulkanDevice& d, const vector<VkDescriptorPoolSize>& poolSizes);
+		VulkanDescriptorPool(VulkanDevice& d, const vector<VkDescriptorPoolSize>& poolSizes, UInt32 maxSets);
 		~VulkanDescriptorPool();
 		SG_CLASS_NO_COPY_ASSIGNABLE(VulkanDescriptorPool);
 
 		class Builder
 		{
 		public:
-			Builder& AddPoolElement(EBufferType type, UInt32 count);
+			Builder& AddPoolElement(EDescriptorType type, UInt32 count);
 			Builder& SetMaxSets(UInt32 max);
 			VulkanDescriptorPool* Build(VulkanDevice& d);
 		private:
@@ -55,7 +55,7 @@ namespace SG
 		public:
 			Builder(VulkanDevice& d) : device(d) {}
 
-			Builder& AddBinding(EBufferType type, UInt32 binding, UInt32 count);
+			Builder& AddBinding(EDescriptorType type, EShaderStage stage, UInt32 binding, UInt32 count);
 			VulkanDescriptorSetLayout* Build();
 		private:
 			VulkanDevice& device;
@@ -69,6 +69,9 @@ namespace SG
 		eastl::unordered_map<UInt32, VkDescriptorSetLayoutBinding> bindingsMap;
 	};
 
+	class VulkanSampler;
+	class VulkanTexture;
+
 	class VulkanDescriptorDataBinder
 	{
 	public:
@@ -76,7 +79,7 @@ namespace SG
 		SG_CLASS_NO_COPY_ASSIGNABLE(VulkanDescriptorDataBinder);
 
 		VulkanDescriptorDataBinder& BindBuffer(UInt32 binding, const VulkanBuffer* info);
-		VulkanDescriptorDataBinder& BindImage(UInt32 binding, const VkDescriptorImageInfo* info);
+		VulkanDescriptorDataBinder& BindImage(UInt32 binding, const VulkanSampler* pSampler, const VulkanTexture* pTexture);
 
 		bool Bind(VkDescriptorSet& set);
 	private:
@@ -85,6 +88,9 @@ namespace SG
 		VulkanDescriptorPool&        pool;
 		VulkanDescriptorSetLayout&   layout;
 		vector<VkWriteDescriptorSet> writes;
+
+		vector<VkDescriptorBufferInfo> bufferInfos;
+		vector<VkDescriptorImageInfo> imageInfos;
 	};
 
 }

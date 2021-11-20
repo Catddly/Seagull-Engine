@@ -2,8 +2,11 @@
 #include "VulkanDescriptor.h"
 
 #include "Defs/Defs.h"
+
 #include "VulkanConfig.h"
 #include "VulkanBuffer.h"
+#include "VulkanSwapchain.h"
+
 #include "RendererVulkan/Utils/VkConvert.h"
 
 #include "Memory/Memory.h"
@@ -15,10 +18,10 @@ namespace SG
 	/// VulkanDescriptorPool
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanDescriptorPool::Builder& VulkanDescriptorPool::Builder::AddPoolElement(EBufferType type, UInt32 count)
+	VulkanDescriptorPool::Builder& VulkanDescriptorPool::Builder::AddPoolElement(EDescriptorType type, UInt32 count)
 	{
 		VkDescriptorPoolSize size;
-		size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		size.type = ToVkDescriptorType(type);
 		size.descriptorCount = count;
 		poolSizes.emplace_back(size);
 		return *this;
@@ -39,10 +42,10 @@ namespace SG
 			return nullptr;
 		}
 
-		return Memory::New<VulkanDescriptorPool>(d, poolSizes);
+		return Memory::New<VulkanDescriptorPool>(d, poolSizes, maxSets);
 	}
 
-	VulkanDescriptorPool::VulkanDescriptorPool(VulkanDevice& d, const vector<VkDescriptorPoolSize>& poolSizes)
+	VulkanDescriptorPool::VulkanDescriptorPool(VulkanDevice& d, const vector<VkDescriptorPoolSize>& poolSizes, UInt32 maxSets)
 		:device(d)
 	{
 		VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
@@ -50,7 +53,7 @@ namespace SG
 		descriptorPoolInfo.pNext = nullptr;
 		descriptorPoolInfo.poolSizeCount = static_cast<UInt32>(poolSizes.size());
 		descriptorPoolInfo.pPoolSizes = poolSizes.data();
-		descriptorPoolInfo.maxSets = 1;
+		descriptorPoolInfo.maxSets = maxSets;
 
 		VK_CHECK(vkCreateDescriptorPool(device.logicalDevice, &descriptorPoolInfo, nullptr, &pool),
 			SG_LOG_ERROR("Failed to create descriptor pool!"););
@@ -110,7 +113,7 @@ namespace SG
 		vkDestroyDescriptorSetLayout(device.logicalDevice, descriptorSetLayout, nullptr);
 	}
 
-	VulkanDescriptorSetLayout::Builder& VulkanDescriptorSetLayout::Builder::AddBinding(EBufferType type, UInt32 binding, UInt32 count)
+	VulkanDescriptorSetLayout::Builder& VulkanDescriptorSetLayout::Builder::AddBinding(EDescriptorType type, EShaderStage stage, UInt32 binding, UInt32 count)
 	{
 		if (bindingsMap.count(binding) != 0)
 		{
@@ -122,7 +125,7 @@ namespace SG
 		layoutBinding.descriptorType = ToVkDescriptorType(type);
 		layoutBinding.binding = binding;
 		layoutBinding.descriptorCount = count;
-		layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // binding stage
+		layoutBinding.stageFlags = ToVkShaderStageFlags(stage); // binding stage
 		layoutBinding.pImmutableSamplers = nullptr;
 
 		bindingsMap[binding] = layoutBinding;
@@ -143,7 +146,7 @@ namespace SG
 	{
 	}
 
-	VulkanDescriptorDataBinder& VulkanDescriptorDataBinder::BindBuffer(UInt32 binding, const VulkanBuffer* buffers)
+	VulkanDescriptorDataBinder& VulkanDescriptorDataBinder::BindBuffer(UInt32 binding, const VulkanBuffer* pBuf)
 	{
 		if (layout.bindingsMap.count(binding) == 0)
 		{
@@ -151,26 +154,28 @@ namespace SG
 			return *this;
 		}
 
-		auto* pBuf = const_cast<VulkanBuffer*>(buffers);
+		auto& bindingInfo = layout.bindingsMap[binding];
+
 		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer = pBuf->NativeHandle();
-		bufferInfo.range  = pBuf->SizeInByte();
+		bufferInfo.buffer = pBuf->buffer;
+		bufferInfo.range = pBuf->sizeInByteCPU;
 		bufferInfo.offset = 0;
 
-		auto& bindingInfo = layout.bindingsMap[binding];
+		bufferInfos.emplace_back(eastl::move(bufferInfo));
 
 		VkWriteDescriptorSet write = {};
 		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		write.descriptorType = bindingInfo.descriptorType;
 		write.dstBinding = binding;
-		write.pBufferInfo = &bufferInfo;
+		write.pBufferInfo = &bufferInfos.back();
+		write.dstArrayElement = 0;
 		write.descriptorCount = bindingInfo.descriptorCount;
 
-		writes.emplace_back(write);
+		writes.emplace_back(eastl::move(write));
 		return *this;
 	}
 
-	VulkanDescriptorDataBinder& VulkanDescriptorDataBinder::BindImage(UInt32 binding, const VkDescriptorImageInfo* info)
+	VulkanDescriptorDataBinder& VulkanDescriptorDataBinder::BindImage(UInt32 binding, const VulkanSampler* pSampler, const VulkanTexture* pTexture)
 	{
 		if (layout.bindingsMap.count(binding) == 0)
 		{
@@ -180,14 +185,22 @@ namespace SG
 
 		auto& bindingInfo = layout.bindingsMap[binding];
 
+		VkDescriptorImageInfo imageInfo = {};
+		imageInfo.sampler = pSampler->sampler;
+		imageInfo.imageView = pTexture->imageView;
+		imageInfo.imageLayout = pTexture->currLayout;
+
+		imageInfos.emplace_back(eastl::move(imageInfo));
+
 		VkWriteDescriptorSet write = {};
 		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		write.descriptorType = bindingInfo.descriptorType;
 		write.dstBinding = binding;
-		write.pImageInfo = info;
+		write.dstArrayElement = 0;
+		write.pImageInfo = &imageInfos.back();
 		write.descriptorCount = bindingInfo.descriptorCount;
 
-		writes.emplace_back(write);
+		writes.emplace_back(eastl::move(write));
 		return *this;
 	}
 
@@ -201,9 +214,8 @@ namespace SG
 
 	void VulkanDescriptorDataBinder::OverWriteData(VkDescriptorSet& set)
 	{
-		for (auto& w : writes)
+		for (auto& w : writes) // all the data bind to this set
 			w.dstSet = set;
-
 		vkUpdateDescriptorSets(pool.device.logicalDevice, static_cast<UInt32>(writes.size()), writes.data(), 0, nullptr);
 	}
 

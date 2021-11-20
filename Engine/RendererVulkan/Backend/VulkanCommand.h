@@ -2,6 +2,7 @@
 
 #include "Base/BasicTypes.h"
 #include "Render/Command.h"
+#include "Render/Swapchain.h"
 #include "Render/ResourceBarriers.h"
 
 #include "VulkanDevice.h"
@@ -17,6 +18,7 @@ namespace SG
 	class VulkanPipeline;
 	class VulkanFrameBuffer;
 	class VulkanRenderTarget;
+	class VulkanTexture;
 
 	class VulkanCommandBuffer
 	{
@@ -42,9 +44,10 @@ namespace SG
 
 		// transfer
 		void CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer);
+		void CopyBufferToImage(VulkanBuffer& srcBuffer, VulkanTexture& dstTexture, const vector<TextureCopyRegion>& region);
 
 		//void BufferBarrier();
-		void ImageBarrier(VulkanRenderTarget* pRenderTarget, EResourceBarrier oldBarrier, EResourceBarrier newBarrier);
+		void ImageBarrier(VulkanTexture* pTex, EResourceBarrier oldBarrier, EResourceBarrier newBarrier);
 		//void MemoryBarrier();
 	private:
 		friend class VulkanCommandPool;

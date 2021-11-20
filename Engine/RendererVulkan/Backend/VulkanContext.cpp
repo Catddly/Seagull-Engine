@@ -15,7 +15,7 @@ namespace SG
 {
 
 	VulkanContext::VulkanContext()
-		:instance(), swapchain(instance, device), device(instance.physicalDevice)
+		:instance(), device(instance.physicalDevice), swapchain(instance, device)
 	{
 		graphicQueue  = device.GetQueue(EQueueType::eGraphic);
 		computeQueue  = device.GetQueue(EQueueType::eCompute);
@@ -35,7 +35,7 @@ namespace SG
 		depthRtCI.height = colorRts[0]->GetHeight();
 		depthRtCI.depth = colorRts[0]->GetDepth();
 		depthRtCI.array = 1;
-		depthRtCI.mipmap = 1;
+		depthRtCI.mipLevel = 1;
 		depthRtCI.format = EImageFormat::eUnorm_D24_uint_S8;
 		depthRtCI.sample = ESampleCount::eSample_1;
 		depthRtCI.type  = EImageType::e2D;
@@ -73,7 +73,7 @@ namespace SG
 		depthRtCI.height = colorRts[0]->GetHeight();
 		depthRtCI.depth = colorRts[0]->GetDepth();
 		depthRtCI.array = 1;
-		depthRtCI.mipmap = 1;
+		depthRtCI.mipLevel = 1;
 		depthRtCI.format = EImageFormat::eUnorm_D24_uint_S8;
 		depthRtCI.sample = ESampleCount::eSample_1;
 		depthRtCI.type = EImageType::e2D;
@@ -116,8 +116,9 @@ namespace SG
 		}
 
 		pDefaultDescriptorPool = VulkanDescriptorPool::Builder()
-			.AddPoolElement(EBufferType::efUniform, 1)
-			.SetMaxSets(1)
+			.AddPoolElement(EDescriptorType::eUniform_Buffer, 1)
+			.AddPoolElement(EDescriptorType::eCombine_Image_Sampler, 1)
+			.SetMaxSets(2)
 			.Build(device);
 
 		if (!pDefaultDescriptorPool)

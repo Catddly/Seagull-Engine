@@ -78,6 +78,7 @@ namespace SG
 		BufferLayout vertexBufferLayout = {
 			{ EShaderDataType::eFloat3, "position" },
 			{ EShaderDataType::eFloat3, "color" },
+			{ EShaderDataType::eFloat2, "uv" },
 		};
 
 		mpPipeline = VulkanPipeline::Builder(mDevice)
@@ -107,7 +108,7 @@ namespace SG
 		{
 			pBuf.PushConstants(mpPipelineLayout, e.stage, e.size, pushOffset, e.pData);
 			pushOffset += e.size;
-			UInt32 indexCount = pIndexBuffer->SizeInByte() / sizeof(UInt32);
+			UInt32 indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
 			pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
 		}
 	}

@@ -37,6 +37,7 @@ namespace SG
 		VkPhysicalDeviceProperties physicalDeviceProps;
 		vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProps);
 		physicalDeviceLimits = physicalDeviceProps.limits;
+		vkGetPhysicalDeviceFeatures(physicalDevice, &physicalDeviceFeatures);
 
 		CreateLogicalDevice(nullptr);
 	}
@@ -109,6 +110,8 @@ namespace SG
 		}
 
 		VkPhysicalDeviceFeatures deviceFeatures = {};
+		if (physicalDeviceFeatures.samplerAnisotropy) // if device support anisotropy, enable it.
+			deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 		// to support swapchain
 		vector<const char*> deviceExtensions = {};

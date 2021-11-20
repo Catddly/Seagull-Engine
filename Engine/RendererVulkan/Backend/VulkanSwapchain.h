@@ -18,6 +18,60 @@ namespace SG
 	class VulkanQueue;
 	class VulkanSemaphore;
 
+	class VulkanSampler
+	{
+	public:
+		VulkanSampler(VulkanDevice& d, const SamplerCreateDesc& CI);
+		~VulkanSampler();
+
+		static VulkanSampler* Create(VulkanDevice& d, const SamplerCreateDesc& CI);
+	private:
+		friend class VulkanDescriptorDataBinder;
+
+		VulkanDevice& device;
+		VkSampler     sampler;
+	};
+
+	class VulkanTexture
+	{
+	public:
+		VulkanTexture(VulkanDevice& d, const TextureCreateDesc& CI, bool bLocal = false);
+		~VulkanTexture();
+
+		static VulkanTexture* Create(VulkanDevice& d, const TextureCreateDesc& CI, bool bLocal = false);
+
+		UInt32 GetWidth()  const { return width; }
+		UInt32 GetHeight() const { return height; }
+		UInt32 GetDepth()     const { return depth; };
+		UInt32 GetNumArray()  const { return array; };
+		UInt32 GetNumMipmap() const { return mipLevel; };
+
+		EImageFormat GetFormat() const { return format; }
+		ESampleCount GetSample() const { return sample; }
+		EImageType   GetType()   const { return type; }
+		EImageUsage  GetUsage()  const { return usage; }
+	private:
+		friend class VulkanCommandBuffer;
+		friend class VulkanDescriptorDataBinder;
+
+		VulkanDevice&  device;
+		VkImage        image;
+		VkDeviceMemory memory;
+		VkImageView    imageView;
+		VkImageLayout  currLayout; // used to do some safety check
+
+		UInt32 width;
+		UInt32 height;
+		UInt32 depth;
+		UInt32 mipLevel;
+		UInt32 array;
+
+		EImageType   type;
+		EImageFormat format;
+		ESampleCount sample;
+		EImageUsage  usage;
+	};
+
 	// TODO: abstract to IResource
 	class VulkanRenderTarget : public RenderTarget
 	{

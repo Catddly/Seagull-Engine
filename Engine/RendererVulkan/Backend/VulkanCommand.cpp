@@ -49,7 +49,13 @@ namespace SG
 
 	void VulkanCommandPool::FreeCommandBuffer(VulkanCommandBuffer& buffer)
 	{
-		vkFreeCommandBuffers(device.logicalDevice, commandPool, 1, &buffer.commandBuffer);
+		if (buffer.queueFamilyIndex == queueFamilyIndex)
+			vkFreeCommandBuffers(device.logicalDevice, commandPool, 1, &buffer.commandBuffer);
+		else
+		{
+			SG_LOG_ERROR("Free wrong command buffer inside the wrong pool!");
+			return;
+		}
 	}
 
 	VulkanCommandPool* VulkanCommandPool::Create(VulkanDevice& d, VkQueueFlagBits queueType, VkCommandPoolCreateFlags flag)
@@ -144,12 +150,12 @@ namespace SG
 
 	void VulkanCommandBuffer::BindVertexBuffer(UInt32 firstBinding, UInt32 bindingCount, VulkanBuffer& buffer, const UInt64* pOffsets)
 	{
-		vkCmdBindVertexBuffers(commandBuffer, firstBinding, bindingCount, &buffer.NativeHandle(), pOffsets);
+		vkCmdBindVertexBuffers(commandBuffer, firstBinding, bindingCount, &buffer.buffer, pOffsets);
 	}
 
 	void VulkanCommandBuffer::BindIndexBuffer(VulkanBuffer& buffer, UInt32 offset, VkIndexType type)
 	{
-		vkCmdBindIndexBuffer(commandBuffer, buffer.NativeHandle(), offset, type);
+		vkCmdBindIndexBuffer(commandBuffer, buffer.buffer, offset, type);
 	}
 
 	void VulkanCommandBuffer::PushConstants(VulkanPipelineLayout* layout, EShaderStage shaderStage, UInt32 size, UInt32 offset, void* pConstants)
@@ -187,23 +193,57 @@ namespace SG
 		VkBufferCopy copyRegion = {};
 		copyRegion.srcOffset = 0;
 		copyRegion.dstOffset = 0;
-		copyRegion.size = srcBuffer.SizeInByte();
+		copyRegion.size = srcBuffer.SizeInByteCPU();
 
-		vkCmdCopyBuffer(commandBuffer, srcBuffer.NativeHandle(), dstBuffer.NativeHandle(), 1, &copyRegion);
+		vkCmdCopyBuffer(commandBuffer, srcBuffer.buffer, dstBuffer.buffer, 1, &copyRegion);
 	}
 
-	void VulkanCommandBuffer::ImageBarrier(VulkanRenderTarget* pRenderTarget, EResourceBarrier oldBarrier, EResourceBarrier newBarrier)
+	void VulkanCommandBuffer::CopyBufferToImage(VulkanBuffer& srcBuffer, VulkanTexture& dstTexture, const vector<TextureCopyRegion>& region)
+	{
+		vector<VkBufferImageCopy> bufferCopyRegions;
+		bufferCopyRegions.resize(region.size());
+		for (UInt32 i = 0; i < region.size(); ++i)
+		{
+			VkBufferImageCopy bufferCopyRegion = {};
+			bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			bufferCopyRegion.imageSubresource.mipLevel = region[i].mipLevel;
+			bufferCopyRegion.imageSubresource.baseArrayLayer = region[i].baseArray;
+			bufferCopyRegion.imageSubresource.layerCount = region[i].layer;
+			bufferCopyRegion.imageExtent.width = region[i].width;
+			bufferCopyRegion.imageExtent.height = region[i].height;
+			bufferCopyRegion.imageExtent.depth = region[i].depth;
+			bufferCopyRegion.bufferOffset = region[i].offset;
+			bufferCopyRegions[i] = eastl::move(bufferCopyRegion);
+		}
+
+		vkCmdCopyBufferToImage(commandBuffer,
+			srcBuffer.buffer,
+			dstTexture.image,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			static_cast<UInt32>(bufferCopyRegions.size()),
+			bufferCopyRegions.data());
+	}
+
+	void VulkanCommandBuffer::ImageBarrier(VulkanTexture* pTex, EResourceBarrier oldBarrier, EResourceBarrier newBarrier)
 	{
 		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		barrier.oldLayout = ToVkImageLayout(oldBarrier);
+
+		if (pTex->currLayout != barrier.oldLayout) // layout transition checking
+		{
+			SG_LOG_ERROR("Unmatched image layout transition!");
+			return;
+		}
+
 		barrier.newLayout = ToVkImageLayout(newBarrier);
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = pRenderTarget->image;
+		barrier.image = pTex->image;
+
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.levelCount = pTex->mipLevel;
 		barrier.subresourceRange.baseArrayLayer = 0;
 		barrier.subresourceRange.layerCount = 1;
 	
@@ -219,7 +259,8 @@ namespace SG
 		}
 
 		if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && 
-			barrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+			barrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) 
+		{
 			barrier.srcAccessMask = 0;
 			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
@@ -235,15 +276,15 @@ namespace SG
 			srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		}
-		//else if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
-		//	barrier.newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-		//{
-		//	barrier.srcAccessMask = 0;
-		//	barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		else if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+			barrier.newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		{
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-		//	srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-		//	dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		//}
+			srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		}
 		else 
 		{
 			SG_LOG_ERROR("Unsupported resource transition!");
@@ -254,6 +295,8 @@ namespace SG
 			0, nullptr,
 			0, nullptr,
 			1, &barrier);
+
+		pTex->currLayout = barrier.newLayout;
 	}
 
 }

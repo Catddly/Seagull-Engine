@@ -2,6 +2,7 @@
 #include "VulkanRenderDevice.h"
 
 #include "Platform/OS.h"
+#include "System/FileSystem.h"
 #include "System/Logger.h"
 #include "System/Input.h"
 #include "Memory/Memory.h"
@@ -16,6 +17,12 @@
 #include "RendererVulkan/Backend/VulkanPipeline.h"
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
+
+// TODO: seagull's own texture reader
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_GIF
+#define STBI_NO_BMP
+#include "ThirdParty/stb_image.h"
 
 // TODO: add graphic api abstraction
 #include "RendererVulkan/RenderGraph/RenderGraph.h"
@@ -61,19 +68,19 @@ namespace SG
 		/// end  outer resource preparation
 
 		mpContext = Memory::New<VulkanContext>();
-		VulkanResourceRegistry::GetInstance()->Initialize(mpContext);
+		VK_RESOURCE()->Initialize(mpContext);
 		mpRenderGraph = Memory::New<RenderGraph>("Default", mpContext);
 
 		float vertices[] = {
-			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-			0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-			0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f,
-			-0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 2.0f,
+			0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f, 2.0f,
+			0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 2.0f, 0.0f,
+			-0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 
-			-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-			0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f,
-			-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f
+			-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+			0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f,	1.0f, 0.0f,
+			-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 		};
 
 		UInt32 indices[] = {
@@ -83,12 +90,15 @@ namespace SG
 
 		CreateGeoBuffers(vertices, indices);
 		CreateUBOBuffers();
+		CreateTexture();
 
 		mpCameraUBOSetLayout = VulkanDescriptorSetLayout::Builder(mpContext->device)
-			.AddBinding(EBufferType::efUniform, 0, 1)
+			.AddBinding(EDescriptorType::eUniform_Buffer, EShaderStage::efVert, 0, 1)
+			.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, 1, 1)
 			.Build();
 		VulkanDescriptorDataBinder(*mpContext->pDefaultDescriptorPool, *mpCameraUBOSetLayout)
-			.BindBuffer(0, VulkanResourceRegistry::GetInstance()->GetBuffer("CameraUniform"))
+			.BindBuffer(0, VK_RESOURCE()->GetBuffer("CameraUniform"))
+			.BindImage(1, VK_RESOURCE()->GetSampler("default"), VK_RESOURCE()->GetTexture("logo"))
 			.Bind(mpContext->cameraUBOSet);
 
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
@@ -109,7 +119,7 @@ namespace SG
 		Memory::Delete(mpCameraUBOSetLayout);
 
 		Memory::Delete(mpRenderGraph);
-		VulkanResourceRegistry::GetInstance()->Shutdown();
+		VK_RESOURCE()->Shutdown();
 		Memory::Delete(mpContext);
 		SG_LOG_INFO("RenderDevice - Vulkan Shutdown");
 
@@ -126,7 +136,7 @@ namespace SG
 		if (mpCamera->IsViewDirty())
 		{
 			mCameraUBO.view = mpCamera->GetViewMatrix();
-			VulkanResourceRegistry::GetInstance()->UpdataBufferData("CameraUniform", &mCameraUBO);
+			VK_RESOURCE()->UpdataBufferData("CameraUniform", &mCameraUBO);
 		}
 
 		totalTime += deltaTime * speed;
@@ -175,7 +185,7 @@ namespace SG
 				mpCamera->SetPerspective(45.0f, ASPECT);
 
 			mCameraUBO.proj = mpCamera->GetProjMatrix();
-			VulkanResourceRegistry::GetInstance()->UpdataBufferData("CameraUniform", &mCameraUBO);
+			VK_RESOURCE()->UpdataBufferData("CameraUniform", &mCameraUBO);
 		}
 		return true;
 	}
@@ -224,19 +234,19 @@ namespace SG
 		// vertex buffer
 		BufferCreateDesc BufferCI = {};
 		BufferCI.name = "VertexBuffer";
-		BufferCI.totalSizeInByte = sizeof(float) * 6 * 8;
+		BufferCI.totalSizeInByte = sizeof(float) * 8 * 8;
 		BufferCI.type  = EBufferType::efVertex;
 		BufferCI.pInitData = vertices;
-		bSuccess &= VulkanResourceRegistry::GetInstance()->CreateBuffer(BufferCI, true);
+		bSuccess &= VK_RESOURCE()->CreateBuffer(BufferCI, true);
 
 		// index buffer
 		BufferCI.name = "IndexBuffer";
 		BufferCI.totalSizeInByte = sizeof(UInt32) * 12;
 		BufferCI.type = EBufferType::efIndex;
 		BufferCI.pInitData = indices;
-		bSuccess &= VulkanResourceRegistry::GetInstance()->CreateBuffer(BufferCI, true);
+		bSuccess &= VK_RESOURCE()->CreateBuffer(BufferCI, true);
 
-		VulkanResourceRegistry::GetInstance()->FlushBuffers();
+		VK_RESOURCE()->FlushBuffers();
 		return bSuccess;
 	}
 
@@ -246,7 +256,61 @@ namespace SG
 		BufferCI.name = "CameraUniform";
 		BufferCI.totalSizeInByte = sizeof(UBO);
 		BufferCI.type = EBufferType::efUniform;
-		return VulkanResourceRegistry::GetInstance()->CreateBuffer(BufferCI);
+		return VK_RESOURCE()->CreateBuffer(BufferCI);
+	}
+
+	bool VulkanRenderDevice::CreateTexture()
+	{
+		if (FileSystem::Open(EResourceDirectory::eTextures, "logo.png", EFileMode::efRead_Binary))
+		{
+			auto size = static_cast<int>(FileSystem::FileSize());
+			auto* pTexData = reinterpret_cast<unsigned char*>(Memory::Malloc(size));
+			FileSystem::Read(pTexData, size);
+
+			int width, height, numChannels;
+			stbi_uc* pData = stbi_load_from_memory(pTexData, size, &width, &height, &numChannels, STBI_rgb_alpha);
+			Memory::Free(pTexData);
+
+			if (pData)
+			{
+				TextureCreateDesc textureCI = {};
+				textureCI.name = "logo";
+				textureCI.width = width;
+				textureCI.height = height;
+				textureCI.depth = 1;
+				textureCI.array = 1;
+				textureCI.mipLevel = 1;
+				textureCI.sizeInByte = width * height * STBI_rgb_alpha;
+
+				textureCI.pInitData = pData;
+				textureCI.format = EImageFormat::eUnorm_R8G8B8A8;
+				textureCI.sample = ESampleCount::eSample_1;
+				textureCI.usage = EImageUsage::efSample;
+				textureCI.type = EImageType::e2D;
+				VK_RESOURCE()->CreateTexture(textureCI, true);
+			}
+
+			VK_RESOURCE()->FlushTextures();
+
+			stbi_image_free(pData);
+			FileSystem::Close();
+		}
+		else
+		{
+			SG_LOG_WARN("Failed to find the texture named: %s", "logo");
+			return false;
+		}
+
+		SamplerCreateDesc samplerCI = {};
+		samplerCI.name = "default";
+		samplerCI.filterMode = EFilterMode::eLinear;
+		samplerCI.addressMode = EAddressMode::eRepeat;
+		samplerCI.lodBias = 0.0f;
+		samplerCI.minLod = 0.0f;
+		samplerCI.maxLod = 0.0f;
+		VK_RESOURCE()->CreateSampler(samplerCI);
+
+		return true;
 	}
 
 }

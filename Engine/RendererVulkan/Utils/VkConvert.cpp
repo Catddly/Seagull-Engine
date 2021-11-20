@@ -6,6 +6,42 @@
 namespace SG
 {
 
+	VkFilter ToVkFilterMode(EFilterMode fm)
+	{
+		switch (fm)
+		{
+		case SG::EFilterMode::eLinear: return VK_FILTER_LINEAR;	break;
+		case SG::EFilterMode::eNearest: return VK_FILTER_NEAREST; break;
+		default: SG_LOG_ERROR("Invalid filter mode!"); return VK_FILTER_MAX_ENUM; break;
+		}
+		return VK_FILTER_MAX_ENUM;
+	}
+
+	VkSamplerMipmapMode ToVkMipmapMode(EFilterMode fm)
+	{
+		switch (fm)
+		{
+		case SG::EFilterMode::eLinear: return VK_SAMPLER_MIPMAP_MODE_LINEAR; break;
+		case SG::EFilterMode::eNearest: return VK_SAMPLER_MIPMAP_MODE_NEAREST; break;
+		default: SG_LOG_ERROR("Invalid filter mode!"); return VK_SAMPLER_MIPMAP_MODE_MAX_ENUM; break;
+		}
+		return VK_SAMPLER_MIPMAP_MODE_MAX_ENUM;
+	}
+
+	VkSamplerAddressMode ToVkAddressMode(EAddressMode am)
+	{
+		switch (am)
+		{
+		case SG::EAddressMode::eRepeat: return VK_SAMPLER_ADDRESS_MODE_REPEAT; break;
+		case SG::EAddressMode::eMirrored_Repeat: return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT; break;
+		case SG::EAddressMode::eClamp_To_Edge: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE; break;
+		case SG::EAddressMode::eClamp_To_Border: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER; break;
+		case SG::EAddressMode::eMirrored_Clamp_To_Edge: return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE; break;
+		default: SG_LOG_ERROR("Invalid address mode!"); return VK_SAMPLER_ADDRESS_MODE_MAX_ENUM; break;
+		}
+		return VK_SAMPLER_ADDRESS_MODE_MAX_ENUM;
+	}
+
 	VkAttachmentLoadOp ToVkLoadOp(ELoadOp op)
 	{
 		switch (op)
@@ -15,6 +51,7 @@ namespace SG
 		case SG::ELoadOp::eDont_Care: return VK_ATTACHMENT_LOAD_OP_DONT_CARE; break;
 		default: SG_LOG_ERROR("Invalid load operation!"); break;
 		}
+		return VK_ATTACHMENT_LOAD_OP_MAX_ENUM;
 	}
 
 	VkAttachmentStoreOp ToVkStoreOp(EStoreOp op)
@@ -25,6 +62,7 @@ namespace SG
 		case SG::EStoreOp::eDont_Care: return VK_ATTACHMENT_STORE_OP_DONT_CARE; break;
 		default: SG_LOG_ERROR("Invalid store operation!"); break;
 		}
+		return VK_ATTACHMENT_STORE_OP_MAX_ENUM;
 	}
 
 	VkFormat ToVkImageFormat(EImageFormat format)
@@ -103,6 +141,32 @@ namespace SG
 		case EImageFormat::eUnorm_D24_uint_S8: return VK_FORMAT_D24_UNORM_S8_UINT;
 		case EImageFormat::eSfloat_D32_uint_S8: return VK_FORMAT_D32_SFLOAT_S8_UINT;
 		case EImageFormat::eUnorm_B2G3R3: return VK_FORMAT_UNDEFINED;
+		case EImageFormat::eDDSKTX_C_BC1: return VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
+		case EImageFormat::eDDSKTX_C_BC2: return VK_FORMAT_BC2_SRGB_BLOCK;
+		case EImageFormat::eDDSKTX_C_BC3: return VK_FORMAT_BC3_UNORM_BLOCK;
+		case EImageFormat::eDDSKTX_C_BC4: return VK_FORMAT_BC4_UNORM_BLOCK;
+		case EImageFormat::eDDSKTX_C_BC5: return VK_FORMAT_BC5_UNORM_BLOCK;
+		case EImageFormat::eDDSKTX_C_BC6H: return VK_FORMAT_BC6H_SFLOAT_BLOCK;
+		case EImageFormat::eDDSKTX_C_BC7: return VK_FORMAT_BC7_SRGB_BLOCK;
+		case EImageFormat::eDDSKTX_C_ETC1: return VK_FORMAT_UNDEFINED;
+		case EImageFormat::eDDSKTX_C_ETC2: return VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK;
+		case EImageFormat::eDDSKTX_C_ETC2A: return VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK;
+		case EImageFormat::eDDSKTX_C_ETC2A1: return VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK;
+		case EImageFormat::eDDSKTX_C_PTC12: return VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG;
+		case EImageFormat::eDDSKTX_C_PTC14: return VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG;
+		case EImageFormat::eDDSKTX_C_PTC12A:
+		case EImageFormat::eDDSKTX_C_PTC14A:
+		case EImageFormat::eDDSKTX_C_PTC22:
+		case EImageFormat::eDDSKTX_C_PTC24:
+		case EImageFormat::eDDSKTX_C_ATC:
+		case EImageFormat::eDDSKTX_C_ATCE:
+		case EImageFormat::eDDSKTX_C_ATCI:
+		case EImageFormat::eDDSKTX_C_ASTC4x4:
+		case EImageFormat::eDDSKTX_C_ASTC5x5:
+		case EImageFormat::eDDSKTX_C_ASTC6x6:
+		case EImageFormat::eDDSKTX_C_ASTC8x5:
+		case EImageFormat::eDDSKTX_C_ASTC8x6:
+		case EImageFormat::eDDSKTX_C_ASTC10x5:
 		case EImageFormat::MAX_COUNT: return VK_FORMAT_UNDEFINED;
 		}
 		return VK_FORMAT_UNDEFINED;
@@ -383,24 +447,6 @@ namespace SG
 		return EImageFormat::eNull;
 	}
 
-	VkDescriptorType ToVkDescriptorType(EBufferType type)
-	{
-		switch (type)
-		{
-		case SG::EBufferType::efTexel_Uniform: return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER; break;
-		case SG::EBufferType::efTexel_Storage: return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
-		case SG::EBufferType::efUniform: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
-		case SG::EBufferType::efStorage: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
-		case SG::EBufferType::efTransfer_Src:
-		case SG::EBufferType::efTransfer_Dst:
-		case SG::EBufferType::efIndex:
-		case SG::EBufferType::efVertex:
-		case SG::EBufferType::efIndirect:
-		default: SG_LOG_ERROR("Can not bind this type of buffer into descriptor!"); break;
-		}
-		return VK_DESCRIPTOR_TYPE_MAX_ENUM;
-	}
-
 	VkDescriptorType ToVkDescriptorType(EImageUsage usage)
 	{
 		switch (usage)
@@ -417,6 +463,26 @@ namespace SG
 		case SG::EImageUsage::efFragment_Density_Map:
 		case SG::EImageUsage::efFragment_Shading_Rate_Image:
 		default: SG_LOG_ERROR("Can not bind this type of image into descriptor!"); break;
+		}
+		return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+	}
+
+	VkDescriptorType ToVkDescriptorType(EDescriptorType type)
+	{
+		switch (type)
+		{
+		case SG::EDescriptorType::eSampler: return VK_DESCRIPTOR_TYPE_SAMPLER; break;
+		case SG::EDescriptorType::eCombine_Image_Sampler: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; break;
+		case SG::EDescriptorType::eSampled_Image: return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE; break;
+		case SG::EDescriptorType::eStorage_Image: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE; break;
+		case SG::EDescriptorType::eUniform_Texel_Buffer: return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
+		case SG::EDescriptorType::eStorage_Texel_Buffer: return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
+		case SG::EDescriptorType::eUniform_Buffer: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
+		case SG::EDescriptorType::eStorage_Buffer: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
+		case SG::EDescriptorType::eUniform_Buffer_Dynamic: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC; break;
+		case SG::EDescriptorType::eStorage_Buffer_Dynamic: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC; break;
+		case SG::EDescriptorType::eInput_Attachment: return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT; break;
+		default: SG_LOG_ERROR("Invalid descriptor type!"); return VK_DESCRIPTOR_TYPE_MAX_ENUM; break;
 		}
 		return VK_DESCRIPTOR_TYPE_MAX_ENUM;
 	}

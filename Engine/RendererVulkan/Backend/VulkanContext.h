@@ -27,8 +27,8 @@ namespace SG
 		SG_CLASS_NO_COPY_ASSIGNABLE(VulkanContext);
 
 		VulkanInstance  instance;
-		VulkanSwapchain swapchain;
 		VulkanDevice    device;
+		VulkanSwapchain swapchain;
 
 		VulkanCommandPool* graphicCommandPool;
 		VulkanCommandPool* computeCommandPool;

@@ -41,7 +41,7 @@ namespace SG
 		void Clear();
 	private:
 		friend class RenderGraphBuilder;
-		VulkanContext*   mpRenderContext;
+		VulkanContext*    mpRenderContext;
 		VulkanRenderPass* mpCurrRenderPass;
 		vector<VulkanFrameBuffer*> mpFrameBuffers;
 

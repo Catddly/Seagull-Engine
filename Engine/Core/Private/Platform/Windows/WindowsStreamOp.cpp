@@ -64,9 +64,7 @@ namespace SG
 		}
 
 		if (errorNo != 0 || pOut->file == NULL)
-		{
 			return false;
-		}
 
 		pOut->filemode = filemode;
 		return true;

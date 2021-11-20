@@ -8,14 +8,14 @@
 namespace SG
 {
 
-	void RenderGraphNode::AttachResource(const char* name)
-	{
-		mAttachResources.emplace_back(name);
-	}
+	//void RenderGraphNode::AttachResource(const char* name)
+	//{
+	//	mAttachResources.emplace_back(name);
+	//}
 
-	void RenderGraphNode::DetachResource(const char* name)
-	{
-		mAttachResources.remove(name);
-	}
+	//void RenderGraphNode::DetachResource(const char* name)
+	//{
+	//	mAttachResources.remove(name);
+	//}
 
 }

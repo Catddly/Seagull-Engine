@@ -25,7 +25,7 @@ namespace SG
 		const char*  name;
 		EBufferType  type;
 		UInt32       totalSizeInByte;
-		void*		 pInitData;
+		const void*  pInitData;
 
 		bool         bLocal : 1;
 	};

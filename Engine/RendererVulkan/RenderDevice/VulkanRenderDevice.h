@@ -49,6 +49,7 @@ namespace SG
 
 		bool CreateGeoBuffers(float* vertices, UInt32* indices);
 		bool CreateUBOBuffers();
+		bool CreateTexture();
 	private:
 		bool mbBlockEvent    = true;
 		bool mbWindowMinimal = false;
@@ -57,10 +58,11 @@ namespace SG
 		RenderGraph* mpRenderGraph;
 
 		VulkanContext* mpContext = nullptr;
-		ICamera* mpCamera;
+		ICamera*       mpCamera = nullptr;
 
 		UInt32 mCurrentFrameInCPU;
 
+		VulkanDescriptorSetLayout* mpCameraUBOSetLayout;
 		VulkanPipelineLayout* mpPipelineLayout;
 		VulkanPipeline*       mpPipeline;
 		Shader                mBasicShader;
@@ -75,9 +77,7 @@ namespace SG
 			Matrix4f view;
 			Matrix4f proj;
 		};
-
 		UBO      mCameraUBO;
-		VulkanDescriptorSetLayout* mpCameraUBOSetLayout;
 	};
 
 }

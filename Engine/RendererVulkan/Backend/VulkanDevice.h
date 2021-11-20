@@ -55,6 +55,7 @@ namespace SG
 		vector<VkQueueFamilyProperties> queueFamilyProperties;
 
 		VkPhysicalDeviceLimits          physicalDeviceLimits;
+		VkPhysicalDeviceFeatures        physicalDeviceFeatures;
 
 		struct
 		{
