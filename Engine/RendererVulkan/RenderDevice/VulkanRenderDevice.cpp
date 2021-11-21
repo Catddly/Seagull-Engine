@@ -18,11 +18,7 @@
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
-// TODO: seagull's own texture reader
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_NO_GIF
-#define STBI_NO_BMP
-#include "ThirdParty/stb_image.h"
+#include "Render/ResourceLoader/RenderResourceLoader.h"
 
 // TODO: add graphic api abstraction
 #include "RendererVulkan/RenderGraph/RenderGraph.h"
@@ -72,14 +68,14 @@ namespace SG
 		mpRenderGraph = Memory::New<RenderGraph>("Default", mpContext);
 
 		float vertices[] = {
-			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 2.0f,
-			0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f, 2.0f,
-			0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 2.0f, 0.0f,
+			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+			0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+			0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f,
 			-0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 
-			-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-			0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f,	1.0f, 0.0f,
+			-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 2.0f,
+			0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 2.0f, 2.0f,
+			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f,	2.0f, 0.0f,
 			-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 		};
 
@@ -222,6 +218,7 @@ namespace SG
 		else
 			mpCamera->SetPerspective(45.0f, ASPECT);
 		mCameraUBO.proj = mpCamera->GetProjMatrix();
+		VK_RESOURCE()->UpdataBufferData("CameraUniform", &mCameraUBO);
 
 		mpContext->WindowResize();
 		mpRenderGraph->WindowResize();
@@ -261,43 +258,32 @@ namespace SG
 
 	bool VulkanRenderDevice::CreateTexture()
 	{
-		if (FileSystem::Open(EResourceDirectory::eTextures, "logo.png", EFileMode::efRead_Binary))
+		TextureResourceLoader loader;
+		Raw2DTexture raw;
+
+		if (loader.LoadFromFile("logo.png", raw))
 		{
-			auto size = static_cast<int>(FileSystem::FileSize());
-			auto* pTexData = reinterpret_cast<unsigned char*>(Memory::Malloc(size));
-			FileSystem::Read(pTexData, size);
+			TextureCreateDesc textureCI = {};
+			textureCI.name = "logo";
+			textureCI.width = raw.width;
+			textureCI.height = raw.height;
+			textureCI.depth = 1;
+			textureCI.array = raw.array;
+			textureCI.mipLevel = raw.mipLevel;
+			textureCI.sizeInByte = raw.width * raw.height * 4;
 
-			int width, height, numChannels;
-			stbi_uc* pData = stbi_load_from_memory(pTexData, size, &width, &height, &numChannels, STBI_rgb_alpha);
-			Memory::Free(pTexData);
-
-			if (pData)
-			{
-				TextureCreateDesc textureCI = {};
-				textureCI.name = "logo";
-				textureCI.width = width;
-				textureCI.height = height;
-				textureCI.depth = 1;
-				textureCI.array = 1;
-				textureCI.mipLevel = 1;
-				textureCI.sizeInByte = width * height * STBI_rgb_alpha;
-
-				textureCI.pInitData = pData;
-				textureCI.format = EImageFormat::eUnorm_R8G8B8A8;
-				textureCI.sample = ESampleCount::eSample_1;
-				textureCI.usage = EImageUsage::efSample;
-				textureCI.type = EImageType::e2D;
-				VK_RESOURCE()->CreateTexture(textureCI, true);
-			}
+			textureCI.pInitData = raw.pData;
+			textureCI.format = EImageFormat::eUnorm_R8G8B8A8;
+			textureCI.sample = ESampleCount::eSample_1;
+			textureCI.usage = EImageUsage::efSample;
+			textureCI.type = EImageType::e2D;
+			VK_RESOURCE()->CreateTexture(textureCI, true);
 
 			VK_RESOURCE()->FlushTextures();
-
-			stbi_image_free(pData);
-			FileSystem::Close();
 		}
 		else
 		{
-			SG_LOG_WARN("Failed to find the texture named: %s", "logo");
+			SG_LOG_WARN("Failed to create the texture named: %s", "logo");
 			return false;
 		}
 
@@ -309,7 +295,6 @@ namespace SG
 		samplerCI.minLod = 0.0f;
 		samplerCI.maxLod = 0.0f;
 		VK_RESOURCE()->CreateSampler(samplerCI);
-
 		return true;
 	}
 

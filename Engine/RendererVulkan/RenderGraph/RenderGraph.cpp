@@ -54,7 +54,7 @@ namespace SG
 
 		commandBuf.BeginRecord();
 		ClearValue cv;
-		cv.color = { 0.03f, 0.05f, 0.03f, 0.0f };
+		cv.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 		cv.depthStencil = { 1.0f, 0 };
 		
 		commandBuf.SetViewport((float)pColorRt->width, (float)pColorRt->height, 0.0f, 1.0f);

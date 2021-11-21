@@ -81,6 +81,13 @@ namespace SG
 		return mStreamOp->IsEndOfFile(&mStream);
 	}
 
+	string FileSystem::GetResourceFolderPath(EResourceDirectory directory)
+	{
+		string path = sResourceDirectory[(UInt32)directory];
+		path += "/";
+		return eastl::move(path);
+	}
+
 	void FileSystem::SetIStreamOp(IStreamOps* pStreamOp)
 	{
 		if (pStreamOp != nullptr)
