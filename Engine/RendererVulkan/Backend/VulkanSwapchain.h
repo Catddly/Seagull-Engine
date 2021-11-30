@@ -35,6 +35,7 @@ namespace SG
 	class VulkanTexture
 	{
 	public:
+		VulkanTexture(VulkanDevice& d) : device(d) {}
 		VulkanTexture(VulkanDevice& d, const TextureCreateDesc& CI, bool bLocal = false);
 		~VulkanTexture();
 
@@ -50,14 +51,14 @@ namespace SG
 		ESampleCount GetSample() const { return sample; }
 		EImageType   GetType()   const { return type; }
 		EImageUsage  GetUsage()  const { return usage; }
-	private:
+	protected:
 		friend class VulkanCommandBuffer;
 		friend class VulkanDescriptorDataBinder;
-
 		VulkanDevice&  device;
+
 		VkImage        image;
-		VkDeviceMemory memory;
 		VkImageView    imageView;
+		VkDeviceMemory memory;
 		VkImageLayout  currLayout; // used to do some safety check
 
 		UInt32 width;
@@ -73,44 +74,16 @@ namespace SG
 	};
 
 	// TODO: abstract to IResource
-	class VulkanRenderTarget : public RenderTarget
+	class VulkanRenderTarget final : public VulkanTexture
 	{
 	public:
-		VulkanRenderTarget(VulkanDevice& d) : device(d) {}
-		VulkanRenderTarget(VulkanDevice& d, const RenderTargetCreateDesc& CI);
-		~VulkanRenderTarget();
+		VulkanRenderTarget(VulkanDevice& d) : VulkanTexture(d) {}
+		VulkanRenderTarget(VulkanDevice& d, const TextureCreateDesc& CI) : VulkanTexture(d, CI, true) {}
 
-		virtual UInt32 GetWidth()     const override { return width; };
-		virtual UInt32 GetHeight()    const override { return height; };
-		virtual UInt32 GetDepth()     const override { return depth; };
-		virtual UInt32 GetNumArray()  const override { return array; };
-		virtual UInt32 GetNumMipmap() const override { return mipmap; };
-
-		virtual EImageFormat GetFormat() const { return ToSGImageFormat(format); }
-		virtual ESampleCount GetSample() const { return ToSGSampleCount(sample); }
-		virtual EImageType   GetType()   const { return ToSGImageType(type); }
-		virtual EImageUsage  GetUsage()  const { return ToSGImageUsage(usage); }
-
-		static VulkanRenderTarget* Create(VulkanDevice& d, const RenderTargetCreateDesc& CI);
+		static VulkanRenderTarget* Create(VulkanDevice& d, const TextureCreateDesc& CI);
 	private:
 		friend class VulkanSwapchain;
 		friend class VulkanFrameBuffer;
-	public:
-		VulkanDevice&         device;
-
-		VkImage               image;
-		VkImageView           imageView;
-		VkDeviceMemory        memory;
-
-		UInt32                width;
-		UInt32                height;
-		UInt32                depth;
-		UInt32                array;
-		UInt32                mipmap;
-		VkFormat              format;
-		VkImageType           type;
-		VkSampleCountFlagBits sample;
-		VkImageUsageFlags     usage;
 	};
 
 	class VulkanSwapchain

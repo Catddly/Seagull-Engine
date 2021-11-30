@@ -66,9 +66,6 @@ namespace SG
 
 		void WaitIdle() const;
 
-		VkFramebuffer CreateFrameBuffer(VkRenderPass renderPass, VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt);
-		void DestroyFrameBuffer(VkFramebuffer frameBuffer);
-
 		VulkanQueue GetQueue(EQueueType type) const;
 
 		VkDescriptorSet  AllocateDescriptorSet(VkDescriptorSetLayout layout, VkDescriptorPool pool);

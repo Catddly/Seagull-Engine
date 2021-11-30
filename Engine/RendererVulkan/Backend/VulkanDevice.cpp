@@ -161,47 +161,6 @@ namespace SG
 		vkDestroyDevice(logicalDevice, nullptr);
 	}
 
-	VkFramebuffer VulkanDevice::CreateFrameBuffer(VkRenderPass renderPass, VulkanRenderTarget* pColorRt, VulkanRenderTarget* pDepthRt)
-	{
-		if (!pColorRt)
-		{
-			SG_LOG_WARN("pColorRt should not be nullptr!");
-			return VK_NULL_HANDLE;
-		}
-
-		VkFramebuffer fb;
-		UInt32 numRts = 1;
-		if (pDepthRt)
-			++numRts;
-
-		eastl::array<VkImageView, 2> attachments;
-		attachments[0] = pColorRt->imageView;
-		if (pDepthRt)
-			attachments[1] = pDepthRt->imageView;
-
-		VkFramebufferCreateInfo frameBufferCreateInfo = {};
-		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-
-		frameBufferCreateInfo.renderPass = renderPass;
-		frameBufferCreateInfo.attachmentCount = numRts;
-		frameBufferCreateInfo.pAttachments = attachments.data();
-		frameBufferCreateInfo.width  = pColorRt->width;
-		frameBufferCreateInfo.height = pColorRt->height;
-		frameBufferCreateInfo.layers = 1;
-
-		if (vkCreateFramebuffer(logicalDevice, &frameBufferCreateInfo, nullptr, &fb) != VK_SUCCESS)
-		{
-			SG_LOG_ERROR("Failed to create vulkan frame buffer!");
-			return VK_NULL_HANDLE;
-		}
-		return fb;
-	}
-
-	void VulkanDevice::DestroyFrameBuffer(VkFramebuffer frameBuffer)
-	{
-		vkDestroyFramebuffer(logicalDevice, frameBuffer, nullptr);
-	}
-
 	VulkanQueue VulkanDevice::GetQueue(EQueueType type) const
 	{
 		VulkanQueue queue;

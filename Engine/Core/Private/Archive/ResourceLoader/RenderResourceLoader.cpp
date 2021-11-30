@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "Render/ResourceLoader/RenderResourceLoader.h"
+#include "Archive/ResourceLoader/RenderResourceLoader.h"
 
 #include "System/FileSystem.h"
 

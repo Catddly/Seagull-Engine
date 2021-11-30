@@ -255,20 +255,6 @@ namespace SG
 		const void*    pInitData;
 	};
 
-	struct RenderTargetCreateDesc
-	{
-		EImageFormat   format;
-		ESampleCount   sample;
-		EImageType     type;
-		EImageUsage    usage;
-
-		UInt32         width;
-		UInt32         height;
-		UInt32         depth;
-		UInt32         array;
-		UInt32         mipLevel;
-	};
-
 	interface RenderTarget
 	{
 		virtual ~RenderTarget() = default;

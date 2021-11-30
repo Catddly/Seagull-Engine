@@ -18,7 +18,7 @@
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
-#include "Render/ResourceLoader/RenderResourceLoader.h"
+#include "Archive/ResourceLoader/RenderResourceLoader.h"
 
 // TODO: add graphic api abstraction
 #include "RendererVulkan/RenderGraph/RenderGraph.h"

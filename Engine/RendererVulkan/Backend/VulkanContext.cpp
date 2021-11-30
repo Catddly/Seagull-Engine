@@ -30,7 +30,7 @@ namespace SG
 		for (UInt32 i = 0; i < colorRts.size(); ++i)
 			colorRts[i] = swapchain.GetRenderTarget(i);
 
-		RenderTargetCreateDesc depthRtCI;
+		TextureCreateDesc depthRtCI;
 		depthRtCI.width = colorRts[0]->GetWidth();
 		depthRtCI.height = colorRts[0]->GetHeight();
 		depthRtCI.depth = colorRts[0]->GetDepth();
@@ -68,7 +68,7 @@ namespace SG
 		for (UInt32 i = 0; i < colorRts.size(); ++i)
 			colorRts[i] = swapchain.GetRenderTarget(i); // this will new a VulkanRenderTarget
 
-		RenderTargetCreateDesc depthRtCI;
+		TextureCreateDesc depthRtCI;
 		depthRtCI.width = colorRts[0]->GetWidth();
 		depthRtCI.height = colorRts[0]->GetHeight();
 		depthRtCI.depth = colorRts[0]->GetDepth();

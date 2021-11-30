@@ -3,7 +3,6 @@
 #include "Defs/Defs.h"
 #include "Base/BasicTypes.h"
 
-#include "Thread/IThread.h"
 #include "RID.h"
 #include "Memory/Memory.h"
 
@@ -19,7 +18,7 @@ namespace SG
 		ResourcePool(Size chunkSize = 4096);
 		~ResourcePool();
 
-		RID Allocate();
+		RID  Allocate();
 		void Free(const RID& rid);
 
 		T* const GetResource(const RID& rid);

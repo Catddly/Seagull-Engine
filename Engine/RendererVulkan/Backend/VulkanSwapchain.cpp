@@ -192,16 +192,16 @@ namespace SG
 			mpRts[i]->height = swapchainExtent.height;
 			mpRts[i]->depth  = 1;
 			mpRts[i]->array  = 1;
-			mpRts[i]->mipmap = 1;
+			mpRts[i]->mipLevel = 1;
 
-			mpRts[i]->format = mFormat;
-			mpRts[i]->sample = VK_SAMPLE_COUNT_1_BIT;
-			mpRts[i]->type   = VK_IMAGE_TYPE_2D;
-			mpRts[i]->usage  = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			mpRts[i]->format = ToSGImageFormat(mFormat);
+			mpRts[i]->sample = ToSGSampleCount(VK_SAMPLE_COUNT_1_BIT);
+			mpRts[i]->type   = ToSGImageType(VK_IMAGE_TYPE_2D);
+			mpRts[i]->usage  = ToSGImageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 
-			mpRts[i]->image = images[i];
+			mpRts[i]->image     = images[i];
 			mpRts[i]->imageView = imageViews[i];
-			mpRts[i]->memory = VK_NULL_HANDLE;
+			mpRts[i]->memory    = 0;
 		}
 
 		return true;
@@ -337,82 +337,7 @@ namespace SG
 	/// VulkanRenderTarget
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanRenderTarget::VulkanRenderTarget(VulkanDevice& d, const RenderTargetCreateDesc& CI)
-		:device(d), memory(0)
-	{
-		width  = CI.width;
-		height = CI.height;
-		depth  = CI.depth;
-		mipmap = CI.mipLevel;
-		array  = CI.array;
-
-		format = ToVkImageFormat(CI.format);
-		type   = ToVkImageType(CI.type);
-		sample = ToVkSampleCount(CI.sample);
-		usage  = ToVkImageUsage(CI.usage);
-
-		VkImageCreateInfo imageCI = {};
-		imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageCI.imageType = type;
-		imageCI.format = format;
-		imageCI.extent = { width, height, depth };
-		imageCI.mipLevels = mipmap;
-		imageCI.arrayLayers = array;
-		imageCI.samples = sample;
-		imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageCI.usage = usage;
-		imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-		VK_CHECK(vkCreateImage(device.logicalDevice, &imageCI, nullptr, &image),
-			SG_LOG_ERROR("Failed to create render targets' image!"););
-
-		VkMemoryRequirements memReqs = {};
-		vkGetImageMemoryRequirements(device.logicalDevice, image, &memReqs);
-
-		VkMemoryAllocateInfo memAllloc = {};
-		memAllloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		memAllloc.allocationSize = memReqs.size;
-		memAllloc.memoryTypeIndex = device.GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		vkAllocateMemory(device.logicalDevice, &memAllloc, nullptr, &memory);
-
-		vkBindImageMemory(device.logicalDevice, image, memory, 0);
-
-		VkImageViewCreateInfo imageViewCI = {};
-		imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCI.viewType = ToVkImageViewType(type, array);
-		imageViewCI.image  = image;
-		imageViewCI.format = format;
-		imageViewCI.subresourceRange.baseMipLevel = 0;
-		imageViewCI.subresourceRange.levelCount = 1;
-		imageViewCI.subresourceRange.baseArrayLayer = 0;
-		imageViewCI.subresourceRange.layerCount = array;
-
-		if (usage == VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-		{
-			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-			// stencil aspect should only be set on depth + stencil formats (VK_FORMAT_D16_UNORM_S8_UINT..VK_FORMAT_D32_SFLOAT_S8_UINT
-			if (format >= VK_FORMAT_D16_UNORM_S8_UINT) {
-				imageViewCI.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-			}
-		}
-		else
-			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-
-		VK_CHECK(vkCreateImageView(device.logicalDevice, &imageViewCI, nullptr, &imageView),
-			SG_LOG_ERROR("Failed to create render targets' image view!"););
-	}
-
-	VulkanRenderTarget::~VulkanRenderTarget()
-	{
-		if (memory != 0)
-		{
-			vkDestroyImageView(device.logicalDevice, imageView, nullptr);
-			vkDestroyImage(device.logicalDevice, image, nullptr);
-			vkFreeMemory(device.logicalDevice, memory, nullptr);
-		}
-	}
-
-	SG::VulkanRenderTarget* VulkanRenderTarget::Create(VulkanDevice& d, const RenderTargetCreateDesc& CI)
+	VulkanRenderTarget* VulkanRenderTarget::Create(VulkanDevice& d, const TextureCreateDesc& CI)
 	{
 		return Memory::New<VulkanRenderTarget>(d, CI);
 	}
@@ -426,11 +351,11 @@ namespace SG
 	{
 		currLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		width = CI.width;
-		height = CI.height;
-		depth = CI.depth;
+		width    = CI.width;
+		height   = CI.height;
+		depth    = CI.depth;
 		mipLevel = CI.mipLevel;
-		array = CI.array;
+		array    = CI.array;
 
 		format = CI.format;
 		type   = CI.type;
@@ -477,15 +402,21 @@ namespace SG
 		imageViewCI.subresourceRange.layerCount = array;
 		imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
+		if (usage == EImageUsage::efDepth_Stencil)
+			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
 		VK_CHECK(vkCreateImageView(device.logicalDevice, &imageViewCI, nullptr, &imageView),
 			SG_LOG_ERROR("Failed to create vulkan texture image view!"););
 	}
 
 	VulkanTexture::~VulkanTexture()
 	{
-		vkDestroyImageView(device.logicalDevice, imageView, nullptr);
-		vkDestroyImage(device.logicalDevice, image, nullptr);
-		vkFreeMemory(device.logicalDevice, memory, nullptr);
+		if (memory != 0)
+		{
+			vkDestroyImageView(device.logicalDevice, imageView, nullptr);
+			vkDestroyImage(device.logicalDevice, image, nullptr);
+			vkFreeMemory(device.logicalDevice, memory, nullptr);
+		}
 	}
 
 	VulkanTexture* VulkanTexture::Create(VulkanDevice& d, const TextureCreateDesc& CI, bool bLocal)

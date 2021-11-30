@@ -18,8 +18,8 @@ namespace SG
 	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindColorRenderTarget(VulkanRenderTarget* color, const LoadStoreClearOp& op, EResourceBarrier initStatus, EResourceBarrier dstStatus)
 	{
 		VkAttachmentDescription attachDesc = {};
-		attachDesc.format  = color->format;
-		attachDesc.samples = color->sample;
+		attachDesc.format  = ToVkImageFormat(color->GetFormat());
+		attachDesc.samples = ToVkSampleCount(color->GetSample());
 		// TODO: add load store mask
 		attachDesc.loadOp  = ToVkLoadOp(op.loadOp);
 		attachDesc.storeOp = ToVkStoreOp(op.storeOp);
@@ -51,8 +51,8 @@ namespace SG
 		}
 
 		VkAttachmentDescription attachDesc = {};
-		attachDesc.format  = depth->format;
-		attachDesc.samples = depth->sample;
+		attachDesc.format  = ToVkImageFormat(depth->GetFormat());
+		attachDesc.samples = ToVkSampleCount(depth->GetSample());
 		attachDesc.loadOp = ToVkLoadOp(op.loadOp);
 		attachDesc.storeOp = ToVkStoreOp(op.storeOp);
 		attachDesc.stencilLoadOp = ToVkLoadOp(op.stencilLoadOp);

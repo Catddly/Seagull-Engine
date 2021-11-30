@@ -81,6 +81,7 @@ namespace SG
 		case EImageFormat::eUnorm_G8R8: return VK_FORMAT_UNDEFINED;
 		case EImageFormat::eUnorm_R8G8B8: return VK_FORMAT_R8G8B8_UNORM;
 		case EImageFormat::eUnorm_R8G8B8A8: return VK_FORMAT_R8G8B8A8_UNORM;
+		case EImageFormat::eUnorm_B8G8R8A8: return VK_FORMAT_B8G8R8A8_UNORM;
 		case EImageFormat::eSnorm_R8: return VK_FORMAT_R8_SNORM;
 		case EImageFormat::eSnorm_R8G8: return VK_FORMAT_R8G8_SNORM;
 		case EImageFormat::eSnorm_G8R8: return VK_FORMAT_UNDEFINED;
