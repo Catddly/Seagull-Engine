@@ -8,6 +8,8 @@
 namespace SG
 {
 
+#define SG_ENGINE_DEBUG_BASE_OFFSET 3
+
 	//! Resource directory base on the root directory.
 	enum class EResourceDirectory
 	{
@@ -93,7 +95,7 @@ namespace SG
 		//! Change file stream operations during runtime, can be modified by user.
 		SG_CORE_API static void SetIStreamOp(IStreamOps* pStreamOp);
 
-		SG_CORE_API static bool Exist(const EResourceDirectory directory, const char* filename, const char* prefix = "");
+		SG_CORE_API static bool Exist(const EResourceDirectory directory, const char* filename, UInt32 baseOffset = 0);
 		SG_CORE_API static bool ExistOrCreate(const EResourceDirectory directory, const string& filename);
 
 		SG_CORE_API static bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, Size rootFolderOffset = 0);
@@ -106,7 +108,7 @@ namespace SG
 		SG_CORE_API static bool Flush();
 		SG_CORE_API static bool IsEndOfFile();
 
-		SG_CORE_API static string GetResourceFolderPath(EResourceDirectory directory);
+		SG_CORE_API static string GetResourceFolderPath(EResourceDirectory directory, UInt32 baseOffset = 0);
 
 		SG_CORE_API static bool CreateFolder(const EResourceDirectory directory, const char* folderName);
 	private:

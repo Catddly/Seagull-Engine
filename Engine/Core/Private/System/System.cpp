@@ -168,28 +168,6 @@ namespace SG
 		return bIsSafeQuit;
 	}
 
-	string System::GetResourceDirectory(EResourceDirectory rd) const
-	{
-		switch (rd)
-		{
-		case EResourceDirectory::eRoot:             return mRootPath;
-		case EResourceDirectory::eShader_Binarires: return mRootPath + "ShaderBin\\";
-		case EResourceDirectory::eShader_Sources:   return mRootPath + "ShaderSrc\\";
-		case EResourceDirectory::eMeshes:           return mRootPath + "Mesh\\";
-		case EResourceDirectory::eTextures:         return mRootPath + "Texture\\";
-		case EResourceDirectory::eFonts:            return mRootPath + "Font\\";
-		case EResourceDirectory::eLog:              return mRootPath + "Log\\";
-		case EResourceDirectory::eScripts:          return mRootPath + "Script\\";
-		default: return "";
-		}
-	}
-
-	void System::SetRootDirectory(const char* filepath)
-	{
-		mRootPath = filepath;
-		_chdir(filepath);
-	}
-
 	void System::RegisterSystemMessageListener(ISystemMessageListener* pListener)
 	{
 		mMessageBus.RegisterListener(pListener);

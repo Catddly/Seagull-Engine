@@ -10,6 +10,8 @@
 #include "RendererVulkan/Backend/VulkanSwapchain.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
 
+#include "RendererVulkan/Resource/Geometry.h"
+
 namespace SG
 {
 
@@ -26,6 +28,8 @@ namespace SG
 		for (auto beg = mTextures.begin(); beg != mTextures.end(); ++beg)
 			Memory::Delete(beg->second);
 		for (auto beg = mSamplers.begin(); beg != mSamplers.end(); ++beg)
+			Memory::Delete(beg->second);
+		for (auto beg = mGeometries.begin(); beg != mGeometries.end(); ++beg)
 			Memory::Delete(beg->second);
 	}
 
@@ -104,7 +108,7 @@ namespace SG
 		mWaitToSubmitBuffers.clear();
 	}
 
-	VulkanBuffer* VulkanResourceRegistry::GetBuffer(const char* name)
+	VulkanBuffer* VulkanResourceRegistry::GetBuffer(const string& name) const
 	{
 		if (mBuffers.count(name) == 0)
 		{
@@ -112,6 +116,40 @@ namespace SG
 			return nullptr;
 		}
 		return mBuffers[name];
+	}
+
+	bool VulkanResourceRegistry::CreateGeometry(const char* name, float* pVerticies, UInt32 numVertex, UInt32* pIndices, UInt32 numIndex)
+	{
+		if (mGeometries.count(name) != 0)
+		{
+			SG_LOG_ERROR("Already have a geometry named %s!", name);
+			return false;
+		}
+
+		mGeometries[name] = Memory::New<Geometry>(name, pVerticies, numVertex, pIndices, numIndex);
+		return true;
+	}
+
+	bool VulkanResourceRegistry::CreateGeometry(const char* name, float* pVerticies, UInt32 numVertex, UInt16* pIndices, UInt16 numIndex)
+	{
+		if (mGeometries.count(name) != 0)
+		{
+			SG_LOG_ERROR("Already have a geometry named %s!", name);
+			return false;
+		}
+
+		mGeometries[name] = Memory::New<Geometry>(name, pVerticies, numVertex, pIndices, numIndex);
+		return true;
+	}
+
+	Geometry* VulkanResourceRegistry::GetGeometry(const string& name) const
+	{
+		if (mGeometries.count(name) == 0)
+		{
+			SG_LOG_ERROR("No geometry named: %s", name);
+			return nullptr;
+		}
+		return mGeometries[name];
 	}
 
 	bool VulkanResourceRegistry::HaveBuffer(const char* name)
@@ -173,7 +211,7 @@ namespace SG
 		return true;
 	}
 
-	VulkanTexture* VulkanResourceRegistry::GetTexture(const char* name)
+	VulkanTexture* VulkanResourceRegistry::GetTexture(const string& name) const
 	{
 		if (mTextures.count(name) == 0)
 		{
@@ -254,7 +292,7 @@ namespace SG
 		return true;
 	}
 
-	VulkanSampler* VulkanResourceRegistry::GetSampler(const char* name)
+	VulkanSampler* VulkanResourceRegistry::GetSampler(const string& name) const
 	{
 		if (mSamplers.count(name) == 0)
 		{

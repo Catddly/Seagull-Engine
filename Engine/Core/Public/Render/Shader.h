@@ -75,15 +75,15 @@ namespace SG
 		{}
 	};
 
-	class BufferLayout
+	class VertexLayout
 	{
 	public:
 		typedef BufferLayoutElement                       element_t;
 		typedef eastl::vector<element_t>::iterator        iterator_t;
 		typedef eastl::vector<element_t>::const_iterator  const_iterator_t;
 
-		BufferLayout() : mTotalSize(0) {}
-		BufferLayout(std::initializer_list<element_t> elements)
+		VertexLayout() : mTotalSize(0) {}
+		VertexLayout(std::initializer_list<element_t> elements)
 			:mLayouts(elements)
 		{
 			CalculateLayoutOffsets();

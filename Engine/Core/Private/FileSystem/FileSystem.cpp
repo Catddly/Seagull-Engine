@@ -81,9 +81,17 @@ namespace SG
 		return mStreamOp->IsEndOfFile(&mStream);
 	}
 
-	string FileSystem::GetResourceFolderPath(EResourceDirectory directory)
+	string FileSystem::GetResourceFolderPath(EResourceDirectory directory, UInt32 baseOffset)
 	{
-		string path = sResourceDirectory[(UInt32)directory];
+		string path = "";
+		if (baseOffset != 0)
+		{
+			for (UInt32 i = 0; i < baseOffset; ++i)
+				path += "../";
+			path += "Resources/";
+		}
+
+		path += sResourceDirectory[(UInt32)directory];
 		path += "/";
 		return eastl::move(path);
 	}
@@ -94,11 +102,10 @@ namespace SG
 			mStreamOp = pStreamOp;
 	}
 
-	bool FileSystem::Exist(const EResourceDirectory directory, const char* filename, const char* prefix)
+	bool FileSystem::Exist(const EResourceDirectory directory, const char* filename, UInt32 baseOffset)
 	{
-		string filepath = prefix;
-		filepath += sResourceDirectory[(UInt32)directory];
-		filepath += "//";
+		string filepath = GetResourceFolderPath(directory, baseOffset);
+
 		filepath += filename;
 		if (_access(filepath.c_str(), 0) == 0)
 			return true;

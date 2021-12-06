@@ -9,11 +9,6 @@
 namespace SG
 {
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 	typedef void*  ThreadHandle;
 	typedef UInt32 ThreadID;
 	typedef void (*ThreadFunc)(void* pUser);
@@ -39,10 +34,6 @@ extern "C"
 
 	SG_CORE_API const char* GetCurrThreadName();
 	SG_CORE_API void        SetCurrThreadName(const char* name);
-
-#ifdef __cplusplus
-}
-#endif
 
 	class Mutex;
 	class SG_CORE_API ScopeLock

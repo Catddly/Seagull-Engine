@@ -73,7 +73,7 @@ namespace SG
 			// @brief Set vertex buffer layout.
 			// @param [ layout ] The buffer layout.
 			// @param [ perVertex ] True if vertex bind per vertex shader or false will bind per instance.
-			Builder& SetVertexLayout(const BufferLayout& layout, bool perVertex = true);
+			Builder& SetVertexLayout(const VertexLayout& layout, bool perVertex = true);
 			Builder& SetInputAssembly(VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 			Builder& SetRasterizer(VkCullModeFlags cullMode, VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL, bool depthClamp = false);
 			Builder& SetColorBlend(); // TODO: add blend mode.

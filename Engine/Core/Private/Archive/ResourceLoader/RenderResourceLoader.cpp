@@ -19,7 +19,7 @@ namespace SG
 	{
 		int width, height, numChannels;
 
-		string path = FileSystem::GetResourceFolderPath(EResourceDirectory::eTextures);
+		string path = FileSystem::GetResourceFolderPath(EResourceDirectory::eTextures, SG_ENGINE_DEBUG_BASE_OFFSET);
 		path += name;
 		unsigned char* pData = stbi_load(path.c_str(), &width, &height, &numChannels, STBI_rgb_alpha);
 

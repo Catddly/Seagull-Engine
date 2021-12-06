@@ -4,14 +4,14 @@
 namespace SG
 {
 
-	void BufferLayout::Append(const element_t& e)
+	void VertexLayout::Append(const element_t& e)
 	{
 		mLayouts.emplace_back(e);
 		mLayouts.back().offset = mTotalSize;
 		mTotalSize += mLayouts.back().size;
 	}
 
-	void BufferLayout::CalculateLayoutOffsets()
+	void VertexLayout::CalculateLayoutOffsets()
 	{
 		if (mLayouts.empty())
 		{

@@ -163,7 +163,7 @@ namespace SG
 		SetMultiSample(ESampleCount::eSample_1);
 	}
 
-	VulkanPipeline::Builder& VulkanPipeline::Builder::SetVertexLayout(const BufferLayout& layout, bool perVertex)
+	VulkanPipeline::Builder& VulkanPipeline::Builder::SetVertexLayout(const VertexLayout& layout, bool perVertex)
 	{
 		VkVertexInputBindingDescription vertexInputBinding = {};
 		vertexInputBinding.binding = 0;

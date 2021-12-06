@@ -202,6 +202,7 @@ namespace SG
 			pNode->BindMainRenderTarget(mpContext->colorRts[0], colorOp);
 			pNode->BindMainDepthBuffer(mpContext->depthRt, depthOp);
 			pNode->BindPipeline(mpPipelineLayout, &mBasicShader);
+			pNode->BindGeometry("square");
 			pNode->AddDescriptorSet(0, mpContext->cameraUBOSet);
 			pNode->AddConstantBuffer(EShaderStage::efVert, sizeof(Matrix4f), &mModelMatrix);
 
@@ -228,20 +229,7 @@ namespace SG
 	{
 		bool bSuccess = true;
 
-		// vertex buffer
-		BufferCreateDesc BufferCI = {};
-		BufferCI.name = "VertexBuffer";
-		BufferCI.totalSizeInByte = sizeof(float) * 8 * 8;
-		BufferCI.type  = EBufferType::efVertex;
-		BufferCI.pInitData = vertices;
-		bSuccess &= VK_RESOURCE()->CreateBuffer(BufferCI, true);
-
-		// index buffer
-		BufferCI.name = "IndexBuffer";
-		BufferCI.totalSizeInByte = sizeof(UInt32) * 12;
-		BufferCI.type = EBufferType::efIndex;
-		BufferCI.pInitData = indices;
-		bSuccess &= VK_RESOURCE()->CreateBuffer(BufferCI, true);
+		bSuccess &= VK_RESOURCE()->CreateGeometry("square", vertices, 8 * 8, indices, 12);
 
 		VK_RESOURCE()->FlushBuffers();
 		return bSuccess;

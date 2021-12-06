@@ -59,6 +59,7 @@ namespace SG
 		//! Check if all the modules is loaded.
 		SG_CORE_API bool ValidateModules() const;
 
+		// TODO: should not be here, move to Main or something
 		SG_CORE_API bool SystemMainLoop();
 
 		//! Add an IProcess to system to update.
@@ -68,11 +69,6 @@ namespace SG
 
 		//! Get current memory usage for all the modules.
 		SG_CORE_API UInt32 GetTotalMemoryUsage() const;
-		//! Set engine's resource files root directory in absolute path.
-		//! Default root directory will be the folder where .exe is in.
-		//! \param (filepath) relative path to the .exe
-		SG_CORE_API void        SetRootDirectory(const char* filepath);
-		SG_CORE_API string      GetResourceDirectory(EResourceDirectory rd) const;
 
 		SG_CORE_API int  RunProcess(const string& command, const char* pOut);
 

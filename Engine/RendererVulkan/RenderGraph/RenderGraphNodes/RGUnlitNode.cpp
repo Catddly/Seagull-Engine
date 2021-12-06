@@ -9,6 +9,9 @@
 #include "RendererVulkan/Backend/VulkanPipeline.h"
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
 
+#include "RendererVulkan/Resource/Geometry.h"
+#include "RendererVulkan/Resource/RenderResourceRegistry.h"
+
 namespace SG
 {
 
@@ -50,6 +53,16 @@ namespace SG
 		mDepthRtLoadStoreOp = op;
 	}
 
+	void RGUnlitNode::BindGeometry(const char* name)
+	{
+		mpGeometry = VK_RESOURCE()->GetGeometry(name);
+		if (!mpGeometry)
+		{
+			SG_LOG_ERROR("Failed to bind geometry! Geometry does not exist!");
+			SG_ASSERT(false);
+		}
+	}
+
 	void RGUnlitNode::BindPipeline(VulkanPipelineLayout* pLayout, Shader* pShader)
 	{
 		mpPipelineLayout = pLayout;
@@ -75,7 +88,7 @@ namespace SG
 			.Build();
 
 		// TODO: use shader reflection
-		BufferLayout vertexBufferLayout = {
+		VertexLayout vertexBufferLayout = {
 			{ EShaderDataType::eFloat3, "position" },
 			{ EShaderDataType::eFloat3, "color" },
 			{ EShaderDataType::eFloat2, "uv" },
@@ -98,8 +111,8 @@ namespace SG
 		pBuf.BindPipeline(mpPipeline);
 
 		UInt64 offset[1] = { 0 };
-		VulkanBuffer* pVertexBuffer = VulkanResourceRegistry::GetInstance()->GetBuffer("VertexBuffer");
-		VulkanBuffer* pIndexBuffer = VulkanResourceRegistry::GetInstance()->GetBuffer("IndexBuffer");
+		VulkanBuffer* pVertexBuffer = mpGeometry->GetVertexBuffer();
+		VulkanBuffer* pIndexBuffer  = mpGeometry->GetIndexBuffer();
 		pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
 		pBuf.BindIndexBuffer(*pIndexBuffer, 0);
 

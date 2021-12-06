@@ -45,7 +45,6 @@ namespace SG
 	protected:
 		void BuildRenderGraph();
 		void WindowResize();
-		//void RecordRenderCommands();
 
 		bool CreateGeoBuffers(float* vertices, UInt32* indices);
 		bool CreateUBOBuffers();
@@ -55,7 +54,7 @@ namespace SG
 		bool mbWindowMinimal = false;
 		bool mbUseOrtho      = false;
 
-		RenderGraph* mpRenderGraph;
+		RenderGraph*   mpRenderGraph;
 
 		VulkanContext* mpContext = nullptr;
 		ICamera*       mpCamera = nullptr;

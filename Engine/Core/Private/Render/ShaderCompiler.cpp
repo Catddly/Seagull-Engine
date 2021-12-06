@@ -100,20 +100,18 @@ namespace SG
 				continue;
 			}
 
-			const char* prefix = "..//..//..//Resources//";
-			if (FileSystem::Exist(EResourceDirectory::eShader_Sources, actualName.c_str(), prefix))
+			if (FileSystem::Exist(EResourceDirectory::eShader_Sources, actualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
 			{
-				string shaderPath = prefix;
-				shaderPath += "ShaderSrc//";
-				shaderPath += actualName;;
-				string outputPath = SSystem()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + compiledName;
+				string shaderPath = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Sources, SG_ENGINE_DEBUG_BASE_OFFSET);
+				shaderPath += actualName;
+				string outputPath = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + compiledName;
 
 				commandLine += shaderPath;
 				commandLine += " -o ";
 				commandLine += outputPath;
 
 				const char* args[3] = { shaderPath.c_str(), "-o", outputPath.c_str() };
-				string pOut = SSystem()->GetResourceDirectory(EResourceDirectory::eShader_Binarires) + binShaderName + "-" + 
+				string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + binShaderName + "-" +
 					extension.substr(1, extension.size() - 1) + "-compile.log";
 
 				// create a process to use vulkanSDK to compile shader sources to binary (spirv)
