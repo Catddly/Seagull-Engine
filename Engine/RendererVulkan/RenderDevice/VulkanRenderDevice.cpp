@@ -190,17 +190,7 @@ namespace SG
 	{
 		RenderGraphBuilder builder(*mpRenderGraph);
 		{
-			auto* pNode = Memory::New<RGUnlitNode>(mpContext->device);
-			LoadStoreClearOp colorOp = {
-				ELoadOp::eClear, EStoreOp::eStore,
-				ELoadOp::eDont_Care, EStoreOp::eDont_Care,
-			};
-			LoadStoreClearOp depthOp = {
-				ELoadOp::eClear, EStoreOp::eDont_Care,
-				ELoadOp::eClear, EStoreOp::eDont_Care,
-			};
-			pNode->BindMainRenderTarget(mpContext->colorRts[0], colorOp);
-			pNode->BindMainDepthBuffer(mpContext->depthRt, depthOp);
+			auto* pNode = Memory::New<RGUnlitNode>(*mpContext);
 			pNode->BindPipeline(mpPipelineLayout, &mBasicShader);
 			pNode->BindGeometry("square");
 			pNode->AddDescriptorSet(0, mpContext->cameraUBOSet);

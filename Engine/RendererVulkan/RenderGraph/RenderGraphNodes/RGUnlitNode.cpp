@@ -3,7 +3,7 @@
 
 #include "System/Logger.h"
 
-#include "RendererVulkan/Backend/VulkanDevice.h"
+#include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanSwapchain.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
@@ -15,42 +15,12 @@
 namespace SG
 {
 
-	RGUnlitNode::RGUnlitNode(VulkanDevice& device)
-		: mDevice(device), mpColorRt(nullptr), mpDepthRt(nullptr), 
-		mpPipeline(nullptr), mpPipelineLayout(nullptr)
+	RGUnlitNode::RGUnlitNode(VulkanContext& context)
+		: mContext(context), mpPipeline(nullptr), mpPipelineLayout(nullptr),
+		// Set to default clear ops
+		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
+		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
 	{
-	}
-
-	void RGUnlitNode::BindMainRenderTarget(VulkanRenderTarget* pColorRt, const LoadStoreClearOp& op)
-	{
-		if (!pColorRt)
-		{
-			SG_LOG_ERROR("Can not pass in a nullptr!");
-			return;
-		}
-		if (mpColorRt)
-		{
-			SG_LOG_ERROR("Already bind a main render target!");
-			return;
-		}
-		mpColorRt = pColorRt;
-		mColorRtLoadStoreOp = op;
-	}
-
-	void RGUnlitNode::BindMainDepthBuffer(VulkanRenderTarget* pDepthRt, const LoadStoreClearOp& op)
-	{
-		if (!pDepthRt)
-		{
-			SG_LOG_ERROR("Can not pass in a nullptr!");
-			return;
-		}
-		if (mpDepthRt)
-		{
-			SG_LOG_ERROR("Already bind a main depth buffer!");
-			return;
-		}
-		mpDepthRt = pDepthRt;
-		mDepthRtLoadStoreOp = op;
 	}
 
 	void RGUnlitNode::BindGeometry(const char* name)
@@ -81,9 +51,9 @@ namespace SG
 
 	VulkanRenderPass* RGUnlitNode::Prepare()
 	{
-		mpRenderPass = VulkanRenderPass::Builder(mDevice)
-			.BindColorRenderTarget(mpColorRt, mColorRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efPresent)
-			.BindDepthRenderTarget(mpDepthRt, mDepthRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil)
+		mpRenderPass = VulkanRenderPass::Builder(mContext.device)
+			.BindColorRenderTarget(mContext.colorRts[0], mColorRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efPresent)
+			.BindDepthRenderTarget(mContext.depthRt, mDepthRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil)
 			.CombineAsSubpass()
 			.Build();
 
@@ -94,7 +64,7 @@ namespace SG
 			{ EShaderDataType::eFloat2, "uv" },
 		};
 
-		mpPipeline = VulkanPipeline::Builder(mDevice)
+		mpPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetVertexLayout(vertexBufferLayout)
 			.BindLayout(mpPipelineLayout)
 			.BindRenderPass(mpRenderPass)

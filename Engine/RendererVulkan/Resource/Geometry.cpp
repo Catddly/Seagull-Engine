@@ -1,65 +1,116 @@
 #include "StdAfx.h"
 #include "Geometry.h"
 
-#include "RendererVulkan/Resource/RenderResourceRegistry.h"
+#include "RendererVulkan/Backend/VulkanContext.h"
+#include "RendererVulkan/Backend/VulkanBuffer.h"
+#include "RendererVulkan/Backend/VulkanCommand.h"
 
 #include "Stl/string.h"
 
 namespace SG
 {
 
-	Geometry::Geometry(const char* name, float* pVerticies, UInt32 numVertex, UInt32* pIndices, UInt32 numIndex)
-		: mName(name)
+	Geometry::Geometry(VulkanContext& d, const string& name, float* pVerticies, UInt32 numVertex, UInt32* pIndices, UInt32 numIndex)
+		: mContext(d), mName(name)
 	{
-		string resourceName = name;
+		auto vbBufferCI = InitVertexBuffer(pVerticies, numVertex);
 
-		// vertex buffer
-		BufferCreateDesc BufferCI = {};
-		BufferCI.name = (resourceName + string("_vb")).c_str();
-		BufferCI.totalSizeInByte = sizeof(float) * numVertex;
-		BufferCI.type = EBufferType::efVertex;
-		BufferCI.pInitData = pVerticies;
-		VK_RESOURCE()->CreateBuffer(BufferCI, true);
+		BufferCreateDesc ibBufferCI = {};
+		ibBufferCI.name = (name + "_ib").c_str();
+		ibBufferCI.pInitData = pIndices;
+		ibBufferCI.totalSizeInByte = sizeof(UInt32) * numIndex;
+		ibBufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
 
-		// index buffer
-		BufferCI.name = (resourceName + string("_ib")).c_str();
-		BufferCI.totalSizeInByte = sizeof(UInt32) * numIndex;
-		BufferCI.type = EBufferType::efIndex;
-		BufferCI.pInitData = pIndices;
-		VK_RESOURCE()->CreateBuffer(BufferCI, true);
+		mpIndexBuffer = VulkanBuffer::Create(mContext.device, ibBufferCI, true);
+		if (!mpIndexBuffer)
+		{
+			SG_LOG_ERROR("Failed to create index buffer of geometry %s", name.c_str());
+			SG_ASSERT(false);
+		}
+
+		FlushVBIBStagingBuffer(vbBufferCI, ibBufferCI);
 	}
 
-	Geometry::Geometry(const char* name, float* pVerticies, UInt32 numVertex, UInt16* pIndices, UInt16 numIndex)
-		: mName(name)
+	Geometry::Geometry(VulkanContext& d, const string& name, float* pVerticies, UInt32 numVertex, UInt16* pIndices, UInt16 numIndex)
+		: mContext(d), mName(name)
 	{
-		string resourceName = name;
+		auto vbBufferCI = InitVertexBuffer(pVerticies, numVertex);
 
-		// vertex buffer
-		BufferCreateDesc BufferCI = {};
-		BufferCI.name = (resourceName + string("_vb")).c_str();
-		BufferCI.totalSizeInByte = sizeof(float) * numVertex;
-		BufferCI.type = EBufferType::efVertex;
-		BufferCI.pInitData = pVerticies;
-		VK_RESOURCE()->CreateBuffer(BufferCI, true);
+		BufferCreateDesc ibBufferCI = {};
+		ibBufferCI.name = (name + "_ib").c_str();
+		ibBufferCI.pInitData = pIndices;
+		ibBufferCI.totalSizeInByte = sizeof(UInt16) * numIndex;
+		ibBufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
 
-		// index buffer
-		BufferCI.name = (resourceName + string("_ib")).c_str();;
-		BufferCI.totalSizeInByte = sizeof(UInt16) * numIndex;
-		BufferCI.type = EBufferType::efIndex;
-		BufferCI.pInitData = pIndices;
-		VK_RESOURCE()->CreateBuffer(BufferCI, true);
+		mpIndexBuffer = VulkanBuffer::Create(mContext.device, ibBufferCI, true);
+		if (!mpIndexBuffer)
+		{
+			SG_LOG_ERROR("Failed to create index buffer of geometry %s", name.c_str());
+			SG_ASSERT(false);
+		}
+
+		FlushVBIBStagingBuffer(vbBufferCI, ibBufferCI);
+	}
+
+	Geometry::~Geometry()
+	{
+		Memory::Delete(mpVertexBuffer);
+		Memory::Delete(mpIndexBuffer);
 	}
 
 	VulkanBuffer* Geometry::GetVertexBuffer() const
 	{
-		string name = mName + string("_vb");
-		return VK_RESOURCE()->GetBuffer(name);
+		return mpVertexBuffer;
 	}
 
 	VulkanBuffer* Geometry::GetIndexBuffer() const
 	{
-		string name = mName + string("_ib");
-		return VK_RESOURCE()->GetBuffer(name);
+		return mpIndexBuffer;
+	}
+
+	BufferCreateDesc Geometry::InitVertexBuffer(float* pVerticies, UInt32 numVertex)
+	{
+		BufferCreateDesc vbBufferCI = {};
+		vbBufferCI.name = (mName + "_vb").c_str();
+		vbBufferCI.pInitData = pVerticies;
+		vbBufferCI.totalSizeInByte = sizeof(float) * numVertex;
+		vbBufferCI.type = EBufferType::efVertex | EBufferType::efTransfer_Dst;
+
+		mpVertexBuffer = VulkanBuffer::Create(mContext.device, vbBufferCI, true);
+		if (!mpVertexBuffer)
+		{
+			SG_LOG_ERROR("Failed to create vertex buffer of geometry %s", mName.c_str());
+			SG_ASSERT(false);
+		}
+		return vbBufferCI;
+	}
+
+	void Geometry::FlushVBIBStagingBuffer(BufferCreateDesc& vbCI, BufferCreateDesc& ibCI)
+	{
+		vbCI.type = EBufferType::efTransfer_Src;
+		auto* mpVBStagingBuffer = VulkanBuffer::Create(mContext.device, vbCI, false);
+
+		ibCI.type = EBufferType::efTransfer_Src;
+		auto* mpIBStagingBuffer = VulkanBuffer::Create(mContext.device, ibCI, false);
+
+		VulkanCommandBuffer pCmd;
+		mContext.transferCommandPool->AllocateCommandBuffer(pCmd);
+
+		pCmd.BeginRecord();
+			mpVBStagingBuffer->UploadData(vbCI.pInitData);
+			mpIBStagingBuffer->UploadData(ibCI.pInitData);
+
+			pCmd.CopyBuffer(*mpVBStagingBuffer, *mpVertexBuffer);
+			pCmd.CopyBuffer(*mpIBStagingBuffer, *mpIndexBuffer);
+		pCmd.EndRecord();
+
+		mContext.transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+		mContext.transferQueue.WaitIdle();
+
+		mContext.transferCommandPool->FreeCommandBuffer(pCmd);
+
+		Memory::Delete(mpVBStagingBuffer);
+		Memory::Delete(mpIBStagingBuffer);
 	}
 
 }

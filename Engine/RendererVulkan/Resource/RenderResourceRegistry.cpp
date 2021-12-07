@@ -126,7 +126,7 @@ namespace SG
 			return false;
 		}
 
-		mGeometries[name] = Memory::New<Geometry>(name, pVerticies, numVertex, pIndices, numIndex);
+		mGeometries[name] = Memory::New<Geometry>(*mpContext, name, pVerticies, numVertex, pIndices, numIndex);
 		return true;
 	}
 
@@ -138,7 +138,7 @@ namespace SG
 			return false;
 		}
 
-		mGeometries[name] = Memory::New<Geometry>(name, pVerticies, numVertex, pIndices, numIndex);
+		mGeometries[name] = Memory::New<Geometry>(*mpContext, name, pVerticies, numVertex, pIndices, numIndex);
 		return true;
 	}
 

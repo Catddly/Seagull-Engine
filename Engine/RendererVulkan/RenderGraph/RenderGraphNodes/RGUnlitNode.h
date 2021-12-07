@@ -9,7 +9,7 @@
 namespace SG
 {
 
-	class VulkanDevice;
+	class VulkanContext;
 
 	class VulkanRenderTarget;
 	class VulkanPipeline;
@@ -18,11 +18,11 @@ namespace SG
 	class RGUnlitNode final : public RenderGraphNode
 	{
 	public:
-		RGUnlitNode(VulkanDevice& device);
+		RGUnlitNode(VulkanContext& context);
 		~RGUnlitNode() = default;
 
-		void BindMainRenderTarget(VulkanRenderTarget* pColorRt, const LoadStoreClearOp& op);
-		void BindMainDepthBuffer(VulkanRenderTarget* pDepthRt, const LoadStoreClearOp& op);
+		void SetMainColorRTClearOp(const LoadStoreClearOp& op) { mColorRtLoadStoreOp = op; }
+		void SetDepthRTClearOp(const LoadStoreClearOp& op) { mDepthRtLoadStoreOp = op; }
 
 		void BindGeometry(const char* name);
 		void BindPipeline(VulkanPipelineLayout* pLayout, Shader* pShader);
@@ -34,12 +34,10 @@ namespace SG
 		virtual void Execute(VulkanCommandBuffer& pBuf) override;
 		virtual void Clear() override;
 
-		VulkanDevice&         mDevice;
+		VulkanContext&        mContext;
 		VulkanRenderPass*     mpRenderPass;
 
-		VulkanRenderTarget*   mpColorRt;
 		LoadStoreClearOp      mColorRtLoadStoreOp;
-		VulkanRenderTarget*   mpDepthRt;
 		LoadStoreClearOp      mDepthRtLoadStoreOp;
 
 		VulkanPipeline*       mpPipeline;
