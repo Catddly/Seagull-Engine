@@ -38,7 +38,7 @@ Make sure the filepath of the engine have no unicode-included filepath!
 
 ## 简介
 
-目前引擎任然属于最基础的beta阶段，正在努力开发中。  
+目前引擎仍然属于最基础的beta阶段，正在努力开发中。  
 有兴趣的小伙伴可以用以下邮箱联系我: 2565492401@qq.com 或者 illmewds@gmail.com。
 
 图形编程语言: dx12 和 vulkan。(现在只有vulkan)  
