@@ -17,7 +17,7 @@ namespace SG
 		~RenderGraphBuilder() = default;
 
 		RenderGraphBuilder& NewRenderPass(RenderGraphNode* pNode);
-		void Complete();
+		void                Complete();
 	private:
 		RenderGraph& mRenderGraph;
 	};

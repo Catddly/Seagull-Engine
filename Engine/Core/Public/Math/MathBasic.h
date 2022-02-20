@@ -2,6 +2,8 @@
 
 #include "Defs/Defs.h"
 
+#include "Stl/Hash.h"
+
 #include <eigen/Dense>
 #include <cmath>
 
@@ -130,4 +132,20 @@ namespace SG
 	}
 #endif
 
+}
+
+// override hash functions
+namespace eastl
+{
+	template <> 
+	struct hash<SG::Vector3f>
+	{
+		size_t operator()(SG::Vector3f val) const 
+		{ 
+			size_t seed = eastl::hash<float>{}(val(0));
+			seed ^= eastl::hash<float>{}(val(1));
+			seed ^= eastl::hash<float>{}(val(2));
+			return seed;
+		}
+	};
 }

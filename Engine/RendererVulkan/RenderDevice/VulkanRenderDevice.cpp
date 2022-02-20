@@ -60,7 +60,7 @@ namespace SG
 		mModelMatrix = BuildTransformMatrix(mModelPosition, mModelScale, mModelRotation);
 
 		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("basic", mBasicShader);
+		compiler.CompileGLSLShader("basic1", mBasicShader);
 		/// end  outer resource preparation
 
 		mpContext = Memory::New<VulkanContext>();
@@ -84,17 +84,19 @@ namespace SG
 			4, 5, 6, 6, 7, 4
 		};
 
-		CreateGeoBuffers(vertices, indices);
+		//CreateGeoBuffers(vertices, indices);
 		CreateUBOBuffers();
 		CreateTexture();
 
+		LoadMeshFromDiskTest();
+
 		mpCameraUBOSetLayout = VulkanDescriptorSetLayout::Builder(mpContext->device)
 			.AddBinding(EDescriptorType::eUniform_Buffer, EShaderStage::efVert, 0, 1)
-			.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, 1, 1)
+			//.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, 1, 1)
 			.Build();
 		VulkanDescriptorDataBinder(*mpContext->pDefaultDescriptorPool, *mpCameraUBOSetLayout)
 			.BindBuffer(0, VK_RESOURCE()->GetBuffer("CameraUniform"))
-			.BindImage(1, VK_RESOURCE()->GetSampler("default"), VK_RESOURCE()->GetTexture("logo"))
+			//.BindImage(1, VK_RESOURCE()->GetSampler("default"), VK_RESOURCE()->GetTexture("logo"))
 			.Bind(mpContext->cameraUBOSet);
 
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
@@ -192,7 +194,7 @@ namespace SG
 		{
 			auto* pNode = Memory::New<RGUnlitNode>(*mpContext);
 			pNode->BindPipeline(mpPipelineLayout, &mBasicShader);
-			pNode->BindGeometry("square");
+			pNode->BindGeometry("Box");
 			pNode->AddDescriptorSet(0, mpContext->cameraUBOSet);
 			pNode->AddConstantBuffer(EShaderStage::efVert, sizeof(Matrix4f), &mModelMatrix);
 
@@ -274,6 +276,17 @@ namespace SG
 		samplerCI.maxLod = 0.0f;
 		VK_RESOURCE()->CreateSampler(samplerCI);
 		return true;
+	}
+
+	bool VulkanRenderDevice::LoadMeshFromDiskTest()
+	{
+		MeshResourceLoader loader;
+		vector<float>  vertices;
+		vector<UInt32> indices;
+		loader.LoadFromFile("box.obj", vertices, indices);
+
+		return VK_RESOURCE()->CreateGeometry("Box", vertices.data(), static_cast<UInt32>(vertices.size()), 
+			indices.data(), static_cast<UInt32>(indices.size()));
 	}
 
 }

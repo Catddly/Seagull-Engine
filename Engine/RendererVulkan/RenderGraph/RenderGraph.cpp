@@ -48,6 +48,8 @@ namespace SG
 
 	void RenderGraph::Draw(UInt32 frameIndex) const
 	{
+		SG_ASSERT(!mpFrameBuffers.empty() && "RenderGraphBuilder should call Complete() after the node insertion!");
+
 		auto* pFrameBuffer = mpFrameBuffers[frameIndex];
 		auto& commandBuf = mpRenderContext->commandBuffers[frameIndex];
 		auto* pColorRt = mpRenderContext->colorRts[frameIndex];

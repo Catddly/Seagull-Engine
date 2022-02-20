@@ -10,7 +10,7 @@
 namespace SG
 {
 
-	Geometry::Geometry(VulkanContext& d, const string& name, float* pVerticies, UInt32 numVertex, UInt32* pIndices, UInt32 numIndex)
+	Geometry::Geometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex)
 		: mContext(d), mName(name)
 	{
 		auto vbBufferCI = InitVertexBuffer(pVerticies, numVertex);
@@ -31,7 +31,7 @@ namespace SG
 		FlushVBIBStagingBuffer(vbBufferCI, ibBufferCI);
 	}
 
-	Geometry::Geometry(VulkanContext& d, const string& name, float* pVerticies, UInt32 numVertex, UInt16* pIndices, UInt16 numIndex)
+	Geometry::Geometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt16 numIndex)
 		: mContext(d), mName(name)
 	{
 		auto vbBufferCI = InitVertexBuffer(pVerticies, numVertex);
@@ -58,17 +58,7 @@ namespace SG
 		Memory::Delete(mpIndexBuffer);
 	}
 
-	VulkanBuffer* Geometry::GetVertexBuffer() const
-	{
-		return mpVertexBuffer;
-	}
-
-	VulkanBuffer* Geometry::GetIndexBuffer() const
-	{
-		return mpIndexBuffer;
-	}
-
-	BufferCreateDesc Geometry::InitVertexBuffer(float* pVerticies, UInt32 numVertex)
+	BufferCreateDesc Geometry::InitVertexBuffer(const float* pVerticies, UInt32 numVertex)
 	{
 		BufferCreateDesc vbBufferCI = {};
 		vbBufferCI.name = (mName + "_vb").c_str();

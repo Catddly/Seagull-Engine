@@ -118,7 +118,7 @@ namespace SG
 		return mBuffers[name];
 	}
 
-	bool VulkanResourceRegistry::CreateGeometry(const char* name, float* pVerticies, UInt32 numVertex, UInt32* pIndices, UInt32 numIndex)
+	bool VulkanResourceRegistry::CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex)
 	{
 		if (mGeometries.count(name) != 0)
 		{
@@ -130,7 +130,7 @@ namespace SG
 		return true;
 	}
 
-	bool VulkanResourceRegistry::CreateGeometry(const char* name, float* pVerticies, UInt32 numVertex, UInt16* pIndices, UInt16 numIndex)
+	bool VulkanResourceRegistry::CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt16 numIndex)
 	{
 		if (mGeometries.count(name) != 0)
 		{
@@ -139,6 +139,16 @@ namespace SG
 		}
 
 		mGeometries[name] = Memory::New<Geometry>(*mpContext, name, pVerticies, numVertex, pIndices, numIndex);
+		return true;
+	}
+
+	bool VulkanResourceRegistry::CreateGeometry(const char* name, const vector<Vector3f>& vertices, const vector<UInt32>& indices)
+	{
+		return true;
+	}
+
+	bool VulkanResourceRegistry::CreateGeometry(const char* name, const vector<Vector3f>& vertices, const vector<UInt16>& indices)
+	{
 		return true;
 	}
 

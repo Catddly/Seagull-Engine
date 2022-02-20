@@ -7,6 +7,7 @@
 #include "Memory/Memory.h"
 
 #include "Stl/string.h"
+#include "Stl/vector.h"
 
 namespace SG
 {
@@ -20,9 +21,16 @@ namespace SG
 		eUnknown,
 	};
 
+	enum class EMeshType
+	{
+		eOBJ = 0,
+		eUnknown,
+	};
+
 	enum class EResourceTypeCategory
 	{
-		eTexture,
+		eTexture = 0,
+		eMesh,
 		eSaveData,
 	};
 
@@ -87,6 +95,20 @@ namespace SG
 		}
 	}
 
+	template <>
+	auto ResourceLoaderBase<EResourceTypeCategory::eMesh>::GetResourceType(const string& filename)
+	{
+		const char* suffix = GetFileNameSuffix(filename);
+		if (strcmp(suffix, "obj") == 0)
+			return EMeshType::eOBJ;
+		else
+		{
+			SG_LOG_ERROR("Unsupported mesh format: %s", suffix);
+			return EMeshType::eUnknown;
+		}
+	}
+
+	//! Disk resource loader for textures.
 	class TextureResourceLoader final : public ResourceLoaderBase<EResourceTypeCategory::eTexture>
 	{
 	public:
@@ -94,6 +116,17 @@ namespace SG
 		~TextureResourceLoader() = default;
 
 		SG_CORE_API bool LoadFromFile(const char* name, Raw2DTexture& outRaw);
+	private:
+	};
+
+	//! Disk resource loader for meshes.
+	class MeshResourceLoader final : public ResourceLoaderBase<EResourceTypeCategory::eMesh>
+	{
+	public:
+		MeshResourceLoader() = default;
+		~MeshResourceLoader() = default;
+
+		SG_CORE_API bool LoadFromFile(const char* name, vector<float>& vertices, vector<UInt32>& indices);
 	private:
 	};
 

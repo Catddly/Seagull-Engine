@@ -49,6 +49,8 @@ namespace SG
 		bool CreateGeoBuffers(float* vertices, UInt32* indices);
 		bool CreateUBOBuffers();
 		bool CreateTexture();
+
+		bool LoadMeshFromDiskTest();
 	private:
 		bool mbBlockEvent    = true;
 		bool mbWindowMinimal = false;

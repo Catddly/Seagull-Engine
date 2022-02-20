@@ -49,8 +49,11 @@ namespace SG
 		SG_RENDERER_VK_API VulkanBuffer* GetBuffer(const string& name) const;
 		void FlushBuffers() const;
 
-		bool CreateGeometry(const char* name, float* pVerticies, UInt32 numVertex, UInt32* pIndices, UInt32 numIndex);
-		bool CreateGeometry(const char* name, float* pVerticies, UInt32 numVertex, UInt16* pIndices, UInt16 numIndex);
+		bool CreateGeometry(const char* name, const vector<Vector3f>& vertices, const vector<UInt32>& indices);
+		bool CreateGeometry(const char* name, const vector<Vector3f>& vertices, const vector<UInt16>& indices);
+
+		bool CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex);
+		bool CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt16 numIndex);
 		SG_RENDERER_VK_API Geometry* GetGeometry(const string& name) const;
 
 		bool HaveBuffer(const char* name);

@@ -29,6 +29,7 @@ group "Libs"
 
     include "Libs/eastl/"
     include "Libs/mimalloc/"
+    include "Libs/assimp/"
 
 group ""
 

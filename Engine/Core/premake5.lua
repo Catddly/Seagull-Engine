@@ -23,6 +23,8 @@ project "SCore"
     {
         "SG_BUILD_DLL",
         "SG_MODULE",
+
+        "_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING", -- hash<Vector3f>
     }
 
     includedirs
@@ -31,12 +33,14 @@ project "SCore"
         "../../Libs/",
         "../../Libs/eastl/include/",
         "Public",
+        "../../Libs/assimp/include/",
     }
 
     links
     {
         "mimalloc",
-        "eastl"
+        "assimp",
+        "eastl",
     }
 
     filter "system:windows"

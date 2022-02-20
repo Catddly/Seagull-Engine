@@ -14,15 +14,15 @@ namespace SG
 	class Geometry
 	{
 	public:
-		Geometry(VulkanContext& d, const string& name, float* pVerticies, UInt32 numVertex, UInt32* pIndices, UInt32 numIndex);
-		Geometry(VulkanContext& d, const string& name, float* pVerticies, UInt32 numVertex, UInt16* pIndices, UInt16 numIndex);
-
-		VulkanBuffer* GetVertexBuffer() const;
-		VulkanBuffer* GetIndexBuffer() const;
+		Geometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex);
+		Geometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt16 numIndex);
 
 		~Geometry();
+
+		SG_INLINE VulkanBuffer* GetVertexBuffer() const { return mpVertexBuffer; }
+		SG_INLINE VulkanBuffer* GetIndexBuffer()  const { return mpIndexBuffer; }
 	private:
-		BufferCreateDesc InitVertexBuffer(float* pVerticies, UInt32 numVertex);
+		BufferCreateDesc InitVertexBuffer(const float* pVerticies, UInt32 numVertex);
 		void FlushVBIBStagingBuffer(BufferCreateDesc& vbCI, BufferCreateDesc& ibCI);
 	private:
 		VulkanContext& mContext;
