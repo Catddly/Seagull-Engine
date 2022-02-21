@@ -53,14 +53,18 @@ namespace SG
 		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -4.0f));
 		mpCamera->SetPerspective(45.0f, ASPECT);
 		mCameraUBO.proj = mpCamera->GetProjMatrix();
+		mCameraUBO.viewPos = mpCamera->GetPosition();
+		mCameraUBO.pad = 0.0f;
 
 		mModelPosition = { 0.0f, 0.0f, 0.0f };
 		mModelScale    = 1.0f;
 		mModelRotation = { 0.0f, 0.0f, 0.0f };
-		mModelMatrix = BuildTransformMatrix(mModelPosition, mModelScale, mModelRotation);
+		mPushConstant.model = BuildTransformMatrix(mModelPosition, mModelScale, mModelRotation);
+		mPushConstant.inverseTransposeModel = mPushConstant.model.inverse().transpose();
 
 		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("basic1", mBasicShader);
+		//compiler.CompileGLSLShader("basic1", mBasicShader);
+		compiler.CompileGLSLShader("basic1", "phone", mBasicShader);
 		/// end  outer resource preparation
 
 		mpContext = Memory::New<VulkanContext>();
@@ -101,7 +105,7 @@ namespace SG
 
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
 			.AddDescriptorSetLayout(mpCameraUBOSetLayout)
-			.AddPushConstantRange(sizeof(Matrix4f), 0, EShaderStage::efVert)
+			.AddPushConstantRange(sizeof(PushConstant), 0, EShaderStage::efVert)
 			.Build();
 
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
@@ -129,10 +133,12 @@ namespace SG
 		static float totalTime = 0.0f;
 		static float speed = 0.005f;
 		mModelPosition(0) = 0.5f * Sin(totalTime);
-		TranslateToX(mModelMatrix, mModelPosition(0));
+		TranslateToX(mPushConstant.model, mModelPosition(0));
+		mPushConstant.inverseTransposeModel = mPushConstant.model.inverse().transpose();
 
 		if (mpCamera->IsViewDirty())
 		{
+			mCameraUBO.viewPos = mpCamera->GetPosition();
 			mCameraUBO.view = mpCamera->GetViewMatrix();
 			VK_RESOURCE()->UpdataBufferData("CameraUniform", &mCameraUBO);
 		}
@@ -194,9 +200,9 @@ namespace SG
 		{
 			auto* pNode = Memory::New<RGUnlitNode>(*mpContext);
 			pNode->BindPipeline(mpPipelineLayout, &mBasicShader);
-			pNode->BindGeometry("Box");
+			pNode->BindGeometry("Model");
 			pNode->AddDescriptorSet(0, mpContext->cameraUBOSet);
-			pNode->AddConstantBuffer(EShaderStage::efVert, sizeof(Matrix4f), &mModelMatrix);
+			pNode->AddConstantBuffer(EShaderStage::efVert, sizeof(PushConstant), &mPushConstant);
 
 			builder.NewRenderPass(pNode).Complete();
 		}
@@ -283,9 +289,9 @@ namespace SG
 		MeshResourceLoader loader;
 		vector<float>  vertices;
 		vector<UInt32> indices;
-		loader.LoadFromFile("box.obj", vertices, indices);
+		loader.LoadFromFile("model.obj", vertices, indices);
 
-		return VK_RESOURCE()->CreateGeometry("Box", vertices.data(), static_cast<UInt32>(vertices.size()), 
+		return VK_RESOURCE()->CreateGeometry("Model", vertices.data(), static_cast<UInt32>(vertices.size()), 
 			indices.data(), static_cast<UInt32>(indices.size()));
 	}
 

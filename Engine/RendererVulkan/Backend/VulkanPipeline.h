@@ -88,7 +88,7 @@ namespace SG
 
 			VulkanPipeline* Build();
 		private:
-			VulkanDevice& device;
+			VulkanDevice&            device;
 			PipelineStateCreateInfos createInfos;
 			VulkanPipelineLayout*    pLayout;
 			VulkanRenderPass*        pRenderPass;

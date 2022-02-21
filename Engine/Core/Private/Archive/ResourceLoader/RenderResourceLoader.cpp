@@ -75,10 +75,15 @@ namespace SG
 				for (UInt32 index = 0; index < meshNumVertices; ++index)
 				{
 					const aiVector3D& vertexPos = pMesh->mVertices[index];
+					const aiVector3D& vertexNormal = pMesh->mNormals[index];
 
 					vertices.emplace_back(vertexPos.x);
 					vertices.emplace_back(vertexPos.y);
 					vertices.emplace_back(vertexPos.z);
+
+					vertices.emplace_back(vertexNormal.x);
+					vertices.emplace_back(vertexNormal.y);
+					vertices.emplace_back(vertexNormal.z);
 				}
 
 				for (UInt32 index = 0; index < pMesh->mNumFaces; ++index)

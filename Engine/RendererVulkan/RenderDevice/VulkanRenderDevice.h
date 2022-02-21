@@ -72,13 +72,22 @@ namespace SG
 		Vector3f mModelPosition;
 		float    mModelScale;
 		Vector3f mModelRotation;
-		Matrix4f mModelMatrix;
+
 		struct SG_ALIGN(64) UBO
 		{
 			Matrix4f view;
 			Matrix4f proj;
+			Vector3f viewPos;
+			float    pad;
 		};
 		UBO      mCameraUBO;
+
+		struct SG_ALIGN(64) PushConstant
+		{
+			Matrix4f model;
+			Matrix4f inverseTransposeModel;
+		};
+		PushConstant mPushConstant;
 	};
 
 }
