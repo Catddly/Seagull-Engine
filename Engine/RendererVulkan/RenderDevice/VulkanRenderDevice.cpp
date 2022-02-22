@@ -63,8 +63,8 @@ namespace SG
 		mPushConstant.inverseTransposeModel = mPushConstant.model.inverse().transpose();
 
 		ShaderCompiler compiler;
-		//compiler.CompileGLSLShader("basic1", mBasicShader);
-		compiler.CompileGLSLShader("basic1", "phone", mBasicShader);
+		compiler.CompileGLSLShader("basic", mBasicShader);
+		//compiler.CompileGLSLShader("basic1", "phone", mBasicShader);
 		/// end  outer resource preparation
 
 		mpContext = Memory::New<VulkanContext>();
@@ -88,19 +88,18 @@ namespace SG
 			4, 5, 6, 6, 7, 4
 		};
 
-		//CreateGeoBuffers(vertices, indices);
+		CreateGeoBuffers(vertices, indices);
+		//LoadMeshFromDiskTest();
 		CreateUBOBuffers();
 		CreateTexture();
 
-		LoadMeshFromDiskTest();
-
 		mpCameraUBOSetLayout = VulkanDescriptorSetLayout::Builder(mpContext->device)
 			.AddBinding(EDescriptorType::eUniform_Buffer, EShaderStage::efVert, 0, 1)
-			//.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, 1, 1)
+			.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, 1, 1)
 			.Build();
 		VulkanDescriptorDataBinder(*mpContext->pDefaultDescriptorPool, *mpCameraUBOSetLayout)
 			.BindBuffer(0, VK_RESOURCE()->GetBuffer("CameraUniform"))
-			//.BindImage(1, VK_RESOURCE()->GetSampler("default"), VK_RESOURCE()->GetTexture("logo"))
+			.BindImage(1, VK_RESOURCE()->GetSampler("default"), VK_RESOURCE()->GetTexture("logo"))
 			.Bind(mpContext->cameraUBOSet);
 
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
@@ -200,7 +199,7 @@ namespace SG
 		{
 			auto* pNode = Memory::New<RGUnlitNode>(*mpContext);
 			pNode->BindPipeline(mpPipelineLayout, &mBasicShader);
-			pNode->BindGeometry("Model");
+			pNode->BindGeometry("square");
 			pNode->AddDescriptorSet(0, mpContext->cameraUBOSet);
 			pNode->AddConstantBuffer(EShaderStage::efVert, sizeof(PushConstant), &mPushConstant);
 
@@ -289,7 +288,7 @@ namespace SG
 		MeshResourceLoader loader;
 		vector<float>  vertices;
 		vector<UInt32> indices;
-		loader.LoadFromFile("model.obj", vertices, indices);
+		loader.LoadFromFile("box.obj", vertices, indices);
 
 		return VK_RESOURCE()->CreateGeometry("Model", vertices.data(), static_cast<UInt32>(vertices.size()), 
 			indices.data(), static_cast<UInt32>(indices.size()));

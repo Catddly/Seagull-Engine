@@ -60,8 +60,9 @@ namespace SG
 		// TODO: use shader reflection
 		VertexLayout vertexBufferLayout = {
 			{ EShaderDataType::eFloat3, "position" },
-			{ EShaderDataType::eFloat3, "normal" },
-			//{ EShaderDataType::eFloat2, "uv" },
+			{ EShaderDataType::eFloat3, "color" },
+			//{ EShaderDataType::eFloat3, "normal" },
+			{ EShaderDataType::eFloat2, "uv" },
 		};
 
 		mpPipeline = VulkanPipeline::Builder(mContext.device)

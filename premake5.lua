@@ -30,6 +30,7 @@ group "Libs"
     include "Libs/eastl/"
     include "Libs/mimalloc/"
     include "Libs/assimp/"
+    include "Libs/imgui/"
 
 group ""
 
@@ -76,6 +77,7 @@ group "Runtime"
         {
             "mimalloc",
             "eastl",
+            "imgui",
             "SCore",
             "S3DEngine",
             "SRendererVulkan",
