@@ -24,8 +24,7 @@ namespace SG
 			Builder(VulkanDevice& d) : device(d), bHaveDepth(false), depthReference({}) {}
 			~Builder() = default;
 
-			Builder& BindColorRenderTarget(VulkanRenderTarget* color, const LoadStoreClearOp& op, EResourceBarrier initStatus, EResourceBarrier dstStatus);
-			Builder& BindDepthRenderTarget(VulkanRenderTarget* depth, const LoadStoreClearOp& op, EResourceBarrier initStatus, EResourceBarrier dstStatus);
+			Builder& BindRenderTarget(VulkanRenderTarget* pRenderTarget, const LoadStoreClearOp& op, EResourceBarrier initStatus, EResourceBarrier dstStatus);
 			/**
 			 * @brief Combine the render targets you had binded to a subpass.
 			 * The firstly binded render target will be attachment 0, the second render target will be 1 and so on.

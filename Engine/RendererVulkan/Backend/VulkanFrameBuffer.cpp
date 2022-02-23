@@ -15,69 +15,70 @@ namespace SG
 	/// VulkanRenderPass
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindColorRenderTarget(VulkanRenderTarget* color, const LoadStoreClearOp& op, EResourceBarrier initStatus, EResourceBarrier dstStatus)
+	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindRenderTarget(VulkanRenderTarget* pRenderTarget, const LoadStoreClearOp& op, EResourceBarrier initStatus, EResourceBarrier dstStatus)
 	{
-		VkAttachmentDescription attachDesc = {};
-		attachDesc.format  = ToVkImageFormat(color->GetFormat());
-		attachDesc.samples = ToVkSampleCount(color->GetSample());
-		// TODO: add load store mask
-		attachDesc.loadOp  = ToVkLoadOp(op.loadOp);
-		attachDesc.storeOp = ToVkStoreOp(op.storeOp);
-		attachDesc.stencilLoadOp = ToVkLoadOp(op.stencilLoadOp);
-		attachDesc.stencilStoreOp = ToVkStoreOp(op.stencilStoreOp);
-		attachDesc.initialLayout = ToVkImageLayout(initStatus);
-		attachDesc.finalLayout   = ToVkImageLayout(dstStatus);
-
-		//VkSubpassDependency dependency = {};
-		//dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		//dependency.dstSubpass = 0;
-		//dependency.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-		//dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		//dependency.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		//dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		//dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-		attachments.emplace_back(eastl::move(attachDesc));
-		//dependencies.emplace_back(eastl::move(dependency));
-		return *this;
-	}
-
-	VulkanRenderPass::Builder& VulkanRenderPass::Builder::BindDepthRenderTarget(VulkanRenderTarget* depth, const LoadStoreClearOp& op, EResourceBarrier initStatus, EResourceBarrier dstStatus)
-	{
-		if (bHaveDepth)
+		if (!pRenderTarget->IsDepth()) // color render target
 		{
-			SG_LOG_WARN("Already bind a depth render target!");
-			return *this;
+			VkAttachmentDescription attachDesc = {};
+			attachDesc.format  = ToVkImageFormat(pRenderTarget->GetFormat());
+			attachDesc.samples = ToVkSampleCount(pRenderTarget->GetSample());
+			// TODO: add load store mask
+			attachDesc.loadOp  = ToVkLoadOp(op.loadOp);
+			attachDesc.storeOp = ToVkStoreOp(op.storeOp);
+			attachDesc.stencilLoadOp = ToVkLoadOp(op.stencilLoadOp);
+			attachDesc.stencilStoreOp = ToVkStoreOp(op.stencilStoreOp);
+			attachDesc.initialLayout = ToVkImageLayout(initStatus);
+			attachDesc.finalLayout   = ToVkImageLayout(dstStatus);
+
+			//VkSubpassDependency dependency = {};
+			//dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+			//dependency.dstSubpass = 0;
+			//dependency.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			//dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			//dependency.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+			//dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			//dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+			attachments.emplace_back(eastl::move(attachDesc));
+			//dependencies.emplace_back(eastl::move(dependency));
+		}
+		else // depth render target
+		{
+			if (bHaveDepth)
+			{
+				SG_LOG_WARN("Already bind a depth render target!");
+				return *this;
+			}
+			VkAttachmentDescription attachDesc = {};
+			attachDesc.format = ToVkImageFormat(pRenderTarget->GetFormat());
+			attachDesc.samples = ToVkSampleCount(pRenderTarget->GetSample());
+			attachDesc.loadOp = ToVkLoadOp(op.loadOp);
+			attachDesc.storeOp = ToVkStoreOp(op.storeOp);
+			attachDesc.stencilLoadOp = ToVkLoadOp(op.stencilLoadOp);
+			attachDesc.stencilStoreOp = ToVkStoreOp(op.stencilStoreOp);
+			//attachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			//attachDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // We don't need depth after render pass has finished (DONT_CARE may result in better performance)
+			//attachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			//attachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachDesc.initialLayout = ToVkImageLayout(initStatus);
+			attachDesc.finalLayout = ToVkImageLayout(dstStatus);
+
+			// source dependency is when this subpass depend on. (i.e. this subpass will wait for source dependency finished then it will run)
+			// destination dependency is when this subpass run on. (i.e. this subpass will run on this stage and make sure it will end in this stage)
+
+			VkSubpassDependency dependency = {};
+			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+			dependency.dstSubpass = 0;
+			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			dependency.srcAccessMask = 0;
+			dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+			bHaveDepth = true;
+			attachments.emplace_back(eastl::move(attachDesc));
+			dependencies.emplace_back(eastl::move(dependency));
 		}
 
-		VkAttachmentDescription attachDesc = {};
-		attachDesc.format  = ToVkImageFormat(depth->GetFormat());
-		attachDesc.samples = ToVkSampleCount(depth->GetSample());
-		attachDesc.loadOp = ToVkLoadOp(op.loadOp);
-		attachDesc.storeOp = ToVkStoreOp(op.storeOp);
-		attachDesc.stencilLoadOp = ToVkLoadOp(op.stencilLoadOp);
-		attachDesc.stencilStoreOp = ToVkStoreOp(op.stencilStoreOp);
-		//attachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		//attachDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // We don't need depth after render pass has finished (DONT_CARE may result in better performance)
-		//attachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		//attachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachDesc.initialLayout = ToVkImageLayout(initStatus);
-		attachDesc.finalLayout = ToVkImageLayout(dstStatus);
-
-		// source dependency is when this subpass depend on. (i.e. this subpass will wait for source dependency finished then it will run)
-		// destination dependency is when this subpass run on. (i.e. this subpass will run on this stage and make sure it will end in this stage)
-
-		VkSubpassDependency dependency = {};
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency.dstSubpass = 0;
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		dependency.srcAccessMask = 0;
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-		bHaveDepth = true;
-		attachments.emplace_back(eastl::move(attachDesc));
-		dependencies.emplace_back(eastl::move(dependency));
 		return *this;
 	}
 

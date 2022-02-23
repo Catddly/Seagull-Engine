@@ -30,7 +30,8 @@ project "SRendererVulkan"
         "../",
         "../Core/Public/",
         "../../Libs/",
-        "../../Libs/eastl/include/",
+        "../../Libs/eastl/include/", -- eastl
+        "../../Libs/imgui/include/", -- imgui
     }
 
     links
@@ -38,6 +39,7 @@ project "SRendererVulkan"
         "../../Libs/vulkan/libs/vulkan.lib",
         "eastl",
         "mimalloc",
+        "imgui",
         "SCore",
     }
 

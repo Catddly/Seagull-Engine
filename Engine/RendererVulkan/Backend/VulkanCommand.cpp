@@ -58,6 +58,18 @@ namespace SG
 		}
 	}
 
+	bool VulkanCommandPool::Reset()
+	{
+		VkResult res = vkResetCommandPool(device.logicalDevice, commandPool, 0);
+		if (res == 0)
+			return true;
+		else
+		{
+			SG_LOG_ERROR("[Vulkan] Error: VkResult = %d. VulkanCommandPool::Reset()", res);
+			return false;
+		}
+	}
+
 	VulkanCommandPool* VulkanCommandPool::Create(VulkanDevice& d, VkQueueFlagBits queueType, VkCommandPoolCreateFlags flag)
 	{
 		UInt32 queueFamilyIndex = d.queueFamilyIndices.graphics;

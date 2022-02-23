@@ -138,6 +138,7 @@ namespace SG
 
 #ifdef SG_ENABLE_VK_VALIDATION_LAYER
 		extents.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		extents.emplace_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 #endif
 		extents.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
 #ifdef SG_PLATFORM_WINDOWS

@@ -4,10 +4,12 @@
 
 #include "RenderGraphResource.h"
 
-#include <eastl/list.h>
+#include "Stl/vector.h"
 
 namespace SG
 {
+
+#define SG_MAX_RENDER_GRAPH_NODE_RESOURCE 10
 
 	class VulkanCommandBuffer;
 	class VulkanRenderPass;
@@ -17,20 +19,26 @@ namespace SG
 	public:
 		RenderGraphNode() : mpPrev(nullptr), mpNext(nullptr) {}
 		virtual ~RenderGraphNode() = default;
+	protected:
+		void AttachResource(RenderGraphInReousrce resource);
+		bool ReplaceResource(RenderGraphInReousrce oldResource, RenderGraphInReousrce newResource);
+		void ReplaceOrAttachResource(RenderGraphInReousrce oldResource, RenderGraphInReousrce newResource);
 
-		//void AttachResource(const char* name);
-		//void DetachResource(const char* name);
+		void DetachResource(RenderGraphInReousrce resource);
+		void ClearResources();
 	protected:
-		virtual VulkanRenderPass* Prepare() = 0;
+		virtual void Reset() = 0;
+		virtual void Prepare(VulkanRenderPass* pRenderpass) = 0;
+		virtual void Update(UInt32 frameIndex) = 0;
 		virtual void Execute(VulkanCommandBuffer& pBuf) = 0;
-		virtual void Clear() = 0;
-	protected:
-		//eastl::list<const char*> mAttachResources;
 	private:
 		friend class RenderGraph;
 		friend class RenderGraphBuilder;
+
 		RenderGraphNode* mpPrev;
 		RenderGraphNode* mpNext;
+
+		vector<RenderGraphInReousrce> mInResources;
 	};
 
 }

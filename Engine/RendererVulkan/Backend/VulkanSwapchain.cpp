@@ -202,6 +202,9 @@ namespace SG
 			mpRts[i]->image     = images[i];
 			mpRts[i]->imageView = imageViews[i];
 			mpRts[i]->memory    = 0;
+			mpRts[i]->mbIsDepth = false;
+
+			mpRts[i]->id = TextureIDAllocator::NewID();
 		}
 
 		return true;
@@ -337,9 +340,9 @@ namespace SG
 	/// VulkanRenderTarget
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanRenderTarget* VulkanRenderTarget::Create(VulkanDevice& d, const TextureCreateDesc& CI)
+	VulkanRenderTarget* VulkanRenderTarget::Create(VulkanDevice& d, const TextureCreateDesc& CI, bool isDepth)
 	{
-		return Memory::New<VulkanRenderTarget>(d, CI);
+		return Memory::New<VulkanRenderTarget>(d, CI, isDepth);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -349,6 +352,9 @@ namespace SG
 	VulkanTexture::VulkanTexture(VulkanDevice& d, const TextureCreateDesc& CI, bool bLocal)
 		:device(d)
 	{
+		if (!IsValidImageFormat(CI.format))
+			SG_ASSERT(false);
+
 		currLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 		width    = CI.width;
@@ -407,6 +413,8 @@ namespace SG
 
 		VK_CHECK(vkCreateImageView(device.logicalDevice, &imageViewCI, nullptr, &imageView),
 			SG_LOG_ERROR("Failed to create vulkan texture image view!"););
+
+		id = TextureIDAllocator::NewID();
 	}
 
 	VulkanTexture::~VulkanTexture()

@@ -13,7 +13,6 @@
 namespace SG
 {
 
-
 	VkFilter ToVkFilterMode(EFilterMode fm);
 	VkSamplerMipmapMode  ToVkMipmapMode(EFilterMode fm);
 	VkSamplerAddressMode ToVkAddressMode(EAddressMode am);

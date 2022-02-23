@@ -66,6 +66,8 @@ namespace SG
 		bool AllocateCommandBuffer(VulkanCommandBuffer& buffer, bool bPrimary = true);
 		void FreeCommandBuffer(VulkanCommandBuffer& buffer);
 
+		bool Reset();
+
 		const VkCommandPool&      NativeHandle() const { return commandPool; }
 		static VulkanCommandPool* Create(VulkanDevice& d, VkQueueFlagBits queueType, VkCommandPoolCreateFlags flag = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 	private:

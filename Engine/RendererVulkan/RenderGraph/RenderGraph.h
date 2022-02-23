@@ -4,6 +4,8 @@
 
 #include "RenderGraphNode.h"
 
+#include <eastl/hash_map.h>
+
 namespace SG
 {
 
@@ -27,23 +29,28 @@ namespace SG
 	class RenderGraph final
 	{
 	public:
-		explicit RenderGraph(const char* name, VulkanContext* pContext) : mName(name), mpRootNode(nullptr), mpRenderContext(pContext) {}
+		explicit RenderGraph(const char* name, VulkanContext* pContext);
 		~RenderGraph();
 
+		void Update();
 		void Draw(UInt32 frameIndex) const;
+
 		void WindowResize();
 
 		SG_INLINE const char* GetName() const { return mName; }
 	private:
-		//! Every RenderGraphNode call Prepare() to initialize the necessary data. 
-		void Build();
-		//! Clear all the temporary resources in this render graph.
-		void Clear();
+		//! Compile the render graph to create necessary data for renderer to use.
+		//! If the nodes of this render graph had changed, compile it again.
+		void Compile();
 	private:
 		friend class RenderGraphBuilder;
-		VulkanContext*    mpRenderContext;
+		VulkanContext* mpRenderContext;
+		mutable UInt32 mFrameIndex = 0;
+
+		eastl::hash_map<Size, VulkanRenderPass*>  mRenderPassesMap;
+		eastl::hash_map<Size, VulkanFrameBuffer*> mFrameBuffersMap;
+
 		VulkanRenderPass* mpCurrRenderPass;
-		vector<VulkanFrameBuffer*> mpFrameBuffers;
 
 		const char*      mName;
 		RenderGraphNode* mpRootNode;

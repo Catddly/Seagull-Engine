@@ -4,6 +4,7 @@
 #include "System/Logger.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
+#include "RendererVulkan/Backend/VulkanBuffer.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanSwapchain.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
@@ -16,11 +17,16 @@ namespace SG
 {
 
 	RGUnlitNode::RGUnlitNode(VulkanContext& context)
-		: mContext(context), mpPipeline(nullptr), mpPipelineLayout(nullptr),
+		: mContext(context), mpRenderpass(nullptr), mpPipeline(nullptr), mpPipelineLayout(nullptr),
 		// Set to default clear ops
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
 	{
+	}
+
+	RGUnlitNode::~RGUnlitNode()
+	{
+		Memory::Delete(mpPipeline);
 	}
 
 	void RGUnlitNode::BindGeometry(const char* name)
@@ -49,13 +55,29 @@ namespace SG
 		mPushConstants.push_back({ stage, size, pData });
 	}
 
-	VulkanRenderPass* RGUnlitNode::Prepare()
+	void RGUnlitNode::Update(UInt32 frameIndex)
 	{
-		mpRenderPass = VulkanRenderPass::Builder(mContext.device)
-			.BindColorRenderTarget(mContext.colorRts[0], mColorRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efPresent)
-			.BindDepthRenderTarget(mContext.depthRt, mDepthRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil)
-			.CombineAsSubpass()
-			.Build();
+		UInt32 prevFrameIndex = frameIndex == 0 ? (mContext.swapchain.imageCount - 1) : frameIndex - 1;
+
+		ReplaceOrAttachResource({ mContext.colorRts[prevFrameIndex], mColorRtLoadStoreOp }, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp });
+
+		if (!mbDepthUpdated)
+		{
+			AttachResource({ mContext.depthRt, mDepthRtLoadStoreOp });
+			mbDepthUpdated = true;
+		}
+	}
+
+	void RGUnlitNode::Reset()
+	{
+		ClearResources();
+		mbDepthUpdated = false;
+	}
+
+	void RGUnlitNode::Prepare(VulkanRenderPass* pRenderpass)
+	{
+		if (!pRenderpass || pRenderpass == mpRenderpass) // skip, the pipeline should just be created once.
+			return;
 
 		// TODO: use shader reflection
 		VertexLayout vertexBufferLayout = {
@@ -68,11 +90,11 @@ namespace SG
 		mpPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetVertexLayout(vertexBufferLayout)
 			.BindLayout(mpPipelineLayout)
-			.BindRenderPass(mpRenderPass)
+			.BindRenderPass(pRenderpass)
 			.BindShader(mpShader)
 			.Build();
 
-		return mpRenderPass;
+		mpRenderpass = pRenderpass;
 	}
 
 	void RGUnlitNode::Execute(VulkanCommandBuffer& pBuf)
@@ -95,12 +117,6 @@ namespace SG
 			UInt32 indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
 			pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
 		}
-	}
-
-	void RGUnlitNode::Clear()
-	{
-		Memory::Delete(mpPipeline);
-		Memory::Delete(mpRenderPass);
 	}
 
 }

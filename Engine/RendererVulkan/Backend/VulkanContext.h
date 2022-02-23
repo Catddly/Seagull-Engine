@@ -50,6 +50,7 @@ namespace SG
 
 		// should be moved to other place
 		VkDescriptorSet cameraUBOSet;
+		VkDescriptorSet imguiSet;
 
 		vector<VulkanRenderTarget*> colorRts;
 		VulkanRenderTarget*         depthRt;

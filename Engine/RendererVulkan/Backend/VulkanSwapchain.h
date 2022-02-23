@@ -8,6 +8,8 @@
 #include "VulkanInstance.h"
 #include "VulkanDevice.h"
 
+#include "RendererVulkan/RenderGraph/RenderGraphResource.h"
+
 #include <vulkan/vulkan_core.h>
 
 #include "Stl/vector.h"
@@ -51,6 +53,9 @@ namespace SG
 		ESampleCount GetSample() const { return sample; }
 		EImageType   GetType()   const { return type; }
 		EImageUsage  GetUsage()  const { return usage; }
+
+		// TODO: make a complete id system
+		UInt32       GetID()     const { return id; }
 	protected:
 		friend class VulkanCommandBuffer;
 		friend class VulkanDescriptorDataBinder;
@@ -71,19 +76,28 @@ namespace SG
 		EImageFormat format;
 		ESampleCount sample;
 		EImageUsage  usage;
+
+		UInt32 id;
 	};
 
 	// TODO: abstract to IResource
 	class VulkanRenderTarget final : public VulkanTexture
 	{
 	public:
-		VulkanRenderTarget(VulkanDevice& d) : VulkanTexture(d) {}
-		VulkanRenderTarget(VulkanDevice& d, const TextureCreateDesc& CI) : VulkanTexture(d, CI, true) {}
+		VulkanRenderTarget(VulkanDevice& d, bool isDepth = false) 
+			: VulkanTexture(d), mbIsDepth(isDepth) 
+		{}
+		VulkanRenderTarget(VulkanDevice& d, const TextureCreateDesc& CI, bool isDepth = false) 
+			: VulkanTexture(d, CI, true), mbIsDepth(isDepth) 
+		{}
 
-		static VulkanRenderTarget* Create(VulkanDevice& d, const TextureCreateDesc& CI);
+		bool IsDepth() const { return mbIsDepth; }
+
+		static VulkanRenderTarget* Create(VulkanDevice& d, const TextureCreateDesc& CI, bool isDepth = false);
 	private:
 		friend class VulkanSwapchain;
 		friend class VulkanFrameBuffer;
+		bool mbIsDepth;
 	};
 
 	class VulkanSwapchain

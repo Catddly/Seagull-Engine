@@ -8,11 +8,14 @@ layout (binding = 0) uniform UBO
 {
 	mat4 view;
 	mat4 projection;
+	vec3  viewPos;
+	float  pad;
 } ubo;
 
 layout(push_constant) uniform pushConstant 
 {
 	mat4 model;
+	mat4 inverseTransposeModel;
 } constant;
 
 layout (location = 0) out vec3 outColor;
@@ -21,6 +24,6 @@ layout (location = 1) out vec2 outTexCoord;
 void main() 
 {
     outColor = inColor;
-	outTexCoord = inTexCoord;
+     outTexCoord = inTexCoord;
     gl_Position = ubo.projection * ubo.view * constant.model * vec4(inPos, 1.0);
 }

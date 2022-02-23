@@ -150,6 +150,12 @@ namespace SG
 		MAX_COUNT,
 	};
 
+	SG_INLINE static bool IsValidImageFormat(EImageFormat format)
+	{
+		return !((format == EImageFormat::eNull) ||
+			(format == EImageFormat::MAX_COUNT));
+	}
+
 	enum class EPresentMode
 	{
 		eImmediate = 0,
@@ -192,6 +198,280 @@ namespace SG
 		efFragment_Shading_Rate_Image = 1 << 10,
 	};
 	SG_ENUM_CLASS_FLAG(UInt32, EImageUsage);
+
+	SG_INLINE static UInt32 ImageFormatToMemoryByte(EImageFormat format)
+	{
+		switch (format)
+		{
+		case SG::EImageFormat::eNull: break;
+		case SG::EImageFormat::eUnorm_R1:
+			break;
+		case SG::EImageFormat::eUnorm_R2:
+			break;
+		case SG::EImageFormat::eUnorm_R4:
+			break;
+		case SG::EImageFormat::eUnorm_R4G4:
+			break;
+		case SG::EImageFormat::eUnorm_G4R4:
+			break;
+		case SG::EImageFormat::eUnorm_A8: return 1;
+		case SG::EImageFormat::eUnorm_R8: return 1;
+		case SG::EImageFormat::eUnorm_R8G8: return 2;
+		case SG::EImageFormat::eUnorm_G8R8: return 2;
+		case SG::EImageFormat::eUnorm_R8G8B8: return 3;
+		case SG::EImageFormat::eUnorm_B8G8R8: return 3;
+		case SG::EImageFormat::eUnorm_R8G8B8A8: return 4;
+		case SG::EImageFormat::eUnorm_B8G8R8A8: return 4;
+		case SG::EImageFormat::eSnorm_R8:
+			break;
+		case SG::EImageFormat::eSnorm_R8G8:
+			break;
+		case SG::EImageFormat::eSnorm_G8R8:
+			break;
+		case SG::EImageFormat::eSnorm_R8G8B8:
+			break;
+		case SG::EImageFormat::eSnorm_B8G8R8:
+			break;
+		case SG::EImageFormat::eSnorm_R8G8B8A8:
+			break;
+		case SG::EImageFormat::eSnorm_B8G8R8A8:
+			break;
+		case SG::EImageFormat::eUint_R8:
+			break;
+		case SG::EImageFormat::eUint_R8G8:
+			break;
+		case SG::EImageFormat::eUint_G8R8:
+			break;
+		case SG::EImageFormat::eUint_R8G8B8:
+			break;
+		case SG::EImageFormat::eUint_B8G8R8:
+			break;
+		case SG::EImageFormat::eUint_R8G8B8A8:
+			break;
+		case SG::EImageFormat::eUint_B8G8R8A8:
+			break;
+		case SG::EImageFormat::eSint_R8:
+			break;
+		case SG::EImageFormat::eSint_R8G8:
+			break;
+		case SG::EImageFormat::eSint_G8R8:
+			break;
+		case SG::EImageFormat::eSint_R8G8B8:
+			break;
+		case SG::EImageFormat::eSint_B8G8R8:
+			break;
+		case SG::EImageFormat::eSint_R8G8B8A8:
+			break;
+		case SG::EImageFormat::eSint_B8G8R8A8:
+			break;
+		case SG::EImageFormat::eSrgb_R8:
+			break;
+		case SG::EImageFormat::eSrgb_R8G8:
+			break;
+		case SG::EImageFormat::eSrgb_G8R8:
+			break;
+		case SG::EImageFormat::eSrgb_R8G8B8:
+			break;
+		case SG::EImageFormat::eSrgb_B8G8R8:
+			break;
+		case SG::EImageFormat::eSrgb_R8G8B8A8:
+			break;
+		case SG::EImageFormat::eSrgb_B8G8R8A8:
+			break;
+		case SG::EImageFormat::eUnorm_R16:
+			break;
+		case SG::EImageFormat::eUnorm_R16G16:
+			break;
+		case SG::EImageFormat::eUnorm_G16R16:
+			break;
+		case SG::EImageFormat::eUnorm_R16G16B16:
+			break;
+		case SG::EImageFormat::eSnorm_R16:
+			break;
+		case SG::EImageFormat::eSnorm_R16G16:
+			break;
+		case SG::EImageFormat::eSnorm_G16R16:
+			break;
+		case SG::EImageFormat::eSnorm_R16G16B16:
+			break;
+		case SG::EImageFormat::eUint_R16G16:
+			break;
+		case SG::EImageFormat::eUint_R16G16B16:
+			break;
+		case SG::EImageFormat::eSint_R16G16:
+			break;
+		case SG::EImageFormat::eSint_R16G16B16:
+			break;
+		case SG::EImageFormat::eSfloat_R16:
+			break;
+		case SG::EImageFormat::eSfloat_R16G16:
+			break;
+		case SG::EImageFormat::eSfloat_R16G16B16:
+			break;
+		case SG::EImageFormat::eSbfloat_R16G16:
+			break;
+		case SG::EImageFormat::eUnorm_A2R10G10B10:
+			break;
+		case SG::EImageFormat::eUint_A2R10G10B10:
+			break;
+		case SG::EImageFormat::eSnorm_A2R10G10B10:
+			break;
+		case SG::EImageFormat::eSint_A2R10G10B10:
+			break;
+		case SG::EImageFormat::eUint_R16:
+			break;
+		case SG::EImageFormat::eUint_R32G32:
+			break;
+		case SG::EImageFormat::eSint_R16:
+			break;
+		case SG::EImageFormat::eSint_R32G32:
+			break;
+		case SG::EImageFormat::eSfloat_R32G32:
+			break;
+		case SG::EImageFormat::eUint_R32G32B32:
+			break;
+		case SG::EImageFormat::eSint_R32G32B32:
+			break;
+		case SG::EImageFormat::eSfloat_R32G32B32:
+			break;
+		case SG::EImageFormat::eUint_R32G32B32A32:
+			break;
+		case SG::EImageFormat::eSint_R32G32B32A32:
+			break;
+		case SG::EImageFormat::eSfloat_R32G32B32A32:
+			break;
+		case SG::EImageFormat::eUint_R64:
+			break;
+		case SG::EImageFormat::eSint_R64:
+			break;
+		case SG::EImageFormat::eSfloat_R64:
+			break;
+		case SG::EImageFormat::eUint_R64G64:
+			break;
+		case SG::EImageFormat::eSint_R64G64:
+			break;
+		case SG::EImageFormat::eSfloat_R64G64:
+			break;
+		case SG::EImageFormat::eUint_R64G64B64:
+			break;
+		case SG::EImageFormat::eSint_R64G64B64:
+			break;
+		case SG::EImageFormat::eSfloat_R64G64B64:
+			break;
+		case SG::EImageFormat::eUint_R64G64B64A64:
+			break;
+		case SG::EImageFormat::eSint_R64G64B64A64:
+			break;
+		case SG::EImageFormat::eSfloat_R64G64B64A64:
+			break;
+		case SG::EImageFormat::eUnorm_D16:
+			break;
+		case SG::EImageFormat::eSfloat_D32:
+			break;
+		case SG::EImageFormat::eUnorm_D16_uint_S8:
+			break;
+		case SG::EImageFormat::eUnorm_D24_uint_S8:
+			break;
+		case SG::EImageFormat::eSfloat_D32_uint_S8:
+			break;
+		case SG::EImageFormat::eUnorm_B2G3R3:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_BC1:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_BC2:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_BC3:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_BC4:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_BC5:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_BC6H:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_BC7:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ETC1:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ETC2:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ETC2A:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ETC2A1:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_PTC12:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_PTC14:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_PTC12A:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_PTC14A:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_PTC22:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_PTC24:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ATC:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ATCE:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ATCI:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ASTC4x4:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ASTC5x5:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ASTC6x6:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ASTC8x5:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ASTC8x6:
+			break;
+		case SG::EImageFormat::eDDSKTX_C_ASTC10x5:
+			break;
+		case SG::EImageFormat::eDDSKTX_A8:
+			break;
+		case SG::EImageFormat::eDDSKTX_R8:
+			break;
+		case SG::EImageFormat::eDDSKTX_RGBA8:
+			break;
+		case SG::EImageFormat::eDDSKTX_RGBA8S:
+			break;
+		case SG::EImageFormat::eDDSKTX_RG16:
+			break;
+		case SG::EImageFormat::eDDSKTX_RGB8:
+			break;
+		case SG::EImageFormat::eDDSKTX_R16:
+			break;
+		case SG::EImageFormat::eDDSKTX_R32F:
+			break;
+		case SG::EImageFormat::eDDSKTX_R16F:
+			break;
+		case SG::EImageFormat::eDDSKTX_RG16F:
+			break;
+		case SG::EImageFormat::eDDSKTX_RG16S:
+			break;
+		case SG::EImageFormat::eDDSKTX_RGBA16F:
+			break;
+		case SG::EImageFormat::eDDSKTX_RGBA16:
+			break;
+		case SG::EImageFormat::eDDSKTX_BGRA8:
+			break;
+		case SG::EImageFormat::eDDSKTX_RGB10A2:
+			break;
+		case SG::EImageFormat::eDDSKTX_RG11B10F:
+			break;
+		case SG::EImageFormat::eDDSKTX_RG8:
+			break;
+		case SG::EImageFormat::eDDSKTX_RG8S:
+			break;
+		case SG::EImageFormat::MAX_COUNT:
+			break;
+		default:
+			break;
+		}
+		SG_ASSERT(false);
+		return 0;
+	}
 
 	enum class EImageState
 	{
@@ -269,6 +549,16 @@ namespace SG
 		virtual ESampleCount GetSample() const = 0;
 		virtual EImageType   GetType()   const = 0;
 		virtual EImageUsage  GetUsage()  const = 0;
+
+		virtual UInt32 GetID() const = 0;
+	};
+
+	class TextureIDAllocator final
+	{
+	public:
+		SG_CORE_API static UInt32 NewID();
+	private:
+		static UInt32 mCurrId;
 	};
 
 }

@@ -41,7 +41,7 @@ namespace SG
 		depthRtCI.type  = EImageType::e2D;
 		depthRtCI.usage = EImageUsage::efDepth_Stencil;
 
-		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
+		depthRt = VulkanRenderTarget::Create(device, depthRtCI, true);
 
 		// create command buffer
 		commandBuffers.resize(swapchain.imageCount);
@@ -79,7 +79,7 @@ namespace SG
 		depthRtCI.type = EImageType::e2D;
 		depthRtCI.usage = EImageUsage::efDepth_Stencil;
 
-		depthRt = VulkanRenderTarget::Create(device, depthRtCI);
+		depthRt = VulkanRenderTarget::Create(device, depthRtCI, true);
 
 		for (auto& pCmdBuf : commandBuffers)
 		{
@@ -116,9 +116,9 @@ namespace SG
 		}
 
 		pDefaultDescriptorPool = VulkanDescriptorPool::Builder()
-			.AddPoolElement(EDescriptorType::eUniform_Buffer, 1)
-			.AddPoolElement(EDescriptorType::eCombine_Image_Sampler, 1)
-			.SetMaxSets(2)
+			.AddPoolElement(EDescriptorType::eUniform_Buffer, 2000)
+			.AddPoolElement(EDescriptorType::eCombine_Image_Sampler, 2000)
+			.SetMaxSets(2 * 2000)
 			.Build(device);
 
 		if (!pDefaultDescriptorPool)

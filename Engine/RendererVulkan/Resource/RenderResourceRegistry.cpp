@@ -244,10 +244,13 @@ namespace SG
 		UInt32 index = 0;
 		for (auto& data : mWaitToSubmitTextures) // copy all the buffers data using staging buffer
 		{
+			data.first.type = EBufferType::efTransfer_Src;
 			stagingBuffers.emplace_back(VulkanBuffer::Create(mpContext->device, data.first, false)); // create a staging buffer
 			stagingBuffers[index]->UploadData(data.first.pInitData);
+
 			vector<TextureCopyRegion> copyRegions;
 			copyRegions.resize(data.second->GetNumMipmap());
+
 			UInt32 offset = 0;
 			for (UInt32 i = 0; i < copyRegions.size(); ++i)
 			{
@@ -260,7 +263,7 @@ namespace SG
 				copyRegion.depth  = 1;
 				copyRegion.offset = offset;
 				copyRegions[i] = eastl::move(copyRegion);
-				offset += copyRegion.width * copyRegion.height * 4; // 4 byte for RGBA
+				offset += copyRegion.width * copyRegion.height * ImageFormatToMemoryByte(data.second->GetFormat()); // 4 byte for RGBA
 			}
 			// transfer image barrier to do the copy
 			pCmd.ImageBarrier(data.second, EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);

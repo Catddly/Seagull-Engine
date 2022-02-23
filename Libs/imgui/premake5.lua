@@ -21,7 +21,7 @@ project "imgui"
 
     includedirs
     {
-        "include/",
+        "include/imgui/",
     }
 
     links

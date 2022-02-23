@@ -77,7 +77,6 @@ group "Runtime"
         {
             "mimalloc",
             "eastl",
-            "imgui",
             "SCore",
             "S3DEngine",
             "SRendererVulkan",

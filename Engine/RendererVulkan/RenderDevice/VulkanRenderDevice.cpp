@@ -70,6 +70,7 @@ namespace SG
 		mpContext = Memory::New<VulkanContext>();
 		VK_RESOURCE()->Initialize(mpContext);
 		mpRenderGraph = Memory::New<RenderGraph>("Default", mpContext);
+		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
 		float vertices[] = {
 			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
@@ -93,6 +94,8 @@ namespace SG
 		CreateUBOBuffers();
 		CreateTexture();
 
+		VK_RESOURCE()->FlushBuffers();
+
 		mpCameraUBOSetLayout = VulkanDescriptorSetLayout::Builder(mpContext->device)
 			.AddBinding(EDescriptorType::eUniform_Buffer, EShaderStage::efVert, 0, 1)
 			.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, 1, 1)
@@ -106,8 +109,6 @@ namespace SG
 			.AddDescriptorSetLayout(mpCameraUBOSetLayout)
 			.AddPushConstantRange(sizeof(PushConstant), 0, EShaderStage::efVert)
 			.Build();
-
-		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
 		BuildRenderGraph();
 	}
@@ -143,6 +144,8 @@ namespace SG
 		}
 
 		totalTime += deltaTime * speed;
+
+		mpRenderGraph->Update();
 	}
 
 	void VulkanRenderDevice::OnDraw()
@@ -203,7 +206,7 @@ namespace SG
 			pNode->AddDescriptorSet(0, mpContext->cameraUBOSet);
 			pNode->AddConstantBuffer(EShaderStage::efVert, sizeof(PushConstant), &mPushConstant);
 
-			builder.NewRenderPass(pNode).Complete();
+			builder.NewRenderPass(pNode);
 		}
 	}
 
@@ -228,7 +231,6 @@ namespace SG
 
 		bSuccess &= VK_RESOURCE()->CreateGeometry("square", vertices, 8 * 8, indices, 12);
 
-		VK_RESOURCE()->FlushBuffers();
 		return bSuccess;
 	}
 
@@ -262,9 +264,11 @@ namespace SG
 			textureCI.sample = ESampleCount::eSample_1;
 			textureCI.usage = EImageUsage::efSample;
 			textureCI.type = EImageType::e2D;
-			VK_RESOURCE()->CreateTexture(textureCI, true);
-
-			VK_RESOURCE()->FlushTextures();
+			if (!VK_RESOURCE()->CreateTexture(textureCI, true))
+			{
+				SG_LOG_ERROR("Failed to create texture!");
+				SG_ASSERT(false);
+			}
 		}
 		else
 		{
@@ -280,6 +284,9 @@ namespace SG
 		samplerCI.minLod = 0.0f;
 		samplerCI.maxLod = 0.0f;
 		VK_RESOURCE()->CreateSampler(samplerCI);
+
+		VK_RESOURCE()->FlushTextures();
+
 		return true;
 	}
 
@@ -288,7 +295,7 @@ namespace SG
 		MeshResourceLoader loader;
 		vector<float>  vertices;
 		vector<UInt32> indices;
-		loader.LoadFromFile("box.obj", vertices, indices);
+		loader.LoadFromFile("model.obj", vertices, indices);
 
 		return VK_RESOURCE()->CreateGeometry("Model", vertices.data(), static_cast<UInt32>(vertices.size()), 
 			indices.data(), static_cast<UInt32>(indices.size()));

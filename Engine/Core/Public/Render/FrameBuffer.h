@@ -22,6 +22,14 @@ namespace SG
 		EStoreOp storeOp;
 		ELoadOp  stencilLoadOp;
 		EStoreOp stencilStoreOp;
+
+		SG_INLINE bool operator==(const LoadStoreClearOp lhs) const
+		{
+			return (this->loadOp == lhs.loadOp) &&
+				(this->storeOp == lhs.storeOp) &&
+				(this->stencilLoadOp == lhs.stencilLoadOp) &&
+				(this->stencilStoreOp == lhs.stencilStoreOp);
+		}
 	};
 
 }

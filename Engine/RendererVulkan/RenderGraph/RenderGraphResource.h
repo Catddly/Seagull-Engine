@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Defs/Defs.h"
+#include "Render/FrameBuffer.h"
+
 #include "RendererVulkan/Config.h"
 
-#include "RendererVulkan/Resource/RenderResourceRegistry.h"
-#include "RendererVulkan/Backend/VulkanBuffer.h"
+#include "Stl/Hash.h"
 
 namespace SG
 {
@@ -16,36 +17,68 @@ namespace SG
 		eTransient,
 	};
 
-	//! Resource from the VulkanResourceRegistry.
-	//! Use for validation and as a handle to the resource.
-	class RenderGraphResource final
+	enum class ERGResourceFlow
 	{
-	public:
-		SG_RENDERER_VK_API explicit RenderGraphResource(const char* name) : mName(name) {}
-		SG_RENDERER_VK_API ~RenderGraphResource() = default;
-
-		template <typename T>
-		SG_INLINE T* As();
-	private:
-		const char* mName;
+		eIn = 0,
+		eOut,
+		eDead,
 	};
 
-	template <typename T>
-	SG_INLINE T* RenderGraphResource::As()
+	class VulkanRenderTarget;
+
+	//! Split the hash function from RenderGraphResourceBase,
+	//! then we only get one function instance but not as same as the number of ERGResourceFlow.
+	struct RGResourceHasher
 	{
-		SG_COMPILE_ASSERT(false, "RenderGraphResource must be one of the render resources!");
+		Size operator()(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, Size prev = 0);
+	};
+
+	template <ERGResourceFlow flow>
+	class RenderGraphResourceBase
+	{
+	public:
+		RenderGraphResourceBase(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op)
+			:mpRenderTarget(pRenderTarget), mLoadStoreClearOp(op)
+		{}
+		virtual ~RenderGraphResourceBase() = default;
+
+		SG_INLINE Size GetDataHash(Size prev = 0) const;
+
+		SG_INLINE bool operator==(const RenderGraphResourceBase& rhs) const
+		{
+			return (this->mpRenderTarget == rhs.mpRenderTarget) &&
+				(this->mLoadStoreClearOp == rhs.mLoadStoreClearOp);
+		}
+	private:
+		friend class RenderGraph;
+
+		VulkanRenderTarget* mpRenderTarget;
+		LoadStoreClearOp    mLoadStoreClearOp;
+	};
+
+	template <ERGResourceFlow flow>
+	SG_INLINE Size RenderGraphResourceBase<flow>::GetDataHash(Size prev) const
+	{
+		return RGResourceHasher{}(mpRenderTarget, mLoadStoreClearOp, prev);
 	}
 
-	template <>
-	SG_INLINE VulkanBuffer* RenderGraphResource::As<VulkanBuffer>()
+	class RenderGraphInReousrce final : public RenderGraphResourceBase<ERGResourceFlow::eIn>
 	{
-		auto* pBuffer = VulkanResourceRegistry::GetInstance()->GetBuffer(mName);
-		if (!pBuffer)
-		{
-			SG_LOG_ERROR("No buffer named: %s", mName);
-			return nullptr;
-		}
-		return pBuffer;
-	}
+	public:
+		RenderGraphInReousrce(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op)
+			: RenderGraphResourceBase(pRenderTarget, op)
+		{}
+		~RenderGraphInReousrce() = default;
+	private:
+	};
+
+	class RenderGraphOutReousrce final : public RenderGraphResourceBase<ERGResourceFlow::eOut>
+	{
+	public:
+		RenderGraphOutReousrce(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op)
+			: RenderGraphResourceBase(pRenderTarget, op)
+		{}
+		~RenderGraphOutReousrce() = default;
+	};
 
 }
