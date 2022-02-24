@@ -22,15 +22,15 @@ namespace SG
 		RGEditorGUINode(VulkanContext& context);
 		~RGEditorGUINode();
 	private:
-		virtual void Prepare(VulkanRenderPass* pRenderpass) override {}
+		virtual void Reset() override;
+		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
 		virtual void Update(UInt32 frameIndex) override;
 		virtual void Execute(VulkanCommandBuffer& pBuf) override;
 	private:
 		VulkanContext&    mContext;
 		VulkanRenderPass* mpRenderPass;
 
-		LoadStoreClearOp      mColorRtLoadStoreOp;
-		LoadStoreClearOp      mDepthRtLoadStoreOp;
+		LoadStoreClearOp  mColorRtLoadStoreOp;
 
 		VulkanDescriptorSetLayout* mpGUITextureSetLayout;
 		VulkanPipelineLayout*      mpGUIPipelineLayout;

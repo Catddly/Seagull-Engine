@@ -5,6 +5,7 @@
 #include "RenderGraphResource.h"
 
 #include "Stl/vector.h"
+#include "eastl/optional.h"
 
 namespace SG
 {
@@ -17,14 +18,13 @@ namespace SG
 	class RenderGraphNode
 	{
 	public:
-		RenderGraphNode() : mpPrev(nullptr), mpNext(nullptr) {}
+		RenderGraphNode();
 		virtual ~RenderGraphNode() = default;
 	protected:
-		void AttachResource(RenderGraphInReousrce resource);
-		bool ReplaceResource(RenderGraphInReousrce oldResource, RenderGraphInReousrce newResource);
-		void ReplaceOrAttachResource(RenderGraphInReousrce oldResource, RenderGraphInReousrce newResource);
+		void AttachResource(UInt32 slot, const RenderGraphInReousrce& resource);
+		void DetachResource(UInt32 slot);
+		void DetachResource(const RenderGraphInReousrce& resource);
 
-		void DetachResource(RenderGraphInReousrce resource);
 		void ClearResources();
 	protected:
 		virtual void Reset() = 0;
@@ -32,13 +32,15 @@ namespace SG
 		virtual void Update(UInt32 frameIndex) = 0;
 		virtual void Execute(VulkanCommandBuffer& pBuf) = 0;
 	private:
+		bool HaveValidResource() const;
+	private:
+		typedef eastl::optional<RenderGraphInReousrce> InResourceType;
+
 		friend class RenderGraph;
 		friend class RenderGraphBuilder;
 
-		RenderGraphNode* mpPrev;
-		RenderGraphNode* mpNext;
-
-		vector<RenderGraphInReousrce> mInResources;
+		vector<InResourceType> mInResources;
+		UInt32 mResourceValidFlag;
 	};
 
 }

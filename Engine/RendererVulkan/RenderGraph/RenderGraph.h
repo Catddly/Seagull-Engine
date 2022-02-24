@@ -19,7 +19,7 @@ namespace SG
 		~RenderGraphBuilder() = default;
 
 		RenderGraphBuilder& NewRenderPass(RenderGraphNode* pNode);
-		void                Complete();
+		void Complete();
 	private:
 		RenderGraph& mRenderGraph;
 	};
@@ -42,6 +42,9 @@ namespace SG
 		//! Compile the render graph to create necessary data for renderer to use.
 		//! If the nodes of this render graph had changed, compile it again.
 		void Compile();
+
+		void CompileRenderPasses(const RenderGraphNode* pCurrNode);
+		void CompileFrameBuffers(const RenderGraphNode* pCurrNode);
 	private:
 		friend class RenderGraphBuilder;
 		VulkanContext* mpRenderContext;
@@ -52,8 +55,8 @@ namespace SG
 
 		VulkanRenderPass* mpCurrRenderPass;
 
-		const char*      mName;
-		RenderGraphNode* mpRootNode;
+		const char* mName;
+		vector<RenderGraphNode*> mpNodes;
 	};
 
 }

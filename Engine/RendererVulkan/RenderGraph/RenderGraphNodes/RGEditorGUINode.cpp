@@ -20,8 +20,7 @@ namespace SG
 
 	RGEditorGUINode::RGEditorGUINode(VulkanContext& context)
 		:mContext(context), mpRenderPass(nullptr),
-		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
-		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
+		mColorRtLoadStoreOp({ ELoadOp::eLoad, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
 		// use imgui!
 		mpGUIDriver = Memory::New<ImGuiDriver>();
@@ -56,7 +55,7 @@ namespace SG
 		}
 
 		// here we copy the buffer(pixels) to the image
-		//VK_RESOURCE()->FlushTextures();
+		VK_RESOURCE()->FlushTextures();
 
 		// upload texture data to the pipeline
 		mpGUITextureSetLayout = VulkanDescriptorSetLayout::Builder(mContext.device)
@@ -78,6 +77,16 @@ namespace SG
 	{
 		mpGUIDriver->OnShutdown();
 		Memory::Delete(mpGUIDriver);
+	}
+
+	void RGEditorGUINode::Reset()
+	{
+
+	}
+
+	void RGEditorGUINode::Prepare(VulkanRenderPass* pRenderpass)
+	{
+
 	}
 
 	void RGEditorGUINode::Update(UInt32 frameIndex)

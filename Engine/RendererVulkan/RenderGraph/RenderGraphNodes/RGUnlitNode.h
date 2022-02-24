@@ -40,7 +40,6 @@ namespace SG
 		virtual void Execute(VulkanCommandBuffer& pBuf) override;
 	private:
 		VulkanContext&        mContext;
-		VulkanRenderPass*     mpRenderpass;
 
 		LoadStoreClearOp      mColorRtLoadStoreOp;
 		LoadStoreClearOp      mDepthRtLoadStoreOp;

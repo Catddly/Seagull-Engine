@@ -17,7 +17,7 @@ namespace SG
 {
 
 	RGUnlitNode::RGUnlitNode(VulkanContext& context)
-		: mContext(context), mpRenderpass(nullptr), mpPipeline(nullptr), mpPipelineLayout(nullptr),
+		: mContext(context), mpPipeline(nullptr), mpPipelineLayout(nullptr),
 		// Set to default clear ops
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
@@ -57,15 +57,8 @@ namespace SG
 
 	void RGUnlitNode::Update(UInt32 frameIndex)
 	{
-		UInt32 prevFrameIndex = frameIndex == 0 ? (mContext.swapchain.imageCount - 1) : frameIndex - 1;
-
-		ReplaceOrAttachResource({ mContext.colorRts[prevFrameIndex], mColorRtLoadStoreOp }, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp });
-
-		if (!mbDepthUpdated)
-		{
-			AttachResource({ mContext.depthRt, mDepthRtLoadStoreOp });
-			mbDepthUpdated = true;
-		}
+		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp });
+		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp });
 	}
 
 	void RGUnlitNode::Reset()
@@ -76,15 +69,12 @@ namespace SG
 
 	void RGUnlitNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
-		if (!pRenderpass || pRenderpass == mpRenderpass) // skip, the pipeline should just be created once.
-			return;
-
 		// TODO: use shader reflection
 		VertexLayout vertexBufferLayout = {
 			{ EShaderDataType::eFloat3, "position" },
-			{ EShaderDataType::eFloat3, "color" },
-			//{ EShaderDataType::eFloat3, "normal" },
-			{ EShaderDataType::eFloat2, "uv" },
+			//{ EShaderDataType::eFloat3, "color" },
+			{ EShaderDataType::eFloat3, "normal" },
+			//{ EShaderDataType::eFloat2, "uv" },
 		};
 
 		mpPipeline = VulkanPipeline::Builder(mContext.device)
@@ -93,8 +83,6 @@ namespace SG
 			.BindRenderPass(pRenderpass)
 			.BindShader(mpShader)
 			.Build();
-
-		mpRenderpass = pRenderpass;
 	}
 
 	void RGUnlitNode::Execute(VulkanCommandBuffer& pBuf)

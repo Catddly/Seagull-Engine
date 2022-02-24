@@ -18,25 +18,13 @@ namespace SG
 
 	RenderGraphBuilder& RenderGraphBuilder::NewRenderPass(RenderGraphNode* pNode)
 	{
-		if (!mRenderGraph.mpRootNode)
-			mRenderGraph.mpRootNode = pNode;
-		else
-		{
-			auto* pCurrNode = mRenderGraph.mpRootNode;
-			while (true)
-			{
-				if (pCurrNode->mpPrev)
-					pCurrNode = pCurrNode->mpPrev;
-				else
-					pCurrNode->mpPrev = pNode;
-			}	
-		}
+		mRenderGraph.mpNodes.push_back(pNode);
 		return *this;
 	}
 
 	void RenderGraphBuilder::Complete()
 	{
-		//mRenderGraph.Compile();
+		mRenderGraph.Compile();
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -44,19 +32,15 @@ namespace SG
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	RenderGraph::RenderGraph(const char* name, VulkanContext* pContext)
-		: mName(name), mpRootNode(nullptr), mpRenderContext(pContext)
+		: mName(name), mpRenderContext(pContext)
 	{
 	}
 
 	RenderGraph::~RenderGraph()
 	{
-		auto* pCurrNode = mpRootNode;
-		while (pCurrNode)
-		{
-			auto* pNode = pCurrNode;
-			pCurrNode = pCurrNode->mpNext;
+		for (auto* pNode : mpNodes)
 			Memory::Delete(pNode);
-		}
+		mpNodes.clear();
 
 		// Delete all the render pass and frame buffer
 		for (auto& beg = mRenderPassesMap.begin(); beg != mRenderPassesMap.end(); ++beg)
@@ -67,14 +51,14 @@ namespace SG
 
 	void RenderGraph::Update()
 	{
-		auto* pCurrNode = mpRootNode;
-		while (pCurrNode) // iterate all nodes
+		for (auto* pCurrNode : mpNodes)
 		{
 			pCurrNode->Update(mFrameIndex);
-			pCurrNode = pCurrNode->mpNext;
-		}
 
-		Compile();
+			// after the update, if some node is changed, compile it.
+			CompileRenderPasses(pCurrNode);
+			CompileFrameBuffers(pCurrNode);
+		}
 	}
 
 	void RenderGraph::Draw(UInt32 frameIndex) const
@@ -99,9 +83,8 @@ namespace SG
 		framebufferHash = HashMemory32Array(depthRtAddress, 3, framebufferHash);
 		auto* pFrameBuffer = mFrameBuffersMap.find(framebufferHash)->second;
 
-		auto* pCurrNode = mpRootNode;
 		commandBuf.BeginRecord();
-		while (pCurrNode)
+		for (auto* pCurrNode : mpNodes)
 		{
 			ClearValue cv;
 			cv.color = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -113,7 +96,6 @@ namespace SG
 			commandBuf.BeginRenderPass(pFrameBuffer, cv);
 			pCurrNode->Execute(commandBuf);
 			commandBuf.EndRenderPass();
-			pCurrNode = pCurrNode->mpNext;
 		}
 		commandBuf.EndRecord();
 
@@ -130,76 +112,96 @@ namespace SG
 
 		// after the resizing, all the render targets had been recreated,
 		// update the node to update the resources which is using in the node.
-		auto* pCurrNode = mpRootNode;
-		while (pCurrNode) // iterate all nodes
-		{
+		for (auto* pCurrNode : mpNodes)
 			pCurrNode->Reset();
-			pCurrNode = pCurrNode->mpNext;
-		}
 		mFrameIndex = 0;
 	}
 
 	void RenderGraph::Compile()
 	{
-		auto* pCurrNode = mpRootNode;
-		while (pCurrNode) // iterate all nodes
+		for (auto* pCurrNode : mpNodes) // iterate all nodes
 		{
-			if (pCurrNode->mInResources.empty())
+			pCurrNode->Update(mFrameIndex);
+
+			if (!pCurrNode->HaveValidResource())
 			{
 				SG_LOG_ERROR("No resource bound to this RenderGraphNode!");
 				SG_ASSERT(false);
 			}
+			
+			CompileRenderPasses(pCurrNode);
+			CompileFrameBuffers(pCurrNode);
 
-			// calculate the hash data
-			Size renderpassHash = 0;
-			Size framebufferHash = 0;
+			pCurrNode->Prepare(mpCurrRenderPass);
+		}
+	}
+
+	void RenderGraph::CompileRenderPasses(const RenderGraphNode* pCurrNode)
+	{
+		// calculate the hash data
+		Size renderpassHash = 0;
+		for (auto& resource : pCurrNode->mInResources)
+		{
+			if (resource.has_value())
+				renderpassHash = resource->GetDataHash(renderpassHash);
+		}
+
+		// retrieve the render pass of this node
+		auto& pRenderPassNode = mRenderPassesMap.find(renderpassHash);
+		if (pRenderPassNode == mRenderPassesMap.end()) // Didn't find this render pass, then create a new one
+		{
+			VulkanRenderPass::Builder rpBuilder(mpRenderContext->device);
 			for (auto& resource : pCurrNode->mInResources)
 			{
-				renderpassHash = resource.GetDataHash(renderpassHash);
+				if (resource.has_value())
+				{
+					rpBuilder.BindRenderTarget(resource->mpRenderTarget, resource->mLoadStoreClearOp,
+						EResourceBarrier::efUndefined,
+						resource->mpRenderTarget->IsDepth() ? EResourceBarrier::efDepth_Stencil : EResourceBarrier::efPresent);
+				}
+			}
+			mpCurrRenderPass = rpBuilder.CombineAsSubpass().Build();
 
+			mRenderPassesMap[renderpassHash] = mpCurrRenderPass; // append the new render pass to the map
+		}
+		else // this render pass already exist, just use it
+		{
+			mpCurrRenderPass = pRenderPassNode->second;
+		}
+	}
+
+	void RenderGraph::CompileFrameBuffers(const RenderGraphNode* pCurrNode)
+	{
+		// calculate the hash data
+		Size framebufferHash = 0;
+		for (auto& resource : pCurrNode->mInResources)
+		{
+			if (resource.has_value())
+			{
 				UInt32 address[3] = {
-					resource.mpRenderTarget->GetID(),
-					resource.mpRenderTarget->GetNumMipmap(),
-					resource.mpRenderTarget->GetNumArray(),
+					resource->mpRenderTarget->GetID(),
+					resource->mpRenderTarget->GetNumMipmap(),
+					resource->mpRenderTarget->GetNumArray(),
 				};
 				framebufferHash = HashMemory32Array(address, 3, framebufferHash);
 			}
+		}
 
-			// retrieve the render pass of this node
-			auto& pRenderPassNode = mRenderPassesMap.find(renderpassHash);
-			if (pRenderPassNode == mRenderPassesMap.end()) // Didn't find this render pass, then create a new one
+		// create the framebuffer of this node if it doesn't exist
+		auto& pFrameBufferNode = mFrameBuffersMap.find(framebufferHash);
+		if (pFrameBufferNode == mFrameBuffersMap.end()) // Didn't find this framebuffer, then create a new one
+		{
+			VulkanFrameBuffer::Builder fbBuilder(mpRenderContext->device);
+			for (auto& resource : pCurrNode->mInResources)
 			{
-				VulkanRenderPass::Builder rpBuilder(mpRenderContext->device);
-				for (auto& resource : pCurrNode->mInResources)
+				if (resource.has_value())
 				{
-					rpBuilder.BindRenderTarget(resource.mpRenderTarget, resource.mLoadStoreClearOp,
-						EResourceBarrier::efUndefined, 
-						resource.mpRenderTarget->IsDepth() ? EResourceBarrier::efDepth_Stencil : EResourceBarrier::efPresent);
+					fbBuilder.AddRenderTarget(resource->mpRenderTarget);
 				}
-				mpCurrRenderPass = rpBuilder.CombineAsSubpass().Build();
-
-				mRenderPassesMap[renderpassHash] = mpCurrRenderPass; // append the new render pass to the map
 			}
-			else // this render pass already exist, just use it
-			{
-				mpCurrRenderPass = pRenderPassNode->second;
-			}
+			auto* pFrameBuffer = fbBuilder.BindRenderPass(mpCurrRenderPass).Build();
 
-			// create the framebuffer of this node if it doesn't exist
-			auto& pFrameBufferNode = mFrameBuffersMap.find(framebufferHash);
-			if (pFrameBufferNode == mFrameBuffersMap.end()) // Didn't find this framebuffer, then create a new one
-			{
-				VulkanFrameBuffer::Builder fbBuilder(mpRenderContext->device);
-				for (auto& resource : pCurrNode->mInResources)
-					fbBuilder.AddRenderTarget(resource.mpRenderTarget);
-				auto* pFrameBuffer = fbBuilder.BindRenderPass(mpCurrRenderPass).Build();
-
-				mFrameBuffersMap[framebufferHash] = pFrameBuffer; // append the new framebuffer to the map
-			}
-
-			pCurrNode->Prepare(mpCurrRenderPass);
-
-			pCurrNode = pCurrNode->mpNext;
+			mFrameBuffersMap[framebufferHash] = pFrameBuffer; // append the new framebuffer to the map
 		}
 	}
 

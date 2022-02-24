@@ -8,42 +8,53 @@
 namespace SG
 {
 
-	void RenderGraphNode::AttachResource(RenderGraphInReousrce resource)
+	RenderGraphNode::RenderGraphNode()
+		:mResourceValidFlag(0)
 	{
-		mInResources.push_back(resource);
+		mInResources.resize(SG_MAX_RENDER_GRAPH_NODE_RESOURCE);
 	}
 
-	bool RenderGraphNode::ReplaceResource(RenderGraphInReousrce oldResource, RenderGraphInReousrce newResource)
+	void RenderGraphNode::AttachResource(UInt32 slot, const RenderGraphInReousrce& resource)
+	{
+		SG_ASSERT(slot <= SG_MAX_RENDER_GRAPH_NODE_RESOURCE && "Exceed the maximun limit of render graph node resources.");
+		if (mInResources[slot] == resource)
+			return;
+		else
+			mInResources[slot] = resource;
+		mResourceValidFlag |= UInt32(1 << slot);
+	}
+
+	void RenderGraphNode::DetachResource(UInt32 slot)
+	{
+		SG_ASSERT(slot <= SG_MAX_RENDER_GRAPH_NODE_RESOURCE && "Exceed the maximun limit of render graph node resources.");
+		mInResources[slot].reset();
+		mResourceValidFlag &= UInt32(~(1 << slot));
+	}
+
+	void RenderGraphNode::DetachResource(const RenderGraphInReousrce& resource)
 	{
 		for (UInt32 i = 0; i < mInResources.size(); ++i)
 		{
-			if (mInResources[i] == oldResource)
+			if (mInResources[i] == resource)
 			{
-				mInResources[i] = newResource;
-				return true;
+				mInResources[i].reset();
+				mResourceValidFlag &= UInt32(~(1 << i));
+				break;
 			}
 		}
-		return false;
-	}
-
-	void RenderGraphNode::ReplaceOrAttachResource(RenderGraphInReousrce oldResource, RenderGraphInReousrce newResource)
-	{
-		if (!ReplaceResource(oldResource, newResource))
-			AttachResource(newResource);
-	}
-
-	void RenderGraphNode::DetachResource(RenderGraphInReousrce resource)
-	{
-		auto* pNode = eastl::find(mInResources.begin(), mInResources.end(), resource);
-		if (pNode != mInResources.end())
-			mInResources.erase(pNode);
-		else
-			SG_LOG_WARN("Try to detach an unexist resource in render graph!");
+		SG_LOG_WARN("Failed to found resource in this Node!");
 	}
 
 	void RenderGraphNode::ClearResources()
 	{
-		mInResources.clear();
+		for (auto& resource : mInResources)
+			resource.reset();
+		mResourceValidFlag = 0;
+	}
+
+	bool RenderGraphNode::HaveValidResource() const
+	{
+		return !(mResourceValidFlag == 0);
 	}
 
 }
