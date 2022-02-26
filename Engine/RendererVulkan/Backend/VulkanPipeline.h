@@ -76,7 +76,7 @@ namespace SG
 			Builder& SetVertexLayout(const VertexLayout& layout, bool perVertex = true);
 			Builder& SetInputAssembly(VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 			Builder& SetRasterizer(VkCullModeFlags cullMode, VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL, bool depthClamp = false);
-			Builder& SetColorBlend(); // TODO: add blend mode.
+			Builder& SetColorBlend(bool enable); // TODO: add blend mode.
 			Builder& SetDepthStencil(bool enable);
 			Builder& SetViewport();
 			Builder& SetDynamicStates();

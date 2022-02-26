@@ -156,7 +156,7 @@ namespace SG
 		// set the default status of pipeline
 		SetInputAssembly();
 		SetRasterizer(VK_CULL_MODE_NONE);
-		SetColorBlend();
+		SetColorBlend(true);
 		SetDepthStencil(true);
 		SetViewport();
 		SetDynamicStates();
@@ -221,16 +221,26 @@ namespace SG
 		return *this;
 	}
 
-	VulkanPipeline::Builder& VulkanPipeline::Builder::SetColorBlend()
+	VulkanPipeline::Builder& VulkanPipeline::Builder::SetColorBlend(bool enable)
 	{
+		createInfos.colorBlends.clear();
 		VkPipelineColorBlendAttachmentState blendAttachmentState = {};
-		blendAttachmentState.colorWriteMask = 0xf;
-		blendAttachmentState.blendEnable    = VK_FALSE;
+		blendAttachmentState.blendEnable    = enable ? VK_TRUE : VK_FALSE;
+		if (enable)
+		{
+			blendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+			blendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			blendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
+			blendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			blendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			blendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
+			blendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		}
 		createInfos.colorBlends.emplace_back(blendAttachmentState);
 
 		VkPipelineColorBlendStateCreateInfo colorBlendState = {};
 		colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-		colorBlendState.attachmentCount = static_cast<UInt32>(createInfos.colorBlends.size());
+		colorBlendState.attachmentCount = 1;
 		colorBlendState.pAttachments = createInfos.colorBlends.data();
 
 		createInfos.colorBlendCI = eastl::move(colorBlendState);
