@@ -39,6 +39,7 @@ namespace SG
 		eFloat, eFloat2, eFloat3, eFloat4,
 		eMat3, eMat4,
 		eInt, eInt2, eInt3, eInt4,
+		eUnorm4,
 		eBool,
 	};
 
@@ -57,6 +58,7 @@ namespace SG
 		case SG::EShaderDataType::eInt2:	  return sizeof(int) * 2; break;
 		case SG::EShaderDataType::eInt3:	  return sizeof(int) * 3; break;
 		case SG::EShaderDataType::eInt4:	  return sizeof(int) * 4; break;
+		case SG::EShaderDataType::eUnorm4:	  return sizeof(UInt32); break;
 		case SG::EShaderDataType::eBool:	  return sizeof(bool); break;
 		default: SG_LOG_ERROR("Unknown shader data type!"); break;
 		}

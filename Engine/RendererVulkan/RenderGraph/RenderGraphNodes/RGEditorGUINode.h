@@ -38,6 +38,9 @@ namespace SG
 		Shader                     mGUIShader;
 
 		IGUIDriver* mpGUIDriver;
+
+		UInt32 mCurrVertexCount;
+		UInt32 mCurrIndexCount;
 	};
 
 }

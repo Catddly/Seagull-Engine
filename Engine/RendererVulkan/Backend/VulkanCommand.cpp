@@ -137,16 +137,28 @@ namespace SG
 		vkCmdEndRenderPass(commandBuffer);
 	}
 
-	void VulkanCommandBuffer::SetViewport(float width, float height, float minDepth, float maxDepth)
+	void VulkanCommandBuffer::SetViewport(float width, float height, float minDepth, float maxDepth, bool flipY)
 	{
 		// enable VK_KHR_Maintenance1 to flip y coordinate in screen space(viewport).
 		VkViewport viewport = {};
-		viewport.x = 0.0f;
-		viewport.y = (float)height;
-		viewport.width = (float)width;
-		viewport.height = -(float)height;
-		viewport.minDepth = (float)minDepth;
-		viewport.maxDepth = (float)maxDepth;
+		if (flipY)
+		{
+			viewport.x = 0.0f;
+			viewport.y = (float)height;
+			viewport.width = (float)width;
+			viewport.height = -(float)height;
+			viewport.minDepth = (float)minDepth;
+			viewport.maxDepth = (float)maxDepth;
+		}
+		else
+		{
+			viewport.x = 0.0f;
+			viewport.y = 0.0f;
+			viewport.width = (float)width;
+			viewport.height = (float)height;
+			viewport.minDepth = (float)minDepth;
+			viewport.maxDepth = (float)maxDepth;
+		}
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 	}
 

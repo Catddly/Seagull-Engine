@@ -23,10 +23,13 @@
 // TODO: add graphic api abstraction
 #include "RendererVulkan/RenderGraph/RenderGraph.h"
 #include "RendererVulkan/RenderGraph/RenderGraphNodes/RGUnlitNode.h"
+#include "RendererVulkan/RenderGraph/RenderGraphNodes/RGEditorGUINode.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
 #include "Math/MathBasic.h"
 #include "Math/Transform.h"
+
+#include "imgui/imgui.h"
 
 namespace SG
 {
@@ -104,7 +107,6 @@ namespace SG
 			.BindBuffer(0, VK_RESOURCE()->GetBuffer("CameraUniform"))
 			//.BindImage(1, VK_RESOURCE()->GetSampler("default"), VK_RESOURCE()->GetTexture("logo"))
 			.Bind(mpContext->cameraUBOSet);
-
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mpContext->device)
 			.AddDescriptorSetLayout(mpCameraUBOSetLayout)
 			.AddPushConstantRange(sizeof(PushConstant), 0, EShaderStage::efVert)
@@ -145,6 +147,8 @@ namespace SG
 
 		totalTime += deltaTime * speed;
 
+		ImGuiIO& io = ImGui::GetIO();
+		io.DeltaTime = deltaTime;
 		mpRenderGraph->Update();
 	}
 
@@ -206,7 +210,9 @@ namespace SG
 			pNode->AddDescriptorSet(0, mpContext->cameraUBOSet);
 			pNode->AddConstantBuffer(EShaderStage::efVert, sizeof(PushConstant), &mPushConstant);
 
-			builder.NewRenderPass(pNode).Complete();
+			builder.NewRenderPass(pNode)
+				.NewRenderPass(Memory::New<RGEditorGUINode>(*mpContext))
+				.Complete();
 		}
 	}
 
@@ -283,6 +289,8 @@ namespace SG
 		samplerCI.lodBias = 0.0f;
 		samplerCI.minLod = 0.0f;
 		samplerCI.maxLod = 0.0f;
+		samplerCI.maxAnisotropy = 1.0f;
+		samplerCI.enableAnisotropy = true;
 		VK_RESOURCE()->CreateSampler(samplerCI);
 
 		VK_RESOURCE()->FlushTextures();

@@ -2,8 +2,6 @@
 
 #include "Render/GUI/GUIDriver.h"
 
-struct ImGuiContext;
-
 namespace SG
 {
 
@@ -15,7 +13,7 @@ namespace SG
 
 		virtual void OnDraw() override;
 	private:
-		ImGuiContext* mpImGuiContext = nullptr;
+		//ImGuiContext* mpImGuiContext = nullptr;
 	};
 
 }

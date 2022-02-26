@@ -31,7 +31,7 @@ namespace SG
 		FlushVBIBStagingBuffer(vbBufferCI, ibBufferCI);
 	}
 
-	Geometry::Geometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt16 numIndex)
+	Geometry::Geometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt32 numIndex)
 		: mContext(d), mName(name)
 	{
 		auto vbBufferCI = InitVertexBuffer(pVerticies, numVertex);

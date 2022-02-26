@@ -29,7 +29,7 @@ namespace SG
 		void BeginRenderPass(VulkanFrameBuffer* pFrameBuffer, const ClearValue& clear); // TODO: change param
 		void EndRenderPass();
 
-		void SetViewport(float width, float height, float minDepth, float maxDepth);
+		void SetViewport(float width, float height, float minDepth, float maxDepth, bool flipY = true);
 		void SetScissor(const Rect& rect);
 
 		void BindVertexBuffer(UInt32 firstBinding, UInt32 bindingCount, VulkanBuffer& buffer, const UInt64* pOffsets);

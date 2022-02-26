@@ -5,6 +5,7 @@
 #include "RenderGraphResource.h"
 
 #include "Stl/vector.h"
+#include "eastl/array.h"
 #include "eastl/optional.h"
 
 namespace SG
@@ -39,7 +40,8 @@ namespace SG
 		friend class RenderGraph;
 		friend class RenderGraphBuilder;
 
-		vector<InResourceType> mInResources;
+		//vector<InResourceType> mInResources;
+		eastl::array<InResourceType, SG_MAX_RENDER_GRAPH_NODE_RESOURCE> mInResources;
 		UInt32 mResourceValidFlag;
 	};
 

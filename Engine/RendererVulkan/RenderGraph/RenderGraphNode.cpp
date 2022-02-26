@@ -11,7 +11,7 @@ namespace SG
 	RenderGraphNode::RenderGraphNode()
 		:mResourceValidFlag(0)
 	{
-		mInResources.resize(SG_MAX_RENDER_GRAPH_NODE_RESOURCE);
+		//mInResources.resize(SG_MAX_RENDER_GRAPH_NODE_RESOURCE);
 	}
 
 	void RenderGraphNode::AttachResource(UInt32 slot, const RenderGraphInReousrce& resource)

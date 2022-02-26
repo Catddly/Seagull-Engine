@@ -116,9 +116,16 @@ namespace SG
 		}
 
 		pDefaultDescriptorPool = VulkanDescriptorPool::Builder()
-			.AddPoolElement(EDescriptorType::eUniform_Buffer, 2000)
-			.AddPoolElement(EDescriptorType::eCombine_Image_Sampler, 2000)
-			.SetMaxSets(2 * 2000)
+			.AddPoolElement(EDescriptorType::eUniform_Buffer, 1000)
+			.AddPoolElement(EDescriptorType::eStorage_Buffer, 1000)
+			.AddPoolElement(EDescriptorType::eSampler, 1000)
+			.AddPoolElement(EDescriptorType::eCombine_Image_Sampler, 1000)
+			.AddPoolElement(EDescriptorType::eInput_Attachment, 1000)
+			.AddPoolElement(EDescriptorType::eSampled_Image, 1000)
+			.AddPoolElement(EDescriptorType::eStorage_Image, 1000)
+			.AddPoolElement(EDescriptorType::eUniform_Buffer_Dynamic, 1000)
+			.AddPoolElement(EDescriptorType::eStorage_Buffer_Dynamic, 1000)
+			.SetMaxSets(9 * 1000)
 			.Build(device);
 
 		if (!pDefaultDescriptorPool)

@@ -458,9 +458,9 @@ namespace SG
 		samplerCI.minLod = CI.minLod;
 		samplerCI.maxLod = CI.maxLod;
 		// if this physical render device can use anisotropy
-		if (device.physicalDeviceFeatures.samplerAnisotropy) 
+		if (CI.enableAnisotropy && device.physicalDeviceFeatures.samplerAnisotropy)
 		{
-			samplerCI.maxAnisotropy = device.physicalDeviceLimits.maxSamplerAnisotropy;
+			samplerCI.maxAnisotropy = CI.maxAnisotropy;
 			samplerCI.anisotropyEnable = VK_TRUE;
 		}
 		else 
@@ -468,7 +468,7 @@ namespace SG
 			samplerCI.maxAnisotropy = 1.0;
 			samplerCI.anisotropyEnable = VK_FALSE;
 		}
-		samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
 
 		VK_CHECK(vkCreateSampler(device.logicalDevice, &samplerCI, nullptr, &sampler),
 			SG_LOG_ERROR("Failed to create vulkan sampler!"););

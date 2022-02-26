@@ -503,6 +503,8 @@ namespace SG
 		float minLod;
 		float maxLod;
 		float lodBias;
+		float maxAnisotropy;
+		bool  enableAnisotropy;
 	};
 
 	struct TextureCopyRegion

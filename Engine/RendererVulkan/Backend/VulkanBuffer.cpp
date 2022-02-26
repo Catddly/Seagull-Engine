@@ -67,6 +67,23 @@ namespace SG
 		return true;
 	}
 
+	bool VulkanBuffer::UploadData(const void* pData, UInt32 size, UInt32 offset)
+	{
+		if (bLocal) // device local in GPU
+		{
+			SG_LOG_WARN("Try to upload data to device local memory!");
+			return false;
+		}
+
+		UInt8* pUpload = nullptr;
+		VK_CHECK(vkMapMemory(device.logicalDevice, memory, 0, sizeInByteCPU, 0, (void**)&pUpload),
+			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
+		pUpload += offset;
+		memcpy(pUpload, pData, size);
+		vkUnmapMemory(device.logicalDevice, memory);
+		return true;
+	}
+
 	SG::VulkanBuffer* VulkanBuffer::Create(VulkanDevice& device, const BufferCreateDesc& CI, bool bLocal)
 	{
 		return Memory::New<VulkanBuffer>(device, CI, bLocal);

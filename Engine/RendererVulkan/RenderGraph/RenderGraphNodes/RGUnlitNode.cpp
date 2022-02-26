@@ -87,6 +87,9 @@ namespace SG
 
 	void RGUnlitNode::Execute(VulkanCommandBuffer& pBuf)
 	{
+		pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
+		pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
+
 		for (auto& e : mDescriptorSets)
 			pBuf.BindDescriptorSet(mpPipelineLayout, e.first, e.second);
 		pBuf.BindPipeline(mpPipeline);

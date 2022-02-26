@@ -7,9 +7,12 @@
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
+#include "RendererVulkan/Backend/VulkanBuffer.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
+
+#include "Render/ShaderComiler.h"
 
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
@@ -19,7 +22,7 @@ namespace SG
 {
 
 	RGEditorGUINode::RGEditorGUINode(VulkanContext& context)
-		:mContext(context), mpRenderPass(nullptr),
+		:mContext(context), mpRenderPass(nullptr), mCurrVertexCount(0), mCurrIndexCount(0),
 		mColorRtLoadStoreOp({ ELoadOp::eLoad, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
 		// use imgui!
@@ -29,13 +32,13 @@ namespace SG
 		// create imgui font texture
 		ImGuiIO& io = ImGui::GetIO();
 
-		unsigned char* pixels;
-		int width, height;
-		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-		UInt32 fontUploadSize = width * height * 4 * sizeof(char);
+		unsigned char* pixels = nullptr;
+		int width, height, bytePerPixel;
+		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytePerPixel);
+		UInt32 fontUploadSize = width * height * bytePerPixel;
 
 		TextureCreateDesc textureCI = {};
-		textureCI.name = "__imgui_font";
+		textureCI.name = "_imgui_font";
 		textureCI.width = static_cast<UInt32>(width);
 		textureCI.height = static_cast<UInt32>(height);
 		textureCI.depth = 1;
@@ -48,7 +51,7 @@ namespace SG
 		textureCI.sample = ESampleCount::eSample_1;
 		textureCI.usage = EImageUsage::efSample;
 		textureCI.type = EImageType::e2D;
-		if (VK_RESOURCE()->CreateTexture(textureCI, true))
+		if (!VK_RESOURCE()->CreateTexture(textureCI, true))
 		{
 			SG_LOG_ERROR("Failed to create texture!");
 			SG_ASSERT(false);
@@ -57,24 +60,39 @@ namespace SG
 		// here we copy the buffer(pixels) to the image
 		VK_RESOURCE()->FlushTextures();
 
+		SamplerCreateDesc samplerCI = {};
+		samplerCI.name = "_imgui_sampler";
+		samplerCI.filterMode = EFilterMode::eLinear;
+		samplerCI.addressMode = EAddressMode::eRepeat;
+		samplerCI.lodBias = 0.0f;
+		samplerCI.minLod = -1000.0f;
+		samplerCI.maxLod = 1000.0f;
+		samplerCI.maxAnisotropy = 1.0f;
+		samplerCI.enableAnisotropy = false;
+		VK_RESOURCE()->CreateSampler(samplerCI);
+
+		ShaderCompiler compiler;
+		compiler.CompileGLSLShader("_imgui", mGUIShader);
+
 		// upload texture data to the pipeline
 		mpGUITextureSetLayout = VulkanDescriptorSetLayout::Builder(mContext.device)
 			.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, 0, 1)
 			.Build();
 		VulkanDescriptorDataBinder(*mContext.pDefaultDescriptorPool, *mpGUITextureSetLayout)
-			.BindImage(0, VK_RESOURCE()->GetSampler("default"), VK_RESOURCE()->GetTexture("__imgui_font"))
+			.BindImage(0, VK_RESOURCE()->GetSampler("_imgui_sampler"), VK_RESOURCE()->GetTexture("_imgui_font"))
 			.Bind(mContext.imguiSet);
 		mpGUIPipelineLayout = VulkanPipelineLayout::Builder(mContext.device)
 			.AddDescriptorSetLayout(mpGUITextureSetLayout)
 			.AddPushConstantRange(sizeof(float) * 2 * 2, 0, EShaderStage::efVert)
 			.Build();
-
-		// store the identifier
-		io.Fonts->SetTexID((ImTextureID)mContext.imguiSet);
 	}
 
 	RGEditorGUINode::~RGEditorGUINode()
 	{
+		Memory::Delete(mpGUIPipeline);
+		Memory::Delete(mpGUITextureSetLayout);
+		Memory::Delete(mpGUIPipelineLayout);
+
 		mpGUIDriver->OnShutdown();
 		Memory::Delete(mpGUIDriver);
 	}
@@ -86,25 +104,171 @@ namespace SG
 
 	void RGEditorGUINode::Prepare(VulkanRenderPass* pRenderpass)
 	{
+		// TODO: use shader reflection
+		VertexLayout vertexBufferLayout = {
+			{ EShaderDataType::eFloat2, "position" },
+			{ EShaderDataType::eFloat2, "uv" },
+			{ EShaderDataType::eUnorm4, "color" },
+		};
 
+		mpGUIPipeline = VulkanPipeline::Builder(mContext.device)
+			.SetVertexLayout(vertexBufferLayout)
+			.SetRasterizer(VK_CULL_MODE_NONE)
+			.SetDepthStencil(false)
+			.BindLayout(mpGUIPipelineLayout)
+			.BindRenderPass(pRenderpass)
+			.BindShader(&mGUIShader)
+			.Build();
 	}
 
 	void RGEditorGUINode::Update(UInt32 frameIndex)
 	{
+		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp });
 
-	}
-
-	void RGEditorGUINode::Execute(VulkanCommandBuffer& pBuf)
-	{
 		mpGUIDriver->OnDraw();
-
 		ImGui::NewFrame();
 
 		bool bShowDemoWindow = true;
 		ImGui::ShowDemoWindow(&bShowDemoWindow);
 
+		ImGui::Begin("Test");
+		ImGui::Button("Button1");
+		ImGui::End();
+
+		ImGui::EndFrame();
+	}
+
+	void RGEditorGUINode::Execute(VulkanCommandBuffer& pBuf)
+	{
 		ImGui::Render();
-		ImDrawData* main_draw_data = ImGui::GetDrawData();
+
+		ImDrawData* drawData = ImGui::GetDrawData();
+		const int width = (int)(drawData->DisplaySize.x * drawData->FramebufferScale.x);
+		const int height = (int)(drawData->DisplaySize.y * drawData->FramebufferScale.y);
+		if (width <= 0 || height <= 0)
+			return;
+
+		VulkanBuffer* pVertexBuffer = VK_RESOURCE()->GetBuffer("__imgui_vtx");
+		VulkanBuffer* pIndexBuffer = VK_RESOURCE()->GetBuffer("__imgui_idx");
+
+		if (drawData->TotalVtxCount > 0)
+		{
+			//if (pVertexBuffer)
+			//	VK_RESOURCE()->DeleteBuffer("__imgui_vtx");
+			//if (pIndexBuffer)
+			//	VK_RESOURCE()->DeleteBuffer("__imgui_idx");
+
+			BufferCreateDesc bufferCI = {};
+			if (!pVertexBuffer)
+			{
+				bufferCI.name = "__imgui_vtx";
+				bufferCI.totalSizeInByte = drawData->TotalVtxCount * sizeof(ImDrawVert);
+				bufferCI.type = EBufferType::efVertex;
+				VK_RESOURCE()->CreateBuffer(bufferCI);
+			}
+
+			if (!pIndexBuffer)
+			{
+				bufferCI.name = "__imgui_idx";
+				bufferCI.totalSizeInByte = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+				bufferCI.type = EBufferType::efIndex;
+				VK_RESOURCE()->CreateBuffer(bufferCI);
+			}
+
+			pVertexBuffer = VK_RESOURCE()->GetBuffer("__imgui_vtx");
+			pIndexBuffer = VK_RESOURCE()->GetBuffer("__imgui_idx");
+			SG_ASSERT(pVertexBuffer && pIndexBuffer);
+
+			UInt32 vtxOffest = 0;
+			UInt32 idxOffest = 0;
+			for (int n = 0; n < drawData->CmdListsCount; n++)
+			{
+				const ImDrawList* pCmdList = drawData->CmdLists[n];
+				const UInt32 vtxBufferSize = pCmdList->VtxBuffer.Size * sizeof(ImDrawVert);
+				const UInt32 itxBufferSize = pCmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
+
+				pVertexBuffer->UploadData<ImDrawVert>(pCmdList->VtxBuffer.Data, vtxBufferSize, vtxOffest);
+				pIndexBuffer->UploadData<ImDrawIdx>(pCmdList->IdxBuffer.Data, itxBufferSize, idxOffest);
+
+				vtxOffest += pCmdList->VtxBuffer.Size;
+				idxOffest += pCmdList->IdxBuffer.Size;
+			}
+
+			pBuf.SetViewport(static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f, false);
+
+			pBuf.BindPipeline(mpGUIPipeline);
+
+			UInt64 offset[1] = { 0 };
+			pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
+			pBuf.BindIndexBuffer(*pIndexBuffer, 0, sizeof(ImDrawIdx) == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+
+			float scale[2];
+			scale[0] = 2.0f / drawData->DisplaySize.x;
+			scale[1] = 2.0f / drawData->DisplaySize.y;
+			float translate[2];
+			translate[0] = -1.0f - drawData->DisplayPos.x * scale[0];
+			translate[1] = -1.0f - drawData->DisplayPos.y * scale[1];
+			pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, 0, &scale);
+			pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, sizeof(float) * 2, &translate);
+
+			// Will project scissor/clipping rectangles into framebuffer space
+			ImVec2 clipOff = drawData->DisplayPos;         // (0,0) unless using multi-viewports
+			ImVec2 clipScale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+
+			// Render command lists
+			// (Because we merged all buffers into a single one, we maintain our own offset into them)
+			vtxOffest = 0;
+			idxOffest = 0;
+			for (int n = 0; n < drawData->CmdListsCount; n++)
+			{
+				const ImDrawList* pCmdList = drawData->CmdLists[n];
+				for (int i = 0; i < pCmdList->CmdBuffer.Size; i++)
+				{
+					const ImDrawCmd* pcmd = &pCmdList->CmdBuffer[i];
+					// Project scissor/clipping rectangles into framebuffer space
+					ImVec2 clipMin((pcmd->ClipRect.x - clipOff.x) * clipScale.x, (pcmd->ClipRect.y - clipOff.y) * clipScale.y);
+					ImVec2 clipMax((pcmd->ClipRect.z - clipOff.x) * clipScale.x, (pcmd->ClipRect.w - clipOff.y) * clipScale.y);
+
+					// Clamp to viewport as vkCmdSetScissor() won't accept values that are off bounds
+					if (clipMin.x < 0.0f) { clipMin.x = 0.0f; }
+					if (clipMin.y < 0.0f) { clipMin.y = 0.0f; }
+					if (clipMax.x > width) { clipMax.x = static_cast<float>(width); }
+					if (clipMax.y > height) { clipMax.y = static_cast<float>(height); }
+					if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
+						continue;
+
+					// Apply scissor/clipping rectangle
+					Rect scissor;
+					scissor.left = (Int32)(clipMin.x);
+					scissor.top = (Int32)(clipMin.y);
+					scissor.right = (Int32)(clipMax.x);
+					scissor.bottom = (Int32)(clipMax.y);
+					pBuf.SetScissor(scissor);
+
+					// Bind DescriptorSet with font or user texture
+					//VkDescriptorSet set = (VkDescriptorSet)pcmd->TextureId;
+					pBuf.BindDescriptorSet(mpGUIPipelineLayout, 0, mContext.imguiSet);
+
+					pBuf.DrawIndexed(pcmd->ElemCount, 1, pcmd->IdxOffset + idxOffest, pcmd->VtxOffset + vtxOffest, 0);
+				}
+				idxOffest += pCmdList->IdxBuffer.Size;
+				vtxOffest += pCmdList->VtxBuffer.Size;
+			}
+		}
+
+		// Note: at this point both vkCmdSetViewport() and vkCmdSetScissor() have been called.
+		// Our last values will leak into user/application rendering IF:
+		// - Your app uses a pipeline with VK_DYNAMIC_STATE_VIEWPORT or VK_DYNAMIC_STATE_SCISSOR dynamic state
+		// - And you forgot to call vkCmdSetViewport() and vkCmdSetScissor() yourself to explicitely set that state.
+		// If you use VK_DYNAMIC_STATE_VIEWPORT or VK_DYNAMIC_STATE_SCISSOR you are responsible for setting the values before rendering.
+		// In theory we should aim to backup/restore those values but I am not sure this is possible.
+		// We perform a call to vkCmdSetScissor() to set back a full viewport which is likely to fix things for 99% users but technically this is not perfect. (See github #4644)
+		Rect scissor;
+		scissor.left = 0;
+		scissor.top = 0;
+		scissor.right = (Int32)(width);
+		scissor.bottom = (Int32)(height);
+		pBuf.SetScissor(scissor);
 	}
 
 }
