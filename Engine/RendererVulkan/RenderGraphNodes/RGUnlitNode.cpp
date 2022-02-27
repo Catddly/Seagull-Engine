@@ -85,8 +85,10 @@ namespace SG
 			.Build();
 	}
 
-	void RGUnlitNode::Execute(VulkanCommandBuffer& pBuf)
+	void RGUnlitNode::Execute(RGDrawContext& context)
 	{
+		auto& pBuf = *context.pCmd;
+
 		pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
 		pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 

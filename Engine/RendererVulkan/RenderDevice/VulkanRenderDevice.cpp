@@ -22,8 +22,8 @@
 
 // TODO: add graphic api abstraction
 #include "RendererVulkan/RenderGraph/RenderGraph.h"
-#include "RendererVulkan/RenderGraph/RenderGraphNodes/RGUnlitNode.h"
-#include "RendererVulkan/RenderGraph/RenderGraphNodes/RGEditorGUINode.h"
+#include "RendererVulkan/RenderGraphNodes/RGUnlitNode.h"
+#include "RendererVulkan/RenderGraphNodes/RGEditorGUINode.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
 #include "Math/MathBasic.h"

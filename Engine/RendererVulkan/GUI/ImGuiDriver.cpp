@@ -44,11 +44,6 @@ namespace SG
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
 
-		// Our mouse update function expect PlatformHandle to be filled for the main viewport
-		ImGuiViewport* mainViewport = ImGui::GetMainViewport();
-		mainViewport->PlatformHandle = (void*)OperatingSystem::GetMainWindow();
-		mainViewport->PlatformHandleRaw = OperatingSystem::GetMainWindow()->GetNativeHandle();
-
 		return true;
 	}
 
@@ -61,7 +56,11 @@ namespace SG
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
-		io.MousePos = { (float)OperatingSystem::GetMousePos()[0], (float)OperatingSystem::GetMousePos()[1] };
+		Rect& windowRect = OperatingSystem::GetMainWindow()->GetCurrRect();
+		io.MousePos = { (float)OperatingSystem::GetMousePos()[0] - windowRect.left, (float)OperatingSystem::GetMousePos()[1] - windowRect.top };
+
+		//SG_LOG_DEBUG("Window Rect: %d, %d", windowRect.left, windowRect.top);
+		//SG_LOG_DEBUG("Mouse Pos: %d, %d", OperatingSystem::GetMousePos()[0], OperatingSystem::GetMousePos()[1]);
 
 		io.DisplaySize = { (float)OperatingSystem::GetMainWindow()->GetWidth(), (float)OperatingSystem::GetMainWindow()->GetHeight() };
 		io.DisplayFramebufferScale = { 1.0f, 1.0f };
@@ -74,6 +73,15 @@ namespace SG
 		monitor.MainPos = monitor.WorkPos = { (float)monitorRect.left, (float)monitorRect.top };
 		monitor.MainSize = monitor.WorkSize = { (float)GetRectWidth(monitorRect), (float)GetRectHeight(monitorRect) };
 		platformIO.Monitors.push_back(monitor);
+
+		// Our mouse update function expect PlatformHandle to be filled for the main viewport
+		ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+		mainViewport->PlatformHandle = (void*)OperatingSystem::GetMainWindow();
+		mainViewport->PlatformHandleRaw = OperatingSystem::GetMainWindow()->GetNativeHandle();
+
+		auto* pViewport = ImGui::GetMainViewport();
+		pViewport->Pos = { (float)windowRect.left, (float)windowRect.top };
+		pViewport->WorkSize = { (float)GetRectWidth(windowRect), (float)GetRectHeight(windowRect) };
 	}
 
 }

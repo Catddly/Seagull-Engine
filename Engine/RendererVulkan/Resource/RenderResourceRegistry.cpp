@@ -111,10 +111,7 @@ namespace SG
 	VulkanBuffer* VulkanResourceRegistry::GetBuffer(const string& name) const
 	{
 		if (mBuffers.count(name) == 0)
-		{
-			SG_LOG_ERROR("No buffer named: %s", name);
 			return nullptr;
-		}
 		return mBuffers[name];
 	}
 

@@ -21,6 +21,12 @@ namespace SG
 	public:
 		RenderGraphNode();
 		virtual ~RenderGraphNode() = default;
+
+		struct RGDrawContext
+		{
+			VulkanCommandBuffer* pCmd;
+			UInt32               frameIndex;
+		};
 	protected:
 		void AttachResource(UInt32 slot, const RenderGraphInReousrce& resource);
 		void DetachResource(UInt32 slot);
@@ -31,7 +37,7 @@ namespace SG
 		virtual void Reset() = 0;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) = 0;
 		virtual void Update(UInt32 frameIndex) = 0;
-		virtual void Execute(VulkanCommandBuffer& pBuf) = 0;
+		virtual void Execute(RGDrawContext& context) = 0;
 	private:
 		bool HaveValidResource() const;
 	private:

@@ -39,7 +39,7 @@ namespace SG
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
 		virtual void Update(UInt32 frameIndex) override;
-		virtual void Execute(VulkanCommandBuffer& pBuf) override;
+		virtual void Execute(RGDrawContext& context) override;
 	private:
 		VulkanContext&        mContext;
 

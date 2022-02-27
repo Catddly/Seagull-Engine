@@ -138,8 +138,10 @@ namespace SG
 		ImGui::EndFrame();
 	}
 
-	void RGEditorGUINode::Execute(VulkanCommandBuffer& pBuf)
+	void RGEditorGUINode::Execute(RGDrawContext& context)
 	{
+		auto& pBuf = *context.pCmd;
+
 		ImGui::Render();
 
 		ImDrawData* drawData = ImGui::GetDrawData();
@@ -148,35 +150,51 @@ namespace SG
 		if (width <= 0 || height <= 0)
 			return;
 
-		VulkanBuffer* pVertexBuffer = VK_RESOURCE()->GetBuffer("__imgui_vtx");
-		VulkanBuffer* pIndexBuffer = VK_RESOURCE()->GetBuffer("__imgui_idx");
+		const string vtxBufferName = "_imgui_vtx_" + eastl::to_string(context.frameIndex);
+		const string idxBufferName = "_imgui_idx_" + eastl::to_string(context.frameIndex);
 
+		VulkanBuffer* pVertexBuffer = VK_RESOURCE()->GetBuffer(vtxBufferName);
+		VulkanBuffer* pIndexBuffer = VK_RESOURCE()->GetBuffer(idxBufferName);
+
+		// create buffer to hold the vtx and idx data
 		if (drawData->TotalVtxCount > 0)
 		{
-			//if (pVertexBuffer)
-			//	VK_RESOURCE()->DeleteBuffer("__imgui_vtx");
-			//if (pIndexBuffer)
-			//	VK_RESOURCE()->DeleteBuffer("__imgui_idx");
+			bool bNeedToCreateVtxBuffer = false;
+			bool bNeedToCreateIdxBuffer = false;
+			const UInt32 vtxBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
+			const UInt32 idxBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+
+			if (pVertexBuffer && vtxBufferSize > pVertexBuffer->SizeInByteCPU()) // need to create a new one to hold the vtx buffer
+			{
+				VK_RESOURCE()->DeleteBuffer(vtxBufferName);
+				bNeedToCreateVtxBuffer = true;
+			}
+
+			if (pIndexBuffer && idxBufferSize > pIndexBuffer->SizeInByteCPU()) // need to create a new one to hold the idx buffer
+			{
+				VK_RESOURCE()->DeleteBuffer(idxBufferName);
+				bNeedToCreateIdxBuffer = true;
+			}
 
 			BufferCreateDesc bufferCI = {};
-			if (!pVertexBuffer)
+			if (!pVertexBuffer || bNeedToCreateVtxBuffer)
 			{
-				bufferCI.name = "__imgui_vtx";
-				bufferCI.totalSizeInByte = drawData->TotalVtxCount * sizeof(ImDrawVert);
+				bufferCI.name = vtxBufferName.c_str();
+				bufferCI.totalSizeInByte = vtxBufferSize;
 				bufferCI.type = EBufferType::efVertex;
 				VK_RESOURCE()->CreateBuffer(bufferCI);
 			}
 
-			if (!pIndexBuffer)
+			if (!pIndexBuffer || bNeedToCreateIdxBuffer)
 			{
-				bufferCI.name = "__imgui_idx";
-				bufferCI.totalSizeInByte = drawData->TotalIdxCount * sizeof(ImDrawIdx);
+				bufferCI.name = idxBufferName.c_str();
+				bufferCI.totalSizeInByte = idxBufferSize;
 				bufferCI.type = EBufferType::efIndex;
 				VK_RESOURCE()->CreateBuffer(bufferCI);
 			}
 
-			pVertexBuffer = VK_RESOURCE()->GetBuffer("__imgui_vtx");
-			pIndexBuffer = VK_RESOURCE()->GetBuffer("__imgui_idx");
+			pVertexBuffer = VK_RESOURCE()->GetBuffer(vtxBufferName);
+			pIndexBuffer = VK_RESOURCE()->GetBuffer(idxBufferName);
 			SG_ASSERT(pVertexBuffer && pIndexBuffer);
 
 			UInt32 vtxOffest = 0;
@@ -193,67 +211,67 @@ namespace SG
 				vtxOffest += pCmdList->VtxBuffer.Size;
 				idxOffest += pCmdList->IdxBuffer.Size;
 			}
+		}
 
-			pBuf.SetViewport(static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f, false);
+		pBuf.SetViewport(static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f, false);
 
-			pBuf.BindPipeline(mpGUIPipeline);
+		pBuf.BindPipeline(mpGUIPipeline);
 
-			UInt64 offset[1] = { 0 };
-			pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
-			pBuf.BindIndexBuffer(*pIndexBuffer, 0, sizeof(ImDrawIdx) == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+		UInt64 offset[1] = { 0 };
+		pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
+		pBuf.BindIndexBuffer(*pIndexBuffer, 0, sizeof(ImDrawIdx) == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
 
-			float scale[2];
-			scale[0] = 2.0f / drawData->DisplaySize.x;
-			scale[1] = 2.0f / drawData->DisplaySize.y;
-			float translate[2];
-			translate[0] = -1.0f - drawData->DisplayPos.x * scale[0];
-			translate[1] = -1.0f - drawData->DisplayPos.y * scale[1];
-			pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, 0, &scale);
-			pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, sizeof(float) * 2, &translate);
+		float scale[2];
+		scale[0] = 2.0f / drawData->DisplaySize.x;
+		scale[1] = 2.0f / drawData->DisplaySize.y;
+		float translate[2];
+		translate[0] = -1.0f - drawData->DisplayPos.x * scale[0];
+		translate[1] = -1.0f - drawData->DisplayPos.y * scale[1];
+		pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, 0, &scale);
+		pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, sizeof(float) * 2, &translate);
 
-			// Will project scissor/clipping rectangles into framebuffer space
-			ImVec2 clipOff = drawData->DisplayPos;         // (0,0) unless using multi-viewports
-			ImVec2 clipScale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+		// Will project scissor/clipping rectangles into framebuffer space
+		ImVec2 clipOff = drawData->DisplayPos;         // (0,0) unless using multi-viewports
+		ImVec2 clipScale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
 
-			// Render command lists
-			// (Because we merged all buffers into a single one, we maintain our own offset into them)
-			vtxOffest = 0;
-			idxOffest = 0;
-			for (int n = 0; n < drawData->CmdListsCount; n++)
+		// Render command lists
+		// (Because we merged all buffers into a single one, we maintain our own offset into them)
+		UInt32 vtxOffest = 0;
+		UInt32 idxOffest = 0;
+		for (int n = 0; n < drawData->CmdListsCount; n++)
+		{
+			const ImDrawList* pCmdList = drawData->CmdLists[n];
+			for (int i = 0; i < pCmdList->CmdBuffer.Size; i++)
 			{
-				const ImDrawList* pCmdList = drawData->CmdLists[n];
-				for (int i = 0; i < pCmdList->CmdBuffer.Size; i++)
-				{
-					const ImDrawCmd* pcmd = &pCmdList->CmdBuffer[i];
-					// Project scissor/clipping rectangles into framebuffer space
-					ImVec2 clipMin((pcmd->ClipRect.x - clipOff.x) * clipScale.x, (pcmd->ClipRect.y - clipOff.y) * clipScale.y);
-					ImVec2 clipMax((pcmd->ClipRect.z - clipOff.x) * clipScale.x, (pcmd->ClipRect.w - clipOff.y) * clipScale.y);
+				const ImDrawCmd* pcmd = &pCmdList->CmdBuffer[i];
+				// Project scissor/clipping rectangles into framebuffer space
+				ImVec2 clipMin((pcmd->ClipRect.x - clipOff.x) * clipScale.x, (pcmd->ClipRect.y - clipOff.y) * clipScale.y);
+				ImVec2 clipMax((pcmd->ClipRect.z - clipOff.x) * clipScale.x, (pcmd->ClipRect.w - clipOff.y) * clipScale.y);
 
-					// Clamp to viewport as vkCmdSetScissor() won't accept values that are off bounds
-					if (clipMin.x < 0.0f) { clipMin.x = 0.0f; }
-					if (clipMin.y < 0.0f) { clipMin.y = 0.0f; }
-					if (clipMax.x > width) { clipMax.x = static_cast<float>(width); }
-					if (clipMax.y > height) { clipMax.y = static_cast<float>(height); }
-					if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
-						continue;
+				// Clamp to viewport as vkCmdSetScissor() won't accept values that are off bounds
+				if (clipMin.x < 0.0f) { clipMin.x = 0.0f; }
+				if (clipMin.y < 0.0f) { clipMin.y = 0.0f; }
+				if (clipMax.x > width) { clipMax.x = static_cast<float>(width); }
+				if (clipMax.y > height) { clipMax.y = static_cast<float>(height); }
+				if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
+					continue;
 
-					// Apply scissor/clipping rectangle
-					Rect scissor;
-					scissor.left = (Int32)(clipMin.x);
-					scissor.top = (Int32)(clipMin.y);
-					scissor.right = (Int32)(clipMax.x);
-					scissor.bottom = (Int32)(clipMax.y);
-					pBuf.SetScissor(scissor);
+				// Apply scissor/clipping rectangle
+				Rect scissor;
+				scissor.left = (Int32)(clipMin.x);
+				scissor.top = (Int32)(clipMin.y);
+				scissor.right = (Int32)(clipMax.x);
+				scissor.bottom = (Int32)(clipMax.y);
+				pBuf.SetScissor(scissor);
 
-					// Bind DescriptorSet with font or user texture
-					//VkDescriptorSet set = (VkDescriptorSet)pcmd->TextureId;
-					pBuf.BindDescriptorSet(mpGUIPipelineLayout, 0, mContext.imguiSet);
+				// Bind DescriptorSet with font or user texture
+				//VkDescriptorSet set = (VkDescriptorSet)pcmd->TextureId;
+				pBuf.BindDescriptorSet(mpGUIPipelineLayout, 0, mContext.imguiSet);
 
-					pBuf.DrawIndexed(pcmd->ElemCount, 1, pcmd->IdxOffset + idxOffest, pcmd->VtxOffset + vtxOffest, 0);
-				}
-				idxOffest += pCmdList->IdxBuffer.Size;
-				vtxOffest += pCmdList->VtxBuffer.Size;
+				pBuf.DrawIndexed(pcmd->ElemCount, 1, pcmd->IdxOffset + idxOffest, pcmd->VtxOffset + vtxOffest, 0);
 			}
+			idxOffest += pCmdList->IdxBuffer.Size;
+			vtxOffest += pCmdList->VtxBuffer.Size;
 		}
 
 		// Note: at this point both vkCmdSetViewport() and vkCmdSetScissor() have been called.

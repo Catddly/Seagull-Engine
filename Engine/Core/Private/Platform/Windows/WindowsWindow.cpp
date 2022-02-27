@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "Platform/OS.h"
 
+#include <windows.h>
+
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
@@ -181,12 +183,16 @@ namespace SG
 
 	UInt32 Window::GetWidth()
 	{
-		return GetRectWidth(GetCurrRect());
+		RECT rect = {};
+		::GetClientRect((HWND)mHandle, &rect);
+		return rect.right;
 	}
 
 	UInt32 Window::GetHeight()
 	{
-		return GetRectHeight(GetCurrRect());
+		RECT rect = {};
+		::GetClientRect((HWND)mHandle, &rect);
+		return rect.bottom;
 	}
 
 	float Window::GetAspectRatio()

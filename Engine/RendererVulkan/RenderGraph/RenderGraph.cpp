@@ -68,6 +68,8 @@ namespace SG
 		auto& commandBuf = mpRenderContext->commandBuffers[frameIndex];
 		auto* pColorRt = mpRenderContext->colorRts[frameIndex];
 
+		RenderGraphNode::RGDrawContext drawContext = { &commandBuf, frameIndex };
+
 		commandBuf.BeginRecord();
 		for (auto* pCurrNode : mpNodes)
 		{
@@ -92,7 +94,7 @@ namespace SG
 			cv.depthStencil = { 1.0f, 0 };
 
 			commandBuf.BeginRenderPass(pFrameBuffer, cv);
-			pCurrNode->Execute(commandBuf);
+			pCurrNode->Execute(drawContext);
 			commandBuf.EndRenderPass();
 		}
 		commandBuf.EndRecord();
