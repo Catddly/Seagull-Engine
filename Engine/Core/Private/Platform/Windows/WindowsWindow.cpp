@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "Platform/OS.h"
 
+#include "Memory/Memory.h"
+
 #include <windows.h>
 
 #ifdef SG_PLATFORM_WINDOWS
@@ -23,7 +25,7 @@ namespace SG
 	}
 
 	Window::Window(Monitor* const pMonitor, wstring_view name /*= "Mr No Name"*/)
-		:mpCurrMonitor(pMonitor)
+		:mpCurrMonitor(pMonitor), mTitie(name)
 	{
 		HINSTANCE instance = (HINSTANCE)::GetModuleHandle(NULL);
 
@@ -55,10 +57,22 @@ namespace SG
 		::DestroyWindow((HWND)mHandle);
 	}
 
+	void Window::SetTitle(const char* title)
+	{
+		int length = MultiByteToWideChar(CP_ACP, 0, title, -1, NULL, 0);
+		WCHAR* buf = reinterpret_cast<WCHAR*>(Memory::Malloc(sizeof(WCHAR) * (length + 1)));
+		ZeroMemory(buf, (length + 1) * sizeof(WCHAR));
+		MultiByteToWideChar(CP_ACP, 0, title, -1, buf, length);
+		mTitie = buf;
+		Memory::Free(buf);
+
+		::SetWindowText((HWND)mHandle, mTitie.c_str());
+	}
+
 	void Window::AdjustWindow()
 	{
 		HWND handle = (HWND)mHandle;
-		if (bIsFullScreen)
+		if (mbIsFullScreen)
 		{
 			// set borderless window
 			::SetWindowLong(handle, GWL_STYLE, WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN /* no child window draw inside parent*/ |
@@ -80,7 +94,7 @@ namespace SG
 				GetRectHeight(mWindowedRect),
 				SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
-			if (bIsMaximized)
+			if (mbIsMaximized)
 				::ShowWindow(handle, SW_MAXIMIZE);
 			else
 				::ShowWindow(handle, SW_NORMAL);
@@ -99,11 +113,11 @@ namespace SG
 
 	void Window::Resize(const Rect& rect)
 	{
-		if (bIsFullScreen)
+		if (mbIsFullScreen)
 		{
 			if (rect != mFullscreenRect)
 			{
-				bIsFullScreen = false;
+				mbIsFullScreen = false;
 				mWindowedRect = rect;
 				AdjustWindow();
 			}
@@ -130,32 +144,56 @@ namespace SG
 
 	void Window::ToggleFullSrceen()
 	{
-		bIsFullScreen = !bIsFullScreen;
+		mbIsFullScreen = !mbIsFullScreen;
 		AdjustWindow();
 	}
 
 	void Window::Maximized()
 	{
-		bIsMaximized = true;
+		mbIsMaximized = true;
 		::ShowWindow((HWND)mHandle, SW_MAXIMIZE);
 	}
 
 	void Window::Minimized()
 	{
-		bIsMinimized = true;
+		mbIsMinimized = true;
 		::ShowWindow((HWND)mHandle, SW_MAXIMIZE);
 	}
 
 	bool Window::IsMinimize() const
 	{
-		return bIsMinimized;
+		return mbIsMinimized;
+	}
+
+	void Window::SetFocus()
+	{
+		::SetFocus((HWND)mHandle);
+		::SetForegroundWindow((HWND)mHandle);
+	}
+
+	bool Window::IsFocus()
+	{
+		HWND handle = ::GetFocus();
+		return (handle == mHandle);
+	}
+
+	void Window::SetSize(UInt32 width, UInt32 height)
+	{
+		::SetWindowPos((HWND)mHandle, HWND_TOP, 0, 0,
+			(int)width, (int)height, SWP_NOMOVE | SWP_SHOWWINDOW);
+	}
+
+	void Window::SetPosition(UInt32 x, UInt32 y)
+	{
+		::SetWindowPos((HWND)mHandle, HWND_TOP, (int)x, (int)y,
+			0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
 	}
 
 	SG::Vector2i Window::GetMousePosRelative() const
 	{
 		POINT pos = {};
 		::GetCursorPos(&pos);
-		ClientToScreen((HWND)mHandle, &pos);
+		::ScreenToClient((HWND)mHandle, &pos);
 		Vector2i position = { pos.x, pos.y };
 		return eastl::move(position);
 	}
@@ -167,7 +205,7 @@ namespace SG
 
 	Rect Window::GetCurrRect()
 	{
-		if (bIsFullScreen)
+		if (mbIsFullScreen)
 			return mFullscreenRect;
 		else
 		{

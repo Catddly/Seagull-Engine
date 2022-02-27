@@ -230,7 +230,6 @@ namespace SG
 		pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, 0, &scale);
 		pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, sizeof(float) * 2, &translate);
 
-		// Will project scissor/clipping rectangles into framebuffer space
 		ImVec2 clipOff = drawData->DisplayPos;         // (0,0) unless using multi-viewports
 		ImVec2 clipScale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
 

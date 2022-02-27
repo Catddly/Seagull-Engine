@@ -109,8 +109,10 @@ namespace SG
 	class Window
 	{
 	public:
-		explicit Window(Monitor* const pMonitor, wstring_view name = L"Mr No Name");
-		~Window();
+		SG_CORE_API explicit Window(Monitor* const pMonitor, wstring_view name = L"Mr No Name");
+		SG_CORE_API ~Window();
+
+		SG_CORE_API void SetTitle(const char* title);
 
 		SG_CORE_API void ShowWindow() const;
 		SG_CORE_API void HideWindow() const;
@@ -124,6 +126,12 @@ namespace SG
 
 		SG_CORE_API bool IsMinimize() const;
 
+		SG_CORE_API void SetFocus();
+		SG_CORE_API bool IsFocus();
+
+		SG_CORE_API void SetSize(UInt32 width, UInt32 height);
+		SG_CORE_API void SetPosition(UInt32 x, UInt32 y);
+
 		SG_CORE_API Rect   GetCurrRect();
 		SG_CORE_API UInt32 GetWidth();
 		SG_CORE_API UInt32 GetHeight();
@@ -133,11 +141,12 @@ namespace SG
 	private:
 		void AdjustWindow();
 	private:
+		wstring      mTitie;
 		WindowHandle mHandle = nullptr;
 		Monitor*     mpCurrMonitor = nullptr;
-		bool         bIsFullScreen = false;
-		bool         bIsMaximized = false;
-		bool         bIsMinimized = false;
+		bool         mbIsFullScreen = false;
+		bool         mbIsMaximized = false;
+		bool         mbIsMinimized = false;
 		Rect         mFullscreenRect;
 		Rect         mWindowedRect;    //! Used to save the size of windowed rect, to restore from full screen.
 	};
