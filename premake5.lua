@@ -8,6 +8,11 @@ workspace "Seagull"
 		"Release"
     }
 
+    platforms
+    {
+        "Win64",
+    }
+
     flags
     {
 		"MultiProcessorCompile"
@@ -27,8 +32,9 @@ group ""
 
 group "Libs"
 
-    include "Libs/eastl/"
+    include "Libs/volk/"
     include "Libs/mimalloc/"
+    include "Libs/eastl/"
     include "Libs/assimp/"
     include "Libs/imgui/"
 
@@ -93,5 +99,9 @@ group "Runtime"
     filter "configurations:Release"
         runtime "Release"
         optimize "on"
+
+    filter "platforms:Win64"
+        system "Windows"
+        architecture "x86_64"
 
 group ""

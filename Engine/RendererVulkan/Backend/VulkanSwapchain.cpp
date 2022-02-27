@@ -11,10 +11,6 @@
 
 #include "Memory/Memory.h"
 
-#ifdef SG_PLATFORM_WINDOWS
-#	include <vulkan/vulkan_win32.h>
-#endif
-
 namespace SG
 {
 

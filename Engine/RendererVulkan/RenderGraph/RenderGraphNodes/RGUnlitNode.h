@@ -5,7 +5,9 @@
 
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
-#include "vulkan/vulkan_core.h" //TODO: remove it.
+// TODO: remove it
+#include "volk.h"
+
 #include "Stl/vector.h"
 
 namespace SG

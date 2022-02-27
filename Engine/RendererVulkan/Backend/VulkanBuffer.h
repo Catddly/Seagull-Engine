@@ -5,7 +5,7 @@
 
 #include "VulkanDevice.h"
 
-#include <vulkan/vulkan_core.h>
+#include "volk.h"
 
 namespace SG
 {

@@ -9,10 +9,6 @@
 
 #include "Stl/vector.h"
 
-#ifdef SG_PLATFORM_WINDOWS
-#	include <vulkan/vulkan_win32.h>
-#endif
-
 namespace SG
 {
 
@@ -54,11 +50,29 @@ namespace SG
 
 	VulkanInstance::VulkanInstance()
 	{
+		// dynamically load in vulkan lib
+		auto vkRes = volkInitialize();
+		VK_CHECK(vkRes, SG_LOG_ERROR("Failed to initialize volk!"); );
+
 		if (!CreateVkInstance())
 		{
 			SG_LOG_ERROR("Failed to create vulkan instance!");
 			SG_ASSERT(false);
 		}
+
+		volkLoadInstanceOnly(instance);
+		uint32_t version = volkGetInstanceVersion();
+		if (version == 0)
+		{
+			SG_LOG_ERROR("Device DO NOT SUPPORT VULKAN!");
+			SG_ASSERT(false);
+		}
+
+		SG_LOG_INFO("Vulkan version: %d.%d.%d",
+			VK_VERSION_MAJOR(version),
+			VK_VERSION_MINOR(version),
+			VK_VERSION_PATCH(version));
+
 		SelectPhysicalDevice();
 	}
 

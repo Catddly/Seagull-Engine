@@ -40,6 +40,8 @@ namespace SG
 		vkGetPhysicalDeviceFeatures(physicalDevice, &physicalDeviceFeatures);
 
 		CreateLogicalDevice(nullptr);
+
+		volkLoadDevice(logicalDevice);
 	}
 
 	VulkanDevice::~VulkanDevice()

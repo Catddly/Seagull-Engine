@@ -32,20 +32,30 @@ project "SRendererVulkan"
         "../../Libs/",
         "../../Libs/eastl/include/", -- eastl
         "../../Libs/imgui/include/", -- imgui
+        "../../Libs/volk/include/", -- volk
+        "../../Libs/volk/source/"
     }
 
     links
     {
-        "../../Libs/vulkan/libs/vulkan.lib",
-        "eastl",
+        "volk",
         "mimalloc",
+        "eastl",
         "imgui",
         "SCore",
+    }
+
+    ignoredefaultlibraries 
+    { 
+        "LIBCMTD"
     }
 
     filter "system:windows"
     systemversion "latest"
     defines "SG_PLATFORM_WINDOWS"
+    
+    filter { "platforms:Win64" }
+        defines { "VK_USE_PLATFORM_WIN32_KHR" }
 
 filter "configurations:Debug"
     runtime "Debug"
