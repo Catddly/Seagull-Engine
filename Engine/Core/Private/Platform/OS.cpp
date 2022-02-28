@@ -29,7 +29,7 @@ namespace SG
 		return mDeviceManager.GetPrimaryMonitor();
 	}
 
-	UInt32 OperatingSystem::GetAdapterCount()
+	const UInt32 OperatingSystem::GetAdapterCount()
 	{
 		return mDeviceManager.GetAdapterCount();
 	}
@@ -44,6 +44,11 @@ namespace SG
 		return mWindowManager.GetMainWindow();
 	}
 
+	Window* OperatingSystem::CreateNewWindow()
+	{
+		return mWindowManager.CreateNewWindow(GetMainMonitor());
+	}
+
 	Vector2i OperatingSystem::GetMousePos()
 	{
 		POINT pos = {};
@@ -52,9 +57,24 @@ namespace SG
 		return eastl::move(p);
 	}
 
+	void OperatingSystem::ShowMouseCursor()
+	{
+		mWindowManager.ShowMouseCursor();
+	}
+
+	void OperatingSystem::HideMouseCursor()
+	{
+		mWindowManager.HideMouseCursor();
+	}
+
+	void OperatingSystem::SetMouseCursor(ECursorType type)
+	{
+		mWindowManager.SetMouseCursor(type);
+	}
+
 	bool OperatingSystem::IsMainWindowOutOfScreen()
 	{
-		Window*  mainWindow = mWindowManager.GetMainWindow();
+		Window* mainWindow = mWindowManager.GetMainWindow();
 		Monitor* mainMonitor = mDeviceManager.GetPrimaryMonitor();
 		Vector2i RPos = mainWindow->GetMousePosRelative();
 		Vector2i APos = GetMousePos();

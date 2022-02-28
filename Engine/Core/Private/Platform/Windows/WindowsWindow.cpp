@@ -189,6 +189,37 @@ namespace SG
 			0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
 	}
 
+	void Window::SetClipboardText(const char* text)
+	{
+		::OpenClipboard((HWND)mHandle);
+		::EmptyClipboard();
+
+		HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, (strlen(text) + 1) * sizeof(char));
+		LPSTR lpstrcpy = (LPSTR)GlobalLock(mem);
+		memcpy(lpstrcpy, text, (strlen(text) + 1) * sizeof(char));
+		GlobalUnlock(mem);
+
+		::SetClipboardData(CF_TEXT, lpstrcpy);
+		::CloseClipboard();
+	}
+
+	const char* Window::GetClipboardText()
+	{
+		char* text = NULL;
+		::OpenClipboard((HWND)mHandle);
+
+		if (::IsClipboardFormatAvailable(CF_TEXT))
+		{
+			void* pMemory = ::GetClipboardData(CF_TEXT);
+			LPSTR wstr = (LPSTR)GlobalLock(pMemory);
+			text = wstr;
+			GlobalUnlock(pMemory);
+		}
+
+		::CloseClipboard();
+		return text;
+	}
+
 	SG::Vector2i Window::GetMousePosRelative() const
 	{
 		POINT pos = {};
@@ -201,6 +232,16 @@ namespace SG
 	WindowHandle Window::GetNativeHandle()
 	{
 		return mHandle;
+	}
+
+	bool Window::IsMouseCursorInWindow()
+	{
+		auto mousePos = GetMousePosRelative();
+		bool bIn = true;
+		if (mousePos[0] < 0 || mousePos[1] < 0 ||
+			mousePos[0] > (int)GetWidth() || mousePos[1] > (int)GetHeight())
+			bIn = false;
+		return bIn;
 	}
 
 	Rect Window::GetCurrRect()

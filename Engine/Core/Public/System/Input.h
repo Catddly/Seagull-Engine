@@ -13,6 +13,8 @@
 #	include <windows.h>
 #endif
 
+#include "Math/Vector.h"
+
 namespace SG
 {
 
@@ -21,7 +23,7 @@ namespace SG
 		KeyCode_Back = 0,
 		KeyCode_Tab,
 		KeyCode_Clear,
-		KeyCode_Return,
+		KeyCode_Enter,
 		KeyCode_LeftShift,
 		KeyCode_RightShift,
 		KeyCode_Shift,
@@ -31,6 +33,7 @@ namespace SG
 		KeyCode_LeftMenu,
 		KeyCode_RightMenu,
 		KeyCode_Menu,
+		KeyCode_Apostrophe,
 		KeyCode_BrowserBack,
 		KeyCode_BrowserForward,
 		KeyCode_BrowserRefresh,
@@ -177,6 +180,7 @@ namespace SG
 	VK_LMENU,
 	VK_RMENU,
 	VK_MENU,
+	VK_OEM_7,
 	VK_BROWSER_BACK,
 	VK_BROWSER_FORWARD,
 	VK_BROWSER_REFRESH,
@@ -304,7 +308,7 @@ namespace SG
 		KeyCode_Null,
 		KeyCode_Null,
 		KeyCode_Clear,
-		KeyCode_Return,
+		KeyCode_Enter,
 		KeyCode_Null,
 		KeyCode_Null,
 		KeyCode_Shift,
@@ -386,7 +390,6 @@ namespace SG
 		KeyCode_RightWin,
 		KeyCode_RightWin,
 		KeyCode_Apps,
-		KeyCode_Null,
 		KeyCode_Sleep,
 		KeyCode_Numpad0,
 		KeyCode_Numpad1,
@@ -513,6 +516,7 @@ namespace SG
 		KeyCode_Null,
 		KeyCode_Null,
 		KeyCode_Null,
+		KeyCode_Apostrophe,
 		KeyCode_Null,
 		KeyCode_Null,
 		KeyCode_Null,
@@ -544,7 +548,7 @@ namespace SG
 		KeyCode_Null,
 		KeyCode_Null,
 		KeyCode_Null,
-		KeyCode_Null,
+		KeyCode_Null
 	};
 #endif
 
@@ -588,17 +592,20 @@ namespace SG
 #ifdef SG_PLATFORM_WINDOWS
 		friend static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #endif
-		static void OnSystemKeyInputEvent(EKeyCode keycode, EKeyState keyState);
-		static void OnSystemMouseKeyInputEvent(EKeyCode keycode, EKeyState keyState);
+		static void OnSystemKeyInputEvent(EKeyCode keycode, bool bPressed);
+		static void OnSystemMouseKeyInputEvent(EKeyCode keycode, bool bPressed);
 		static void OnSystemMouseMoveInputEvent(int xPos, int yPos);
 		static void OnSystemMouseWheelInputEvent(int direction);
 	private:
-		friend struct IInput;
-
 		static eastl::set<IInputListener*> mpListeners;
-		static eastl::vector<eastl::pair<EKeyCode, EKeyState>> msKeyFrameInputDelta;
-		static eastl::array<bool, 3> msMouseFrameInputDelta;
-		static eastl::array<bool, 3> msMousePrevFrameInputDelta;
+
+		static Vector2i mCurrFrameMousePos;
+		static Vector2i mPrevFrameMousePos;
+
+		static int mCurrFrameWheelDirection;
+
+		static bool  mKeyStatusMap[KEYCODE_COUNT];
+		static float mKeyElapsedTimeMap[KEYCODE_COUNT];
 	};
 
 }

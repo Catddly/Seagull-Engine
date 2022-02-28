@@ -2,19 +2,22 @@
 #include "System/Input.h"
 
 #include "System/Logger.h"
+#include "Platform/OS.h"
 
 namespace SG
 {
 
 	eastl::set<IInputListener*> Input::mpListeners;
-	eastl::vector<eastl::pair<EKeyCode, EKeyState>> Input::msKeyFrameInputDelta;
-	eastl::array<bool, 3> Input::msMouseFrameInputDelta;
-	eastl::array<bool, 3> Input::msMousePrevFrameInputDelta;
+	Vector2i Input::mCurrFrameMousePos;
+	Vector2i Input::mPrevFrameMousePos;
+
+	int Input::mCurrFrameWheelDirection = 0;
+
+	bool  Input::mKeyStatusMap[KEYCODE_COUNT] = {};
+	float Input::mKeyElapsedTimeMap[KEYCODE_COUNT] = {};
 
 	void Input::OnInit()
 	{
-		for (auto& e : msMousePrevFrameInputDelta)
-			e = false;
 	}
 
 	void Input::OnShutdown()
@@ -51,94 +54,85 @@ namespace SG
 
 	void Input::OnUpdate(float deltaTime)
 	{
-		if (msKeyFrameInputDelta.empty())
+		for (UInt32 i = 0; i < KEYCODE_COUNT; ++i)
 		{
-			for (auto* e : mpListeners)
-			{
-				if (!e->OnKeyInputUpdate(KeyCode_Null, EKeyState::eNull))
-					break;
-			}
-		}
-		else
-		{
-			for (auto& input : msKeyFrameInputDelta)
+			if (mKeyStatusMap[i]) // if pressed
+				mKeyElapsedTimeMap[i] += deltaTime; // update timer
+			else
+				mKeyElapsedTimeMap[i] = 0.0f;
+
+			if (mKeyElapsedTimeMap[i] >= 500.0f) // hold more than 0.5s
 			{
 				for (auto* e : mpListeners)
 				{
-					if (!e->OnKeyInputUpdate(input.first, input.second))
+					if (!e->OnKeyInputUpdate(EKeyCode(i), EKeyState::eHold))
 						break;
 				}
 			}
-			msKeyFrameInputDelta.clear();
 		}
 
-		for (Size i = 0; i < msMouseFrameInputDelta.size(); ++i)
+		if (OperatingSystem::GetMainWindow()->IsMouseCursorInWindow())
 		{
-			if (msMouseFrameInputDelta[i] && msMousePrevFrameInputDelta[i]) // pressed once but not release
+			int moveDeltaX = mCurrFrameMousePos[0] - mPrevFrameMousePos[0];
+			int moveDeltaY = mPrevFrameMousePos[1] - mCurrFrameMousePos[1];
+
+			if (moveDeltaX != 0 || moveDeltaY != 0)
 			{
 				for (auto* e : mpListeners)
 				{
-					if (!e->OnKeyInputUpdate(EKeyCode(i + 124), EKeyState::eHold)) // mouse button holding event
+					if (!e->OnMouseMoveInputUpdate(mCurrFrameMousePos[0], mCurrFrameMousePos[1], moveDeltaX, moveDeltaY))
 						break;
 				}
 			}
-			msMousePrevFrameInputDelta[i] = msMouseFrameInputDelta[i];
+
+			mPrevFrameMousePos = mCurrFrameMousePos;
+
+			if (mCurrFrameWheelDirection != 0)
+			{
+				for (auto* e : mpListeners)
+				{
+					if (!e->OnMouseWheelInputUpdate(mCurrFrameWheelDirection))
+						break;
+				}
+				mCurrFrameWheelDirection = 0;
+			}
 		}
 	}
 
-	void Input::OnSystemKeyInputEvent(EKeyCode keycode, EKeyState keyState)
+	void Input::OnSystemKeyInputEvent(EKeyCode keycode, bool bPressed)
 	{
-		msKeyFrameInputDelta.emplace_back(eastl::make_pair(keycode, keyState));
+		for (auto* e : mpListeners)
+		{
+			if (!e->OnKeyInputUpdate(keycode, (bPressed == true) ? EKeyState::ePressed : EKeyState::eRelease))
+				break;
+		}
+		mKeyStatusMap[keycode] = bPressed;
 	}
 
-	void Input::OnSystemMouseKeyInputEvent(EKeyCode keycode, EKeyState keyState)
+	void Input::OnSystemMouseKeyInputEvent(EKeyCode keycode, bool bPressed)
 	{
-		if (keyState == EKeyState::ePressed)
+		for (auto* e : mpListeners)
 		{
-			msKeyFrameInputDelta.emplace_back(eastl::make_pair(keycode, keyState));
-			msMouseFrameInputDelta[keycode - 124] = true;
+			if (!e->OnKeyInputUpdate(keycode, (bPressed == true) ? EKeyState::ePressed : EKeyState::eRelease))
+				break;
 		}
-		else if (keyState == EKeyState::eRelease)
-		{
-			msKeyFrameInputDelta.emplace_back(eastl::make_pair(keycode, keyState));
-			msMouseFrameInputDelta[keycode - 124] = false;
-		}
+		mKeyStatusMap[keycode] = bPressed;
 	}
 
 	void Input::OnSystemMouseMoveInputEvent(int xPos, int yPos)
 	{
-		static int sPrevMousePosX = xPos;
-		static int sPrevMousePosY = yPos;
-
-		int moveDeltaX = xPos - sPrevMousePosX;
-		int moveDeltaY = sPrevMousePosY - yPos;
-
-		if (moveDeltaX != 0 || moveDeltaY != 0)
-		{
-			for (auto* e : mpListeners)
-			{
-				if (!e->OnMouseMoveInputUpdate(xPos, yPos, moveDeltaX, moveDeltaY))
-					break;
-			}
-		}
-
-		sPrevMousePosX = xPos;
-		sPrevMousePosY = yPos;
+		mCurrFrameMousePos = { xPos, yPos };
 	}
 
 	void Input::OnSystemMouseWheelInputEvent(int direction)
 	{
-		for (auto* e : mpListeners)
-		{
-			if (!e->OnMouseWheelInputUpdate(direction))
-				break;
-		}
+		mCurrFrameWheelDirection = direction;
 	}
 
 	bool Input::IsKeyPressed(EKeyCode keycode)
 	{
 		if (keycode >= 124) // is mouse key
-			return msMouseFrameInputDelta[keycode - 124];
+			return mKeyStatusMap[keycode];
 
 		SHORT ret = ::GetAsyncKeyState(gKeyCodeToPlatformMap[keycode]);
 		// Get the MSB

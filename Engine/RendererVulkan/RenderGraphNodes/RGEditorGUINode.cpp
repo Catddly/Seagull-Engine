@@ -125,17 +125,26 @@ namespace SG
 	{
 		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp });
 
-		mpGUIDriver->OnDraw();
+		mpGUIDriver->OnUpdate();
 		ImGui::NewFrame();
 
 		bool bShowDemoWindow = true;
 		ImGui::ShowDemoWindow(&bShowDemoWindow);
 
 		ImGui::Begin("Test");
-		ImGui::Button("Button1");
+		if (ImGui::Button("Button1"))
+			SG_LOG_DEBUG("Button Pressed!");
 		ImGui::End();
 
 		ImGui::EndFrame();
+
+		auto& io = ImGui::GetIO();
+		// Update and Render additional Platform Windows
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
 	}
 
 	void RGEditorGUINode::Execute(RGDrawContext& context)

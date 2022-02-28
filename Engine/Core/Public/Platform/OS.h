@@ -21,6 +21,24 @@ namespace SG
 		eQuit,
 	};
 
+	enum class ECursorType
+	{
+		eArrow = 0,
+		eTextInput,
+		eResizeNS, // north, south resize
+		eResizeWE, // west, east resize
+		eResizeNWSE, // north-west, south-east resize
+		eResizeNESW, // north-east, south-west resize
+		eResizeAll,
+		eHand,
+		eNoAllowed,
+		eHelp,
+		eStarting,
+		eWait,
+
+		MAX_NUM_CURSOR,
+	};
+
 	//! Resolution in pixel.
 	struct Resolution
 	{
@@ -132,23 +150,28 @@ namespace SG
 		SG_CORE_API void SetSize(UInt32 width, UInt32 height);
 		SG_CORE_API void SetPosition(UInt32 x, UInt32 y);
 
+		SG_CORE_API void        SetClipboardText(const char* text);
+		SG_CORE_API const char* GetClipboardText();
+
 		SG_CORE_API Rect   GetCurrRect();
 		SG_CORE_API UInt32 GetWidth();
 		SG_CORE_API UInt32 GetHeight();
 		SG_CORE_API float  GetAspectRatio();
 		SG_CORE_API Vector2i GetMousePosRelative() const;
 		SG_CORE_API WindowHandle GetNativeHandle();
+
+		SG_CORE_API bool IsMouseCursorInWindow();
 	private:
 		void AdjustWindow();
 	private:
 		wstring      mTitie;
 		WindowHandle mHandle = nullptr;
 		Monitor*     mpCurrMonitor = nullptr;
+		Rect         mFullscreenRect;
+		Rect         mWindowedRect;    //! Used to save the size of windowed rect, to restore from full screen.
 		bool         mbIsFullScreen = false;
 		bool         mbIsMaximized = false;
 		bool         mbIsMinimized = false;
-		Rect         mFullscreenRect;
-		Rect         mWindowedRect;    //! Used to save the size of windowed rect, to restore from full screen.
 	};
 
 	class DeviceManager
@@ -163,9 +186,9 @@ namespace SG
 		//! Get the primary monitor.
 		Monitor* GetPrimaryMonitor();
 		//! Get current monitor's dpi scale
-		Vector2f  GetDpiScale() const;
+		Vector2f GetDpiScale() const;
 
-		UInt32    GetAdapterCount() const;
+		UInt32   GetAdapterCount() const;
 		Adapter* GetPrimaryAdapter();
 	private:
 		//! Collect all the informations of the monitors and the adapters currently active.
@@ -182,9 +205,18 @@ namespace SG
 		void OnInit(Monitor* const pMonitor);
 		void OnShutdown();
 
+		Window* CreateNewWindow(Monitor* const pMonitor);
+
 		Window* GetMainWindow() const;
+
+		// should window manager have all these api?
+		void ShowMouseCursor() const;
+		void HideMouseCursor() const;
+
+		void SetMouseCursor(ECursorType type);
 	private:
 		Window* mMainWindow = nullptr;
+		vector<Window*> mSecondaryWindows;
 	};
 
 	//! Helper function to get the width of the SRect.
@@ -201,11 +233,18 @@ namespace SG
 	{
 	public:
 		SG_CORE_API static Monitor* GetMainMonitor();
-		SG_CORE_API static UInt32   GetAdapterCount();
 		SG_CORE_API static Adapter* GetPrimaryAdapter();
-		SG_CORE_API static Window*  GetMainWindow();
+		SG_CORE_API static const UInt32 GetAdapterCount();
+		SG_CORE_API static Window* GetMainWindow();
+
+		SG_CORE_API static Window* CreateNewWindow();
 
 		SG_CORE_API static Vector2i GetMousePos();
+
+		SG_CORE_API static void ShowMouseCursor();
+		SG_CORE_API static void HideMouseCursor();
+
+		SG_CORE_API static void SetMouseCursor(ECursorType type);
 
 		SG_CORE_API static bool IsMainWindowOutOfScreen();
 	private:

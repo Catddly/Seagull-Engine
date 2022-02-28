@@ -1,14 +1,17 @@
 #include "StdAfx.h"
 #include "Platform/OS.h"
 
+#include "System/Logger.h"
 #include "System/Input.h"
 #include "System/System.h"
 #include "Memory/Memory.h"
 
+#if 1
+#include <windows.h>
+#endif
+
 namespace SG
 {
-
-	static int gPrevKey = -1;
 
 	// default window process callback
 	static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -27,30 +30,25 @@ namespace SG
 		}
 		case WM_KEYDOWN:
 		{
-			if (gPrevKey == wParam)
-				Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eHold);
-			else
-				Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::ePressed);
-			gPrevKey = (int)wParam;
+			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], true);
 			break;
 		}
 		case WM_KEYUP:
 		{
-			if (gPrevKey == wParam) // reset
-				gPrevKey = -1;
-			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], EKeyState::eRelease);
+			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], false);
+
 			if (wParam == VK_ESCAPE)
 				PostQuitMessage(0);
 			break;
 		}
 		case WM_LBUTTONUP:
 		{
-			Input::OnSystemMouseKeyInputEvent(KeyCode_MouseLeft, EKeyState::eRelease);
+			Input::OnSystemMouseKeyInputEvent(KeyCode_MouseLeft, false);
 			break;
 		}
 		case WM_LBUTTONDOWN:
 		{
-			Input::OnSystemMouseKeyInputEvent(KeyCode_MouseLeft, EKeyState::ePressed);
+			Input::OnSystemMouseKeyInputEvent(KeyCode_MouseLeft, true);
 			break;
 		}
 		case WM_MOUSEMOVE:
@@ -62,7 +60,7 @@ namespace SG
 		}
 		case WM_MOUSEWHEEL:
 		{
-			int direction = GET_Y_LPARAM(wParam);
+			int direction = GET_WHEEL_DELTA_WPARAM(wParam);
 			Input::OnSystemMouseWheelInputEvent(direction / 120);
 			break;
 		}
@@ -136,16 +134,62 @@ namespace SG
 		}
 
 		mMainWindow = Memory::New<Window>(pMonitor, L"Seagull Engine");
+		mSecondaryWindows.resize(0);
 	}
 
 	void WindowManager::OnShutdown()
 	{
+		for (auto* pWindow : mSecondaryWindows)
+			Memory::Delete(pWindow);
 		Memory::Delete(mMainWindow);
 	}
 
 	SG::Window* WindowManager::GetMainWindow() const
 	{
 		return mMainWindow;
+	}
+
+	SG::Window* WindowManager::CreateNewWindow(Monitor* const pMonitor)
+	{
+		auto* newWindow = Memory::New<Window>(pMonitor);
+		mSecondaryWindows.push_back(newWindow);
+		return newWindow;
+	}
+
+	void WindowManager::ShowMouseCursor() const
+	{
+		::ShowCursor(true);
+	}
+
+	void WindowManager::HideMouseCursor() const
+	{
+		::ShowCursor(false);
+	}
+
+	void WindowManager::SetMouseCursor(ECursorType type)
+	{
+		LPCWSTR cursor = IDC_ARROW;
+		switch (type)
+		{
+		case SG::ECursorType::eArrow: cursor = IDC_ARROW; break;
+		case SG::ECursorType::eTextInput: cursor = IDC_IBEAM; break;
+		case SG::ECursorType::eResizeNS: cursor = IDC_SIZENS; break;
+		case SG::ECursorType::eResizeWE: cursor = IDC_SIZEWE; break;
+		case SG::ECursorType::eResizeNWSE: cursor = IDC_SIZENWSE; break;
+		case SG::ECursorType::eResizeNESW: cursor = IDC_SIZENESW; break;
+		case SG::ECursorType::eResizeAll: cursor = IDC_SIZEALL; break;
+		case SG::ECursorType::eHand: cursor = IDC_HAND; break;
+		case SG::ECursorType::eNoAllowed: cursor = IDC_NO; break;
+		case SG::ECursorType::eHelp: cursor = IDC_HELP; break;
+		case SG::ECursorType::eStarting: cursor = IDC_APPSTARTING; break;
+		case SG::ECursorType::eWait: cursor = IDC_WAIT; break;
+		case SG::ECursorType::MAX_NUM_CURSOR:
+		default:
+			SG_LOG_ERROR("Invalid cursor type!");
+			break;
+		}
+
+		::SetCursor(LoadCursor(NULL, cursor));
 	}
 
 }
