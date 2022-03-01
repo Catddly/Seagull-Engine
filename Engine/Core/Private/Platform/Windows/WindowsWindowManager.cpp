@@ -13,10 +13,26 @@
 namespace SG
 {
 
+	static SG_INLINE WPARAM _DistinguishLeftRightKeycode(WPARAM keycode, LPARAM testBit)
+	{
+		switch (keycode)
+		{
+		case VK_SHIFT:
+			keycode = MapVirtualKey(((testBit & 0x00ff0000) >> 16), MAPVK_VSC_TO_VK_EX);
+			break;
+		case VK_CONTROL:
+			keycode = ((testBit & 0x01000000) != 0) ? VK_RCONTROL : VK_LCONTROL;
+			break;
+		case VK_MENU:
+			keycode = ((testBit & 0x01000000) != 0) ? VK_RMENU : VK_LMENU;
+			break;
+		}
+		return keycode;
+	}
+
 	// default window process callback
 	static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
-		bool bPropagateOnDef = true;
 		bool bWindowSizeChanging = false;
 
 		switch (msg)
@@ -28,14 +44,24 @@ namespace SG
 			PostQuitMessage(0);
 			break;
 		}
+		case WM_SYSKEYDOWN:
+		{
+			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishLeftRightKeycode(wParam, lParam)], true);
+			return 0; // block left alt and right alt to the ::DefWindowProc()
+		}
+		case WM_SYSKEYUP:
+		{
+			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishLeftRightKeycode(wParam, lParam)], false);
+			return 0; // block left alt and right alt to the ::DefWindowProc()
+		}
 		case WM_KEYDOWN:
 		{
-			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], true);
+			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishLeftRightKeycode(wParam, lParam)], true);
 			break;
 		}
 		case WM_KEYUP:
 		{
-			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], false);
+			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishLeftRightKeycode(wParam, lParam)], false);
 			if (wParam == VK_ESCAPE)
 				PostQuitMessage(0);
 			break;
@@ -93,10 +119,7 @@ namespace SG
 		{
 			DWORD character = static_cast<DWORD>(wParam);
 			if (character <= 127) // ASCII
-			{
-				//SG_LOG_DEBUG("Input Char: %c", (char)character);
 				Input::OnSystemCharInput(static_cast<char>(character));
-			}
 			break;
 		}
 		case WM_IME_CHAR:
@@ -150,11 +173,7 @@ namespace SG
 		//		break;
 		//	}
 		}
-
-		if (bPropagateOnDef)
-			return ::DefWindowProc(hwnd, msg, wParam, lParam);
-		else
-			return 0;
+		return ::DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
 	void WindowManager::OnInit(Monitor* const pMonitor)

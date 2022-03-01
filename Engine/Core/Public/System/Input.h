@@ -3,17 +3,16 @@
 #include "Core/Config.h"
 #include "Base/BasicTypes.h"
 
-#include "Stl/vector.h"
-//#include <eastl/set.h>
-#include <eastl/vector_multiset.h>
-#include <eastl/utility.h>
-#include <eastl/array.h>
-#include <eastl/map.h>
-
 #ifndef WIN32_LEAN_AND_MEAN
 #	define WIN32_LEAN_AND_MEAN
 #	include <windows.h>
 #endif
+
+#include "Stl/vector.h"
+#include <eastl/vector_multiset.h>
+#include <eastl/utility.h>
+#include <eastl/array.h>
+#include <eastl/map.h>
 
 #include "Math/Vector.h"
 
@@ -32,9 +31,9 @@ namespace SG
 		KeyCode_LeftControl,
 		KeyCode_RightControl,
 		KeyCode_Control,
-		KeyCode_LeftMenu,
-		KeyCode_RightMenu,
-		KeyCode_Menu,
+		KeyCode_LeftAlt,
+		KeyCode_RightAlt,
+		KeyCode_Alt,
 		KeyCode_Apostrophe,
 		KeyCode_BrowserBack,
 		KeyCode_BrowserForward,
@@ -315,7 +314,7 @@ namespace SG
 		KeyCode_Null,
 		KeyCode_Shift,
 		KeyCode_Control,
-		KeyCode_Menu,
+		KeyCode_Alt,
 		KeyCode_Pause,
 		KeyCode_Capital,
 		KeyCode_Null,
@@ -461,8 +460,8 @@ namespace SG
 		KeyCode_RightShift,
 		KeyCode_LeftControl,
 		KeyCode_RightControl,
-		KeyCode_LeftMenu,
-		KeyCode_RightMenu,
+		KeyCode_LeftAlt,
+		KeyCode_RightAlt,
 		KeyCode_BrowserBack,
 		KeyCode_BrowserForward,
 		KeyCode_BrowserRefresh,
@@ -518,8 +517,8 @@ namespace SG
 		KeyCode_Null,
 		KeyCode_Null,
 		KeyCode_Null,
-		KeyCode_Apostrophe,
 		KeyCode_Null,
+		KeyCode_Apostrophe,
 		KeyCode_Null,
 		KeyCode_Null,
 		KeyCode_Null,

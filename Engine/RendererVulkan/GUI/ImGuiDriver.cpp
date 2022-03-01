@@ -77,13 +77,13 @@ namespace SG
 		//case GLFW_KEY_KP_EQUAL: return ImGuiKey_KeypadEqual;
 		case KeyCode_LeftShift: return ImGuiKey_LeftShift;
 		case KeyCode_LeftControl: return ImGuiKey_LeftCtrl;
-		//case KeyCode_Lefta: return ImGuiKey_LeftAlt;
+		case KeyCode_LeftAlt: return ImGuiKey_LeftAlt;
 		//case KeyCode_LeftSup: return ImGuiKey_LeftSuper;
 		case KeyCode_RightShift: return ImGuiKey_RightShift;
 		case KeyCode_RightControl: return ImGuiKey_RightCtrl;
-		//case GLFW_KEY_RIGHT_ALT: return ImGuiKey_RightAlt;
+		case KeyCode_RightAlt: return ImGuiKey_RightAlt;
 		//case GLFW_KEY_RIGHT_SUPER: return ImGuiKey_RightSuper;
-		case KeyCode_Menu: return ImGuiKey_Menu;
+		case KeyCode_Alt: return ImGuiKey_Menu;
 		case KeyCode_0: return ImGuiKey_0;
 		case KeyCode_1: return ImGuiKey_1;
 		case KeyCode_2: return ImGuiKey_2;
@@ -416,16 +416,36 @@ namespace SG
 		//else if (keyState == EKeyState::eRelease)
 		//	SG_LOG_DEBUG("Release: %d", keycode);
 
+		//if (keycode == KeyCode_LeftShift && keyState == EKeyState::ePressed)
+		//	SG_LOG_DEBUG("Left Shift!");
+		//if (keycode == KeyCode_RightShift && keyState == EKeyState::ePressed)
+		//	SG_LOG_DEBUG("Right Shift!");
+		//if (keycode == KeyCode_LeftControl && keyState == EKeyState::ePressed)
+		//	SG_LOG_DEBUG("Left Control!");
+		//if (keycode == KeyCode_RightControl && keyState == EKeyState::ePressed)
+		//	SG_LOG_DEBUG("Right Control!");
+		//if (keycode == KeyCode_LeftAlt && keyState == EKeyState::ePressed)
+		//	SG_LOG_DEBUG("Left Alt!");
+		//if (keycode == KeyCode_RightAlt && keyState == EKeyState::ePressed)
+		//	SG_LOG_DEBUG("Right Alt!");
+
 		if (keyState != EKeyState::ePressed && keyState != EKeyState::eRelease)
 			return true;
 
 		auto& io = ImGui::GetIO();
+		if (keycode == KeyCode_LeftShift || keycode == KeyCode_RightShift)
+			io.AddKeyEvent(ImGuiKey_ModShift, keyState == EKeyState::ePressed);
+		if (keycode == KeyCode_LeftControl || keycode == KeyCode_RightControl)
+			io.AddKeyEvent(ImGuiKey_ModCtrl, keyState == EKeyState::ePressed);
+		if (keycode == KeyCode_LeftAlt || keycode == KeyCode_RightAlt)
+			io.AddKeyEvent(ImGuiKey_ModAlt, keyState == EKeyState::ePressed);
+
 		if (keycode >= KeyCode_MouseLeft && keycode <= KeyCode_MouseMiddle)
 			io.AddMouseButtonEvent(ToImGuiMouseButton(keycode), (keyState == EKeyState::ePressed));
 		else
 		{
 			io.AddKeyEvent(ToImguiKey(keycode), (keyState == EKeyState::ePressed));
-			io.SetKeyEventNativeData(ToImguiKey(keycode), 65, 30); // To support legacy indexing (<1.87 user code)
+			//io.SetKeyEventNativeData(ToImguiKey(keycode), 65, 30); // To support legacy indexing (<1.87 user code)
 		}
 
 		if (io.WantCaptureMouse) // block other event
