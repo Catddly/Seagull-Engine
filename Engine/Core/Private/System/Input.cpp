@@ -13,8 +13,8 @@ namespace SG
 
 	int Input::mCurrFrameWheelDirection = 0;
 
-	bool  Input::mKeyStatusMap[KEYCODE_COUNT] = {};
-	float Input::mKeyElapsedTimeMap[KEYCODE_COUNT] = {};
+	bool Input::mKeyStatusMap[KEYCODE_COUNT] = {};
+	eastl::map<EKeyCode, float> Input::mKeyElapsedTimeMap;
 
 	void Input::OnInit()
 	{
@@ -54,69 +54,82 @@ namespace SG
 
 	void Input::OnUpdate(float deltaTime)
 	{
-		for (UInt32 i = 0; i < KEYCODE_COUNT; ++i)
+		if (!OperatingSystem::GetMainWindow()->IsMouseCursorInWindow()) // mouse is out of the screen, eliminate all holding event
 		{
-			if (mKeyStatusMap[i]) // if pressed
-				mKeyElapsedTimeMap[i] += deltaTime; // update timer
-			else
-				mKeyElapsedTimeMap[i] = 0.0f;
-
-			if (mKeyElapsedTimeMap[i] >= 500.0f) // hold more than 0.5s
+			for (auto& key : mKeyElapsedTimeMap) // force to release
 			{
 				for (auto* e : mpListeners)
 				{
-					if (!e->OnKeyInputUpdate(EKeyCode(i), EKeyState::eHold))
+					if (!e->OnKeyInputUpdate(key.first, EKeyState::eRelease))
+						break;
+				}
+				mKeyStatusMap[key.first] = false;
+			}
+			mKeyElapsedTimeMap.clear();
+		}
+
+		for (auto& key : mKeyElapsedTimeMap) // update the timer and pass the hold event
+		{
+			key.second += deltaTime;
+			if (key.second >= 0.5f) // TODO: expose this param to HoldTimeThreshold
+			{
+				for (auto* e : mpListeners)
+				{
+					if (!e->OnKeyInputUpdate(key.first, EKeyState::eHold))
 						break;
 				}
 			}
 		}
 
-		if (OperatingSystem::GetMainWindow()->IsMouseCursorInWindow())
+		// update mouse moving event
+		const int moveDeltaX = mCurrFrameMousePos[0] - mPrevFrameMousePos[0];
+		const int moveDeltaY = mPrevFrameMousePos[1] - mCurrFrameMousePos[1];
+		if (moveDeltaX != 0 || moveDeltaY != 0)
 		{
-			int moveDeltaX = mCurrFrameMousePos[0] - mPrevFrameMousePos[0];
-			int moveDeltaY = mPrevFrameMousePos[1] - mCurrFrameMousePos[1];
-
-			if (moveDeltaX != 0 || moveDeltaY != 0)
+			for (auto* e : mpListeners)
 			{
-				for (auto* e : mpListeners)
-				{
-					if (!e->OnMouseMoveInputUpdate(mCurrFrameMousePos[0], mCurrFrameMousePos[1], moveDeltaX, moveDeltaY))
-						break;
-				}
+				if (!e->OnMouseMoveInputUpdate(mCurrFrameMousePos[0], mCurrFrameMousePos[1], moveDeltaX, moveDeltaY))
+					break;
 			}
+		}
+		mPrevFrameMousePos = mCurrFrameMousePos;
 
-			mPrevFrameMousePos = mCurrFrameMousePos;
-
-			if (mCurrFrameWheelDirection != 0)
+		// update mouse wheeling event
+		if (mCurrFrameWheelDirection != 0)
+		{
+			for (auto* e : mpListeners)
 			{
-				for (auto* e : mpListeners)
-				{
-					if (!e->OnMouseWheelInputUpdate(mCurrFrameWheelDirection))
-						break;
-				}
-				mCurrFrameWheelDirection = 0;
+				if (!e->OnMouseWheelInputUpdate(mCurrFrameWheelDirection))
+					break;
 			}
+			mCurrFrameWheelDirection = 0;
 		}
 	}
 
 	void Input::OnSystemKeyInputEvent(EKeyCode keycode, bool bPressed)
 	{
-		for (auto* e : mpListeners)
+		if (bPressed)
 		{
-			if (!e->OnKeyInputUpdate(keycode, (bPressed == true) ? EKeyState::ePressed : EKeyState::eRelease))
-				break;
+			if (mKeyElapsedTimeMap.find(keycode) == mKeyElapsedTimeMap.end()) // not exist
+			{
+				for (auto* e : mpListeners)
+				{
+					if (!e->OnKeyInputUpdate(keycode, EKeyState::ePressed))
+						break;
+				}
+				mKeyElapsedTimeMap[keycode] = 0.0f; // setup current elapsed time
+			}
 		}
-		mKeyStatusMap[keycode] = bPressed;
-	}
-
-	void Input::OnSystemMouseKeyInputEvent(EKeyCode keycode, bool bPressed)
-	{
-		for (auto* e : mpListeners)
+		else // release, no holding event
 		{
-			if (!e->OnKeyInputUpdate(keycode, (bPressed == true) ? EKeyState::ePressed : EKeyState::eRelease))
-				break;
+			for (auto* e : mpListeners)
+			{
+				if (!e->OnKeyInputUpdate(keycode, EKeyState::eRelease))
+					break;
+			}
+			mKeyElapsedTimeMap.erase(keycode);
 		}
-		mKeyStatusMap[keycode] = bPressed;
+		mKeyStatusMap[keycode] = bPressed; // update key status map
 	}
 
 	void Input::OnSystemMouseMoveInputEvent(int xPos, int yPos)
@@ -131,18 +144,7 @@ namespace SG
 
 	bool Input::IsKeyPressed(EKeyCode keycode)
 	{
-		if (keycode >= 124) // is mouse key
-			return mKeyStatusMap[keycode];
-
-		SHORT ret = ::GetAsyncKeyState(gKeyCodeToPlatformMap[keycode]);
-		// Get the MSB
-#if   SG_BIG_ENDIAN
-		return ret & 0x80;
-#elif SG_LITTLE_ENDIAN
-		return ret & 0x01;
-#else
-#	error Unknown endian (Maybe the middle-endian)
-#endif
+		return mKeyStatusMap[keycode];
 	}
 
 }

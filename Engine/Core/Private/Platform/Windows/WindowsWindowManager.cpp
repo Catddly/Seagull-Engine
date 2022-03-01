@@ -36,19 +36,38 @@ namespace SG
 		case WM_KEYUP:
 		{
 			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[wParam], false);
-
 			if (wParam == VK_ESCAPE)
 				PostQuitMessage(0);
 			break;
 		}
 		case WM_LBUTTONUP:
 		{
-			Input::OnSystemMouseKeyInputEvent(KeyCode_MouseLeft, false);
+			Input::OnSystemKeyInputEvent(KeyCode_MouseLeft, false);
 			break;
 		}
 		case WM_LBUTTONDOWN:
 		{
-			Input::OnSystemMouseKeyInputEvent(KeyCode_MouseLeft, true);
+			Input::OnSystemKeyInputEvent(KeyCode_MouseLeft, true);
+			break;
+		}
+		case WM_RBUTTONUP:
+		{
+			Input::OnSystemKeyInputEvent(KeyCode_MouseRight, false);
+			break;
+		}
+		case WM_RBUTTONDOWN:
+		{
+			Input::OnSystemKeyInputEvent(KeyCode_MouseRight, true);
+			break;
+		}
+		case WM_MBUTTONUP:
+		{
+			Input::OnSystemKeyInputEvent(KeyCode_MouseMiddle, false);
+			break;
+		}
+		case WM_MBUTTONDOWN:
+		{
+			Input::OnSystemKeyInputEvent(KeyCode_MouseMiddle, true);
 			break;
 		}
 		case WM_MOUSEMOVE:

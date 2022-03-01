@@ -283,9 +283,9 @@ namespace SG
 		io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;  // We can create multi-viewports on the Renderer side (optional)
 		//io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;  // We can create multi-viewports on the Platform side (optional)
 
-		//io.SetClipboardTextFn = _ImGui_Platform_SetClipboardText_Impl;
-		//io.GetClipboardTextFn = _ImGui_Platform_GetClipboardText_Impl;
-		//io.ClipboardUserData = OperatingSystem::GetMainWindow();
+		io.SetClipboardTextFn = _ImGui_Platform_SetClipboardText_Impl;
+		io.GetClipboardTextFn = _ImGui_Platform_GetClipboardText_Impl;
+		io.ClipboardUserData = OperatingSystem::GetMainWindow();
 
 		ImGui::StyleColorsDark();
 
@@ -409,17 +409,23 @@ namespace SG
 	// callback functions
 	bool ImGuiDriver::OnKeyInputUpdate(EKeyCode keycode, EKeyState keyState)
 	{
+		//if (keyState == EKeyState::eHold)
+		//	SG_LOG_DEBUG("Hold: %d", keycode);
+		//else if (keyState == EKeyState::ePressed)
+		//	SG_LOG_DEBUG("Pressed: %d", keycode);
+		//else if (keyState == EKeyState::eRelease)
+		//	SG_LOG_DEBUG("Release: %d", keycode);
+
 		if (keyState != EKeyState::ePressed && keyState != EKeyState::eRelease)
 			return true;
 
 		auto& io = ImGui::GetIO();
-		//SG_LOG_DEBUG("%d", keycode);
 		if (keycode >= KeyCode_MouseLeft && keycode <= KeyCode_MouseMiddle)
 			io.AddMouseButtonEvent(ToImGuiMouseButton(keycode), (keyState == EKeyState::ePressed));
 		else
 		{
 			io.AddKeyEvent(ToImguiKey(keycode), (keyState == EKeyState::ePressed));
-			io.SetKeyEventNativeData(ToImguiKey(keycode), keycode, 30); // To support legacy indexing (<1.87 user code)
+			io.SetKeyEventNativeData(ToImguiKey(keycode), 65, 30); // To support legacy indexing (<1.87 user code)
 		}
 
 		return true;

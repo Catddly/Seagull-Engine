@@ -7,6 +7,7 @@
 #include <EASTL/set.h>
 #include <EASTL/utility.h>
 #include <EASTL/array.h>
+#include <EASTL/map.h>
 
 #ifndef WIN32_LEAN_AND_MEAN
 #	define WIN32_LEAN_AND_MEAN
@@ -593,7 +594,6 @@ namespace SG
 		friend static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #endif
 		static void OnSystemKeyInputEvent(EKeyCode keycode, bool bPressed);
-		static void OnSystemMouseKeyInputEvent(EKeyCode keycode, bool bPressed);
 		static void OnSystemMouseMoveInputEvent(int xPos, int yPos);
 		static void OnSystemMouseWheelInputEvent(int direction);
 	private:
@@ -605,7 +605,7 @@ namespace SG
 		static int mCurrFrameWheelDirection;
 
 		static bool  mKeyStatusMap[KEYCODE_COUNT];
-		static float mKeyElapsedTimeMap[KEYCODE_COUNT];
+		static eastl::map<EKeyCode, float> mKeyElapsedTimeMap;
 	};
 
 }

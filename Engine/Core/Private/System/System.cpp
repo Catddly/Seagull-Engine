@@ -140,7 +140,7 @@ namespace SG
 		{
 			//gameloopTimer.BeginProfile();
 			deltaTimer.Tick();
-			float deltaTime = deltaTimer.GetDurationMs();
+			float deltaTime = deltaTimer.GetDurationSecond();
 
 			// collect all the messages
 			EOsMessage msg = EOsMessage::eNull;

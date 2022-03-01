@@ -133,7 +133,7 @@ namespace SG
 	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
 		static float totalTime = 0.0f;
-		static float speed = 0.005f;
+		static float speed = 2.5f;
 		mModelPosition(0) = 0.5f * Sin(totalTime);
 		TranslateToX(mPushConstant.model, mModelPosition(0));
 		mPushConstant.inverseTransposeModel = mPushConstant.model.inverse().transpose();
