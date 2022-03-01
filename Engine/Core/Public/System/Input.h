@@ -4,10 +4,11 @@
 #include "Base/BasicTypes.h"
 
 #include "Stl/vector.h"
-#include <EASTL/set.h>
-#include <EASTL/utility.h>
-#include <EASTL/array.h>
-#include <EASTL/map.h>
+//#include <eastl/set.h>
+#include <eastl/vector_multiset.h>
+#include <eastl/utility.h>
+#include <eastl/array.h>
+#include <eastl/map.h>
 
 #ifndef WIN32_LEAN_AND_MEAN
 #	define WIN32_LEAN_AND_MEAN
@@ -561,6 +562,22 @@ namespace SG
 		eNull,
 	};
 
+	//! Defined the update sequence of the listener,
+	//! the more this value is, the latter this listener update.
+	enum class EListenerPriority
+	{
+		eLevel0 = 0,
+		eLevel1,
+		eLevel2,
+		eLevel3,
+		eLevel4,
+		eLevel5,
+		eLevel6,
+		eLevel7,
+		eLevel8,
+		eLevel9,
+	};
+
 	//! Observer design pattern, can be register by any class which inherits this class.
 	interface SG_CORE_API IInputListener
 	{
@@ -575,10 +592,19 @@ namespace SG
 		virtual bool OnMouseWheelInputUpdate(int direction) { return true; }
 	};
 
+	struct ListenerPriorityComparer
+	{
+		SG_INLINE bool operator()(const eastl::pair<EListenerPriority, IInputListener*> lhs,
+			const eastl::pair<EListenerPriority, IInputListener*> rhs)
+		{
+			return static_cast<UInt32>(lhs.first) < static_cast<UInt32>(rhs.first);
+		}
+	};
+
 	class Input
 	{
 	public:
-		SG_CORE_API static void RegisterListener(IInputListener* pListener);
+		SG_CORE_API static void RegisterListener(EListenerPriority priority, IInputListener* pListener);
 		SG_CORE_API static void MuteListener(IInputListener* pListener);
 		SG_CORE_API static void RemoveListener(IInputListener* pListener);
 
@@ -597,14 +623,15 @@ namespace SG
 		static void OnSystemMouseMoveInputEvent(int xPos, int yPos);
 		static void OnSystemMouseWheelInputEvent(int direction);
 	private:
-		static eastl::set<IInputListener*> mpListeners;
+		typedef eastl::vector_multiset<eastl::pair<EListenerPriority, IInputListener*>, ListenerPriorityComparer> ListenerContainer;
+		static ListenerContainer mpListeners;
 
-		static Vector2i mCurrFrameMousePos;
+		//static Vector2i mCurrFrameMousePos;
 		static Vector2i mPrevFrameMousePos;
 
-		static int mCurrFrameWheelDirection;
+		//static int mCurrFrameWheelDirection;
 
-		static bool  mKeyStatusMap[KEYCODE_COUNT];
+		static bool mKeyStatusMap[KEYCODE_COUNT];
 		static eastl::map<EKeyCode, float> mKeyElapsedTimeMap;
 	};
 

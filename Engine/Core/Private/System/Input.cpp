@@ -7,11 +7,8 @@
 namespace SG
 {
 
-	eastl::set<IInputListener*> Input::mpListeners;
-	Vector2i Input::mCurrFrameMousePos;
-	Vector2i Input::mPrevFrameMousePos;
-
-	int Input::mCurrFrameWheelDirection = 0;
+	Input::ListenerContainer Input::mpListeners;
+	Vector2i Input::mPrevFrameMousePos = {};
 
 	bool Input::mKeyStatusMap[KEYCODE_COUNT] = {};
 	eastl::map<EKeyCode, float> Input::mKeyElapsedTimeMap;
@@ -24,16 +21,16 @@ namespace SG
 	{
 	}
 
-	void Input::RegisterListener(IInputListener* pListener)
+	void Input::RegisterListener(EListenerPriority priority, IInputListener* pListener)
 	{
-		mpListeners.emplace(pListener);
+		mpListeners.emplace(priority, pListener);
 	}
 
 	void Input::MuteListener(IInputListener* pListener)
 	{
-		for (auto* e : mpListeners)
+		for (auto& e : mpListeners)
 		{
-			if (e == pListener)
+			if (e.second == pListener)
 			{
 				// Do mute
 			}
@@ -42,9 +39,9 @@ namespace SG
 
 	void Input::RemoveListener(IInputListener* pListener)
 	{
-		for (auto beg = mpListeners.cbegin(); beg != mpListeners.cend(); beg++)
+		for (auto beg = mpListeners.begin(); beg != mpListeners.end(); beg++)
 		{
-			if (*beg == pListener)
+			if (beg->second == pListener)
 			{
 				mpListeners.erase(beg);
 				return;
@@ -58,9 +55,9 @@ namespace SG
 		{
 			for (auto& key : mKeyElapsedTimeMap) // force to release
 			{
-				for (auto* e : mpListeners)
+				for (auto& e : mpListeners)
 				{
-					if (!e->OnKeyInputUpdate(key.first, EKeyState::eRelease))
+					if (!e.second->OnKeyInputUpdate(key.first, EKeyState::eRelease))
 						break;
 				}
 				mKeyStatusMap[key.first] = false;
@@ -73,36 +70,12 @@ namespace SG
 			key.second += deltaTime;
 			if (key.second >= 0.5f) // TODO: expose this param to HoldTimeThreshold
 			{
-				for (auto* e : mpListeners)
+				for (auto& e : mpListeners)
 				{
-					if (!e->OnKeyInputUpdate(key.first, EKeyState::eHold))
+					if (!e.second->OnKeyInputUpdate(key.first, EKeyState::eHold))
 						break;
 				}
 			}
-		}
-
-		// update mouse moving event
-		const int moveDeltaX = mCurrFrameMousePos[0] - mPrevFrameMousePos[0];
-		const int moveDeltaY = mPrevFrameMousePos[1] - mCurrFrameMousePos[1];
-		if (moveDeltaX != 0 || moveDeltaY != 0)
-		{
-			for (auto* e : mpListeners)
-			{
-				if (!e->OnMouseMoveInputUpdate(mCurrFrameMousePos[0], mCurrFrameMousePos[1], moveDeltaX, moveDeltaY))
-					break;
-			}
-		}
-		mPrevFrameMousePos = mCurrFrameMousePos;
-
-		// update mouse wheeling event
-		if (mCurrFrameWheelDirection != 0)
-		{
-			for (auto* e : mpListeners)
-			{
-				if (!e->OnMouseWheelInputUpdate(mCurrFrameWheelDirection))
-					break;
-			}
-			mCurrFrameWheelDirection = 0;
 		}
 	}
 
@@ -112,9 +85,9 @@ namespace SG
 		{
 			if (mKeyElapsedTimeMap.find(keycode) == mKeyElapsedTimeMap.end()) // not exist
 			{
-				for (auto* e : mpListeners)
+				for (auto& e : mpListeners)
 				{
-					if (!e->OnKeyInputUpdate(keycode, EKeyState::ePressed))
+					if (!e.second->OnKeyInputUpdate(keycode, EKeyState::ePressed))
 						break;
 				}
 				mKeyElapsedTimeMap[keycode] = 0.0f; // setup current elapsed time
@@ -122,9 +95,9 @@ namespace SG
 		}
 		else // release, no holding event
 		{
-			for (auto* e : mpListeners)
+			for (auto& e : mpListeners)
 			{
-				if (!e->OnKeyInputUpdate(keycode, EKeyState::eRelease))
+				if (!e.second->OnKeyInputUpdate(keycode, EKeyState::eRelease))
 					break;
 			}
 			mKeyElapsedTimeMap.erase(keycode);
@@ -134,12 +107,26 @@ namespace SG
 
 	void Input::OnSystemMouseMoveInputEvent(int xPos, int yPos)
 	{
-		mCurrFrameMousePos = { xPos, yPos };
+		Vector2i currFrameMousePos = { xPos, yPos };
+		// update mouse moving event
+		const int moveDeltaX = currFrameMousePos[0] - mPrevFrameMousePos[0];
+		const int moveDeltaY = mPrevFrameMousePos[1] - currFrameMousePos[1];
+		for (auto& e : mpListeners)
+		{
+			if (!e.second->OnMouseMoveInputUpdate(currFrameMousePos[0], currFrameMousePos[1], moveDeltaX, moveDeltaY))
+				break;
+		}
+		mPrevFrameMousePos = currFrameMousePos;
 	}
 
 	void Input::OnSystemMouseWheelInputEvent(int direction)
 	{
-		mCurrFrameWheelDirection = direction;
+		// update mouse wheeling event
+		for (auto& e : mpListeners)
+		{
+			if (!e.second->OnMouseWheelInputUpdate(direction))
+				break;
+		}
 	}
 
 	bool Input::IsKeyPressed(EKeyCode keycode)

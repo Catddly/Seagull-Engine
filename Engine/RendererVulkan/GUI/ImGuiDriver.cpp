@@ -262,7 +262,7 @@ namespace SG
 
 	ImGuiDriver::ImGuiDriver()
 	{
-		Input::RegisterListener(this);
+		Input::RegisterListener(EListenerPriority::eLevel0, this);
 	}
 
 	ImGuiDriver::~ImGuiDriver()
@@ -428,7 +428,10 @@ namespace SG
 			io.SetKeyEventNativeData(ToImguiKey(keycode), 65, 30); // To support legacy indexing (<1.87 user code)
 		}
 
-		return true;
+		if (io.WantCaptureMouse) // block other event
+			return false;
+		else
+			return true;
 	}
 
 	bool ImGuiDriver::OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos)
@@ -442,14 +445,22 @@ namespace SG
 		//}
 		io.AddMousePosEvent((float)xPos, (float)yPos);
 		mLastValidMousePos = { xPos, yPos };
-		return true;
+
+		if (io.WantCaptureMouse) // block other event
+			return false;
+		else
+			return true;
 	}
 
 	bool ImGuiDriver::OnMouseWheelInputUpdate(int direction)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.AddMouseWheelEvent((float)0, (float)direction);
-		return true;
+
+		if (io.WantCaptureMouse) // block other event
+			return false;
+		else
+			return true;
 	}
 
 }

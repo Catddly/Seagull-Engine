@@ -10,7 +10,7 @@ namespace SG
 		:mPosition(position), mRotation(rotation), mbIsViewDirty(true), mbIsProjDirty(true)
 	{
 		UpdateViewMatrix();
-		Input::RegisterListener(this);
+		Input::RegisterListener(EListenerPriority::eLevel2, this);
 	}
 
 	BasicCamera::~BasicCamera()

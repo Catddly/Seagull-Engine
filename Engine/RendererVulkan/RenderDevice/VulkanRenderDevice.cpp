@@ -38,7 +38,7 @@ namespace SG
 		:mCurrentFrameInCPU(0), mbBlockEvent(true)
 	{
 		SSystem()->RegisterSystemMessageListener(this);
-		Input::RegisterListener(this);
+		Input::RegisterListener(EListenerPriority::eLevel2, this);
 	}
 
 	VulkanRenderDevice::~VulkanRenderDevice()
