@@ -81,6 +81,9 @@ namespace SG
 
 	void Input::OnSystemKeyInputEvent(EKeyCode keycode, bool bPressed)
 	{
+		if (keycode == KeyCode_Null)
+			return;
+
 		if (bPressed)
 		{
 			if (mKeyElapsedTimeMap.find(keycode) == mKeyElapsedTimeMap.end()) // not exist
@@ -125,6 +128,24 @@ namespace SG
 		for (auto& e : mpListeners)
 		{
 			if (!e.second->OnMouseWheelInputUpdate(direction))
+				break;
+		}
+	}
+
+	void Input::OnSystemCharInput(Char c)
+	{
+		for (auto& e : mpListeners)
+		{
+			if (!e.second->OnCharInput(c))
+				break;
+		}
+	}
+
+	void Input::OnSystemWideCharInput(WChar wc)
+	{
+		for (auto& e : mpListeners)
+		{
+			if (!e.second->OnWideCharInput(wc))
 				break;
 		}
 	}

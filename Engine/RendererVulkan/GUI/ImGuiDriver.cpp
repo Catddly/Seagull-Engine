@@ -463,4 +463,11 @@ namespace SG
 			return true;
 	}
 
+	bool ImGuiDriver::OnCharInput(Char c) 
+	{
+		auto& io = ImGui::GetIO();
+		io.AddInputCharacter(c);
+		return true;
+	}
+
 }

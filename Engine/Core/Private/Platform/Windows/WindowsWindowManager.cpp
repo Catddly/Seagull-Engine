@@ -89,6 +89,35 @@ namespace SG
 			SSystem()->mMessageBus.PushEvent(ESystemMessage::eWindowMove);
 			break;
 		}
+		case WM_CHAR: // input acsii
+		{
+			DWORD character = static_cast<DWORD>(wParam);
+			if (character <= 127) // ASCII
+			{
+				//SG_LOG_DEBUG("Input Char: %c", (char)character);
+				Input::OnSystemCharInput(static_cast<char>(character));
+			}
+			break;
+		}
+		case WM_IME_CHAR:
+		{
+			DWORD character = static_cast<DWORD>(wParam);
+			if (character <= 127)
+			{
+				Input::OnSystemCharInput(static_cast<Char>(character));
+			}
+			else
+			{
+				// TODO: IME_CHAR should flip hi-byte and lo-byte
+			}
+			break;
+		}
+		case WM_UNICHAR:
+		{
+			if (wParam > 0 && wParam < 0x10000)
+				Input::OnSystemWideCharInput(static_cast<WChar>(wParam));
+			break;
+		}
 		case WM_SIZE:
 		{
 			if (wParam != SIZE_MINIMIZED)

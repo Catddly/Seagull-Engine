@@ -25,6 +25,7 @@ namespace SG
 		virtual bool OnKeyInputUpdate(EKeyCode keycode, EKeyState keyState) override;
 		virtual bool OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos) override;
 		virtual bool OnMouseWheelInputUpdate(int direction) override;
+		virtual bool OnCharInput(Char c) override;
 	private:
 		Vector2i mLastValidMousePos;
 	};

@@ -590,12 +590,14 @@ namespace SG
 		virtual bool OnKeyInputUpdate(EKeyCode keycode, EKeyState keyState) { return true; }
 		virtual bool OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos) { return true; }
 		virtual bool OnMouseWheelInputUpdate(int direction) { return true; }
+		virtual bool OnCharInput(Char c) { return true; }
+		virtual bool OnWideCharInput(WChar c) { return true; }
 	};
 
 	struct ListenerPriorityComparer
 	{
-		SG_INLINE bool operator()(const eastl::pair<EListenerPriority, IInputListener*> lhs,
-			const eastl::pair<EListenerPriority, IInputListener*> rhs)
+		SG_INLINE bool operator()(const eastl::pair<EListenerPriority, IInputListener*>& lhs,
+			const eastl::pair<EListenerPriority, IInputListener*>& rhs)
 		{
 			return static_cast<UInt32>(lhs.first) < static_cast<UInt32>(rhs.first);
 		}
@@ -622,14 +624,13 @@ namespace SG
 		static void OnSystemKeyInputEvent(EKeyCode keycode, bool bPressed);
 		static void OnSystemMouseMoveInputEvent(int xPos, int yPos);
 		static void OnSystemMouseWheelInputEvent(int direction);
+		static void OnSystemCharInput(Char c);
+		static void OnSystemWideCharInput(WChar wc);
 	private:
 		typedef eastl::vector_multiset<eastl::pair<EListenerPriority, IInputListener*>, ListenerPriorityComparer> ListenerContainer;
 		static ListenerContainer mpListeners;
 
-		//static Vector2i mCurrFrameMousePos;
 		static Vector2i mPrevFrameMousePos;
-
-		//static int mCurrFrameWheelDirection;
 
 		static bool mKeyStatusMap[KEYCODE_COUNT];
 		static eastl::map<EKeyCode, float> mKeyElapsedTimeMap;
