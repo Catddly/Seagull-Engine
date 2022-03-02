@@ -16,15 +16,28 @@ namespace SG
 	/// RenderGraphBuilder
 	/////////////////////////////////////////////////////////////////////////////////////
 
+	RenderGraphBuilder::RenderGraphBuilder(const char* name, VulkanContext* pContext)
+	{
+		mpRenderGraph = Memory::New<RenderGraph>(name, pContext);
+	}
+
+	RenderGraphBuilder::~RenderGraphBuilder()
+	{
+		if (!mbInitSuccess)
+			Memory::Delete(mpRenderGraph);
+	}
+
 	RenderGraphBuilder& RenderGraphBuilder::NewRenderPass(RenderGraphNode* pNode)
 	{
-		mRenderGraph.mpNodes.push_back(pNode);
+		mpRenderGraph->mpNodes.push_back(pNode);
 		return *this;
 	}
 
-	void RenderGraphBuilder::Complete()
+	RenderGraph* RenderGraphBuilder::Build()
 	{
-		mRenderGraph.Compile();
+		mpRenderGraph->Compile();
+		mbInitSuccess = true;
+		return mpRenderGraph;
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -32,7 +45,7 @@ namespace SG
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	RenderGraph::RenderGraph(const char* name, VulkanContext* pContext)
-		: mName(name), mpRenderContext(pContext)
+		: mName(name), mpContext(pContext)
 	{
 	}
 
@@ -49,24 +62,26 @@ namespace SG
 			Memory::Delete(beg->second);
 	}
 
-	void RenderGraph::Update()
+	void RenderGraph::Update(float deltaTime)
 	{
 		for (auto* pCurrNode : mpNodes)
 		{
-			pCurrNode->Update(mFrameIndex);
+			pCurrNode->Update(deltaTime, mFrameIndex);
 
 			// after the update, if some node is changed, compile it.
 			CompileRenderPasses(pCurrNode);
 			CompileFrameBuffers(pCurrNode);
 		}
+		// TODO:: status change detection
+		//mResourceStatusKeeper.Reset();
 	}
 
 	void RenderGraph::Draw(UInt32 frameIndex) const
 	{
 		SG_ASSERT(!mFrameBuffersMap.empty() && "RenderGraphBuilder should call Complete() or RenderGraph should call Compile() after the node insertion!");
 
-		auto& commandBuf = mpRenderContext->commandBuffers[frameIndex];
-		auto* pColorRt = mpRenderContext->colorRts[frameIndex];
+		auto& commandBuf = mpContext->commandBuffers[frameIndex];
+		auto* pColorRt = mpContext->colorRts[frameIndex];
 
 		RenderGraphNode::RGDrawContext drawContext = { &commandBuf, frameIndex };
 
@@ -94,17 +109,17 @@ namespace SG
 			cv.depthStencil = { 1.0f, 0 };
 
 			commandBuf.BeginRenderPass(pFrameBuffer, cv);
-			pCurrNode->Execute(drawContext);
+			pCurrNode->Draw(drawContext);
 			commandBuf.EndRenderPass();
 		}
 		commandBuf.EndRecord();
 
-		mFrameIndex = (frameIndex + 1) % mpRenderContext->swapchain.imageCount;
+		mFrameIndex = (frameIndex + 1) % mpContext->swapchain.imageCount;
 	}
 
 	void RenderGraph::WindowResize()
 	{
-		mpRenderContext->device.WaitIdle();
+		mpContext->device.WaitIdle();
 
 		for (auto& beg = mFrameBuffersMap.begin(); beg != mFrameBuffersMap.end(); ++beg)
 			Memory::Delete(beg->second);
@@ -114,21 +129,32 @@ namespace SG
 		// update the node to update the resources which is using in the node.
 		for (auto* pCurrNode : mpNodes)
 			pCurrNode->Reset();
+
+		// re-assign rts' dependencies
+		mResourceStatusKeeper.Clear();
+		for (auto* rt : mpContext->colorRts)
+			mResourceStatusKeeper.AddResourceDenpendency(rt, EResourceBarrier::efUndefined, EResourceBarrier::efPresent);
+		mResourceStatusKeeper.AddResourceDenpendency(mpContext->depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil);
 		mFrameIndex = 0;
 	}
 
 	void RenderGraph::Compile()
 	{
+		// add rts' dependencies
+		for (auto* rt : mpContext->colorRts)
+			mResourceStatusKeeper.AddResourceDenpendency(rt, EResourceBarrier::efUndefined, EResourceBarrier::efPresent);
+		mResourceStatusKeeper.AddResourceDenpendency(mpContext->depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil);
+
 		for (auto* pCurrNode : mpNodes) // iterate all nodes
 		{
-			pCurrNode->Update(mFrameIndex);
+			pCurrNode->Update(0.0f, mFrameIndex); // update resource, freeze the time
 
 			if (!pCurrNode->HaveValidResource())
 			{
 				SG_LOG_ERROR("No resource bound to this RenderGraphNode!");
 				SG_ASSERT(false);
 			}
-			
+
 			CompileRenderPasses(pCurrNode);
 			CompileFrameBuffers(pCurrNode);
 
@@ -138,33 +164,31 @@ namespace SG
 
 	void RenderGraph::CompileRenderPasses(const RenderGraphNode* pCurrNode)
 	{
-		// TODO: to remove it.
-		static UInt64 cnt = 1;
-
-		// calculate the hash data
 		Size renderpassHash = 0;
 		for (auto& resource : pCurrNode->mInResources)
 		{
 			if (resource.has_value())
+			{
+				// calculate the hash value
 				renderpassHash = resource->GetDataHash(renderpassHash);
+			}
 		}
 
 		// retrieve the render pass of this node
 		auto& pRenderPassNode = mRenderPassesMap.find(renderpassHash);
 		if (pRenderPassNode == mRenderPassesMap.end()) // Didn't find this render pass, then create a new one
 		{
-			VulkanRenderPass::Builder rpBuilder(mpRenderContext->device);
+			VulkanRenderPass::Builder rpBuilder(mpContext->device);
 			for (auto& resource : pCurrNode->mInResources)
 			{
 				if (resource.has_value())
 				{
-					EResourceBarrier barrier = (cnt % 2 == 1) ? EResourceBarrier::efUndefined : EResourceBarrier::efPresent;
+					auto statusTransition = mResourceStatusKeeper.GetResourceNextStatus(resource->mpRenderTarget);
 					rpBuilder.BindRenderTarget(resource->mpRenderTarget, resource->mLoadStoreClearOp,
-						barrier,
-						resource->mpRenderTarget->IsDepth() ? EResourceBarrier::efDepth_Stencil : EResourceBarrier::efPresent);
+						statusTransition.srcStatus,
+						statusTransition.dstStatus);
 				}
 			}
-			++cnt;
 			mpCurrRenderPass = rpBuilder.CombineAsSubpass().Build();
 
 			mRenderPassesMap[renderpassHash] = mpCurrRenderPass; // append the new render pass to the map
@@ -196,7 +220,7 @@ namespace SG
 		auto& pFrameBufferNode = mFrameBuffersMap.find(framebufferHash);
 		if (pFrameBufferNode == mFrameBuffersMap.end()) // Didn't find this framebuffer, then create a new one
 		{
-			VulkanFrameBuffer::Builder fbBuilder(mpRenderContext->device);
+			VulkanFrameBuffer::Builder fbBuilder(mpContext->device);
 			for (auto& resource : pCurrNode->mInResources)
 			{
 				if (resource.has_value())

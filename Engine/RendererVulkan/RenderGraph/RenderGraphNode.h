@@ -34,10 +34,14 @@ namespace SG
 
 		void ClearResources();
 	protected:
+		//! Be called when receive window resize event or other reset status.
 		virtual void Reset() = 0;
+		//! Be called when the render graph finish compiling, user can use renderpass to create pipeline.
 		virtual void Prepare(VulkanRenderPass* pRenderpass) = 0;
-		virtual void Update(UInt32 frameIndex) = 0;
-		virtual void Execute(RGDrawContext& context) = 0;
+		//! Be called every frame to update the necessary resource which used to render.
+		virtual void Update(float deltaTime, UInt32 frameIndex) = 0;
+		//! Be called every frame to record render command.
+		virtual void Draw(RGDrawContext& context) = 0;
 	private:
 		bool HaveValidResource() const;
 	private:
@@ -46,7 +50,6 @@ namespace SG
 		friend class RenderGraph;
 		friend class RenderGraphBuilder;
 
-		//vector<InResourceType> mInResources;
 		eastl::array<InResourceType, SG_MAX_RENDER_GRAPH_NODE_RESOURCE> mInResources;
 		UInt32 mResourceValidFlag;
 	};

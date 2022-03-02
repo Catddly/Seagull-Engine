@@ -13,7 +13,8 @@ namespace SG
 		virtual bool OnInit() = 0;
 		virtual void OnShutdown() = 0;
 
-		virtual void OnUpdate() = 0;
+		virtual void OnUpdate(float deltaTime) = 0;
+		virtual void OnDraw() = 0;
 	};
 
 }

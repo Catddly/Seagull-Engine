@@ -3,14 +3,11 @@
 
 #include "Memory/Memory.h"
 
-#include "RendererVulkan/GUI/ImGuiDriver.h"
-
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
-#include "RendererVulkan/Backend/VulkanPipeline.h"
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
-#include "RendererVulkan/Backend/VulkanFrameBuffer.h"
+#include "RendererVulkan/Backend/VulkanPipeline.h"
 
 #include "Render/ShaderComiler.h"
 
@@ -25,10 +22,6 @@ namespace SG
 		:mContext(context), mpRenderPass(nullptr), mCurrVertexCount(0), mCurrIndexCount(0),
 		mColorRtLoadStoreOp({ ELoadOp::eLoad, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
-		// use imgui!
-		mpGUIDriver = Memory::New<ImGuiDriver>();
-		mpGUIDriver->OnInit();
-
 		// create imgui font texture
 		ImGuiIO& io = ImGui::GetIO();
 
@@ -92,9 +85,6 @@ namespace SG
 		Memory::Delete(mpGUIPipeline);
 		Memory::Delete(mpGUITextureSetLayout);
 		Memory::Delete(mpGUIPipelineLayout);
-
-		mpGUIDriver->OnShutdown();
-		Memory::Delete(mpGUIDriver);
 	}
 
 	void RGEditorGUINode::Reset()
@@ -121,36 +111,14 @@ namespace SG
 			.Build();
 	}
 
-	void RGEditorGUINode::Update(UInt32 frameIndex)
+	void RGEditorGUINode::Update(float deltaTime, UInt32 frameIndex)
 	{
 		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp });
-
-		mpGUIDriver->OnUpdate();
-		ImGui::NewFrame();
-
-		bool bShowDemoWindow = true;
-		ImGui::ShowDemoWindow(&bShowDemoWindow);
-
-		ImGui::Begin("Test");
-		if (ImGui::Button("Button1"))
-			SG_LOG_DEBUG("Button Pressed!");
-		ImGui::End();
-
-		ImGui::EndFrame();
-
-		auto& io = ImGui::GetIO();
-		// Update and Render additional Platform Windows
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-		}
 	}
 
-	void RGEditorGUINode::Execute(RGDrawContext& context)
+	void RGEditorGUINode::Draw(RGDrawContext& context)
 	{
 		auto& pBuf = *context.pCmd;
-
 		ImGui::Render();
 
 		ImDrawData* drawData = ImGui::GetDrawData();
@@ -222,79 +190,84 @@ namespace SG
 			}
 		}
 
-		pBuf.SetViewport(static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f, false);
-
-		pBuf.BindPipeline(mpGUIPipeline);
-
-		UInt64 offset[1] = { 0 };
-		pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
-		pBuf.BindIndexBuffer(*pIndexBuffer, 0, sizeof(ImDrawIdx) == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
-
-		float scale[2];
-		scale[0] = 2.0f / drawData->DisplaySize.x;
-		scale[1] = 2.0f / drawData->DisplaySize.y;
-		float translate[2];
-		translate[0] = -1.0f - drawData->DisplayPos.x * scale[0];
-		translate[1] = -1.0f - drawData->DisplayPos.y * scale[1];
-		pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, 0, &scale);
-		pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, sizeof(float) * 2, &translate);
-
-		ImVec2 clipOff = drawData->DisplayPos;         // (0,0) unless using multi-viewports
-		ImVec2 clipScale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
-
-		// Render command lists
-		// (Because we merged all buffers into a single one, we maintain our own offset into them)
-		UInt32 vtxOffest = 0;
-		UInt32 idxOffest = 0;
-		for (int n = 0; n < drawData->CmdListsCount; n++)
+		// Do Drawing
+		if (pVertexBuffer && pIndexBuffer)
 		{
-			const ImDrawList* pCmdList = drawData->CmdLists[n];
-			for (int i = 0; i < pCmdList->CmdBuffer.Size; i++)
+			pBuf.SetViewport(static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f, false);
+
+			pBuf.BindPipeline(mpGUIPipeline);
+
+			UInt64 offset[1] = { 0 };
+			pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
+			pBuf.BindIndexBuffer(*pIndexBuffer, 0, sizeof(ImDrawIdx) == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+
+			float scale[2];
+			scale[0] = 2.0f / drawData->DisplaySize.x;
+			scale[1] = 2.0f / drawData->DisplaySize.y;
+			float translate[2];
+			translate[0] = -1.0f - drawData->DisplayPos.x * scale[0];
+			translate[1] = -1.0f - drawData->DisplayPos.y * scale[1];
+			pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, 0, &scale);
+			pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, sizeof(float) * 2, &translate);
+
+			ImVec2 clipOff = drawData->DisplayPos;         // (0,0) unless using multi-viewports
+			ImVec2 clipScale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+
+			// Render command lists
+			// (Because we merged all buffers into a single one, we maintain our own offset into them)
+			UInt32 vtxOffest = 0;
+			UInt32 idxOffest = 0;
+			for (int n = 0; n < drawData->CmdListsCount; n++)
 			{
-				const ImDrawCmd* pcmd = &pCmdList->CmdBuffer[i];
-				// Project scissor/clipping rectangles into framebuffer space
-				ImVec2 clipMin((pcmd->ClipRect.x - clipOff.x) * clipScale.x, (pcmd->ClipRect.y - clipOff.y) * clipScale.y);
-				ImVec2 clipMax((pcmd->ClipRect.z - clipOff.x) * clipScale.x, (pcmd->ClipRect.w - clipOff.y) * clipScale.y);
+				const ImDrawList* pCmdList = drawData->CmdLists[n];
+				for (int i = 0; i < pCmdList->CmdBuffer.Size; i++)
+				{
+					const ImDrawCmd* pcmd = &pCmdList->CmdBuffer[i];
+					// Project scissor/clipping rectangles into framebuffer space
+					ImVec2 clipMin((pcmd->ClipRect.x - clipOff.x) * clipScale.x, (pcmd->ClipRect.y - clipOff.y) * clipScale.y);
+					ImVec2 clipMax((pcmd->ClipRect.z - clipOff.x) * clipScale.x, (pcmd->ClipRect.w - clipOff.y) * clipScale.y);
 
-				// Clamp to viewport as vkCmdSetScissor() won't accept values that are off bounds
-				if (clipMin.x < 0.0f) { clipMin.x = 0.0f; }
-				if (clipMin.y < 0.0f) { clipMin.y = 0.0f; }
-				if (clipMax.x > width) { clipMax.x = static_cast<float>(width); }
-				if (clipMax.y > height) { clipMax.y = static_cast<float>(height); }
-				if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
-					continue;
+					// Clamp to viewport as vkCmdSetScissor() won't accept values that are off bounds
+					if (clipMin.x < 0.0f) { clipMin.x = 0.0f; }
+					if (clipMin.y < 0.0f) { clipMin.y = 0.0f; }
+					if (clipMax.x > width) { clipMax.x = static_cast<float>(width); }
+					if (clipMax.y > height) { clipMax.y = static_cast<float>(height); }
+					if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
+						continue;
 
-				// Apply scissor/clipping rectangle
-				Rect scissor;
-				scissor.left = (Int32)(clipMin.x);
-				scissor.top = (Int32)(clipMin.y);
-				scissor.right = (Int32)(clipMax.x);
-				scissor.bottom = (Int32)(clipMax.y);
-				pBuf.SetScissor(scissor);
+					// Apply scissor/clipping rectangle
+					Rect scissor;
+					scissor.left = (Int32)(clipMin.x);
+					scissor.top = (Int32)(clipMin.y);
+					scissor.right = (Int32)(clipMax.x);
+					scissor.bottom = (Int32)(clipMax.y);
+					pBuf.SetScissor(scissor);
 
-				// Bind DescriptorSet with font or user texture
-				//VkDescriptorSet set = (VkDescriptorSet)pcmd->TextureId;
-				pBuf.BindDescriptorSet(mpGUIPipelineLayout, 0, mContext.imguiSet);
+					// Bind DescriptorSet with font or user texture
+					//VkDescriptorSet set = (VkDescriptorSet)pcmd->TextureId;
+					pBuf.BindDescriptorSet(mpGUIPipelineLayout, 0, mContext.imguiSet);
 
-				pBuf.DrawIndexed(pcmd->ElemCount, 1, pcmd->IdxOffset + idxOffest, pcmd->VtxOffset + vtxOffest, 0);
+					pBuf.DrawIndexed(pcmd->ElemCount, 1, pcmd->IdxOffset + idxOffest, pcmd->VtxOffset + vtxOffest, 0);
+				}
+				idxOffest += pCmdList->IdxBuffer.Size;
+				vtxOffest += pCmdList->VtxBuffer.Size;
 			}
-			idxOffest += pCmdList->IdxBuffer.Size;
-			vtxOffest += pCmdList->VtxBuffer.Size;
-		}
 
-		// Note: at this point both vkCmdSetViewport() and vkCmdSetScissor() have been called.
-		// Our last values will leak into user/application rendering IF:
-		// - Your app uses a pipeline with VK_DYNAMIC_STATE_VIEWPORT or VK_DYNAMIC_STATE_SCISSOR dynamic state
-		// - And you forgot to call vkCmdSetViewport() and vkCmdSetScissor() yourself to explicitely set that state.
-		// If you use VK_DYNAMIC_STATE_VIEWPORT or VK_DYNAMIC_STATE_SCISSOR you are responsible for setting the values before rendering.
-		// In theory we should aim to backup/restore those values but I am not sure this is possible.
-		// We perform a call to vkCmdSetScissor() to set back a full viewport which is likely to fix things for 99% users but technically this is not perfect. (See github #4644)
-		Rect scissor;
-		scissor.left = 0;
-		scissor.top = 0;
-		scissor.right = (Int32)(width);
-		scissor.bottom = (Int32)(height);
-		pBuf.SetScissor(scissor);
+			// Note: at this point both vkCmdSetViewport() and vkCmdSetScissor() have been called.
+			// Our last values will leak into user/application rendering IF:
+			// - Your app uses a pipeline with VK_DYNAMIC_STATE_VIEWPORT or VK_DYNAMIC_STATE_SCISSOR dynamic state
+			// - And you forgot to call vkCmdSetViewport() and vkCmdSetScissor() yourself to explicitely set that state.
+			// If you use VK_DYNAMIC_STATE_VIEWPORT or VK_DYNAMIC_STATE_SCISSOR you are responsible for setting the values before rendering.
+			// In theory we should aim to backup/restore those values but I am not sure this is possible.
+			// We perform a call to vkCmdSetScissor() to set back a full viewport which is likely to fix things for 99% users but technically this is not perfect. (See github #4644)
+			Rect scissor;
+			scissor.left = 0;
+			scissor.top = 0;
+			scissor.right = (Int32)(width);
+			scissor.bottom = (Int32)(height);
+			pBuf.SetScissor(scissor);
+
+		}
 	}
 
 }

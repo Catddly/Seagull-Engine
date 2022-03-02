@@ -50,8 +50,6 @@ namespace SG
 	void PointOrientedCamera::UpdateViewMatrix()
 	{
 		mViewMatrix = BuildViewMatrixCenter(mPosition, mViewAtPoint, SG_ENGINE_UP_VEC());
-		//Matrix4f cameraMat = BuildTransformMatrix(mPosition, 1.0f, mRotation);
-		//mViewMatrix = cameraMat.inverse();
 	}
 
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Defs/Defs.h"
 #include "Base/BasicTypes.h"
 
 namespace SG

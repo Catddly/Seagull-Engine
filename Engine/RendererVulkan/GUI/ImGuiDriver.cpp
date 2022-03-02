@@ -43,16 +43,16 @@ namespace SG
 		case KeyCode_Enter: return ImGuiKey_Enter;
 		case KeyCode_Escape: return ImGuiKey_Escape;
 		case KeyCode_Apostrophe: return ImGuiKey_Apostrophe;
-		//case KeyCode_Comma: return ImGuiKey_Comma;
-		//case KeyCode_Subtract: return ImGuiKey_Minus;
-		//case KeyCode_Pe: return ImGuiKey_Period;
-		//case KeyCode_Slash: return ImGuiKey_Slash;
-		//case KeyCode_Semi: return ImGuiKey_Semicolon;
-		//case KeyCode_: return ImGuiKey_Equal;
-		//case KeyCode_Bra: return ImGuiKey_LeftBracket;
-		//case GLFW_KEY_BACKSLASH: return ImGuiKey_Backslash;
-		//case GLFW_KEY_RIGHT_BRACKET: return ImGuiKey_RightBracket;
-		//case GLFW_KEY_GRAVE_ACCENT: return ImGuiKey_GraveAccent;
+		case KeyCode_Comma: return ImGuiKey_Comma;
+		case KeyCode_Minus: return ImGuiKey_Minus;
+		case KeyCode_Period: return ImGuiKey_Period;
+		case KeyCode_Slash: return ImGuiKey_Slash;
+		case KeyCode_Semicolon: return ImGuiKey_Semicolon;
+		case KeyCode_Plus: return ImGuiKey_Equal;
+		case KeyCode_LeftBracket: return ImGuiKey_LeftBracket;
+		case KeyCode_BackSlash: return ImGuiKey_Backslash;
+		case KeyCode_RightBracket: return ImGuiKey_RightBracket;
+		case KeyCode_GraveAccent: return ImGuiKey_GraveAccent;
 		case KeyCode_Capital: return ImGuiKey_CapsLock;
 		case KeyCode_ScrollLock: return ImGuiKey_ScrollLock;
 		case KeyCode_NumLock: return ImGuiKey_NumLock;
@@ -73,8 +73,8 @@ namespace SG
 		case KeyCode_Multiply: return ImGuiKey_KeypadMultiply;
 		case KeyCode_Subtract: return ImGuiKey_KeypadSubtract;
 		case KeyCode_Add: return ImGuiKey_KeypadAdd;
-		//case KeyCode_: return ImGuiKey_KeypadEnter;
-		//case GLFW_KEY_KP_EQUAL: return ImGuiKey_KeypadEqual;
+		case KeyCode_NumpadEnter: return ImGuiKey_KeypadEnter;
+		//case KeyCode_: return ImGuiKey_KeypadEqual;
 		case KeyCode_LeftShift: return ImGuiKey_LeftShift;
 		case KeyCode_LeftControl: return ImGuiKey_LeftCtrl;
 		case KeyCode_LeftAlt: return ImGuiKey_LeftAlt;
@@ -321,9 +321,10 @@ namespace SG
 		ImGui::DestroyContext();
 	}
 
-	void ImGuiDriver::OnUpdate()
+	void ImGuiDriver::OnUpdate(float deltaTime)
 	{
 		ImGuiIO& io = ImGui::GetIO();
+		io.DeltaTime = deltaTime;
 
 		io.DisplaySize = { (float)OperatingSystem::GetMainWindow()->GetWidth(), (float)OperatingSystem::GetMainWindow()->GetHeight() };
 		io.DisplayFramebufferScale = { 1.0f, 1.0f };
@@ -346,6 +347,29 @@ namespace SG
 		}
 
 		UpdateCursorData();
+	}
+
+	void ImGuiDriver::OnDraw()
+	{
+		ImGui::NewFrame();
+
+		bool bShowDemoWindow = true;
+		ImGui::ShowDemoWindow(&bShowDemoWindow);
+
+		ImGui::Begin("Test");
+		if (ImGui::Button("Button1"))
+			SG_LOG_DEBUG("Button Pressed!");
+		ImGui::End();
+
+		ImGui::EndFrame();
+
+		auto& io = ImGui::GetIO();
+		// Update and Render additional Platform Windows
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
 	}
 
 	void ImGuiDriver::UpdateMouseData()

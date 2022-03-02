@@ -6,14 +6,14 @@
 #include "System/System.h"
 #include "Memory/Memory.h"
 
-#if 1
+#if 0
 #include <windows.h>
 #endif
 
 namespace SG
 {
 
-	static SG_INLINE WPARAM _DistinguishLeftRightKeycode(WPARAM keycode, LPARAM testBit)
+	static SG_INLINE WPARAM _DistinguishExtendKeycode(WPARAM keycode, LPARAM testBit)
 	{
 		switch (keycode)
 		{
@@ -25,6 +25,9 @@ namespace SG
 			break;
 		case VK_MENU:
 			keycode = ((testBit & 0x01000000) != 0) ? VK_RMENU : VK_LMENU;
+			break;
+		case VK_RETURN:
+			keycode = ((testBit & 0x01000000) != 0) ? 0x8F : VK_RETURN;
 			break;
 		}
 		return keycode;
@@ -46,22 +49,24 @@ namespace SG
 		}
 		case WM_SYSKEYDOWN:
 		{
-			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishLeftRightKeycode(wParam, lParam)], true);
-			return 0; // block left alt and right alt to the ::DefWindowProc()
+			//SG_LOG_DEBUG("%d", wParam);
+			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishExtendKeycode(wParam, lParam)], true);
+			return 0; // block left alt and right alt message propagated to the ::DefWindowProc()
 		}
 		case WM_SYSKEYUP:
 		{
-			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishLeftRightKeycode(wParam, lParam)], false);
-			return 0; // block left alt and right alt to the ::DefWindowProc()
+			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishExtendKeycode(wParam, lParam)], false);
+			return 0; // block left alt and right alt message propagated to the ::DefWindowProc()
 		}
 		case WM_KEYDOWN:
 		{
-			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishLeftRightKeycode(wParam, lParam)], true);
+			//SG_LOG_DEBUG("%d", wParam);
+			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishExtendKeycode(wParam, lParam)], true);
 			break;
 		}
 		case WM_KEYUP:
 		{
-			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishLeftRightKeycode(wParam, lParam)], false);
+			Input::OnSystemKeyInputEvent(gPlatformToKeyCodeMap[_DistinguishExtendKeycode(wParam, lParam)], false);
 			if (wParam == VK_ESCAPE)
 				PostQuitMessage(0);
 			break;

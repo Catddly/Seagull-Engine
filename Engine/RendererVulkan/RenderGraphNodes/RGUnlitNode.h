@@ -2,6 +2,7 @@
 
 #include "Render/Shader.h"
 #include "Render/FrameBuffer.h"
+#include "Render/Camera/ICamera.h"
 
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
@@ -18,6 +19,7 @@ namespace SG
 	class VulkanRenderTarget;
 	class VulkanPipeline;
 	class VulkanPipelineLayout;
+	class VulkanDescriptorSetLayout;
 
 	class Geometry;
 
@@ -27,45 +29,59 @@ namespace SG
 		RGUnlitNode(VulkanContext& context);
 		~RGUnlitNode();
 
-		void SetMainColorRTClearOp(const LoadStoreClearOp& op) { mColorRtLoadStoreOp = op; }
-		void SetDepthRTClearOp(const LoadStoreClearOp& op) { mDepthRtLoadStoreOp = op; }
-
 		void BindGeometry(const char* name);
-		void BindPipeline(VulkanPipelineLayout* pLayout, Shader* pShader);
-		void AddDescriptorSet(UInt32 set, VkDescriptorSet handle);
-
-		void AddConstantBuffer(EShaderStage stage, UInt32 size, void* pData);
+		void SetCamera(ICamera* pCamera);
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
-		virtual void Update(UInt32 frameIndex) override;
-		virtual void Execute(RGDrawContext& context) override;
+		virtual void Update(float deltaTime, UInt32 frameIndex) override;
+		virtual void Draw(RGDrawContext& context) override;
 	private:
 		VulkanContext&        mContext;
 
 		LoadStoreClearOp      mColorRtLoadStoreOp;
 		LoadStoreClearOp      mDepthRtLoadStoreOp;
 
-		VulkanPipeline*       mpPipeline;
-		VulkanPipelineLayout* mpPipelineLayout;
-		Shader*               mpShader;
+		VulkanDescriptorSetLayout* mpUBOSetLayout;
+		VulkanPipelineLayout*      mpPipelineLayout;
+		VulkanPipeline*            mpPipeline;
+		Shader                     mBasicShader;
+		Geometry*                  mpGeometry;
 
-		Geometry*		      mpGeometry;
-		
-		vector<eastl::pair<UInt32, VkDescriptorSet>> mDescriptorSets;
-		struct BindConstantData
+		ICamera* mpCamera;
+		// Temporary
+		Vector3f mModelPosition;
+		float    mModelScale;
+		Vector3f mModelRotation;
+
+		struct SG_ALIGN(64) UBO
 		{
-			EShaderStage stage;
-			UInt32       size;
-			void*        pData;
-
-			BindConstantData(EShaderStage s, UInt32 sz, void* ptr)
-				:stage(s), size(sz), pData(ptr)
-			{}
+			Matrix4f view;
+			Matrix4f proj;
+			Vector3f viewPos;
+			float    pad;
 		};
-		vector<BindConstantData> mPushConstants;
+		UBO      mCameraUBO;
 
-		bool mbDepthUpdated = false;
+		struct SG_ALIGN(64) PushConstant
+		{
+			Matrix4f model;
+			Matrix4f inverseTransposeModel;
+		};
+		PushConstant mPushConstant;
+
+		//vector<eastl::pair<UInt32, VkDescriptorSet>> mDescriptorSets;
+		//struct BindConstantData
+		//{
+		//	EShaderStage stage;
+		//	UInt32       size;
+		//	void*        pData;
+
+		//	BindConstantData(EShaderStage s, UInt32 sz, void* ptr)
+		//		:stage(s), size(sz), pData(ptr)
+		//	{}
+		//};
+		//vector<BindConstantData> mPushConstants;
 	};
 
 }

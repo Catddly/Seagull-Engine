@@ -3,28 +3,29 @@
 #include "Stl/vector.h"
 
 #include "RenderGraphNode.h"
+#include "RenderGraphDependency.h"
 
 #include <eastl/hash_map.h>
 
 namespace SG
 {
 
+	class VulkanContext;
 	class VulkanFrameBuffer;
 	class VulkanRenderTarget;
 
 	class RenderGraphBuilder
 	{
 	public:
-		RenderGraphBuilder(RenderGraph& renderGraph) : mRenderGraph(renderGraph) {}
-		~RenderGraphBuilder() = default;
+		RenderGraphBuilder(const char* name, VulkanContext* pContext);
+		~RenderGraphBuilder();
 
 		RenderGraphBuilder& NewRenderPass(RenderGraphNode* pNode);
-		void Complete();
+		RenderGraph*        Build();
 	private:
-		RenderGraph& mRenderGraph;
+		RenderGraph* mpRenderGraph = nullptr;
+		bool         mbInitSuccess = false;
 	};
-
-	class VulkanContext;
 
 	class RenderGraph final
 	{
@@ -32,7 +33,7 @@ namespace SG
 		explicit RenderGraph(const char* name, VulkanContext* pContext);
 		~RenderGraph();
 
-		void Update();
+		void Update(float deltaTime);
 		void Draw(UInt32 frameIndex) const;
 
 		void WindowResize();
@@ -47,7 +48,7 @@ namespace SG
 		void CompileFrameBuffers(const RenderGraphNode* pCurrNode);
 	private:
 		friend class RenderGraphBuilder;
-		VulkanContext* mpRenderContext;
+		VulkanContext* mpContext;
 		mutable UInt32 mFrameIndex = 0;
 
 		eastl::hash_map<Size, VulkanRenderPass*>  mRenderPassesMap;
@@ -57,6 +58,8 @@ namespace SG
 
 		const char* mName;
 		vector<RenderGraphNode*> mpNodes;
+
+		RGResourceStatusKeeper mResourceStatusKeeper;
 	};
 
 }

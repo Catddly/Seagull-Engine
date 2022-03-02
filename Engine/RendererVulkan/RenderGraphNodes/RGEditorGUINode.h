@@ -2,7 +2,7 @@
 
 #include "Render/Shader.h"
 #include "Render/FrameBuffer.h"
-#include "Render/GUI/GUIDriver.h"
+#include "Render/GUI/IGUIDriver.h"
 
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
@@ -24,8 +24,8 @@ namespace SG
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
-		virtual void Update(UInt32 frameIndex) override;
-		virtual void Execute(RGDrawContext& context) override;
+		virtual void Update(float deltaTime, UInt32 frameIndex) override;
+		virtual void Draw(RGDrawContext& context) override;
 	private:
 		VulkanContext&    mContext;
 		VulkanRenderPass* mpRenderPass;
@@ -36,8 +36,6 @@ namespace SG
 		VulkanPipelineLayout*      mpGUIPipelineLayout;
 		VulkanPipeline*            mpGUIPipeline;
 		Shader                     mGUIShader;
-
-		IGUIDriver* mpGUIDriver;
 
 		UInt32 mCurrVertexCount;
 		UInt32 mCurrIndexCount;
