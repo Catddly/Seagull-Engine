@@ -15,6 +15,7 @@ namespace SG
 	class VulkanDescriptorSetLayout;
 	class VulkanPipelineLayout;
 	class VulkanPipeline;
+	class VulkanShader;
 
 	class RGEditorGUINode final : public RenderGraphNode
 	{
@@ -35,7 +36,7 @@ namespace SG
 		VulkanDescriptorSetLayout* mpGUITextureSetLayout;
 		VulkanPipelineLayout*      mpGUIPipelineLayout;
 		VulkanPipeline*            mpGUIPipeline;
-		Shader                     mGUIShader;
+		VulkanShader*              mpGUIShader;
 
 		UInt32 mCurrVertexCount;
 		UInt32 mCurrIndexCount;

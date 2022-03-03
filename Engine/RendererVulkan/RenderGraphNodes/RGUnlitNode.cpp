@@ -13,6 +13,7 @@
 #include "RendererVulkan/Backend/VulkanPipeline.h"
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
+#include "RendererVulkan/Backend/VulkanShader.h"
 
 #include "RendererVulkan/Resource/Geometry.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
@@ -27,9 +28,10 @@ namespace SG
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
 	{
 		// init render resource
+		mpShader = Memory::New<VulkanShader>(mContext);
 		ShaderCompiler compiler;
 		//compiler.CompileGLSLShader("basic", mBasicShader);
-		compiler.CompileGLSLShader("basic1", "phone", mBasicShader);
+		compiler.CompileGLSLShader("basic1", "phone", mpShader);
 
 		BufferCreateDesc BufferCI = {};
 		BufferCI.name = "CameraUniform";
@@ -48,12 +50,13 @@ namespace SG
 			.Bind(mContext.cameraUBOSet);
 		mpPipelineLayout = VulkanPipelineLayout::Builder(mContext.device)
 			.AddDescriptorSetLayout(mpUBOSetLayout)
-			.AddPushConstantRange(sizeof(PushConstant), 0, EShaderStage::efVert)
+			.AddPushConstantRange(mpShader->GetPushConstantLayout(EShaderStage::efVert).GetTotalSize(), 0, EShaderStage::efVert)
 			.Build();
 	}
 
 	RGUnlitNode::~RGUnlitNode()
 	{
+		Memory::Delete(mpShader);
 		Memory::Delete(mpUBOSetLayout);
 		Memory::Delete(mpPipelineLayout);
 
@@ -105,19 +108,10 @@ namespace SG
 
 	void RGUnlitNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
-		// TODO: use shader reflection
-		VertexLayout vertexBufferLayout = {
-			{ EShaderDataType::eFloat3, "position" },
-			//{ EShaderDataType::eFloat3, "color" },
-			{ EShaderDataType::eFloat3, "normal" },
-			//{ EShaderDataType::eFloat2, "uv" },
-		};
-
 		mpPipeline = VulkanPipeline::Builder(mContext.device)
-			.SetVertexLayout(vertexBufferLayout)
 			.BindLayout(mpPipelineLayout)
 			.BindRenderPass(pRenderpass)
-			.BindShader(&mBasicShader)
+			.BindShader(mpShader)
 			.Build();
 	}
 

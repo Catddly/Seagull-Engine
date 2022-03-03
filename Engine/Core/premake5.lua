@@ -34,6 +34,7 @@ project "SCore"
         "../../Libs/eastl/include/",
         "Public",
         "../../Libs/assimp/include/",
+        "../../Libs/spirv-cross/include/"
     }
 
     links
@@ -41,6 +42,7 @@ project "SCore"
         "mimalloc",
         "assimp",
         "eastl",
+        "spirv-cross",
     }
 
     filter "system:windows"

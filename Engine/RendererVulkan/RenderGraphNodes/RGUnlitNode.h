@@ -6,7 +6,6 @@
 
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
-// TODO: remove it
 #include "volk.h"
 
 #include "Stl/vector.h"
@@ -17,6 +16,7 @@ namespace SG
 	class VulkanContext;
 
 	class VulkanRenderTarget;
+	class VulkanShader;
 	class VulkanPipeline;
 	class VulkanPipelineLayout;
 	class VulkanDescriptorSetLayout;
@@ -45,7 +45,7 @@ namespace SG
 		VulkanDescriptorSetLayout* mpUBOSetLayout;
 		VulkanPipelineLayout*      mpPipelineLayout;
 		VulkanPipeline*            mpPipeline;
-		Shader                     mBasicShader;
+		VulkanShader*              mpShader;
 		Geometry*                  mpGeometry;
 
 		ICamera* mpCamera;
@@ -54,7 +54,7 @@ namespace SG
 		float    mModelScale;
 		Vector3f mModelRotation;
 
-		struct SG_ALIGN(64) UBO
+		struct UBO
 		{
 			Matrix4f view;
 			Matrix4f proj;
@@ -63,7 +63,7 @@ namespace SG
 		};
 		UBO      mCameraUBO;
 
-		struct SG_ALIGN(64) PushConstant
+		struct PushConstant
 		{
 			Matrix4f model;
 			Matrix4f inverseTransposeModel;

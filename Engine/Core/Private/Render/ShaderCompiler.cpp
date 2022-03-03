@@ -6,10 +6,53 @@
 #include "System/Logger.h"
 #include "Memory/Memory.h"
 
+#include "spirv-cross/spirv_cross.hpp"
+
+#include "eastl/set.h"
+
 namespace SG
 {
 
-	bool ShaderCompiler::LoadSPIRVShader(const string& binShaderName, Shader& outStages)
+	static EShaderDataType _SPIRVTypeToShaderDataType(const spirv_cross::SPIRType& type)
+	{
+		if (type.basetype == spirv_cross::SPIRType::Float)
+		{
+			if (type.columns == 1)
+			{
+				if (type.vecsize == 1)
+					return EShaderDataType::eFloat;
+				else if (type.vecsize == 2)
+					return EShaderDataType::eFloat2;
+				else if (type.vecsize == 3)
+					return EShaderDataType::eFloat3;
+				else if (type.vecsize == 4)
+					return EShaderDataType::eUnorm4; // TODO: what is the different of eFloat4 and eUnorm4?
+			}
+			else if (type.columns == 3 && type.vecsize == 3)
+				return EShaderDataType::eMat3;
+			else if (type.columns == 4 && type.vecsize == 4)
+				return EShaderDataType::eMat4;
+		}
+		else if (type.basetype == spirv_cross::SPIRType::Int)
+		{
+			if (type.vecsize == 1)
+				return EShaderDataType::eInt;
+			else if (type.vecsize == 2)
+				return EShaderDataType::eInt2;
+			else if (type.vecsize == 3)
+				return EShaderDataType::eInt3;
+			else if (type.vecsize == 4)
+				return EShaderDataType::eInt4;
+		}
+		else if (type.basetype == spirv_cross::SPIRType::Boolean)
+			return EShaderDataType::eBool;
+
+		SG_LOG_ERROR("Unsupported shader data type yet!");
+		SG_ASSERT(false);
+		return EShaderDataType::eUndefined;
+	}
+
+	bool ShaderCompiler::LoadSPIRVShader(const string& binShaderName, Shader* pShader)
 	{
 		UInt8 shaderBits = 0;
 		if (!FileSystem::Exist(EResourceDirectory::eShader_Binarires, ""))
@@ -31,12 +74,12 @@ namespace SG
 			case 5:	actualName += "-comp.spv"; break;
 			}
 
-			ReadInShaderData(actualName, i, outStages, shaderBits);
+			ReadInShaderData(actualName, i, pShader, shaderBits);
 		}
 
 		if ((shaderBits & (1 << 0)) == 0 || (shaderBits & (1 << 4)) == 0) // if vert or frag stage is missing
 		{
-			outStages.clear();
+			pShader->mShaderStages.clear();
 
 			SG_LOG_WARN("Necessary shader stages(vert or frag) is/are missing!");
 			return false;
@@ -47,10 +90,12 @@ namespace SG
 			SG_LOG_ERROR("No SPIRV shader is found! (%s)", binShaderName.c_str());
 			return false;
 		}
-		return true;
+	
+		return ReflectSPIRV(pShader);
+		//return true;
 	}
 
-	bool ShaderCompiler::LoadSPIRVShader(const string& vertShaderName, const string& fragShaderName, Shader& outStages)
+	bool ShaderCompiler::LoadSPIRVShader(const string& vertShaderName, const string& fragShaderName, Shader* pShader)
 	{
 		UInt8 shaderBits = 0;
 		if (!FileSystem::Exist(EResourceDirectory::eShader_Binarires, ""))
@@ -62,12 +107,12 @@ namespace SG
 		string vertName = vertShaderName + "-vert.spv";
 		string fragName = fragShaderName + "-frag.spv";
 
-		ReadInShaderData(vertName, 0, outStages, shaderBits);
-		ReadInShaderData(fragName, 4, outStages, shaderBits);
+		ReadInShaderData(vertName, 0, pShader, shaderBits);
+		ReadInShaderData(fragName, 4, pShader, shaderBits);
 
 		if ((shaderBits & (1 << 0)) == 0 || (shaderBits & (1 << 4)) == 0) // if vert or frag stage is missing
 		{
-			outStages.clear();
+			pShader->mShaderStages.clear();
 
 			SG_LOG_WARN("Necessary shader stages(vert or frag) is/are missing!");
 			return false;
@@ -78,10 +123,12 @@ namespace SG
 			SG_LOG_ERROR("No SPIRV shader is found! (vert: %s, frag: %s)", vertShaderName.c_str(), fragShaderName.c_str());
 			return false;
 		}
-		return true;
+
+		return ReflectSPIRV(pShader);
+		//return true;
 	}
 
-	bool ShaderCompiler::CompileGLSLShader(const string& binShaderName, Shader& outStages)
+	bool ShaderCompiler::CompileGLSLShader(const string& binShaderName, Shader* pShader)
 	{
 		char* glslc = "";
 		Size num = 1;
@@ -135,10 +182,10 @@ namespace SG
 		if (shaderBits == 0)
 			return false;
 
-		return LoadSPIRVShader(binShaderName, outStages);
+		return LoadSPIRVShader(binShaderName, pShader);
 	}
 
-	bool ShaderCompiler::CompileGLSLShader(const string& vertShaderName, const string& fragShaderName, Shader& outStages)
+	bool ShaderCompiler::CompileGLSLShader(const string& vertShaderName, const string& fragShaderName, Shader* pShader)
 	{
 		char* glslc = "";
 		Size num = 1;
@@ -159,8 +206,7 @@ namespace SG
 
 			if (FileSystem::Exist(EResourceDirectory::eShader_Binarires, vertCompiledName.c_str())) // already compiled this shader once, skip it.
 				shaderBits |= (1 << 0); // mark as exist.
-
-			if (FileSystem::Exist(EResourceDirectory::eShader_Sources, vertActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
+			else if (FileSystem::Exist(EResourceDirectory::eShader_Sources, vertActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
 			{
 				string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + vertShaderName + "-vert-compile.log";
 
@@ -181,8 +227,7 @@ namespace SG
 
 			if (FileSystem::Exist(EResourceDirectory::eShader_Binarires, fragCompiledName.c_str())) // already compiled this shader once, skip it.
 				shaderBits |= (1 << 4); // mark as exist.
-
-			if (FileSystem::Exist(EResourceDirectory::eShader_Sources, fragActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
+			else if (FileSystem::Exist(EResourceDirectory::eShader_Sources, fragActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
 			{
 				string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + fragShaderName + "-frag-compile.log";
 
@@ -196,18 +241,19 @@ namespace SG
 		if (shaderBits == 0)
 			return false;
 
-		return LoadSPIRVShader(vertShaderName, fragShaderName, outStages);
+		return LoadSPIRVShader(vertShaderName, fragShaderName, pShader);
 	}
 
-	void ShaderCompiler::ReadInShaderData(const string& name, UInt32 stage, Shader& shader, UInt8& checkFlag)
+	void ShaderCompiler::ReadInShaderData(const string& name, UInt32 stage, Shader* pShader, UInt8& checkFlag)
 	{
 		if (FileSystem::Open(EResourceDirectory::eShader_Binarires, name.c_str(), EFileMode::efRead_Binary))
 		{
-			ShaderData shaderData;
-			shaderData.binarySize = FileSystem::FileSize();
-			shaderData.pBinary = (std::byte*)(Memory::Malloc(shaderData.binarySize));
-			FileSystem::Read(shaderData.pBinary, shaderData.binarySize);
-			shader.insert_or_assign((EShaderStage)(1 << stage), shaderData);
+			const Size sizeInByte = FileSystem::FileSize();
+			pShader->mShaderStages[(EShaderStage)(1 << stage)] = {}; // insert a null vector
+			auto& shaderBinary = pShader->mShaderStages[(EShaderStage)(1 << stage)];
+			shaderBinary.binary.resize(sizeInByte);
+
+			FileSystem::Read(shaderBinary.binary.data(), sizeInByte);
 
 			checkFlag |= (1 << stage);
 			FileSystem::Close();
@@ -231,6 +277,123 @@ namespace SG
 		{
 			SG_LOG_WARN("%s", pOut);
 			return false;
+		}
+
+		return true;
+	}
+
+	// helper to keep the binding or the location ordered
+	template <typename ElementType>
+	struct ShaderAttributesLayoutLocationComparer
+	{
+		bool operator()(const eastl::pair<UInt32, typename ElementType>& lhs,
+			const eastl::pair<UInt32, typename ElementType>& rhs)
+		{
+			return lhs.first < rhs.first;
+		}
+	};
+	template <typename ElementType>
+	using OrderSet = eastl::set<eastl::pair<UInt32, typename ElementType>, ShaderAttributesLayoutLocationComparer<typename ElementType>>;
+
+	bool ShaderCompiler::ReflectSPIRV(Shader* pShader)
+	{
+		for (auto& beg = pShader->mShaderStages.begin(); beg != pShader->mShaderStages.end(); ++beg)
+		{
+			auto& shaderData = beg->second;
+			if (shaderData.binary.empty())
+			{
+				SG_LOG_ERROR("Pass in invalid shader binary!");
+				return false;
+			}
+
+			spirv_cross::Compiler compiler(reinterpret_cast<const UInt32*>(shaderData.binary.data()), shaderData.binary.size() / sizeof(UInt32));
+			auto& stageData = compiler.get_entry_points_and_stages();
+
+			// we only have one shader stage compile once for now.
+			spv::ExecutionModel executionModel = {};
+			for (auto& data : stageData)
+			{
+				pShader->mEntryPoint = data.name.c_str();
+				executionModel = data.execution_model;
+			}
+
+			spirv_cross::ShaderResources shaderResources = compiler.get_shader_resources();
+
+			// shader stage input collection
+			if (executionModel == spv::ExecutionModelVertex) // for now, we only collect the attributes of vertex stage
+			{
+				OrderSet<ShaderAttributesLayout::ElementType> orderedInputLayout;
+				for (auto& input : shaderResources.stage_inputs) // collect shader stage input info
+				{
+					const auto& type = compiler.get_type(input.type_id);
+					const auto location = compiler.get_decoration(input.id, spv::DecorationLocation);
+					orderedInputLayout.emplace(location, ShaderAttributesLayout::ElementType{ _SPIRVTypeToShaderDataType(type), input.name.c_str() });
+				}
+
+				for (auto& element : orderedInputLayout)
+					shaderData.stageInputLayout.Emplace(eastl::move(element.second));
+			}
+
+			// shader push constants collection
+			for (auto& pushConstant : shaderResources.push_constant_buffers)
+			{
+				const auto& type = compiler.get_type(pushConstant.type_id);
+				if (type.basetype == spirv_cross::SPIRType::Struct)
+				{
+					for (UInt32 i = 0; i < type.member_types.size(); ++i)
+					{
+						const auto memberTypeID = type.member_types[i];
+						const char* name = compiler.get_member_name(type.self, i).c_str();
+						const auto& memberType = compiler.get_type(memberTypeID);
+						shaderData.pushConstantLayout.Emplace(_SPIRVTypeToShaderDataType(memberType), name);
+					}
+				}
+				else
+				{
+					const char* name = compiler.get_name(pushConstant.id).c_str();
+					shaderData.pushConstantLayout.Emplace(_SPIRVTypeToShaderDataType(type), name);
+				}
+			}
+
+			// shader uniform buffers collection
+			for (auto& ubo : shaderResources.uniform_buffers)
+			{
+				const auto& type = compiler.get_type(ubo.type_id);
+				const char* name = compiler.get_name(ubo.id).c_str();
+				const auto set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
+				const auto binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
+				const UInt32 key = set * 10 + binding; // calculate key value for the set and binding
+
+				ShaderAttributesLayout layout = {};
+				if (type.basetype == spirv_cross::SPIRType::Struct)
+				{
+					for (UInt32 i = 0; i < type.member_types.size(); ++i)
+					{
+						const auto memberTypeID = type.member_types[i];
+						const char* memberName = compiler.get_member_name(type.self, i).c_str();
+						const auto& memberType = compiler.get_type(memberTypeID);
+						layout.Emplace(_SPIRVTypeToShaderDataType(memberType), memberName);
+					}
+				}
+				else
+				{
+					const char* memberName = compiler.get_name(ubo.id).c_str();
+					layout.Emplace(_SPIRVTypeToShaderDataType(type), memberName);
+				}
+
+				shaderData.uniformBufferLayout.Emplace(name, { key, layout });
+			}
+
+			// shader combine sampler image collection
+			for (auto& image : shaderResources.sampled_images)
+			{
+				const char* name = compiler.get_name(image.id).c_str();
+				const auto set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
+				const auto binding = compiler.get_decoration(image.id, spv::DecorationBinding);
+				const UInt32 key = set * 10 + binding; // calculate key value for the set and binding
+
+				shaderData.sampledImageLayout.Emplace(name, key);
+			}
 		}
 
 		return true;

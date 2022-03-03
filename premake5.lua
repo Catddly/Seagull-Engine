@@ -37,6 +37,7 @@ group "Libs"
     include "Libs/eastl/"
     include "Libs/assimp/"
     include "Libs/imgui/"
+    include "Libs/spirv-cross/"
 
 group ""
 

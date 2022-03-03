@@ -33,6 +33,8 @@ namespace SG
 	using IntPtr = intptr_t;
 	using UIntPtr = uintptr_t;
 
+	using Byte = std::byte;
+
 	typedef void* Handle;
 
 #define SG_FLOAT_EPSILON  std::numeric_limits<float>::epsilon()

@@ -17,7 +17,7 @@ namespace SG
 
 	class RenderGraph;
 
-	class VulkanRenderDevice : public IRenderDevice, public ISystemMessageListener
+	class VulkanRenderDevice : public IRenderDevice, protected ISystemMessageListener
 	{
 	public:
 		SG_RENDERER_VK_API VulkanRenderDevice();
@@ -30,12 +30,11 @@ namespace SG
 		SG_RENDERER_VK_API virtual void OnDraw() override;
 
 		SG_RENDERER_VK_API virtual const char* GetRegisterName() const { return "RenderDevice"; }
-
-		SG_RENDERER_VK_API virtual bool OnSystemMessage(ESystemMessage msg) override;
-
 		// TODO: replace it to reflection
 		SG_RENDERER_VK_API static const char* GetModuleName() { return "RenderDevice"; }
 	protected:
+		virtual bool OnSystemMessage(ESystemMessage msg) override;
+
 		void BuildRenderGraph();
 		void WindowResize();
 

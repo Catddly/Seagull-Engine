@@ -1,12 +1,14 @@
 #pragma once
 
+#include "Defs/Defs.h"
 #include "Core/Config.h"
 #include "Base/BasicTypes.h"
 
 #include "System/Logger.h"
+#include "Memory/Memory.h"
 
-#include <cstddef>
 #include <eastl/map.h>
+#include <eastl/fixed_map.h>
 #include <eastl/utility.h>
 #include "stl/vector.h"
 #include "stl/string_view.h"
@@ -77,44 +79,186 @@ namespace SG
 		{}
 	};
 
-	class VertexLayout
+	class ShaderAttributesLayout
 	{
 	public:
-		typedef BufferLayoutElement                       element_t;
-		typedef eastl::vector<element_t>::iterator        iterator_t;
-		typedef eastl::vector<element_t>::const_iterator  const_iterator_t;
+		typedef BufferLayoutElement                        ElementType;
+		typedef eastl::vector<ElementType>::iterator       IteratorType;
+		typedef eastl::vector<ElementType>::const_iterator ConstIteratorType;
 
-		VertexLayout() : mTotalSize(0) {}
-		VertexLayout(std::initializer_list<element_t> elements)
+		ShaderAttributesLayout() : mTotalSize(0) {}
+		ShaderAttributesLayout(std::initializer_list<ElementType> elements)
 			:mLayouts(elements)
 		{
 			CalculateLayoutOffsets();
 		}
 
-		void   Append(const element_t& e);
+		template <typename... Args>
+		void Emplace(Args&&... args)
+		{
+			mLayouts.emplace_back(eastl::forward<Args>(args)...); // perfect forwarding
+			mLayouts.back().offset = mTotalSize;
+			mTotalSize += mLayouts.back().size;
+		}
+
 		UInt32 GetTotalSize() const { return mTotalSize; }
 		Size   GetSize()      const { return mLayouts.size(); }
 
-		iterator_t begin()              { return mLayouts.begin(); }
-		iterator_t end()                { return mLayouts.end(); }
-		const_iterator_t begin()  const { return mLayouts.begin(); }
-		const_iterator_t end()    const { return mLayouts.end(); }
-		const_iterator_t cbegin() const { return mLayouts.cbegin(); }
-		const_iterator_t cend()   const { return mLayouts.cend(); }
+		IteratorType begin()             { return mLayouts.begin(); }
+		IteratorType end()               { return mLayouts.end(); }
+		ConstIteratorType begin()  const { return mLayouts.begin(); }
+		ConstIteratorType end()    const { return mLayouts.end(); }
+		ConstIteratorType cbegin() const { return mLayouts.cbegin(); }
+		ConstIteratorType cend()   const { return mLayouts.cend(); }
 	private:
 		SG_CORE_API void CalculateLayoutOffsets();
 	private:
-		vector<element_t> mLayouts;
+		vector<ElementType> mLayouts;
 		UInt32            mTotalSize;
 	};
 
-	//! Data of shader.
-	struct ShaderData
+	template <typename ElementType>
+	class ShaderSetBindingAttributeLayout
 	{
-		std::byte*    pBinary = nullptr;
-		Size          binarySize;
+	public:
+		void Emplace(const string& name, const ElementType& element);
+
+		const UInt32 GetBinding(const string& name);
+		const UInt32 GetSet(const string& name);
+	private:
+		friend class ShaderCompiler;
+		eastl::map<string, typename ElementType> mUBODataMap;
 	};
 
-	typedef eastl::map<EShaderStage, ShaderData> Shader;
+	template <typename ElementType>
+	void ShaderSetBindingAttributeLayout<ElementType>::Emplace(const string& name, const ElementType& element)
+	{
+		if (mUBODataMap.find(name) != mUBODataMap.end())
+		{
+			SG_LOG_ERROR("Already have a shader uniform buffer layout called: %s", name.c_str());
+			SG_ASSERT(false);
+		}
+		mUBODataMap[name] = element;
+	}
+
+	template <typename ElementType>
+	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<ElementType>::GetBinding(const string& name)
+	{
+		SG_COMPILE_ASSERT("Default version of ShaderSetBindingAttributeLayout::GetBinding() is not usable!", );
+	}
+
+	template <typename ElementType>
+	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<ElementType>::GetSet(const string& name)
+	{
+		SG_COMPILE_ASSERT("Default version of ShaderSetBindingAttributeLayout::GetSet() is not usable!", );
+	}
+
+	template <>
+	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<UInt32>::GetBinding(const string& name)
+	{
+		auto& node = mUBODataMap.find(name);
+		if (node == mUBODataMap.end())
+		{
+			SG_LOG_ERROR("No uniform buffer named: %s", name);
+			SG_ASSERT(false);
+		}
+		return node->second % 10;
+	}
+
+	template <>
+	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<UInt32>::GetSet(const string& name)
+	{
+		auto& node = mUBODataMap.find(name);
+		if (node == mUBODataMap.end())
+		{
+			SG_LOG_ERROR("No uniform buffer named: %s", name);
+			SG_ASSERT(false);
+		}
+		return node->second / 10;
+	}
+
+	template <>
+	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<eastl::pair<UInt32, ShaderAttributesLayout>>::GetBinding(const string& name)
+	{
+		auto& node = mUBODataMap.find(name);
+		if (node == mUBODataMap.end())
+		{
+			SG_LOG_ERROR("No uniform buffer named: %s", name);
+			SG_ASSERT(false);
+		}
+		return node->second.first % 10;
+	}
+
+	template <>
+	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<eastl::pair<UInt32, ShaderAttributesLayout>>::GetSet(const string& name)
+	{
+		auto& node = mUBODataMap.find(name);
+		if (node == mUBODataMap.end())
+		{
+			SG_LOG_ERROR("No uniform buffer named: %s", name);
+			SG_ASSERT(false);
+		}
+		return node->second.first / 10;
+	}
+
+	// dump wrapper of shader map
+	class Shader
+	{
+	public:
+		typedef vector<Byte> ShaderBinaryType;
+		struct ShaderData
+		{
+			ShaderBinaryType       binary;
+			ShaderAttributesLayout stageInputLayout;
+			ShaderAttributesLayout pushConstantLayout;
+			ShaderSetBindingAttributeLayout<eastl::pair<UInt32, ShaderAttributesLayout>> uniformBufferLayout;
+			ShaderSetBindingAttributeLayout<UInt32> sampledImageLayout;
+		};
+
+		Shader() = default;
+		virtual ~Shader() = default;
+
+		SG_INLINE const string&   GetName() const { return mName; }
+		SG_INLINE const string&   GetEntryPoint() const { return mEntryPoint; }
+		SG_INLINE EShaderLanguage GetShaderLanguage() const { return mLanguage; }
+
+		SG_INLINE const ShaderAttributesLayout& GetAttributesLayout(EShaderStage stage)
+		{
+			if (stage != EShaderStage::efVert)
+			{
+				SG_LOG_DEBUG("Only collect vertex stage input attributes for now!");
+				SG_ASSERT(false);
+			}
+			return mShaderStages[stage].stageInputLayout;
+		}
+		SG_INLINE const ShaderAttributesLayout& GetPushConstantLayout(EShaderStage stage) { return mShaderStages[stage].pushConstantLayout; }
+
+		SG_INLINE const Byte* GetBinary(EShaderStage stage)
+		{
+			auto& shaderData = mShaderStages[stage];
+			return shaderData.binary.data();
+		}
+		SG_INLINE const Size  GetBinarySize(EShaderStage stage)
+		{
+			auto& shaderData = mShaderStages[stage];
+			return shaderData.binary.size();
+		}
+	protected:
+		SG_INLINE void ReleaseBinary()
+		{
+			for (auto& data : mShaderStages)
+				data.second.binary.reserve(0); // clear all the memory
+			mShaderStages.clear();
+		}
+	protected:
+		typedef eastl::fixed_map<EShaderStage, ShaderData, (Size)EShaderStage::NUM_STAGES, false> ShaderStageDataType;
+		ShaderStageDataType mShaderStages;
+	private:
+		friend class ShaderCompiler;
+
+		string mName;
+		string mEntryPoint = "main"; // default
+		EShaderLanguage mLanguage;
+	};
 
 }

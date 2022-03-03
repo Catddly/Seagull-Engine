@@ -3,7 +3,6 @@
 #include "VulkanDevice.h"
 #include "VulkanSwapchain.h"
 
- 
 #include "volk.h"
 
 #include "Stl/vector.h"
@@ -43,10 +42,12 @@ namespace SG
 		VkPipelineLayout layout;
 	};
 
+	class VulkanShader;
+
 	class VulkanPipeline
 	{
 	public:
-		struct PipelineStateCreateInfos
+		struct PipelineCreateInfos
 		{
 			vector<VkVertexInputAttributeDescription> vertexInputAttributs;
 			VkPipelineVertexInputStateCreateInfo   vertexInputCI;
@@ -61,7 +62,7 @@ namespace SG
 			VkPipelineDynamicStateCreateInfo       dynamicStateCI;
 		};
 
-		VulkanPipeline(VulkanDevice& d, const PipelineStateCreateInfos& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, Shader* pShader);
+		VulkanPipeline(VulkanDevice& d, const PipelineCreateInfos& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, VulkanShader* pShader);
 		~VulkanPipeline();
 
 		class Builder
@@ -74,7 +75,6 @@ namespace SG
 			// @brief Set vertex buffer layout.
 			// @param [ layout ] The buffer layout.
 			// @param [ perVertex ] True if vertex bind per vertex shader or false will bind per instance.
-			Builder& SetVertexLayout(const VertexLayout& layout, bool perVertex = true);
 			Builder& SetInputAssembly(VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 			Builder& SetRasterizer(VkCullModeFlags cullMode, VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL, bool depthClamp = false);
 			Builder& SetColorBlend(bool enable); // TODO: add blend mode.
@@ -85,15 +85,17 @@ namespace SG
 
 			Builder& BindRenderPass(VulkanRenderPass* pRenderPass) { this->pRenderPass = pRenderPass; return *this; }
 			Builder& BindLayout(VulkanPipelineLayout* pLayout) { this->pLayout = pLayout; return *this; }
-			Builder& BindShader(Shader* pShader) { this->pShader = pShader; return *this; }
+			Builder& BindShader(VulkanShader* pShader);
 
 			VulkanPipeline* Build();
 		private:
-			VulkanDevice&            device;
-			PipelineStateCreateInfos createInfos;
-			VulkanPipelineLayout*    pLayout;
-			VulkanRenderPass*        pRenderPass;
-			Shader*                  pShader;
+			Builder& SetVertexLayout(const ShaderAttributesLayout& layout, bool perVertex = true);
+		private:
+			VulkanDevice&         device;
+			PipelineCreateInfos   createInfos;
+			VulkanPipelineLayout* pLayout;
+			VulkanRenderPass*     pRenderPass;
+			VulkanShader*         pShader;
 		};
 	private:
 		friend class VulkanCommandBuffer;

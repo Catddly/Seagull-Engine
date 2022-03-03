@@ -27,6 +27,7 @@ namespace SG
 			SG_ASSERT(false);
 		}
 
+		++mCurrNodeIndex;
 		auto& dependencyNode = mDenpendencies[pRenderTarget];
 		auto& currDependency = mCurrResourcesStaus[pRenderTarget];
 		if (currDependency == dependencyNode.srcStatus)
@@ -38,8 +39,6 @@ namespace SG
 		{
 			return { currDependency, dependencyNode.dstStatus };
 		}
-
-		++mCurrNodeIndex;
 	}
 
 	void RGResourceStatusKeeper::Reset()

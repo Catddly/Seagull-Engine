@@ -8,6 +8,7 @@
 #include "RendererVulkan/Backend/VulkanBuffer.h"
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
+#include "RendererVulkan/Backend/VulkanShader.h"
 
 #include "Render/ShaderComiler.h"
 
@@ -64,8 +65,9 @@ namespace SG
 		samplerCI.enableAnisotropy = false;
 		VK_RESOURCE()->CreateSampler(samplerCI);
 
+		mpGUIShader = Memory::New<VulkanShader>(mContext);
 		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("_imgui", mGUIShader);
+		compiler.CompileGLSLShader("_imgui", mpGUIShader);
 
 		// upload texture data to the pipeline
 		mpGUITextureSetLayout = VulkanDescriptorSetLayout::Builder(mContext.device)
@@ -82,6 +84,7 @@ namespace SG
 
 	RGEditorGUINode::~RGEditorGUINode()
 	{
+		Memory::Delete(mpGUIShader);
 		Memory::Delete(mpGUIPipeline);
 		Memory::Delete(mpGUITextureSetLayout);
 		Memory::Delete(mpGUIPipelineLayout);
@@ -94,20 +97,12 @@ namespace SG
 
 	void RGEditorGUINode::Prepare(VulkanRenderPass* pRenderpass)
 	{
-		// TODO: use shader reflection
-		VertexLayout vertexBufferLayout = {
-			{ EShaderDataType::eFloat2, "position" },
-			{ EShaderDataType::eFloat2, "uv" },
-			{ EShaderDataType::eUnorm4, "color" },
-		};
-
 		mpGUIPipeline = VulkanPipeline::Builder(mContext.device)
-			.SetVertexLayout(vertexBufferLayout)
 			.SetRasterizer(VK_CULL_MODE_NONE)
 			.SetDepthStencil(false)
 			.BindLayout(mpGUIPipelineLayout)
 			.BindRenderPass(pRenderpass)
-			.BindShader(&mGUIShader)
+			.BindShader(mpGUIShader)
 			.Build();
 	}
 

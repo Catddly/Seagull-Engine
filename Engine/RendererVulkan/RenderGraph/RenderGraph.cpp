@@ -68,7 +68,8 @@ namespace SG
 		{
 			pCurrNode->Update(deltaTime, mFrameIndex);
 
-			// after the update, if some node is changed, compile it.
+			// After the update, if some node is changed, compile it.
+			// If there is no new resource attached, compile will simply skip. 
 			CompileRenderPasses(pCurrNode);
 			CompileFrameBuffers(pCurrNode);
 		}

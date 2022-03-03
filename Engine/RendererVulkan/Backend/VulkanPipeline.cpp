@@ -3,6 +3,7 @@
 
 #include "VulkanDescriptor.h"
 #include "VulkanFrameBuffer.h"
+#include "VulkanShader.h"
 
 #include "Render/Buffer.h"
 #include "System/Logger.h"
@@ -78,40 +79,9 @@ namespace SG
 	/// VulkanPipeline
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanPipeline::VulkanPipeline(VulkanDevice& d, const PipelineStateCreateInfos& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, Shader* shader)
+	VulkanPipeline::VulkanPipeline(VulkanDevice& d, const PipelineCreateInfos& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, VulkanShader* pShader)
 		:device(d)
 	{
-		vector<VkPipelineShaderStageCreateInfo> shaderStages = {};
-		for (auto beg = shader->begin(); beg != shader->end(); ++beg)
-		{
-			VkPipelineShaderStageCreateInfo createInfo = {};
-			createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-			switch (beg->first)
-			{
-			case EShaderStage::efVert:	createInfo.stage = VK_SHADER_STAGE_VERTEX_BIT; break;
-			case EShaderStage::efTesc:	createInfo.stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT; break;
-			case EShaderStage::efTese:	createInfo.stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT; break;
-			case EShaderStage::efGeom:	createInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT; break;
-			case EShaderStage::efFrag:	createInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT; break;
-			case EShaderStage::efComp:	createInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT; break;
-			default:                    SG_LOG_ERROR("Unknown type of shader stage!"); break;
-			}
-
-			VkShaderModule shaderModule = {};
-			VkShaderModuleCreateInfo moduleCreateInfo = {};
-			moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-			moduleCreateInfo.codeSize = beg->second.binarySize;
-			moduleCreateInfo.pCode = (UInt32*)beg->second.pBinary;
-			vkCreateShaderModule(device.logicalDevice, &moduleCreateInfo, nullptr, &shaderModule); // should not be created in here
-
-			Memory::Free(beg->second.pBinary);
-
-			createInfo.module = shaderModule;
-			createInfo.pName = "main";
-			shaderStages.push_back(createInfo);
-		}
-		shader->clear();
-
 		VkPipelineCacheCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 		VK_CHECK(vkCreatePipelineCache(device.logicalDevice, &createInfo, nullptr, &pipelineCache),
@@ -122,9 +92,11 @@ namespace SG
 		graphicPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		graphicPipelineCreateInfo.layout = pLayout->layout;
 		graphicPipelineCreateInfo.renderPass = pRenderPass->renderPass;
+
+		pShader->CreatePipelineShader();
 		// assign the pipeline states to the pipeline creation info structure
-		graphicPipelineCreateInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
-		graphicPipelineCreateInfo.pStages = shaderStages.data();
+		graphicPipelineCreateInfo.stageCount = static_cast<UInt32>(pShader->GetShaderStagesCI().size());
+		graphicPipelineCreateInfo.pStages = pShader->GetShaderStagesCI().data();
 
 		graphicPipelineCreateInfo.pVertexInputState   = &CI.vertexInputCI;
 		graphicPipelineCreateInfo.pInputAssemblyState = &CI.inputAssemblyCI;
@@ -140,8 +112,7 @@ namespace SG
 		VK_CHECK(vkCreateGraphicsPipelines(device.logicalDevice, pipelineCache, 1, &graphicPipelineCreateInfo, nullptr, &pipeline),
 			SG_LOG_ERROR("Failed to create graphics pipeline!"););
 
-		for (UInt32 i = 0; i < shaderStages.size(); ++i)
-			vkDestroyShaderModule(device.logicalDevice, shaderStages[i].module, nullptr);
+		pShader->DestroyPipelineShader();
 	}
 
 	VulkanPipeline::~VulkanPipeline()
@@ -163,7 +134,7 @@ namespace SG
 		SetMultiSample(ESampleCount::eSample_1);
 	}
 
-	VulkanPipeline::Builder& VulkanPipeline::Builder::SetVertexLayout(const VertexLayout& layout, bool perVertex)
+	VulkanPipeline::Builder& VulkanPipeline::Builder::SetVertexLayout(const ShaderAttributesLayout& layout, bool perVertex)
 	{
 		VkVertexInputBindingDescription vertexInputBinding = {};
 		vertexInputBinding.binding = 0;
@@ -306,6 +277,13 @@ namespace SG
 		multisampleState.pSampleMask = nullptr;
 
 		createInfos.multiSampleStateCI = eastl::move(multisampleState);
+		return *this;
+	}
+
+	VulkanPipeline::Builder& VulkanPipeline::Builder::BindShader(VulkanShader* pShader)
+	{
+		this->pShader = pShader; 
+		SetVertexLayout(pShader->GetAttributesLayout(EShaderStage::efVert)); 
 		return *this;
 	}
 
