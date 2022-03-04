@@ -7,6 +7,7 @@
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
+#include "RendererVulkan/Backend/VulkanPipelineSignature.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
 #include "RendererVulkan/Backend/VulkanShader.h"
 
@@ -65,29 +66,18 @@ namespace SG
 		samplerCI.enableAnisotropy = false;
 		VK_RESOURCE()->CreateSampler(samplerCI);
 
-		mpGUIShader = Memory::New<VulkanShader>(mContext);
+		mpGUIShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("_imgui", mpGUIShader);
+		compiler.CompileGLSLShader("_imgui", mpGUIShader.get());
 
-		// upload texture data to the pipeline
-		mpGUITextureSetLayout = VulkanDescriptorSetLayout::Builder(mContext.device)
-			.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, 0, 1)
-			.Build();
-		VulkanDescriptorDataBinder(*mContext.pDefaultDescriptorPool, *mpGUITextureSetLayout)
-			.BindImage(0, VK_RESOURCE()->GetSampler("_imgui_sampler"), VK_RESOURCE()->GetTexture("_imgui_font"))
-			.Bind(mContext.imguiSet);
-		mpGUIPipelineLayout = VulkanPipelineLayout::Builder(mContext.device)
-			.AddDescriptorSetLayout(mpGUITextureSetLayout)
-			.AddPushConstantRange(sizeof(float) * 2 * 2, 0, EShaderStage::efVert)
+		mpGUIPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpGUIShader)
+			.AddCombindSamplerImage("_imgui_sampler", "_imgui_font")
 			.Build();
 	}
 
 	RGEditorGUINode::~RGEditorGUINode()
 	{
-		Memory::Delete(mpGUIShader);
 		Memory::Delete(mpGUIPipeline);
-		Memory::Delete(mpGUITextureSetLayout);
-		Memory::Delete(mpGUIPipelineLayout);
 	}
 
 	void RGEditorGUINode::Reset()
@@ -100,9 +90,9 @@ namespace SG
 		mpGUIPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetRasterizer(VK_CULL_MODE_NONE)
 			.SetDepthStencil(false)
-			.BindLayout(mpGUIPipelineLayout)
+			.BindSignature(mpGUIPipelineSignature.get())
 			.BindRenderPass(pRenderpass)
-			.BindShader(mpGUIShader)
+			.BindShader(mpGUIShader.get())
 			.Build();
 	}
 
@@ -202,8 +192,8 @@ namespace SG
 			float translate[2];
 			translate[0] = -1.0f - drawData->DisplayPos.x * scale[0];
 			translate[1] = -1.0f - drawData->DisplayPos.y * scale[1];
-			pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, 0, &scale);
-			pBuf.PushConstants(mpGUIPipelineLayout, EShaderStage::efVert, sizeof(float) * 2, sizeof(float) * 2, &translate);
+			pBuf.PushConstants(mpGUIPipelineSignature.get(), EShaderStage::efVert, sizeof(float) * 2, 0, &scale);
+			pBuf.PushConstants(mpGUIPipelineSignature.get(), EShaderStage::efVert, sizeof(float) * 2, sizeof(float) * 2, &translate);
 
 			ImVec2 clipOff = drawData->DisplayPos;         // (0,0) unless using multi-viewports
 			ImVec2 clipScale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
@@ -240,7 +230,7 @@ namespace SG
 
 					// Bind DescriptorSet with font or user texture
 					//VkDescriptorSet set = (VkDescriptorSet)pcmd->TextureId;
-					pBuf.BindDescriptorSet(mpGUIPipelineLayout, 0, mContext.imguiSet);
+					pBuf.BindPipelineSignature(mpGUIPipelineSignature.get());
 
 					pBuf.DrawIndexed(pcmd->ElemCount, 1, pcmd->IdxOffset + idxOffest, pcmd->VtxOffset + vtxOffest, 0);
 				}

@@ -34,7 +34,7 @@ namespace SG
 		return *this;
 	}
 
-	SG::VulkanDescriptorPool* VulkanDescriptorPool::Builder::Build(VulkanDevice& d)
+	VulkanDescriptorPool* VulkanDescriptorPool::Builder::Build(VulkanDevice& d)
 	{
 		if (poolSizes.size() == 0)
 		{
@@ -132,9 +132,9 @@ namespace SG
 		return *this;
 	}
 
-	VulkanDescriptorSetLayout* VulkanDescriptorSetLayout::Builder::Build()
+	RefPtr<VulkanDescriptorSetLayout> VulkanDescriptorSetLayout::Builder::Build()
 	{
-		return Memory::New<VulkanDescriptorSetLayout>(device, eastl::move(bindingsMap));
+		return MakeRef<VulkanDescriptorSetLayout>(device, eastl::move(bindingsMap));
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,18 +204,18 @@ namespace SG
 		return *this;
 	}
 
-	bool VulkanDescriptorDataBinder::Bind(VkDescriptorSet& set)
+	bool VulkanDescriptorDataBinder::Bind(VulkanDescriptorSet& set)
 	{
-		if (!pool.AllocateDescriptorSet(layout.descriptorSetLayout, set))
+		if (!pool.AllocateDescriptorSet(layout.descriptorSetLayout, set.set))
 			return false;
 		OverWriteData(set);
 		return true;
 	}
 
-	void VulkanDescriptorDataBinder::OverWriteData(VkDescriptorSet& set)
+	void VulkanDescriptorDataBinder::OverWriteData(VulkanDescriptorSet& set)
 	{
 		for (auto& w : writes) // all the data bind to this set
-			w.dstSet = set;
+			w.dstSet = set.set;
 		vkUpdateDescriptorSets(pool.device.logicalDevice, static_cast<UInt32>(writes.size()), writes.data(), 0, nullptr);
 	}
 

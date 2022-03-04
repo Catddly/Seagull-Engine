@@ -101,8 +101,8 @@ namespace SG
 			mTotalSize += mLayouts.back().size;
 		}
 
-		UInt32 GetTotalSize() const { return mTotalSize; }
-		Size   GetSize()      const { return mLayouts.size(); }
+		UInt32 GetTotalSizeInByte() const { return mTotalSize; }
+		Size   GetNumAttributes()   const { return mLayouts.size(); }
 
 		IteratorType begin()             { return mLayouts.begin(); }
 		IteratorType end()               { return mLayouts.end(); }
@@ -117,17 +117,34 @@ namespace SG
 		UInt32            mTotalSize;
 	};
 
+	typedef UInt32 SetBindingKey;
+	SG_INLINE static const UInt32 GetSet(SetBindingKey key) { return key / 10; }
+	SG_INLINE static const UInt32 GetBinding(SetBindingKey key) { return key % 10; }
+
 	template <typename ElementType>
 	class ShaderSetBindingAttributeLayout
 	{
 	public:
+		typedef typename eastl::map<string, typename ElementType>::iterator       IteratorType;
+		typedef typename eastl::map<string, typename ElementType>::const_iterator ConstIteratorType;
+
 		void Emplace(const string& name, const ElementType& element);
 
-		const UInt32 GetBinding(const string& name);
-		const UInt32 GetSet(const string& name);
+		IteratorType      begin()        { return mUBODataMap.begin(); }
+		IteratorType      end()          { return mUBODataMap.end(); }
+		ConstIteratorType begin()  const { return mUBODataMap.begin(); }
+		ConstIteratorType end()    const { return mUBODataMap.end(); }
+		ConstIteratorType cbegin() const { return mUBODataMap.cbegin(); }
+		ConstIteratorType cend()   const { return mUBODataMap.cend(); }
 	private:
 		friend class ShaderCompiler;
 		eastl::map<string, typename ElementType> mUBODataMap;
+	};
+
+	struct UniformBufferLayout
+	{
+		SetBindingKey          setbinding;
+		ShaderAttributesLayout layout;
 	};
 
 	template <typename ElementType>
@@ -141,66 +158,6 @@ namespace SG
 		mUBODataMap[name] = element;
 	}
 
-	template <typename ElementType>
-	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<ElementType>::GetBinding(const string& name)
-	{
-		SG_COMPILE_ASSERT("Default version of ShaderSetBindingAttributeLayout::GetBinding() is not usable!", );
-	}
-
-	template <typename ElementType>
-	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<ElementType>::GetSet(const string& name)
-	{
-		SG_COMPILE_ASSERT("Default version of ShaderSetBindingAttributeLayout::GetSet() is not usable!", );
-	}
-
-	template <>
-	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<UInt32>::GetBinding(const string& name)
-	{
-		auto& node = mUBODataMap.find(name);
-		if (node == mUBODataMap.end())
-		{
-			SG_LOG_ERROR("No uniform buffer named: %s", name);
-			SG_ASSERT(false);
-		}
-		return node->second % 10;
-	}
-
-	template <>
-	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<UInt32>::GetSet(const string& name)
-	{
-		auto& node = mUBODataMap.find(name);
-		if (node == mUBODataMap.end())
-		{
-			SG_LOG_ERROR("No uniform buffer named: %s", name);
-			SG_ASSERT(false);
-		}
-		return node->second / 10;
-	}
-
-	template <>
-	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<eastl::pair<UInt32, ShaderAttributesLayout>>::GetBinding(const string& name)
-	{
-		auto& node = mUBODataMap.find(name);
-		if (node == mUBODataMap.end())
-		{
-			SG_LOG_ERROR("No uniform buffer named: %s", name);
-			SG_ASSERT(false);
-		}
-		return node->second.first % 10;
-	}
-
-	template <>
-	SG_INLINE const UInt32 ShaderSetBindingAttributeLayout<eastl::pair<UInt32, ShaderAttributesLayout>>::GetSet(const string& name)
-	{
-		auto& node = mUBODataMap.find(name);
-		if (node == mUBODataMap.end())
-		{
-			SG_LOG_ERROR("No uniform buffer named: %s", name);
-			SG_ASSERT(false);
-		}
-		return node->second.first / 10;
-	}
-
 	// dump wrapper of shader map
 	class Shader
 	{
@@ -208,17 +165,18 @@ namespace SG
 		typedef vector<Byte> ShaderBinaryType;
 		struct ShaderData
 		{
+			string                 name;
 			ShaderBinaryType       binary;
 			ShaderAttributesLayout stageInputLayout;
 			ShaderAttributesLayout pushConstantLayout;
-			ShaderSetBindingAttributeLayout<eastl::pair<UInt32, ShaderAttributesLayout>> uniformBufferLayout;
-			ShaderSetBindingAttributeLayout<UInt32> sampledImageLayout;
+			ShaderSetBindingAttributeLayout<UniformBufferLayout> uniformBufferLayout;
+			ShaderSetBindingAttributeLayout<SetBindingKey> sampledImageLayout;
 		};
 
 		Shader() = default;
 		virtual ~Shader() = default;
 
-		SG_INLINE const string&   GetName() const { return mName; }
+		SG_INLINE const string&   GetName(EShaderStage stage) { return mShaderStages[stage].name; }
 		SG_INLINE const string&   GetEntryPoint() const { return mEntryPoint; }
 		SG_INLINE EShaderLanguage GetShaderLanguage() const { return mLanguage; }
 
@@ -232,6 +190,8 @@ namespace SG
 			return mShaderStages[stage].stageInputLayout;
 		}
 		SG_INLINE const ShaderAttributesLayout& GetPushConstantLayout(EShaderStage stage) { return mShaderStages[stage].pushConstantLayout; }
+		SG_INLINE const ShaderSetBindingAttributeLayout<UniformBufferLayout>& GetUniformBufferLayout(EShaderStage stage) { return mShaderStages[stage].uniformBufferLayout; }
+		SG_INLINE const ShaderSetBindingAttributeLayout<SetBindingKey>& GetSampledImageLayout(EShaderStage stage) { return mShaderStages[stage].sampledImageLayout; }
 
 		SG_INLINE const Byte* GetBinary(EShaderStage stage)
 		{
@@ -247,16 +207,13 @@ namespace SG
 		SG_INLINE void ReleaseBinary()
 		{
 			for (auto& data : mShaderStages)
-				data.second.binary.reserve(0); // clear all the memory
-			mShaderStages.clear();
+				data.second.binary.resize(0); // clear all the memory of the binary
 		}
 	protected:
 		typedef eastl::fixed_map<EShaderStage, ShaderData, (Size)EShaderStage::NUM_STAGES, false> ShaderStageDataType;
 		ShaderStageDataType mShaderStages;
 	private:
 		friend class ShaderCompiler;
-
-		string mName;
 		string mEntryPoint = "main"; // default
 		EShaderLanguage mLanguage;
 	};

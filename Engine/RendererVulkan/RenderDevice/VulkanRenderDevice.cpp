@@ -21,7 +21,7 @@
 
 // TODO: add graphic api abstraction
 #include "RendererVulkan/RenderGraph/RenderGraph.h"
-#include "RendererVulkan/RenderGraphNodes/RGUnlitNode.h"
+#include "RendererVulkan/RenderGraphNodes/RGDefaultNode.h"
 #include "RendererVulkan/RenderGraphNodes/RGEditorGUINode.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
@@ -140,7 +140,7 @@ namespace SG
 
 	void VulkanRenderDevice::BuildRenderGraph()
 	{
-		auto* pNode = Memory::New<RGUnlitNode>(*mpContext);
+		auto* pNode = Memory::New<RGDefaultNode>(*mpContext);
 		pNode->BindGeometry("Model");
 		pNode->SetCamera(mpCamera);
 

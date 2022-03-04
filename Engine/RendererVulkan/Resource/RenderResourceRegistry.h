@@ -58,7 +58,7 @@ namespace SG
 		SG_RENDERER_VK_API Geometry* GetGeometry(const string& name) const;
 
 		bool HaveBuffer(const char* name);
-		bool UpdataBufferData(const char* name, void* pData);
+		bool UpdataBufferData(const char* name, const void* pData);
 
 		bool CreateTexture(const TextureCreateDesc& textureCI, bool bLocal = false);
 		SG_RENDERER_VK_API VulkanTexture* GetTexture(const string& name) const;

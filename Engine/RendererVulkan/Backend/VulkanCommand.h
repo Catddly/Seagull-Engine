@@ -14,10 +14,10 @@
 namespace SG
 {
 
-	class VulkanPipelineLayout;
 	class VulkanPipeline;
 	class VulkanFrameBuffer;
 	class VulkanRenderTarget;
+	class VulkanPipelineSignature;
 	class VulkanTexture;
 
 	class VulkanCommandBuffer
@@ -35,8 +35,8 @@ namespace SG
 		void BindVertexBuffer(UInt32 firstBinding, UInt32 bindingCount, VulkanBuffer& buffer, const UInt64* pOffsets);
 		void BindIndexBuffer(VulkanBuffer& buffer, UInt32 offset, VkIndexType type = VK_INDEX_TYPE_UINT32);
 
-		void PushConstants(VulkanPipelineLayout* layout, EShaderStage shaderStage, UInt32 size, UInt32 offset, void* pConstants);
-		void BindDescriptorSet(VulkanPipelineLayout* pLayout, UInt32 firstSet, VkDescriptorSet descriptorSet);
+		void PushConstants(VulkanPipelineSignature* pSignature, EShaderStage shaderStage, UInt32 size, UInt32 offset, void* pConstants);
+		void BindPipelineSignature(VulkanPipelineSignature* pSignature);
 		void BindPipeline(VulkanPipeline* pPipeline);
 
 		void Draw(UInt32 vertexCount, UInt32 instanceCount, UInt32 firstVertex, UInt32 firstInstance);

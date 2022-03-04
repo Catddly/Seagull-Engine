@@ -65,9 +65,47 @@ namespace SG
 		sTempBuffer[0] = { 0 };
 	}
 
+	void Logger::LogToConsole(const char* file, int line, ELogLevel logLevel, const char* format, ...)
+	{
+		if (mLogMode == ELogMode::eLog_Mode_Quite || mLogMode == ELogMode::eLog_Mode_Quite_No_File)
+		{
+			if (SG_HAS_ENUM_FLAG(logLevel, ELogLevel::efLog_Level_Info | ELogLevel::efLog_Level_Debug))
+				return;
+		}
+
+		va_list args;
+		sTempBufferSize += AddPrefix(sTempBuffer, file, line);
+
+		va_start(args, format);
+		sTempBufferSize += vsnprintf(sTempBuffer + sTempBufferSize, SG_MAX_LOG_BUFFER_SIZE - sTempBufferSize, format, args);
+		va_end(args);
+
+		// end of the log stream buffer
+		sTempBuffer[sTempBufferSize] = '\n';
+		sTempBuffer[++sTempBufferSize] = { 0 };
+		sBuffer.append(sTempBuffer);
+
+		LogOut(logLevel, sTempBuffer);
+
+		if (sBuffer.length() >= SG_MAX_LOG_BUFFER_SIZE - (SG_MAX_SINGLE_LOG_SIZE * 2))
+		{
+			if (mLogMode == ELogMode::eLog_Mode_Default || mLogMode == ELogMode::eLog_Mode_Quite)
+				LogToFile();
+			Flush();
+		}
+		sTempBufferSize = 0;
+		sTempBuffer[0] = { 0 };
+	}
+
 	int Logger::AddPrefix(char* pBuf)
 	{
 		return sprintf_s(pBuf, SG_MAX_TEMP_BUFFER_SIZE, "%s ", fmt::Formatter::GetFormattedString().c_str());
+	}
+
+	int Logger::AddPrefix(char* pBuf, const char* file, int line)
+	{
+		return sprintf_s(pBuf, SG_MAX_TEMP_BUFFER_SIZE, "%s At file: %s, line: %d\nMessage: ", fmt::Formatter::GetFormattedString().c_str(),
+			file, line);
 	}
 
 	void Logger::LogToFile()

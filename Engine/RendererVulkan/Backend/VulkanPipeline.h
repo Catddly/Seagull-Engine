@@ -3,9 +3,12 @@
 #include "VulkanDevice.h"
 #include "VulkanSwapchain.h"
 
+#include "VulkanPipelineSignature.h"
+
 #include "volk.h"
 
 #include "Stl/vector.h"
+#include "Stl/SmartPtr.h"
 #include <eastl/utility.h>
 
 namespace SG
@@ -28,7 +31,7 @@ namespace SG
 
 			Builder& AddDescriptorSetLayout(VulkanDescriptorSetLayout* pLayout);
 			Builder& AddPushConstantRange(UInt32 size, UInt32 offset, EShaderStage stage);
-			VulkanPipelineLayout* Build();
+			RefPtr<VulkanPipelineLayout> Build();
 		private:
 			VulkanDevice& device;
 			vector<VkDescriptorSetLayout> descriptorLayouts;
@@ -84,7 +87,7 @@ namespace SG
 			Builder& SetMultiSample(ESampleCount sample);
 
 			Builder& BindRenderPass(VulkanRenderPass* pRenderPass) { this->pRenderPass = pRenderPass; return *this; }
-			Builder& BindLayout(VulkanPipelineLayout* pLayout) { this->pLayout = pLayout; return *this; }
+			Builder& BindSignature(VulkanPipelineSignature* pSignature) { this->pLayout = pSignature->mpPipelineLayout.get(); return *this; }
 			Builder& BindShader(VulkanShader* pShader);
 
 			VulkanPipeline* Build();

@@ -1,13 +1,13 @@
 #include "StdAfx.h"
 #include "VulkanShader.h"
 
-#include "VulkanContext.h"
+#include "VulkanDevice.h"
 
 namespace SG
 {
 
-	VulkanShader::VulkanShader(VulkanContext& context)
-		:mContext(context)
+	VulkanShader::VulkanShader(VulkanDevice& device)
+		:mDevice(device)
 	{
 	}
 
@@ -15,6 +15,9 @@ namespace SG
 	{
 		for (auto& beg = mShaderStages.begin(); beg != mShaderStages.end(); ++beg)
 		{
+			if (beg->second.binary.empty())
+				continue;
+
 			VkPipelineShaderStageCreateInfo createInfo = {};
 			createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			switch (beg->first)
@@ -33,7 +36,7 @@ namespace SG
 			moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 			moduleCreateInfo.codeSize = beg->second.binary.size();
 			moduleCreateInfo.pCode = reinterpret_cast<UInt32*>(beg->second.binary.data());
-			vkCreateShaderModule(mContext.device.logicalDevice, &moduleCreateInfo, nullptr, &shaderModule);
+			vkCreateShaderModule(mDevice.logicalDevice, &moduleCreateInfo, nullptr, &shaderModule);
 			mShaderModules.push_back(shaderModule);
 
 			createInfo.module = shaderModule;
@@ -47,11 +50,16 @@ namespace SG
 	void VulkanShader::DestroyPipelineShader()
 	{
 		for (auto& shaderModule : mShaderModules)
-			vkDestroyShaderModule(mContext.device.logicalDevice, shaderModule, nullptr);
+			vkDestroyShaderModule(mDevice.logicalDevice, shaderModule, nullptr);
 		mShaderModules.clear();
-		mShaderModules.reserve(0); // clear all the memory
+		mShaderModules.resize(0); // clear all the memory
 		mShaderStagesCI.clear();
-		mShaderStagesCI.reserve(0);  // clear all the memory
+		mShaderStagesCI.resize(0);  // clear all the memory
+	}
+
+	RefPtr<VulkanShader> VulkanShader::Create(VulkanDevice& device)
+	{
+		return MakeRef<VulkanShader>(device);
 	}
 
 }

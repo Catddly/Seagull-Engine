@@ -9,6 +9,7 @@
 #include "volk.h"
 
 #include "Stl/vector.h"
+#include "Stl/SmartPtr.h"
 
 namespace SG
 {
@@ -18,16 +19,15 @@ namespace SG
 	class VulkanRenderTarget;
 	class VulkanShader;
 	class VulkanPipeline;
-	class VulkanPipelineLayout;
-	class VulkanDescriptorSetLayout;
+	class VulkanPipelineSignature;
 
 	class Geometry;
 
-	class RGUnlitNode final : public RenderGraphNode
+	class RGDefaultNode final : public RenderGraphNode
 	{
 	public:
-		RGUnlitNode(VulkanContext& context);
-		~RGUnlitNode();
+		RGDefaultNode(VulkanContext& context);
+		~RGDefaultNode();
 
 		void BindGeometry(const char* name);
 		void SetCamera(ICamera* pCamera);
@@ -42,11 +42,10 @@ namespace SG
 		LoadStoreClearOp      mColorRtLoadStoreOp;
 		LoadStoreClearOp      mDepthRtLoadStoreOp;
 
-		VulkanDescriptorSetLayout* mpUBOSetLayout;
-		VulkanPipelineLayout*      mpPipelineLayout;
-		VulkanPipeline*            mpPipeline;
-		VulkanShader*              mpShader;
-		Geometry*                  mpGeometry;
+		RefPtr<VulkanPipelineSignature> mpPipelineSignature;
+		VulkanPipeline*                 mpPipeline;
+		RefPtr<VulkanShader>            mpShader;
+		Geometry*                       mpGeometry;
 
 		ICamera* mpCamera;
 		// Temporary

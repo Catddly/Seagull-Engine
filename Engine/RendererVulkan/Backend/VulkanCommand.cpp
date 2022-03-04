@@ -5,6 +5,8 @@
 
 #include "VulkanConfig.h"
 #include "VulkanBuffer.h"
+#include "VulkanDescriptor.h"
+#include "VulkanPipelineSignature.h"
 #include "VulkanPipeline.h"
 #include "VulkanFrameBuffer.h"
 #include "VulkanSwapchain.h"
@@ -182,19 +184,21 @@ namespace SG
 		vkCmdBindIndexBuffer(commandBuffer, buffer.buffer, offset, type);
 	}
 
-	void VulkanCommandBuffer::PushConstants(VulkanPipelineLayout* layout, EShaderStage shaderStage, UInt32 size, UInt32 offset, void* pConstants)
+	void VulkanCommandBuffer::PushConstants(VulkanPipelineSignature* pSignature, EShaderStage shaderStage, UInt32 size, UInt32 offset, void* pConstants)
 	{
 		if (pConstants == nullptr)
 		{
 			SG_LOG_WARN("Can not push nullptr data!");
 			return;
 		}
-		vkCmdPushConstants(commandBuffer, layout->layout, ToVkShaderStageFlags(shaderStage), offset, size, pConstants);
+		vkCmdPushConstants(commandBuffer, pSignature->mpPipelineLayout->layout, ToVkShaderStageFlags(shaderStage), offset, size, pConstants);
 	}
 
-	void VulkanCommandBuffer::BindDescriptorSet(VulkanPipelineLayout* layout, UInt32 firstSet, VkDescriptorSet descriptorSet)
+	void VulkanCommandBuffer::BindPipelineSignature(VulkanPipelineSignature* pSignature)
 	{
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout->layout, firstSet, 1, &descriptorSet, 0, nullptr);
+		// TODO: add more set to it 
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pSignature->mpPipelineLayout->layout,
+			0, 1, &pSignature->mDescriptorSet.set, 0, nullptr);
 	}
 
 	void VulkanCommandBuffer::BindPipeline(VulkanPipeline* pipeline)

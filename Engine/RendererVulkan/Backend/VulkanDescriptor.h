@@ -8,6 +8,7 @@
  
 #include "volk.h"
 
+#include "Stl/SmartPtr.h"
 #include "Stl/vector.h"
 #include <eastl/unordered_map.h>
 
@@ -49,7 +50,7 @@ namespace SG
 		~VulkanDescriptorSetLayout();
 		SG_CLASS_NO_COPY_ASSIGNABLE(VulkanDescriptorSetLayout);
 
-		VkDescriptorSetLayout& NativeHandle() { return descriptorSetLayout; }
+		//VkDescriptorSetLayout& NativeHandle() { return descriptorSetLayout; }
 
 		class Builder
 		{
@@ -57,17 +58,28 @@ namespace SG
 			Builder(VulkanDevice& d) : device(d) {}
 
 			Builder& AddBinding(EDescriptorType type, EShaderStage stage, UInt32 binding, UInt32 count);
-			VulkanDescriptorSetLayout* Build();
+			RefPtr<VulkanDescriptorSetLayout> Build();
 		private:
 			VulkanDevice& device;
 			eastl::unordered_map<UInt32, VkDescriptorSetLayoutBinding> bindingsMap;
 		};
 	private:
+		friend class VulkanPipelineLayout;
 		friend class VulkanDescriptorDataBinder;
 
 		VulkanDevice&         device;
 		VkDescriptorSetLayout descriptorSetLayout;
 		eastl::unordered_map<UInt32, VkDescriptorSetLayoutBinding> bindingsMap;
+	};
+
+	//! Handle to the resources which bound to the VulkanDescriptorSetLayout.
+	class VulkanDescriptorSet
+	{
+	public:
+	private:
+		friend class VulkanDescriptorDataBinder;
+		friend class VulkanCommandBuffer;
+		VkDescriptorSet set;
 	};
 
 	class VulkanSampler;
@@ -82,9 +94,9 @@ namespace SG
 		VulkanDescriptorDataBinder& BindBuffer(UInt32 binding, const VulkanBuffer* info);
 		VulkanDescriptorDataBinder& BindImage(UInt32 binding, const VulkanSampler* pSampler, const VulkanTexture* pTexture);
 
-		bool Bind(VkDescriptorSet& set);
+		bool Bind(VulkanDescriptorSet& set);
 	private:
-		void OverWriteData(VkDescriptorSet& set);
+		void OverWriteData(VulkanDescriptorSet& set);
 	private:
 		VulkanDescriptorPool&        pool;
 		VulkanDescriptorSetLayout&   layout;

@@ -4,7 +4,11 @@
 #include "Render/FrameBuffer.h"
 #include "Render/GUI/IGUIDriver.h"
 
+// should we include this here??
+#include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
+
+#include "Stl/SmartPtr.h"
 
 namespace SG
 {
@@ -12,8 +16,7 @@ namespace SG
 	class VulkanContext;
 	class VulkanRenderPass;
 
-	class VulkanDescriptorSetLayout;
-	class VulkanPipelineLayout;
+	class VulkanPipelineSignature;
 	class VulkanPipeline;
 	class VulkanShader;
 
@@ -33,10 +36,9 @@ namespace SG
 
 		LoadStoreClearOp  mColorRtLoadStoreOp;
 
-		VulkanDescriptorSetLayout* mpGUITextureSetLayout;
-		VulkanPipelineLayout*      mpGUIPipelineLayout;
-		VulkanPipeline*            mpGUIPipeline;
-		VulkanShader*              mpGUIShader;
+		RefPtr<VulkanPipelineSignature> mpGUIPipelineSignature;
+		VulkanPipeline* mpGUIPipeline;
+		RefPtr<VulkanShader> mpGUIShader;
 
 		UInt32 mCurrVertexCount;
 		UInt32 mCurrIndexCount;

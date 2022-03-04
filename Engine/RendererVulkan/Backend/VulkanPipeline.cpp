@@ -19,7 +19,7 @@ namespace SG
 	VulkanPipelineLayout::Builder& VulkanPipelineLayout::Builder::AddDescriptorSetLayout(VulkanDescriptorSetLayout* layout)
 	{
 		if (layout)
-			descriptorLayouts.emplace_back(layout->NativeHandle());
+			descriptorLayouts.emplace_back(layout->descriptorSetLayout);
 		return *this;
 	}
 
@@ -50,9 +50,9 @@ namespace SG
 		return *this;
 	}
 
-	SG::VulkanPipelineLayout* VulkanPipelineLayout::Builder::Build()
+	RefPtr<VulkanPipelineLayout> VulkanPipelineLayout::Builder::Build()
 	{
-		return Memory::New<VulkanPipelineLayout>(device, descriptorLayouts, pushConstantRanges);
+		return MakeRef<VulkanPipelineLayout>(device, descriptorLayouts, pushConstantRanges);
 	}
 
 	VulkanPipelineLayout::VulkanPipelineLayout(VulkanDevice& d, const vector<VkDescriptorSetLayout>& layouts, const vector<VkPushConstantRange>& pushConstant)
@@ -106,8 +106,7 @@ namespace SG
 		graphicPipelineCreateInfo.pViewportState      = &CI.viewportStateCI;
 		graphicPipelineCreateInfo.pDepthStencilState  = &CI.depthStencilCI;
 		graphicPipelineCreateInfo.pDynamicState       = &CI.dynamicStateCI;
-
-		//graphicPipelineCreateInfo.subpass = 0;
+		graphicPipelineCreateInfo.subpass = 0;
 
 		VK_CHECK(vkCreateGraphicsPipelines(device.logicalDevice, pipelineCache, 1, &graphicPipelineCreateInfo, nullptr, &pipeline),
 			SG_LOG_ERROR("Failed to create graphics pipeline!"););
@@ -138,7 +137,7 @@ namespace SG
 	{
 		VkVertexInputBindingDescription vertexInputBinding = {};
 		vertexInputBinding.binding = 0;
-		vertexInputBinding.stride = layout.GetTotalSize();
+		vertexInputBinding.stride = layout.GetTotalSizeInByte();
 		vertexInputBinding.inputRate = perVertex ? VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE;
 
 		UInt32 location = 0;

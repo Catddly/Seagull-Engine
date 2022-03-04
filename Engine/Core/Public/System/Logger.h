@@ -37,6 +37,7 @@ namespace SG
 		SG_CORE_API static void SetToDefaultFormat() { SetFormat("[%y:%o:%d]-[%h:%m:%s]-[%t]"); }
 		//! Log to console
 		SG_CORE_API static void LogToConsole(ELogLevel logLevel, const char* format, ...);
+		SG_CORE_API static void LogToConsole(const char* file, int line, ELogLevel logLevel, const char* format, ...);
 		SG_CORE_API static void LogToFile();
 
 		static void SetLogMode(ELogMode logMode) { mLogMode = logMode; }
@@ -50,6 +51,7 @@ namespace SG
 		//! @param  (pBuf) buffer to add to.
 		//! @return offset of the buffer.
 		static int  AddPrefix(char* pBuf);
+		static int  AddPrefix(char* pBuf, const char* file, int line);
 		static void Flush();
 		static void LogOut(ELogLevel logLevel, char* pBuffer);
 	private:
@@ -114,11 +116,11 @@ namespace impl
 #define SG_STR(x) SG_STR_IMPL(x)
 #define SG_STR_IMPL(x) #x
 
-#define SG_LOG_INFO(...)  ::SG::Logger::LogToConsole(::SG::ELogLevel::efLog_Level_Info,     __VA_ARGS__)
-#define SG_LOG_DEBUG(...) ::SG::Logger::LogToConsole(::SG::ELogLevel::efLog_Level_Debug,    __VA_ARGS__)
-#define SG_LOG_WARN(...)  ::SG::Logger::LogToConsole(::SG::ELogLevel::efLog_Level_Warn,     __VA_ARGS__)
-#define SG_LOG_ERROR(...) ::SG::Logger::LogToConsole(::SG::ELogLevel::efLog_Level_Error,    __VA_ARGS__)
-#define SG_LOG_CRIT(...)  ::SG::Logger::LogToConsole(::SG::ELogLevel::efLog_Level_Criticle, __VA_ARGS__)
+#define SG_LOG_INFO(...)  ::SG::Logger::LogToConsole(::SG::ELogLevel::efLog_Level_Info,  __VA_ARGS__)
+#define SG_LOG_DEBUG(...) ::SG::Logger::LogToConsole(::SG::ELogLevel::efLog_Level_Debug, __VA_ARGS__)
+#define SG_LOG_WARN(...)  ::SG::Logger::LogToConsole(__FILE__, __LINE__, ::SG::ELogLevel::efLog_Level_Warn,     __VA_ARGS__)
+#define SG_LOG_ERROR(...) ::SG::Logger::LogToConsole(__FILE__, __LINE__, ::SG::ELogLevel::efLog_Level_Error,    __VA_ARGS__)
+#define SG_LOG_CRIT(...)  ::SG::Logger::LogToConsole(__FILE__, __LINE__, ::SG::ELogLevel::efLog_Level_Criticle, __VA_ARGS__)
 
 #define SG_LOG_ITERABLE(LEVEL, BEG, END)   ::SG::Logger::LogToConsole(LEVEL, ::SG::impl::PrintIterator(BEG, END, false).c_str())
 #define SG_LOG_ITERABLE_R(LEVEL, BEG, END) ::SG::Logger::LogToConsole(LEVEL, ::SG::impl::PrintIterator(BEG, END, true).c_str())

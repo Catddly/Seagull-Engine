@@ -166,7 +166,7 @@ namespace SG
 		return true;
 	}
 
-	bool VulkanResourceRegistry::UpdataBufferData(const char* name, void* pData)
+	bool VulkanResourceRegistry::UpdataBufferData(const char* name, const void* pData)
 	{
 		if (mBuffers.count(name) == 0)
 		{

@@ -43,7 +43,7 @@
 #include "Stl/vector.h"
 #include "Stl/string.h"
 #include "Stl/string_view.h"
-#include "Stl/shared_ptr.h"
+#include "Stl/SmartPtr.h"
 #include <EASTL/map.h>
 
 //----------------------------------------------------------

@@ -75,6 +75,7 @@ namespace SG
 			}
 
 			ReadInShaderData(actualName, i, pShader, shaderBits);
+			pShader->mShaderStages[EShaderStage(1 << i)].name = binShaderName;
 		}
 
 		if ((shaderBits & (1 << 0)) == 0 || (shaderBits & (1 << 4)) == 0) // if vert or frag stage is missing
@@ -92,7 +93,6 @@ namespace SG
 		}
 	
 		return ReflectSPIRV(pShader);
-		//return true;
 	}
 
 	bool ShaderCompiler::LoadSPIRVShader(const string& vertShaderName, const string& fragShaderName, Shader* pShader)
@@ -124,8 +124,9 @@ namespace SG
 			return false;
 		}
 
+		pShader->mShaderStages[EShaderStage::efVert].name = vertShaderName;
+		pShader->mShaderStages[EShaderStage::efFrag].name = fragShaderName;
 		return ReflectSPIRV(pShader);
-		//return true;
 	}
 
 	bool ShaderCompiler::CompileGLSLShader(const string& binShaderName, Shader* pShader)
@@ -301,10 +302,7 @@ namespace SG
 		{
 			auto& shaderData = beg->second;
 			if (shaderData.binary.empty())
-			{
-				SG_LOG_ERROR("Pass in invalid shader binary!");
-				return false;
-			}
+				continue;
 
 			spirv_cross::Compiler compiler(reinterpret_cast<const UInt32*>(shaderData.binary.data()), shaderData.binary.size() / sizeof(UInt32));
 			auto& stageData = compiler.get_entry_points_and_stages();

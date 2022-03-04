@@ -48,10 +48,6 @@ namespace SG
 
 		VulkanDescriptorPool* pDefaultDescriptorPool;
 
-		// should be moved to other place
-		VkDescriptorSet cameraUBOSet;
-		VkDescriptorSet imguiSet;
-
 		vector<VulkanRenderTarget*> colorRts;
 		VulkanRenderTarget*         depthRt;
 
