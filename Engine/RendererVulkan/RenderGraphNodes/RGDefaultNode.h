@@ -2,7 +2,8 @@
 
 #include "Render/Shader.h"
 #include "Render/FrameBuffer.h"
-#include "Render/Camera/ICamera.h"
+#include "Scene/Camera/ICamera.h"
+#include "Scene/Light/PointLight.h"
 
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
@@ -21,7 +22,7 @@ namespace SG
 	class VulkanPipeline;
 	class VulkanPipelineSignature;
 
-	class Geometry;
+	class VulkanGeometry;
 
 	class RGDefaultNode final : public RenderGraphNode
 	{
@@ -31,6 +32,7 @@ namespace SG
 
 		void BindGeometry(const char* name);
 		void SetCamera(ICamera* pCamera);
+		void SetPointLight(const PointLight* pPointLight);
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
@@ -45,7 +47,8 @@ namespace SG
 		RefPtr<VulkanPipelineSignature> mpPipelineSignature;
 		VulkanPipeline*                 mpPipeline;
 		RefPtr<VulkanShader>            mpShader;
-		Geometry*                       mpGeometry;
+		VulkanGeometry*                 mpGeometry;
+		const PointLight*               mpPointLight;
 
 		ICamera* mpCamera;
 		// Temporary
@@ -58,29 +61,19 @@ namespace SG
 			Matrix4f view;
 			Matrix4f proj;
 			Vector3f viewPos;
+			float    radius;
+			Vector3f position;
 			float    pad;
+			Vector3f color;
 		};
-		UBO      mCameraUBO;
-
+		UBO mUBO;
+		
 		struct PushConstant
 		{
 			Matrix4f model;
 			Matrix4f inverseTransposeModel;
 		};
 		PushConstant mPushConstant;
-
-		//vector<eastl::pair<UInt32, VkDescriptorSet>> mDescriptorSets;
-		//struct BindConstantData
-		//{
-		//	EShaderStage stage;
-		//	UInt32       size;
-		//	void*        pData;
-
-		//	BindConstantData(EShaderStage s, UInt32 sz, void* ptr)
-		//		:stage(s), size(sz), pData(ptr)
-		//	{}
-		//};
-		//vector<BindConstantData> mPushConstants;
 	};
 
 }

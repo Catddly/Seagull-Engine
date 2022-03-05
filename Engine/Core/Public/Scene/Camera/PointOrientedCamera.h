@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Render/Camera/BasicCamera.h"
+#include "Scene/Camera/BasicCamera.h"
 
 namespace SG
 {

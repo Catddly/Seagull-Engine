@@ -28,8 +28,9 @@ namespace SG
 	{
 		// bind to the descriptor set
 		VulkanDescriptorSetLayout::Builder uboLayoutBuilder(mContext.device);
-
-		auto& uboLayout = pShader->GetUniformBufferLayout(EShaderStage::efVert);
+		
+		// for all the ubo in vertex stage
+		auto& uboLayout = pShader->GetUniformBufferLayout();
 		for (auto& uboData : uboLayout)
 		{
 			// create a buffer for this ubo layout
@@ -39,8 +40,9 @@ namespace SG
 			BufferCI.type = EBufferType::efUniform;
 			VK_RESOURCE()->CreateBuffer(BufferCI);
 
-			uboLayoutBuilder.AddBinding(EDescriptorType::eUniform_Buffer, EShaderStage::efVert, GetBinding(uboData.second.setbinding), 1);
+			uboLayoutBuilder.AddBinding(EDescriptorType::eUniform_Buffer, uboData.second.stage, GetBinding(uboData.second.setbinding), 1);
 		}
+
 		auto& combineImageLayout = pShader->GetSampledImageLayout(EShaderStage::efFrag);
 		for (auto& imageData : combineImageLayout)
 		{
@@ -87,7 +89,7 @@ namespace SG
 
 	void VulkanPipelineSignature::UploadUniformBufferData(const char* uboName, const void* pData)
 	{
-		auto& uboLayout = mpShader->GetUniformBufferLayout(EShaderStage::efVert);
+		auto& uboLayout = mpShader->GetUniformBufferLayout();
 		for (auto& uboData : uboLayout)
 		{
 			if (strcmp(uboData.first.c_str(), uboName) == 0)

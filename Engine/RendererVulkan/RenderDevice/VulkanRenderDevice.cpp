@@ -1,14 +1,10 @@
 #include "StdAfx.h"
 #include "VulkanRenderDevice.h"
 
-#include "Platform/OS.h"
 #include "System/FileSystem.h"
 #include "System/Logger.h"
 #include "Render/SwapChain.h"
-#include "Render/Camera/ICamera.h"
 #include "Memory/Memory.h"
-
-#include "Render/Camera/PointOrientedCamera.h"
 
 #include "Math/MathBasic.h"
 #include "Math/Transform.h"
@@ -31,7 +27,7 @@ namespace SG
 {
 
 	VulkanRenderDevice::VulkanRenderDevice()
-		:mCurrentFrameInCPU(0), mbBlockEvent(true)
+		:mCurrentFrameInCPU(0), mbBlockEvent(true), mScene("default")
 	{
 		SSystem()->RegisterSystemMessageListener(this);
 	}
@@ -43,15 +39,8 @@ namespace SG
 
 	void VulkanRenderDevice::OnInit()
 	{
-		/// begin outer resource preparation
-		auto* window = OperatingSystem::GetMainWindow();
-		const float ASPECT = window->GetAspectRatio();
+		mScene.OnSceneLoad();
 
-		mpCamera = Memory::New<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -4.0f));
-		mpCamera->SetPerspective(45.0f, ASPECT);
-		/// end outer resource preparation
-
-		// use imgui!
 		mpGUIDriver = Memory::New<ImGuiDriver>();
 		mpGUIDriver->OnInit();
 
@@ -59,36 +48,18 @@ namespace SG
 		VK_RESOURCE()->Initialize(mpContext);
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
-		//float vertices[] = {
-		//	-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-		//	0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-		//	0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-		//	-0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-
-		//	-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 2.0f,
-		//	0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 2.0f, 2.0f,
-		//	0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f,	2.0f, 0.0f,
-		//	-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-		//};
-
-		//UInt32 indices[] = {
-		//	0, 1, 2, 2, 3, 0,
-		//	4, 5, 6, 6, 7, 4
-		//};
-
-		//CreateGeoBuffers(vertices, indices);
-		LoadMeshFromDiskTest();
-		//CreateTexture();
+		MeshToVulkanGeometry();
 
 		BuildRenderGraph();
 		// update one frame here to avoid imgui do not draw the first frame.
 		mpGUIDriver->OnUpdate(0.0f);
-		mpGUIDriver->OnDraw();
+		mpGUIDriver->OnDraw(&mScene);
 	}
 
 	void VulkanRenderDevice::OnShutdown()
 	{
-		mpContext->graphicQueue.WaitIdle();
+		mScene.OnSceneUnLoad();
+		mpContext->device.WaitIdle();
 
 		Memory::Delete(mpRenderGraph);
 		VK_RESOURCE()->Shutdown();
@@ -97,12 +68,14 @@ namespace SG
 
 		mpGUIDriver->OnShutdown();
 		Memory::Delete(mpGUIDriver);
-		Memory::Delete(mpCamera);
 	}
 
 	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
+		//mScene.OnUpdate(deltaTime);
 		mpGUIDriver->OnUpdate(deltaTime);
+		mpGUIDriver->OnDraw(&mScene);
+
 		mpRenderGraph->Update(deltaTime);
 	}
 
@@ -110,8 +83,6 @@ namespace SG
 	{
 		if (mbWindowMinimal)
 			return;
-
-		mpGUIDriver->OnDraw();
 
 		mpContext->swapchain.AcquireNextImage(mpContext->pPresentCompleteSemaphore, mCurrentFrameInCPU); // check if next image is presented, and get it as the available image
 		mpContext->pFences[mCurrentFrameInCPU]->WaitAndReset(); // wait for the render commands running on the new image
@@ -140,12 +111,16 @@ namespace SG
 
 	void VulkanRenderDevice::BuildRenderGraph()
 	{
-		auto* pNode = Memory::New<RGDefaultNode>(*mpContext);
-		pNode->BindGeometry("Model");
-		pNode->SetCamera(mpCamera);
+		auto* pDefaultNode = Memory::New<RGDefaultNode>(*mpContext);
+		pDefaultNode->BindGeometry("model");
+		pDefaultNode->SetCamera(mScene.GetMainCamera());
+		mScene.TraversePointLight([&](const PointLight& light) 
+			{
+				pDefaultNode->SetPointLight(&light);
+			});
 
 		mpRenderGraph = RenderGraphBuilder("Default", mpContext)
-			.NewRenderPass(pNode)
+			.NewRenderPass(pDefaultNode)
 			.NewRenderPass(Memory::New<RGEditorGUINode>(*mpContext))
 			.Build();
 	}
@@ -154,15 +129,6 @@ namespace SG
 	{
 		mpContext->WindowResize();
 		mpRenderGraph->WindowResize();
-	}
-
-	bool VulkanRenderDevice::CreateGeoBuffers(float* vertices, UInt32* indices)
-	{
-		bool bSuccess = true;
-
-		bSuccess &= VK_RESOURCE()->CreateGeometry("square", vertices, 8 * 8, indices, 12);
-
-		return bSuccess;
 	}
 
 	bool VulkanRenderDevice::CreateTexture()
@@ -214,15 +180,17 @@ namespace SG
 		return true;
 	}
 
-	bool VulkanRenderDevice::LoadMeshFromDiskTest()
+	bool VulkanRenderDevice::MeshToVulkanGeometry()
 	{
-		MeshResourceLoader loader;
-		vector<float>  vertices;
-		vector<UInt32> indices;
-		loader.LoadFromFile("model.obj", vertices, indices);
-
-		return VK_RESOURCE()->CreateGeometry("Model", vertices.data(), static_cast<UInt32>(vertices.size()), 
-			indices.data(), static_cast<UInt32>(indices.size()));
+		bool bAllSuccess = true;
+		mScene.TraverseMesh([&](const Mesh& mesh)
+			{
+				bAllSuccess &= VK_RESOURCE()->CreateGeometry(mesh.GetName(), 
+					mesh.GetVertices().data(), static_cast<UInt32>(mesh.GetVertices().size()),
+					mesh.GetIndices().data(), static_cast<UInt32>(mesh.GetIndices().size()));
+			}
+		);
+		return bAllSuccess;
 	}
 
 }

@@ -11,13 +11,13 @@ namespace SG
 	class VulkanContext;
 	class VulkanBuffer;
 
-	class Geometry
+	class VulkanGeometry
 	{
 	public:
-		Geometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex);
-		Geometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt32 numIndex);
+		VulkanGeometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex);
+		VulkanGeometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt32 numIndex);
 
-		~Geometry();
+		~VulkanGeometry();
 
 		SG_INLINE VulkanBuffer* GetVertexBuffer() const { return mpVertexBuffer; }
 		SG_INLINE VulkanBuffer* GetIndexBuffer()  const { return mpIndexBuffer; }

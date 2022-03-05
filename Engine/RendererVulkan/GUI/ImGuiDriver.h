@@ -18,7 +18,7 @@ namespace SG
 		virtual void OnShutdown() override;
 
 		virtual void OnUpdate(float deltaTime) override;
-		virtual void OnDraw() override;
+		virtual void OnDraw(Scene* pScene) override;
 	private:
 		void UpdateMouseData();
 		void UpdateCursorData();

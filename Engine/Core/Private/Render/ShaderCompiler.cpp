@@ -362,6 +362,13 @@ namespace SG
 				const auto binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
 				const UInt32 key = set * 10 + binding; // calculate key value for the set and binding
 
+				if (pShader->mUniformBufferLayout.Exist(name)) // may be another stage is using it, too.
+				{
+					auto& data = pShader->mUniformBufferLayout.Get(name);
+					data.stage = data.stage | beg->first;
+					continue;
+				}
+
 				ShaderAttributesLayout layout = {};
 				if (type.basetype == spirv_cross::SPIRType::Struct)
 				{
@@ -379,7 +386,7 @@ namespace SG
 					layout.Emplace(_SPIRVTypeToShaderDataType(type), memberName);
 				}
 
-				shaderData.uniformBufferLayout.Emplace(name, { key, layout });
+				pShader->mUniformBufferLayout.Emplace(name, { key, layout, beg->first });
 			}
 
 			// shader combine sampler image collection

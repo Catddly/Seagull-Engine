@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "ImGuiDriver.h"
 
+#include "Scene/Scene.h"
+
 #include "Platform/OS.h"
 #include "System/Logger.h"
 #include "System/Input.h"
@@ -349,16 +351,27 @@ namespace SG
 		UpdateCursorData();
 	}
 
-	void ImGuiDriver::OnDraw()
+	void ImGuiDriver::OnDraw(Scene* pScene)
 	{
 		ImGui::NewFrame();
 
 		bool bShowDemoWindow = true;
 		ImGui::ShowDemoWindow(&bShowDemoWindow);
 
-		ImGui::Begin("Test");
-		if (ImGui::Button("Button1"))
-			SG_LOG_DEBUG("Button Pressed!");
+		ImGui::Begin("Light");
+		pScene->TraversePointLight([](PointLight& pointLight)
+			{
+				Vector3f position = pointLight.GetPosition();
+				float radius = pointLight.GetRadius();
+				Vector3f color = pointLight.GetColor();
+				ImGui::DragFloat3("Position", position.data(), 0.05f);
+				ImGui::DragFloat("Radius", &radius, 0.1f);
+				ImGui::ColorEdit3("Color", color.data());
+
+				pointLight.SetPosition(position);
+				pointLight.SetRadius(radius);
+				pointLight.SetColor(color);
+			});
 		ImGui::End();
 
 		ImGui::EndFrame();

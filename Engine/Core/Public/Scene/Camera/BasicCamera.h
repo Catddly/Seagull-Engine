@@ -1,7 +1,7 @@
 #pragma once
 
 #include "System/Input.h"
-#include "Render/Camera/ICamera.h"
+#include "Scene/Camera/ICamera.h"
 
 #include "Math/Vector.h"
 #include "Math/Matrix.h"

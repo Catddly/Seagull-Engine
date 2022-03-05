@@ -15,7 +15,7 @@
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
 #include "RendererVulkan/Backend/VulkanShader.h"
 
-#include "RendererVulkan/Resource/Geometry.h"
+#include "RendererVulkan/Resource/VulkanGeometry.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
 namespace SG
@@ -59,19 +59,23 @@ namespace SG
 			SG_LOG_ERROR("Invalid camera!");
 			return;
 		}
-
 		mpCamera = pCamera;
 
 		// init buffer data
-		mCameraUBO.proj = mpCamera->GetProjMatrix();
-		mCameraUBO.viewPos = mpCamera->GetPosition();
-		mCameraUBO.pad = 0.0f;
+		mUBO.proj = mpCamera->GetProjMatrix();
+		mUBO.viewPos = mpCamera->GetPosition();
+		mUBO.pad = 0.0f;
 
 		mModelPosition = { 0.0f, 0.0f, 0.0f };
 		mModelScale = 1.0f;
 		mModelRotation = { 0.0f, 0.0f, 0.0f };
 		mPushConstant.model = BuildTransformMatrix(mModelPosition, mModelScale, mModelRotation);
 		mPushConstant.inverseTransposeModel = mPushConstant.model.inverse().transpose();
+	}
+
+	void RGDefaultNode::SetPointLight(const PointLight* pPointLight)
+	{
+		mpPointLight = pPointLight;
 	}
 
 	void RGDefaultNode::Reset()
@@ -81,8 +85,8 @@ namespace SG
 		auto* window = OperatingSystem::GetMainWindow();
 		const float  ASPECT = window->GetAspectRatio();
 		mpCamera->SetPerspective(45.0f, ASPECT);
-		mCameraUBO.proj = mpCamera->GetProjMatrix();
-		VK_RESOURCE()->UpdataBufferData("CameraUniform", &mCameraUBO);
+		mUBO.proj = mpCamera->GetProjMatrix();
+		VK_RESOURCE()->UpdataBufferData("cameraUbo", &mUBO);
 	}
 
 	void RGDefaultNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -105,12 +109,25 @@ namespace SG
 		TranslateToX(mPushConstant.model, mModelPosition(0));
 		mPushConstant.inverseTransposeModel = mPushConstant.model.inverse().transpose();
 
+		bool bNeedUploadData = false;
 		if (mpCamera->IsViewDirty())
 		{
-			mCameraUBO.viewPos = mpCamera->GetPosition();
-			mCameraUBO.view = mpCamera->GetViewMatrix();
-			mpPipelineSignature->UploadUniformBufferData("cameraUbo", &mCameraUBO);
+			mUBO.viewPos = mpCamera->GetPosition();
+			mUBO.view = mpCamera->GetViewMatrix();
+			bNeedUploadData = true;
 		}
+
+		if (mpPointLight->IsDirty())
+		{
+			mUBO.position = mpPointLight->GetPosition();
+			mUBO.color = mpPointLight->GetColor();
+			mUBO.radius = mpPointLight->GetRadius();
+			mpPointLight->BeUpdated();
+			bNeedUploadData = true;
+		}
+
+		if (bNeedUploadData)
+			mpPipelineSignature->UploadUniformBufferData("ubo", &mUBO);
 
 		totalTime += deltaTime * speed;
 	}

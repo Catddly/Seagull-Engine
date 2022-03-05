@@ -1,38 +1,14 @@
 #pragma once
 
-#include "Core/Config.h"
-#include "Base/BasicTypes.h"
-
 #include "System/Logger.h"
 #include "Memory/Memory.h"
+#include "Archive/ResourceLoader/ResourceDefs.h"
 
 #include "Stl/string.h"
 #include "Stl/vector.h"
 
 namespace SG
 {
-
-	enum class ETextureType
-	{
-		ePNG = 0,
-		eJPG,
-		eKTX,
-		eDDS,
-		eUnknown,
-	};
-
-	enum class EMeshType
-	{
-		eOBJ = 0,
-		eUnknown,
-	};
-
-	enum class EResourceTypeCategory
-	{
-		eTexture = 0,
-		eMesh,
-		eSaveData,
-	};
 
 	//! Transient raw 2D texture data, will automatically free its memory when unused.
 	class Raw2DTexture
@@ -77,7 +53,7 @@ namespace SG
 	}
 
 	template <>
-	auto ResourceLoaderBase<EResourceTypeCategory::eTexture>::GetResourceType(const string& filename)
+	SG_INLINE auto ResourceLoaderBase<EResourceTypeCategory::eTexture>::GetResourceType(const string& filename)
 	{
 		const char* suffix = GetFileNameSuffix(filename);
 		if (strcmp(suffix, "png") == 0)
@@ -96,7 +72,7 @@ namespace SG
 	}
 
 	template <>
-	auto ResourceLoaderBase<EResourceTypeCategory::eMesh>::GetResourceType(const string& filename)
+	SG_INLINE auto ResourceLoaderBase<EResourceTypeCategory::eMesh>::GetResourceType(const string& filename)
 	{
 		const char* suffix = GetFileNameSuffix(filename);
 		if (strcmp(suffix, "obj") == 0)

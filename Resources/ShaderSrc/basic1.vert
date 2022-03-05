@@ -7,13 +7,16 @@ layout (location = 0) out vec3 outNormalWS;
 layout (location = 1) out vec3 outPosWS;
 layout (location = 2) out vec3 outViewPosWS;
 
-layout (binding = 0) uniform UBO
+layout (set = 0, binding = 0) uniform UBO
 {
 	mat4  view;
 	mat4  projection;
 	vec3  viewPos;
+	float lightRadius;
+	vec3  lightPos;
 	float pad;
-} cameraUbo;
+	vec3  lightColor;
+} ubo;
 
 layout(push_constant) uniform pushConstant 
 {
@@ -23,8 +26,8 @@ layout(push_constant) uniform pushConstant
 
 void main() 
 {
-	outViewPosWS = cameraUbo.viewPos;
+	outViewPosWS = ubo.viewPos;
 	outPosWS = vec3(constant.model * vec4(inPos, 1.0));
 	outNormalWS = mat3(constant.inverseTransposeModel) * inNormalLS; 
-    gl_Position = cameraUbo.projection * cameraUbo.view * vec4(outPosWS, 1.0);
+    gl_Position = ubo.projection * ubo.view * vec4(outPosWS, 1.0);
 }

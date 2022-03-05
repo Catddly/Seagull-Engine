@@ -4,7 +4,9 @@
 #include "Render/IRenderDevice.h"
 #include "Render/Shader.h"
 #include "Render/GUI/IGUIDriver.h"
-#include "Render/Camera/ICamera.h"
+
+#include "Scene/Camera/ICamera.h"
+#include "Scene/Scene.h"
 
 #include "System/System.h"
 
@@ -34,26 +36,23 @@ namespace SG
 		SG_RENDERER_VK_API static const char* GetModuleName() { return "RenderDevice"; }
 	protected:
 		virtual bool OnSystemMessage(ESystemMessage msg) override;
-
 		void BuildRenderGraph();
 		void WindowResize();
 
-		bool CreateGeoBuffers(float* vertices, UInt32* indices);
 		bool CreateTexture();
 
-		bool LoadMeshFromDiskTest();
+		bool MeshToVulkanGeometry();
 	private:
-		bool mbBlockEvent    = true;
-		bool mbWindowMinimal = false;
+		VulkanContext* mpContext = nullptr;
 
 		RenderGraph* mpRenderGraph = nullptr;
+		IGUIDriver*  mpGUIDriver = nullptr;
 
-		IGUIDriver* mpGUIDriver = nullptr;
-
-		VulkanContext* mpContext = nullptr;
-		ICamera*       mpCamera = nullptr;
+		Scene        mScene;
 
 		UInt32 mCurrentFrameInCPU;
+		bool mbBlockEvent = true;
+		bool mbWindowMinimal = false;
 	};
 
 }

@@ -50,8 +50,6 @@ namespace SG
 		~VulkanDescriptorSetLayout();
 		SG_CLASS_NO_COPY_ASSIGNABLE(VulkanDescriptorSetLayout);
 
-		//VkDescriptorSetLayout& NativeHandle() { return descriptorSetLayout; }
-
 		class Builder
 		{
 		public:
@@ -100,6 +98,7 @@ namespace SG
 	private:
 		VulkanDescriptorPool&        pool;
 		VulkanDescriptorSetLayout&   layout;
+		UInt32                       offset = 0;
 		vector<VkWriteDescriptorSet> writes;
 
 		vector<VkDescriptorBufferInfo> bufferInfos;

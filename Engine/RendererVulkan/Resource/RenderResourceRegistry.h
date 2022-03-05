@@ -23,7 +23,7 @@ namespace SG
 	class VulkanPipeline;
 	class VulkanPipelineSetLayout;
 
-	class Geometry;
+	class VulkanGeometry;
 
 	class VulkanDescriptorSet;
 
@@ -55,7 +55,7 @@ namespace SG
 
 		bool CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex);
 		bool CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt32 numIndex);
-		SG_RENDERER_VK_API Geometry* GetGeometry(const string& name) const;
+		SG_RENDERER_VK_API VulkanGeometry* GetGeometry(const string& name) const;
 
 		bool HaveBuffer(const char* name);
 		bool UpdataBufferData(const char* name, const void* pData);
@@ -75,7 +75,7 @@ namespace SG
 		mutable eastl::unordered_map<string, VulkanBuffer*>  mBuffers;
 		mutable eastl::unordered_map<string, VulkanTexture*> mTextures;
 		mutable eastl::unordered_map<string, VulkanSampler*> mSamplers;
-		mutable eastl::unordered_map<string, Geometry*>      mGeometries;
+		mutable eastl::unordered_map<string, VulkanGeometry*>      mGeometries;
 
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanBuffer*>>  mWaitToSubmitBuffers;
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanTexture*>> mWaitToSubmitTextures;

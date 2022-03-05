@@ -128,6 +128,8 @@ namespace SG
 		typedef typename eastl::map<string, typename ElementType>::iterator       IteratorType;
 		typedef typename eastl::map<string, typename ElementType>::const_iterator ConstIteratorType;
 
+		bool Exist(const string& name) { return mUBODataMap.find(name) != mUBODataMap.end(); }
+		ElementType& Get(const string& name) { return mUBODataMap[name]; }
 		void Emplace(const string& name, const ElementType& element);
 
 		IteratorType      begin()        { return mUBODataMap.begin(); }
@@ -145,6 +147,7 @@ namespace SG
 	{
 		SetBindingKey          setbinding;
 		ShaderAttributesLayout layout;
+		EShaderStage           stage;
 	};
 
 	template <typename ElementType>
@@ -169,7 +172,6 @@ namespace SG
 			ShaderBinaryType       binary;
 			ShaderAttributesLayout stageInputLayout;
 			ShaderAttributesLayout pushConstantLayout;
-			ShaderSetBindingAttributeLayout<UniformBufferLayout> uniformBufferLayout;
 			ShaderSetBindingAttributeLayout<SetBindingKey> sampledImageLayout;
 		};
 
@@ -190,7 +192,7 @@ namespace SG
 			return mShaderStages[stage].stageInputLayout;
 		}
 		SG_INLINE const ShaderAttributesLayout& GetPushConstantLayout(EShaderStage stage) { return mShaderStages[stage].pushConstantLayout; }
-		SG_INLINE const ShaderSetBindingAttributeLayout<UniformBufferLayout>& GetUniformBufferLayout(EShaderStage stage) { return mShaderStages[stage].uniformBufferLayout; }
+		SG_INLINE const ShaderSetBindingAttributeLayout<UniformBufferLayout>& GetUniformBufferLayout() { return mUniformBufferLayout; }
 		SG_INLINE const ShaderSetBindingAttributeLayout<SetBindingKey>& GetSampledImageLayout(EShaderStage stage) { return mShaderStages[stage].sampledImageLayout; }
 
 		SG_INLINE const Byte* GetBinary(EShaderStage stage)
@@ -212,6 +214,7 @@ namespace SG
 	protected:
 		typedef eastl::fixed_map<EShaderStage, ShaderData, (Size)EShaderStage::NUM_STAGES, false> ShaderStageDataType;
 		ShaderStageDataType mShaderStages;
+		ShaderSetBindingAttributeLayout<UniformBufferLayout> mUniformBufferLayout;
 	private:
 		friend class ShaderCompiler;
 		string mEntryPoint = "main"; // default

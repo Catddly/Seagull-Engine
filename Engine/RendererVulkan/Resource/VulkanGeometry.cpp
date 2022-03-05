@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "Geometry.h"
+#include "VulkanGeometry.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
@@ -10,7 +10,7 @@
 namespace SG
 {
 
-	Geometry::Geometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex)
+	VulkanGeometry::VulkanGeometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex)
 		: mContext(d), mName(name)
 	{
 		auto vbBufferCI = InitVertexBuffer(pVerticies, numVertex);
@@ -31,7 +31,7 @@ namespace SG
 		FlushVBIBStagingBuffer(vbBufferCI, ibBufferCI);
 	}
 
-	Geometry::Geometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt32 numIndex)
+	VulkanGeometry::VulkanGeometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt32 numIndex)
 		: mContext(d), mName(name)
 	{
 		auto vbBufferCI = InitVertexBuffer(pVerticies, numVertex);
@@ -52,13 +52,13 @@ namespace SG
 		FlushVBIBStagingBuffer(vbBufferCI, ibBufferCI);
 	}
 
-	Geometry::~Geometry()
+	VulkanGeometry::~VulkanGeometry()
 	{
 		Memory::Delete(mpVertexBuffer);
 		Memory::Delete(mpIndexBuffer);
 	}
 
-	BufferCreateDesc Geometry::InitVertexBuffer(const float* pVerticies, UInt32 numVertex)
+	BufferCreateDesc VulkanGeometry::InitVertexBuffer(const float* pVerticies, UInt32 numVertex)
 	{
 		BufferCreateDesc vbBufferCI = {};
 		vbBufferCI.name = (mName + "_vb").c_str();
@@ -75,7 +75,7 @@ namespace SG
 		return vbBufferCI;
 	}
 
-	void Geometry::FlushVBIBStagingBuffer(BufferCreateDesc& vbCI, BufferCreateDesc& ibCI)
+	void VulkanGeometry::FlushVBIBStagingBuffer(BufferCreateDesc& vbCI, BufferCreateDesc& ibCI)
 	{
 		vbCI.type = EBufferType::efTransfer_Src;
 		auto* mpVBStagingBuffer = VulkanBuffer::Create(mContext.device, vbCI, false);

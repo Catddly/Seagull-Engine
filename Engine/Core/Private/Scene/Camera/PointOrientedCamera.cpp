@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "Render/Camera/PointOrientedCamera.h"
+#include "Scene/Camera/PointOrientedCamera.h"
 
 #include "Math/MathBasic.h"
 #include "Math/Transform.h"

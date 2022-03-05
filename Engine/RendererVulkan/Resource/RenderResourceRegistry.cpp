@@ -10,7 +10,7 @@
 #include "RendererVulkan/Backend/VulkanSwapchain.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
 
-#include "RendererVulkan/Resource/Geometry.h"
+#include "RendererVulkan/Resource/VulkanGeometry.h"
 
 namespace SG
 {
@@ -133,7 +133,7 @@ namespace SG
 			return false;
 		}
 
-		mGeometries[name] = Memory::New<Geometry>(*mpContext, name, pVerticies, numVertex, pIndices, numIndex);
+		mGeometries[name] = Memory::New<VulkanGeometry>(*mpContext, name, pVerticies, numVertex, pIndices, numIndex);
 		return true;
 	}
 
@@ -145,11 +145,11 @@ namespace SG
 			return false;
 		}
 
-		mGeometries[name] = Memory::New<Geometry>(*mpContext, name, pVerticies, numVertex, pIndices, numIndex);
+		mGeometries[name] = Memory::New<VulkanGeometry>(*mpContext, name, pVerticies, numVertex, pIndices, numIndex);
 		return true;
 	}
 
-	Geometry* VulkanResourceRegistry::GetGeometry(const string& name) const
+	VulkanGeometry* VulkanResourceRegistry::GetGeometry(const string& name) const
 	{
 		if (mGeometries.count(name) == 0)
 		{
