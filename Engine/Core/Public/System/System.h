@@ -4,8 +4,11 @@
 #include "Thread/Thread.h"
 
 #include "System/FileSystem.h"
+#include "Scene/Scene.h"
 #include "Platform/OS.h"
 #include "Core/Private/System/ModuleManager.h"
+
+#include "Reflection/Name.h"
 
 #include "Stl/string.h"
 #include <eastl/set.h>
@@ -19,6 +22,7 @@
 
 namespace SG
 {
+
 	interface IProcess;
 
 	enum class ESystemMessage
@@ -53,19 +57,10 @@ namespace SG
 	public:
 		~System() = default;
 
-		SG_CORE_API void Initialize();
-		SG_CORE_API void Shutdown();
-
 		//! Check if all the modules is loaded.
 		SG_CORE_API bool ValidateModules() const;
 
-		// TODO: should not be here, move to Main or something
-		SG_CORE_API bool SystemMainLoop();
-
-		//! Add an IProcess to system to update.
-		SG_CORE_API void AddIProcess(IProcess* pProcess);
-		//! Remove an IProcess from system.
-		//virtual void RemoveIProcess(IProcess* pProcess) override;
+		SG_CORE_API Scene* GetMainScene();
 
 		//! Get current memory usage for all the modules.
 		SG_CORE_API UInt32 GetTotalMemoryUsage() const;
@@ -75,9 +70,6 @@ namespace SG
 		SG_CORE_API void RegisterSystemMessageListener(ISystemMessageListener* pListener);
 		SG_CORE_API void RemoveSystemMessageListener(ISystemMessageListener* pListener);
 
-		//! Force to use ISystemManager as the interface of system manager.
-		SG_CORE_API static System* const Instance();
-
 		template <class T>
 		bool RegisterModule();
 
@@ -85,7 +77,21 @@ namespace SG
 		void UnResgisterModule();
 
 		template <class T>
-		T GetModule(const char* name) const;
+		T GetModule() const;
+
+		//! Force to use ISystemManager as the interface of system manager.
+		SG_CORE_API static System* const Instance();
+	private:
+		friend class Main;
+
+		void Initialize();
+		void Shutdown();
+
+		//! Add an IProcess to system to update.
+		void AddIProcess(IProcess* pProcess);
+
+		// TODO: should not be here, move to Main or something
+		bool SystemMainLoop();
 	private:
 		System();
 #ifdef SG_PLATFORM_WINDOWS
@@ -106,31 +112,33 @@ namespace SG
 		IProcess*     mpCurrActiveProcess;
 		Thread        mMainThread;
 		string        mRootPath;
+		// TODO: add a 3DWorld can contain a lot of scenes.
+		Scene         m3DScene;
 	};
 
 	template <class T>
-	void SG::System::UnResgisterModule()
+	void System::UnResgisterModule()
 	{
-		IModule* pModule = mModuleManager.UnRegisterUserModule(T::GetModuleName());
+		IModule* pModule = mModuleManager.UnRegisterUserModule(Refl::CT_TypeName<T>());
 		Memory::Delete(pModule);
 	}
 
 	template <class T>
-	bool SG::System::RegisterModule()
+	bool System::RegisterModule()
 	{
 		T* pModule = Memory::New<T>();
 		if (pModule)
 		{
-			mModuleManager.RegisterUserModule(pModule);
+			mModuleManager.RegisterUserModule(Refl::CT_TypeName<T>(), pModule);
 			return true;
 		}
 		return false;
 	}
 
 	template <class T>
-	T SG::System::GetModule(const char* name) const
+	T System::GetModule() const
 	{
-		return mModuleManager.GetModule<T>(name);
+		return mModuleManager.GetModule<T>();
 	}
 
 #define SSystem() System::Instance()

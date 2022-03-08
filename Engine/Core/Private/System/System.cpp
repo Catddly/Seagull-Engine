@@ -14,11 +14,12 @@
 
 namespace SG
 {
+
 	// no implementation yet, just use a forward declaration
 	class C2DEngine;
 
 	System::System()
-		:mRootPath("")
+		:mRootPath(""), m3DScene("Main Scene")
 	{}
 
 	void System::Initialize()
@@ -47,10 +48,14 @@ namespace SG
 		mMainThread.pFunc = nullptr;
 		mMainThread.pHandle = nullptr;
 		mMainThread.pUser = nullptr;
+
+		m3DScene.OnSceneLoad();
 	}
 
 	void System::Shutdown()
 	{
+		m3DScene.OnSceneUnLoad();
+
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
 		Memory::Delete(mpCurrActiveProcess);
 
@@ -58,65 +63,6 @@ namespace SG
 		Input::OnShutdown();
 		Logger::OnShutdown();
 		FileSystem::OnShutdown();
-	}
-
-	bool System::ValidateModules() const
-	{
-		//bool isReady = ValidateCoreModules() &&
-		//	(mSystemModules.p2DEngine != nullptr) &&
-		//	(mSystemModules.p3DEngine != nullptr) &&
-		//	(mSystemModules.pRenderer != nullptr);
-		return false;
-	}
-
-	SG::UInt32 System::GetTotalMemoryUsage() const
-	{
-		// no implementation yet.
-		return 0;
-	}
-
-	int System::RunProcess(const string& command, const char* pOut)
-	{
-#ifdef SG_PLATFORM_WINDOWS
-		STARTUPINFOA        startupInfo;
-		PROCESS_INFORMATION processInfo;
-		memset(&startupInfo, 0, sizeof startupInfo);
-		memset(&processInfo, 0, sizeof processInfo);
-
-		HANDLE stdOut = NULL;
-		if (pOut)
-		{
-			SECURITY_ATTRIBUTES sa;
-			sa.nLength = sizeof(sa);
-			sa.lpSecurityDescriptor = NULL;
-			sa.bInheritHandle = TRUE;
-
-			size_t   pathLength = strlen(pOut) + 1;
-			wchar_t* buffer = (wchar_t*)alloca(pathLength * sizeof(wchar_t));
-			MultiByteToWideChar(CP_UTF8, 0, pOut, (int)pathLength, buffer, (int)pathLength);
-			stdOut = CreateFileW(buffer, GENERIC_ALL, FILE_SHARE_WRITE | FILE_SHARE_READ, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-		}
-
-		startupInfo.cb = sizeof(STARTUPINFO);
-		startupInfo.dwFlags |= STARTF_USESTDHANDLES;
-		startupInfo.hStdOutput = stdOut;
-		startupInfo.hStdError  = stdOut;
-
-		// create a process
-		if (!CreateProcessA(NULL, (LPSTR)command.c_str(), NULL, NULL, stdOut ? TRUE : FALSE, CREATE_NO_WINDOW, NULL, NULL, &startupInfo, &processInfo))
-			return -1;
-
-		WaitForSingleObject(processInfo.hProcess, INFINITE);
-		DWORD exitCode;
-		GetExitCodeProcess(processInfo.hProcess, &exitCode);
-
-		CloseHandle(processInfo.hProcess);
-		CloseHandle(processInfo.hThread);
-
-		if (stdOut)
-			CloseHandle(stdOut);
-#endif
-		return EXIT_SUCCESS;
 	}
 
 	void System::AddIProcess(IProcess* pProcess)
@@ -166,6 +112,70 @@ namespace SG
 			//gameloopTimer.EndProfile();
 		}
 		return bIsSafeQuit;
+	}
+
+	bool System::ValidateModules() const
+	{
+		//bool isReady = ValidateCoreModules() &&
+		//	(mSystemModules.p2DEngine != nullptr) &&
+		//	(mSystemModules.p3DEngine != nullptr) &&
+		//	(mSystemModules.pRenderer != nullptr);
+		return false;
+	}
+
+	Scene* System::GetMainScene()
+	{
+		return &m3DScene;
+	}
+
+	UInt32 System::GetTotalMemoryUsage() const
+	{
+		// no implementation yet.
+		return 0;
+	}
+
+	int System::RunProcess(const string& command, const char* pOut)
+	{
+#ifdef SG_PLATFORM_WINDOWS
+		STARTUPINFOA        startupInfo;
+		PROCESS_INFORMATION processInfo;
+		memset(&startupInfo, 0, sizeof startupInfo);
+		memset(&processInfo, 0, sizeof processInfo);
+
+		HANDLE stdOut = NULL;
+		if (pOut)
+		{
+			SECURITY_ATTRIBUTES sa;
+			sa.nLength = sizeof(sa);
+			sa.lpSecurityDescriptor = NULL;
+			sa.bInheritHandle = TRUE;
+
+			size_t   pathLength = strlen(pOut) + 1;
+			wchar_t* buffer = (wchar_t*)alloca(pathLength * sizeof(wchar_t));
+			MultiByteToWideChar(CP_UTF8, 0, pOut, (int)pathLength, buffer, (int)pathLength);
+			stdOut = CreateFileW(buffer, GENERIC_ALL, FILE_SHARE_WRITE | FILE_SHARE_READ, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		}
+
+		startupInfo.cb = sizeof(STARTUPINFO);
+		startupInfo.dwFlags |= STARTF_USESTDHANDLES;
+		startupInfo.hStdOutput = stdOut;
+		startupInfo.hStdError  = stdOut;
+
+		// create a process
+		if (!CreateProcessA(NULL, (LPSTR)command.c_str(), NULL, NULL, stdOut ? TRUE : FALSE, CREATE_NO_WINDOW, NULL, NULL, &startupInfo, &processInfo))
+			return -1;
+
+		WaitForSingleObject(processInfo.hProcess, INFINITE);
+		DWORD exitCode;
+		GetExitCodeProcess(processInfo.hProcess, &exitCode);
+
+		CloseHandle(processInfo.hProcess);
+		CloseHandle(processInfo.hThread);
+
+		if (stdOut)
+			CloseHandle(stdOut);
+#endif
+		return EXIT_SUCCESS;
 	}
 
 	void System::RegisterSystemMessageListener(ISystemMessageListener* pListener)

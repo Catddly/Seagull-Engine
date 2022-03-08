@@ -18,13 +18,13 @@ namespace SG
 
 	RenderGraphBuilder::RenderGraphBuilder(const char* name, VulkanContext* pContext)
 	{
-		mpRenderGraph = Memory::New<RenderGraph>(name, pContext);
+		mpRenderGraph = MakeUnique<RenderGraph>(name, pContext);
 	}
 
 	RenderGraphBuilder::~RenderGraphBuilder()
 	{
 		if (!mbInitSuccess)
-			Memory::Delete(mpRenderGraph);
+			mpRenderGraph.reset(nullptr);
 	}
 
 	RenderGraphBuilder& RenderGraphBuilder::NewRenderPass(RenderGraphNode* pNode)
@@ -33,11 +33,11 @@ namespace SG
 		return *this;
 	}
 
-	RenderGraph* RenderGraphBuilder::Build()
+	UniquePtr<RenderGraph> RenderGraphBuilder::Build()
 	{
 		mpRenderGraph->Compile();
 		mbInitSuccess = true;
-		return mpRenderGraph;
+		return eastl::move(mpRenderGraph);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +106,7 @@ namespace SG
 			auto* pFrameBuffer = mFrameBuffersMap.find(framebufferHash)->second;
 
 			ClearValue cv;
-			cv.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+			cv.color = { 0.03f, 0.03f, 0.03f, 1.0f };
 			cv.depthStencil = { 1.0f, 0 };
 
 			commandBuf.BeginRenderPass(pFrameBuffer, cv);
@@ -149,6 +149,15 @@ namespace SG
 		for (auto* pCurrNode : mpNodes) // iterate all nodes
 		{
 			pCurrNode->Update(0.0f, mFrameIndex); // update resource, freeze the time
+
+			for (auto& resource : pCurrNode->mInResources)
+			{
+				if (resource.has_value())
+				{
+					if (resource->mSrcStatus != EResourceBarrier::efUndefined || resource->mDstStatus != EResourceBarrier::efUndefined)
+						mResourceStatusKeeper.AddResourceDenpendency(resource->mpRenderTarget, resource->mSrcStatus, resource->mDstStatus);
+				}
+			}
 
 			if (!pCurrNode->HaveValidResource())
 			{

@@ -1,10 +1,10 @@
 #include "StdAfx.h"
 #include "RGDefaultNode.h"
 
+#include "System/System.h"
 #include "System/Logger.h"
 
 #include "Render/ShaderComiler.h"
-#include "Math/Transform.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
@@ -27,55 +27,51 @@ namespace SG
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
 	{
+		Scene* pScene = SSystem()->GetMainScene();
+		pScene->TraversePointLight([&](const PointLight& light)
+			{
+				mpPointLight = &light;
+			});
+
+		mpCamera = pScene->GetMainCamera();
+		mUBO.proj = mpCamera->GetProjMatrix();
+		//mUBO.proj = BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0, 96.0f);
+		mUBO.pad = 0.0f;
+		mpGeometry = VK_RESOURCE()->GetGeometry("model");
+
+		mModelPosition = { 0.0f, 0.0f, 0.0f };
+		mModelScale = 1.0f;
+		mModelRotation = { 0.0f, 0.0f, 0.0f };
+		mPushConstant.model = Matrix4f(1.0f);
+		mPushConstant.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstant.model));
+
+		auto* pDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
+		mUBO.lightSpace = BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0, 96.0f) *
+			BuildViewMatrixCenter(pDirectionalLight->GetPosition(), { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC());
+
 		// init render resource
 		mpShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
 		//compiler.CompileGLSLShader("basic", mBasicShader);
 		compiler.CompileGLSLShader("basic1", "phone", mpShader.get());
 
+		VulkanCommandBuffer pCmd;
+		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
+		pCmd.BeginRecord();
+		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("shadow map"), EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil_Read_Only);
+		pCmd.EndRecord();
+		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+		mContext.graphicQueue.WaitIdle();
+		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+
 		mpPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShader)
+			.AddCombindSamplerImage("default", "shadow map")
 			.Build();
 	}
 
 	RGDefaultNode::~RGDefaultNode()
 	{
 		Memory::Delete(mpPipeline);
-	}
-
-	void RGDefaultNode::BindGeometry(const char* name)
-	{
-		mpGeometry = VK_RESOURCE()->GetGeometry(name);
-		if (!mpGeometry)
-		{
-			SG_LOG_ERROR("Failed to bind geometry! Geometry does not exist!");
-			SG_ASSERT(false);
-		}
-	}
-
-	void RGDefaultNode::SetCamera(ICamera* pCamera)
-	{
-		if (!pCamera)
-		{
-			SG_LOG_ERROR("Invalid camera!");
-			return;
-		}
-		mpCamera = pCamera;
-
-		// init buffer data
-		mUBO.proj = mpCamera->GetProjMatrix();
-		mUBO.viewPos = mpCamera->GetPosition();
-		mUBO.pad = 0.0f;
-
-		mModelPosition = { 0.0f, 0.0f, 0.0f };
-		mModelScale = 1.0f;
-		mModelRotation = { 0.0f, 0.0f, 0.0f };
-		mPushConstant.model = BuildTransformMatrix(mModelPosition, mModelScale, mModelRotation);
-		mPushConstant.inverseTransposeModel = mPushConstant.model.inverse().transpose();
-	}
-
-	void RGDefaultNode::SetPointLight(const PointLight* pPointLight)
-	{
-		mpPointLight = pPointLight;
 	}
 
 	void RGDefaultNode::Reset()
@@ -86,7 +82,7 @@ namespace SG
 		const float  ASPECT = window->GetAspectRatio();
 		mpCamera->SetPerspective(45.0f, ASPECT);
 		mUBO.proj = mpCamera->GetProjMatrix();
-		VK_RESOURCE()->UpdataBufferData("cameraUbo", &mUBO);
+		VK_RESOURCE()->UpdataBufferData("ubo", &mUBO);
 	}
 
 	void RGDefaultNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -105,15 +101,17 @@ namespace SG
 
 		static float totalTime = 0.0f;
 		static float speed = 2.5f;
-		mModelPosition(0) = 0.5f * Sin(totalTime);
-		TranslateToX(mPushConstant.model, mModelPosition(0));
-		mPushConstant.inverseTransposeModel = mPushConstant.model.inverse().transpose();
+		mPushConstant.model[3][0] = 0.5f * Sin(totalTime);
+		mPushConstant.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstant.model));
 
 		bool bNeedUploadData = false;
 		if (mpCamera->IsViewDirty())
 		{
+			//Scene* pScene = SSystem()->GetMainScene();
 			mUBO.viewPos = mpCamera->GetPosition();
+			//mUBO.viewPos = { 0.0f, 0.0f, -4.0f };
 			mUBO.view = mpCamera->GetViewMatrix();
+			//mUBO.view = BuildViewMatrixCenter(mUBO.viewPos, { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC());
 			bNeedUploadData = true;
 		}
 

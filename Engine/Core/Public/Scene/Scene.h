@@ -3,6 +3,7 @@
 #include "Scene/Mesh/Mesh.h"
 #include "Scene/Camera/ICamera.h"
 #include "Scene/Light/PointLight.h"
+#include "Scene/Light/DirectionalLight.h"
 
 #include "Stl/string.h"
 #include "Stl/vector.h"
@@ -20,13 +21,14 @@ namespace SG
 	{
 	public:
 		Scene(const char* name)
-			:mName(name), mpMainCamera(nullptr)
+			:mName(name), mpMainCamera(nullptr), mDirectionalLight({ 40.0f, 50.0f, 25.0f }, { -2.0f, -5.0f, -1.0f }, { 1.0f, 1.0f, 1.0f })
 		{}
 
 		//! This function can be dispatched to another thread. 
 		SG_CORE_API void OnSceneLoad();
 		SG_CORE_API void OnSceneUnLoad();
 
+		DirectionalLight* GetDirectionalLight() { return &mDirectionalLight; }
 		ICamera* GetMainCamera() { return mpMainCamera.get(); }
 
 		template <typename Func>
@@ -44,6 +46,8 @@ namespace SG
 		}
 	private:
 		string mName;
+
+		DirectionalLight   mDirectionalLight;
 		vector<PointLight> mPointLights;
 		vector<Mesh>       mMeshes;      // TODO: use tree structure to store the meshes
 

@@ -199,6 +199,29 @@ namespace SG
 	};
 	SG_ENUM_CLASS_FLAG(UInt32, EImageUsage);
 
+	enum class EImageLayout : UInt32
+	{
+		eUndefined = 0,
+		eGeneral,
+		eColor,
+		eDepth_Stencil,
+		eDepth_Stencil_Read_Only,
+		eShader_Read_Only,
+		eTransfer_Src,
+		eTransfer_Dst,
+		ePreinitialized,
+		eDepth_Read_Only_Stencil,
+		eStencil_Read_Only_Depth,
+		eDepth,
+		eDepth_Read_Only,
+		eStencil,
+		eStencil_Read_Only,
+		ePresent,
+		eShared_Present,
+		eShading_Rate,
+		eFragment_Density,
+	};
+
 	SG_INLINE static UInt32 ImageFormatToMemoryByte(EImageFormat format)
 	{
 		switch (format)
@@ -526,6 +549,7 @@ namespace SG
 		ESampleCount   sample;
 		EImageType     type;
 		EImageUsage    usage;
+		EImageLayout   initLayout;
 
 		UInt32         width;
 		UInt32         height;

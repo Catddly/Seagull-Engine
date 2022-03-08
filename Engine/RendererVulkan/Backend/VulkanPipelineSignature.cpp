@@ -64,8 +64,12 @@ namespace SG
 		UInt32 imageIndex = 0;
 		for (auto& imageData : combineImageLayout)
 		{
-			setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first),
-				VK_RESOURCE()->GetTexture(combineImages[imageIndex].second));
+			VulkanTexture* pTex = VK_RESOURCE()->GetTexture(combineImages[imageIndex].second);
+			if (pTex)
+				setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first), pTex);
+			else
+				setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first),
+					VK_RESOURCE()->GetRenderTarget(combineImages[imageIndex].second));
 			++imageIndex;
 		}
 		setDataBinder.Bind(mDescriptorSet);
@@ -75,9 +79,12 @@ namespace SG
 			pipelineLayoutBuilder.AddDescriptorSetLayout(mpUBODescriptorSetLayout.get());
 
 		auto& pushConstantLayout = pShader->GetPushConstantLayout(EShaderStage::efVert);
-		UInt32 offset = 0;
-		pipelineLayoutBuilder.AddPushConstantRange(pushConstantLayout.GetTotalSizeInByte(), offset, EShaderStage::efVert);
-		offset += pushConstantLayout.GetTotalSizeInByte();
+		if (pushConstantLayout.GetTotalSizeInByte() != 0)
+		{
+			UInt32 offset = 0;
+			pipelineLayoutBuilder.AddPushConstantRange(pushConstantLayout.GetTotalSizeInByte(), offset, EShaderStage::efVert);
+			offset += pushConstantLayout.GetTotalSizeInByte();
+		}
 
 		mpPipelineLayout = pipelineLayoutBuilder.Build();
 		if (!mpPipelineLayout)

@@ -73,6 +73,7 @@ group "Runtime"
             "Engine/Core/Public/",
             "Libs/",
             "Libs/eastl/include/",
+            "Libs/glm/",
         }
 
         defines

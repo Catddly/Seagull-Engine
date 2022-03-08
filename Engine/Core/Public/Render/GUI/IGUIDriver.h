@@ -2,10 +2,10 @@
 
 #include "Defs/Defs.h"
 
+#include "System/LayerSystem/LayerSystem.h"
+
 namespace SG
 {
-
-	class Scene;
 
 	interface IGUIDriver
 	{
@@ -16,7 +16,11 @@ namespace SG
 		virtual void OnShutdown() = 0;
 
 		virtual void OnUpdate(float deltaTime) = 0;
-		virtual void OnDraw(Scene* pScene) = 0;
+
+		void PushUserLayer(RefPtr<ILayer> pLayer) { mLayerSystem.PushLayer(pLayer); }
+		void PopUserLayer(RefPtr<ILayer> pLayer) { mLayerSystem.PopLayer(pLayer); }
+	protected:
+		LayerSystem mLayerSystem;
 	};
 
 }

@@ -78,13 +78,13 @@ namespace SG
 			pShader->mShaderStages[EShaderStage(1 << i)].name = binShaderName;
 		}
 
-		if ((shaderBits & (1 << 0)) == 0 || (shaderBits & (1 << 4)) == 0) // if vert or frag stage is missing
-		{
-			pShader->mShaderStages.clear();
+		//if ((shaderBits & (1 << 0)) == 0 || (shaderBits & (1 << 4)) == 0) // if vert or frag stage is missing
+		//{
+		//	pShader->mShaderStages.clear();
 
-			SG_LOG_WARN("Necessary shader stages(vert or frag) is/are missing!");
-			return false;
-		}
+		//	SG_LOG_WARN("Necessary shader stages(vert or frag) is/are missing!");
+		//	return false;
+		//}
 
 		if (shaderBits == 0)
 		{

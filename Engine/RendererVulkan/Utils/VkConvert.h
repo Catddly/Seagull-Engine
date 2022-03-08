@@ -14,6 +14,8 @@
 namespace SG
 {
 
+	VkImageLayout ToVkImageLayout(EImageLayout layout);
+
 	VkFilter ToVkFilterMode(EFilterMode fm);
 	VkSamplerMipmapMode  ToVkMipmapMode(EFilterMode fm);
 	VkSamplerAddressMode ToVkAddressMode(EAddressMode am);

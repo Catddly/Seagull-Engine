@@ -64,6 +64,9 @@ namespace SG
 		SG_RENDERER_VK_API VulkanTexture* GetTexture(const string& name) const;
 		void FlushTextures() const;
 
+		bool CreateRenderTarget(const TextureCreateDesc& textureCI, bool isDepth = false);
+		SG_RENDERER_VK_API VulkanRenderTarget* GetRenderTarget(const string& name) const;
+
 		bool CreateSampler(const SamplerCreateDesc& samplerCI);
 		SG_RENDERER_VK_API VulkanSampler* GetSampler(const string& name) const;
 
@@ -74,8 +77,9 @@ namespace SG
 		VulkanContext* mpContext;
 		mutable eastl::unordered_map<string, VulkanBuffer*>  mBuffers;
 		mutable eastl::unordered_map<string, VulkanTexture*> mTextures;
+		mutable eastl::unordered_map<string, VulkanRenderTarget*> mRenderTargets;
 		mutable eastl::unordered_map<string, VulkanSampler*> mSamplers;
-		mutable eastl::unordered_map<string, VulkanGeometry*>      mGeometries;
+		mutable eastl::unordered_map<string, VulkanGeometry*> mGeometries;
 
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanBuffer*>>  mWaitToSubmitBuffers;
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanTexture*>> mWaitToSubmitTextures;

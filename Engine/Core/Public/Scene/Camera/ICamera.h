@@ -3,8 +3,7 @@
 #include "Core/Config.h"
 #include "Defs/Defs.h"
 
-#include "Math/Matrix.h"
-#include "Math/Vector.h"
+#include "Math/MathBasic.h"
 
 namespace SG
 {
@@ -16,7 +15,7 @@ namespace SG
 		virtual Matrix4f GetViewMatrix() const = 0;
 		virtual Matrix4f GetProjMatrix() const = 0;
 
-		virtual void SetPerspective(float fovyInDegrees, float aspect, float zNear = 0.001f, float zFar = 1000.0f) = 0;
+		virtual void SetPerspective(float fovyInDegrees, float aspect, float zNear = 0.0001f, float zFar = 400.0f) = 0;
 		virtual void SetOrthographic(float left, float right, float top, float bottom, float zNear, float zFar) = 0;
 
 		virtual void     SetPosition(const Vector3f& pos) = 0;

@@ -351,7 +351,7 @@ namespace SG
 		if (!IsValidImageFormat(CI.format))
 			SG_ASSERT(false);
 
-		currLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		currLayout = ToVkImageLayout(CI.initLayout);
 
 		width    = CI.width;
 		height   = CI.height;
@@ -374,7 +374,7 @@ namespace SG
 		imageCI.samples = ToVkSampleCount(sample);
 		imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageCI.usage = ToVkImageUsage(usage);
-		imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageCI.initialLayout = ToVkImageLayout(CI.initLayout);
 		imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 		VK_CHECK(vkCreateImage(device.logicalDevice, &imageCI, nullptr, &image),
@@ -404,8 +404,10 @@ namespace SG
 		imageViewCI.subresourceRange.layerCount = array;
 		imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-		if (usage == EImageUsage::efDepth_Stencil)
+		if (format == EImageFormat::eUnorm_D24_uint_S8 || format == EImageFormat::eSfloat_D32_uint_S8)
 			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		else if (format == EImageFormat::eSfloat_D32 || format == EImageFormat::eUnorm_D16)
+			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 
 		VK_CHECK(vkCreateImageView(device.logicalDevice, &imageViewCI, nullptr, &imageView),
 			SG_LOG_ERROR("Failed to create vulkan texture image view!"););

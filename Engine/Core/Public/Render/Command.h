@@ -3,7 +3,7 @@
 #include "Base/BasicTypes.h"
 #include "Defs/Defs.h"
 
-#include "Math/Vector.h"
+#include "Math/MathBasic.h"
 
 namespace SG
 {

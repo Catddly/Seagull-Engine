@@ -8,7 +8,7 @@ namespace SG
 namespace Refl
 {
 	
-	template <typename Class>
+	template <typename Type>
 	constexpr const char* CT_TypeName()
 	{
 #ifdef SG_COMPILER_MSVC

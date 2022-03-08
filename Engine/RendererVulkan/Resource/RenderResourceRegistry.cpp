@@ -27,6 +27,8 @@ namespace SG
 			Memory::Delete(beg->second);
 		for (auto beg = mTextures.begin(); beg != mTextures.end(); ++beg)
 			Memory::Delete(beg->second);
+		for (auto beg = mRenderTargets.begin(); beg != mRenderTargets.end(); ++beg)
+			Memory::Delete(beg->second);
 		for (auto beg = mSamplers.begin(); beg != mSamplers.end(); ++beg)
 			Memory::Delete(beg->second);
 		for (auto beg = mGeometries.begin(); beg != mGeometries.end(); ++beg)
@@ -125,6 +127,27 @@ namespace SG
 		}
 	}
 
+	bool VulkanResourceRegistry::HaveBuffer(const char* name)
+	{
+		if (mBuffers.count(name) == 0)
+			return false;
+		return true;
+	}
+
+	bool VulkanResourceRegistry::UpdataBufferData(const char* name, const void* pData)
+	{
+		if (mBuffers.count(name) == 0)
+		{
+			SG_LOG_ERROR("No buffer named: %s", name);
+			return false;
+		}
+		return mBuffers[name]->UploadData(pData);
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// Geometry
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	bool VulkanResourceRegistry::CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex)
 	{
 		if (mGeometries.count(name) != 0)
@@ -157,23 +180,6 @@ namespace SG
 			return nullptr;
 		}
 		return mGeometries[name];
-	}
-
-	bool VulkanResourceRegistry::HaveBuffer(const char* name)
-	{
-		if (mBuffers.count(name) == 0)
-			return false;
-		return true;
-	}
-
-	bool VulkanResourceRegistry::UpdataBufferData(const char* name, const void* pData)
-	{
-		if (mBuffers.count(name) == 0)
-		{
-			SG_LOG_ERROR("No buffer named: %s", name);
-			return false;
-		}
-		return mBuffers[name]->UploadData(pData);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,7 +228,7 @@ namespace SG
 	{
 		if (mTextures.count(name) == 0)
 		{
-			SG_LOG_ERROR("No texture named: %s", name);
+			//SG_LOG_ERROR("No texture named: %s", name);
 			return nullptr;
 		}
 		return mTextures[name];
@@ -278,6 +284,39 @@ namespace SG
 		for (auto* e : stagingBuffers)
 			Memory::Delete(e);
 		mWaitToSubmitTextures.clear();
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// RenderTargets	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool VulkanResourceRegistry::CreateRenderTarget(const TextureCreateDesc& textureCI, bool isDepth)
+	{
+		if (mRenderTargets.count(textureCI.name) != 0)
+		{
+			SG_LOG_ERROR("Already have a render target named %s!", textureCI.name);
+			return false;
+		}
+
+		mRenderTargets[textureCI.name] = VulkanRenderTarget::Create(mpContext->device, textureCI, isDepth);
+		VulkanRenderTarget* pRt = mRenderTargets[textureCI.name];
+		if (!pRt)
+		{
+			SG_LOG_ERROR("Failed to create render target : %s", textureCI.name);
+			return false;
+		}
+
+		return true;
+	}
+
+	VulkanRenderTarget* VulkanResourceRegistry::GetRenderTarget(const string& name) const
+	{
+		if (mRenderTargets.count(name) == 0)
+		{
+			//SG_LOG_ERROR("No render target named: %s", name);
+			return nullptr;
+		}
+		return mRenderTargets[name];
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////

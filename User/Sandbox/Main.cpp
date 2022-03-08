@@ -93,29 +93,29 @@ private:
 	void MathTest()
 	{
 		using namespace SG;
-		Matrix4f mat4f = Matrix4f::Identity();
-		Matrix3f mat3f = Matrix3f::Identity();
-		Matrix3i mat3i = Matrix3i::Identity();
-		Matrix4i mat4i = Matrix4i::Identity();
+		Matrix4f mat4f = Matrix4f(1.0f);
+		Matrix3f mat3f = Matrix3f(1.0f);
+		Matrix3i mat3i = Matrix3i(1);
+		Matrix4i mat4i = Matrix4i(1);
 
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat3f, "");
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat4f, "");
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat3i, "");
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat4i, "");
+		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat3f, "");
+		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat4f, "");
+		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat3i, "");
+		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, mat4i, "");
 
-		Vector2f vec2f = Vector2f::Identity();
-		Vector3f vec3f = Vector3f::Identity();
-		Vector4f vec4f = Vector4f::Identity();
-		Vector2i vec2i = Vector2i::Identity();
-		Vector3i vec3i = Vector3i::Identity();
-		Vector4i vec4i = Vector4i::Identity();
+		Vector2f vec2f = Vector2f(1.0f);
+		Vector3f vec3f = Vector3f(1.0f);
+		Vector4f vec4f = Vector4f(1.0f);
+		Vector2i vec2i = Vector2i(1);
+		Vector3i vec3i = Vector3i(1);
+		Vector4i vec4i = Vector4i(1);
 
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec2f, "");
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec3f, "");
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec4f, "");
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec2i, "");
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec3i, "");
-		SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec4i, "");
+		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec2f, "");
+		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec3f, "");
+		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec4f, "");
+		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec2i, "");
+		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec3i, "");
+		//SG_LOG_MATH(ELogLevel::efLog_Level_Debug, vec4i, "");
 	}
 
 	void ThreadTest()

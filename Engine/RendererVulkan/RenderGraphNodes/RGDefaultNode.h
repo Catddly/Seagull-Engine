@@ -29,10 +29,6 @@ namespace SG
 	public:
 		RGDefaultNode(VulkanContext& context);
 		~RGDefaultNode();
-
-		void BindGeometry(const char* name);
-		void SetCamera(ICamera* pCamera);
-		void SetPointLight(const PointLight* pPointLight);
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
@@ -60,6 +56,7 @@ namespace SG
 		{
 			Matrix4f view;
 			Matrix4f proj;
+			Matrix4f lightSpace;
 			Vector3f viewPos;
 			float    radius;
 			Vector3f position;

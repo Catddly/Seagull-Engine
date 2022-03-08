@@ -10,13 +10,6 @@
 namespace SG
 {
 
-	static UInt32 GetAlignment(UInt32 size, UInt32 alignment)
-	{
-		if (alignment > 0)
-			return (size + alignment - 1) & ~(alignment - 1);
-		return size;
-	}
-
 	VulkanBuffer::VulkanBuffer(VulkanDevice& d, const BufferCreateDesc& CI, bool local)
 		:device(d), bLocal(local)
 	{

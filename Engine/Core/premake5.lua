@@ -34,7 +34,8 @@ project "SCore"
         "../../Libs/eastl/include/",
         "Public",
         "../../Libs/assimp/include/",
-        "../../Libs/spirv-cross/include/"
+        "../../Libs/spirv-cross/include/",
+        "../../Libs/glm/"
     }
 
     links

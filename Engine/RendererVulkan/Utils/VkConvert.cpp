@@ -727,8 +727,12 @@ namespace SG
 			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		if (barrier == EResourceBarrier::efDepth)
 			return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+		if (barrier == EResourceBarrier::efDepth_Read)
+			return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
 		if (barrier == EResourceBarrier::efDepth_Stencil)
 			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		if (barrier == EResourceBarrier::efDepth_Stencil_Read_Only)
+			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efUnordered_Access, barrier))
 			return VK_IMAGE_LAYOUT_GENERAL;
 		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efShader_Resource, barrier))
@@ -737,6 +741,36 @@ namespace SG
 			return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 		if (barrier == EResourceBarrier::efCommon)
 			return VK_IMAGE_LAYOUT_GENERAL;
+		return VK_IMAGE_LAYOUT_UNDEFINED;
+	}
+
+	VkImageLayout ToVkImageLayout(EImageLayout layout)
+	{
+		switch (layout)
+		{
+		case SG::EImageLayout::eUndefined: return VK_IMAGE_LAYOUT_UNDEFINED;
+		case SG::EImageLayout::eGeneral: return VK_IMAGE_LAYOUT_GENERAL;
+		case SG::EImageLayout::eColor: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		case SG::EImageLayout::eDepth_Stencil: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		case SG::EImageLayout::eDepth_Stencil_Read_Only: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+		case SG::EImageLayout::eShader_Read_Only: return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		case SG::EImageLayout::eTransfer_Src: return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		case SG::EImageLayout::eTransfer_Dst: return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		case SG::EImageLayout::ePreinitialized: return VK_IMAGE_LAYOUT_PREINITIALIZED;
+		case SG::EImageLayout::eDepth_Read_Only_Stencil: return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
+		case SG::EImageLayout::eStencil_Read_Only_Depth: return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL;
+		case EImageLayout::eDepth: return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+		case EImageLayout::eDepth_Read_Only: return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+		case EImageLayout::eStencil: return VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+		case EImageLayout::eStencil_Read_Only: return VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;
+		case SG::EImageLayout::ePresent: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		case SG::EImageLayout::eShared_Present: return VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR;
+		case SG::EImageLayout::eShading_Rate: return VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV;
+		case SG::EImageLayout::eFragment_Density: return VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT;
+		default:
+			SG_LOG_ERROR("Invalid image layout!");
+			break;
+		}
 		return VK_IMAGE_LAYOUT_UNDEFINED;
 	}
 

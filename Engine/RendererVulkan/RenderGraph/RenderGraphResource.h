@@ -2,6 +2,7 @@
 
 #include "Defs/Defs.h"
 #include "Render/FrameBuffer.h"
+#include "Render/ResourceBarriers.h"
 
 #include "RendererVulkan/Config.h"
 
@@ -38,7 +39,11 @@ namespace SG
 	{
 	public:
 		RenderGraphResourceBase(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op)
-			:mpRenderTarget(pRenderTarget), mLoadStoreClearOp(op)
+			:mpRenderTarget(pRenderTarget), mLoadStoreClearOp(op), mSrcStatus(EResourceBarrier::efUndefined), mDstStatus(EResourceBarrier::efUndefined)
+		{}
+		RenderGraphResourceBase(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, 
+			EResourceBarrier srcStatus, EResourceBarrier dstStatus)
+			:mpRenderTarget(pRenderTarget), mLoadStoreClearOp(op), mSrcStatus(srcStatus), mDstStatus(dstStatus)
 		{}
 		virtual ~RenderGraphResourceBase() = default;
 
@@ -54,6 +59,8 @@ namespace SG
 
 		VulkanRenderTarget* mpRenderTarget;
 		LoadStoreClearOp    mLoadStoreClearOp;
+		EResourceBarrier    mSrcStatus;
+		EResourceBarrier    mDstStatus;
 	};
 
 	template <ERGResourceFlow flow>
@@ -68,17 +75,12 @@ namespace SG
 		RenderGraphInReousrce(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op)
 			: RenderGraphResourceBase(pRenderTarget, op)
 		{}
+		RenderGraphInReousrce(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, 
+			EResourceBarrier srcStatus, EResourceBarrier dstStatus)
+			: RenderGraphResourceBase(pRenderTarget, op, srcStatus, dstStatus)
+		{}
 		~RenderGraphInReousrce() = default;
 	private:
-	};
-
-	class RenderGraphOutReousrce final : public RenderGraphResourceBase<ERGResourceFlow::eOut>
-	{
-	public:
-		RenderGraphOutReousrce(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op)
-			: RenderGraphResourceBase(pRenderTarget, op)
-		{}
-		~RenderGraphOutReousrce() = default;
 	};
 
 }

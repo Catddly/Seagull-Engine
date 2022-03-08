@@ -57,7 +57,7 @@ namespace SG
 
 	bool VulkanDevice::CreateLogicalDevice(void* pNext)
 	{
-		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos = {};
+		vector<VkDeviceQueueCreateInfo> queueCreateInfos = {};
 
 		const float DEFAULT_QUEUE_PRIORITY = 0.0f;
 		// graphic queue

@@ -125,7 +125,7 @@ namespace SG
 	{
 		// set the default status of pipeline
 		SetInputAssembly();
-		SetRasterizer(VK_CULL_MODE_NONE);
+		SetRasterizer(VK_CULL_MODE_BACK_BIT, VK_POLYGON_MODE_FILL, false);
 		SetColorBlend(true);
 		SetDepthStencil(true);
 		SetViewport();
@@ -181,10 +181,9 @@ namespace SG
 		rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizationState.polygonMode = polygonMode;
 		rasterizationState.cullMode = cullMode;
-		rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		rasterizationState.frontFace = VK_FRONT_FACE_CLOCKWISE;
 		rasterizationState.depthClampEnable = depthClamp ? VK_TRUE : VK_FALSE;
-		rasterizationState.rasterizerDiscardEnable = VK_FALSE;
-		rasterizationState.depthBiasEnable = VK_FALSE;
+		rasterizationState.depthBiasEnable = VK_TRUE;
 		rasterizationState.lineWidth = 1.0f;
 
 		createInfos.rasterizeStateCI = eastl::move(rasterizationState);

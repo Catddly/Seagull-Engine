@@ -23,12 +23,12 @@ namespace SG
 		}
 	}
 
-	bool ModuleManager::RegisterUserModule(IModule* pModule)
+	bool ModuleManager::RegisterUserModule(const char* name, IModule* pModule)
 	{
 		if (pModule)
 		{
 			pModule->OnInit();
-			mUserModuleMap[pModule->GetRegisterName()] = pModule;
+			mUserModuleMap[name] = pModule;
 			return true;
 		}
 		else

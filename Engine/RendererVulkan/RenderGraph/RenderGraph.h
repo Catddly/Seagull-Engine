@@ -5,6 +5,7 @@
 #include "RenderGraphNode.h"
 #include "RenderGraphDependency.h"
 
+#include "Stl/SmartPtr.h"
 #include <eastl/hash_map.h>
 
 namespace SG
@@ -21,10 +22,10 @@ namespace SG
 		~RenderGraphBuilder();
 
 		RenderGraphBuilder& NewRenderPass(RenderGraphNode* pNode);
-		RenderGraph*        Build();
+		UniquePtr<RenderGraph> Build();
 	private:
-		RenderGraph* mpRenderGraph = nullptr;
-		bool         mbInitSuccess = false;
+		UniquePtr<RenderGraph> mpRenderGraph = nullptr;
+		bool mbInitSuccess = false;
 	};
 
 	class RenderGraph final

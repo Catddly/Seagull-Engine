@@ -4,26 +4,30 @@
 
 #include "Stl/Hash.h"
 
-#include <eigen/Dense>
+#include "glm/vec2.hpp"
+#include "glm/vec3.hpp"
+#include "glm/vec4.hpp"
+
+#include "glm/gtc/matrix_transform.hpp"
+
 #include <cmath>
 
 namespace SG
 {
 
-	typedef Eigen::Vector2f Vector2f;
-	typedef Eigen::Vector3f Vector3f;
-	typedef Eigen::Vector4f Vector4f;
+	typedef glm::vec2 Vector2f;
+	typedef glm::vec3 Vector3f;
+	typedef glm::vec4 Vector4f;
 
-	typedef Eigen::Vector2i Vector2i;
-	typedef Eigen::Vector3i Vector3i;
-	typedef Eigen::Vector4i Vector4i;
+	typedef glm::ivec2 Vector2i;
+	typedef glm::ivec3 Vector3i;
+	typedef glm::ivec4 Vector4i;
 
-	// column major matrix
-	typedef Eigen::Matrix<Float32, 3, 3> Matrix3f;
-	typedef Eigen::Matrix<Float32, 4, 4> Matrix4f;
+	typedef glm::mat3 Matrix3f;
+	typedef glm::mat4 Matrix4f;
 
-	typedef Eigen::Matrix<Int32, 3, 3>   Matrix3i;
-	typedef Eigen::Matrix<Int32, 4, 4>   Matrix4i;
+	typedef glm::mat<3, 3, int, glm::defaultp> Matrix3i;
+	typedef glm::mat<4, 4, int, glm::defaultp> Matrix4i;
 
 #define PI 3.141592653589793238462643383279f
 
@@ -71,20 +75,21 @@ namespace SG
 	//! @param [direction] Direction where the eyes look at.
 	//! @param [up] Up vector of the world.
 	//! @return a 4x4 matrix represent the view matrix.
-	SG_INLINE Matrix4f BuildViewMatrixDirection(const Vector3f& view, const Vector3f& direction, const Vector3f& up)
-	{
-		const Vector3f z(direction.normalized());
-		const Vector3f x(z.cross(up).normalized());
-		const Vector3f y(x.cross(z));
+	
+	//SG_INLINE Matrix4f BuildViewMatrixDirection(const Vector3f& view, const Vector3f& direction, const Vector3f& up)
+	//{
+	//	const Vector3f z(direction.normalized());
+	//	const Vector3f x(z.cross(up).normalized());
+	//	const Vector3f y(x.cross(z));
 
-		Matrix4f result = Matrix4f::Identity();
-		result.col(0) << x(0), x(1), x(2), 0.0f;
-		result.col(1) << y(0), y(1), y(2), 0.0f;
-		result.col(2) << z(0), z(1), z(2), 0.0f;
-		result.col(3) << -x.dot(view), -y.dot(view), -z.dot(view), 1.0f;
+	//	Matrix4f result = Matrix4f::Identity();
+	//	result.col(0) << x(0), x(1), x(2), 0.0f;
+	//	result.col(1) << y(0), y(1), y(2), 0.0f;
+	//	result.col(2) << z(0), z(1), z(2), 0.0f;
+	//	result.col(3) << -x.dot(view), -y.dot(view), -z.dot(view), 1.0f;
 
-		return eastl::move(result);
-	}
+	//	return eastl::move(result);
+	//}
 
 	//! Build a view matrix based on a position vector.
 	//! @param [view] Point where the eyes on.
@@ -93,7 +98,7 @@ namespace SG
 	//! @return a 4x4 matrix represent the view matrix.
 	SG_INLINE Matrix4f BuildViewMatrixCenter(const Vector3f& view, const Vector3f& center, const Vector3f& up)
 	{
-		return eastl::move(BuildViewMatrixDirection(view, view - center, up));
+		return glm::lookAt(view, center, up);
 	}
 
 	//! Build a perspective matrix.
@@ -104,31 +109,12 @@ namespace SG
 	//! @return a 4x4 matrix represent the perspective matrix.
 	SG_INLINE Matrix4f BuildPerspectiveMatrix(float fovYInRadians, float aspect, float zNear, float zFar)
 	{
-		// the aspect should not be zero
-		SG_ASSERT(Abs(aspect - SG_FLOAT_EPSILON) > 0.0f);
-
-		float tanHalfFovy = Tan(fovYInRadians / 2.0f);
-
-		Matrix4f result = Matrix4f::Zero();
-		result(0, 0) = 1.0f / (aspect * tanHalfFovy);
-		result(1, 1) = 1.0f / (tanHalfFovy);
-		result(2, 2) = -(zFar + zNear) / (zFar - zNear);
-		result(2, 3) = -(2.0f * zFar * zNear) / (zFar - zNear);
-		result(3, 2) = -1.0f;
-		return eastl::move(result);
+		return glm::perspective(fovYInRadians, aspect, zNear, zFar);
 	}
 
 	SG_INLINE Matrix4f BuildOrthographicMatrix(float left, float right, float top, float bottom, float zNear, float zFar)
 	{
-		Matrix4f result = Matrix4f::Identity();
-		result(0, 0) = 2.0f / (right - left);
-		result(1, 1) = 2.0f / (top - bottom);
-		result(2, 2) = -2.0f / (zFar - zNear);
-
-		result(0, 3) = -(right + left) / (right - left);
-		result(1, 3) = -(top + bottom) / (top - bottom);
-		result(2, 3) = -(zFar + zNear) / (zFar - zNear);
-		return eastl::move(result);
+		return glm::ortho(left, right, bottom, top);
 	}
 #endif
 
@@ -142,9 +128,9 @@ namespace eastl
 	{
 		size_t operator()(SG::Vector3f val) const 
 		{ 
-			size_t seed = eastl::hash<float>{}(val(0));
-			seed ^= eastl::hash<float>{}(val(1));
-			seed ^= eastl::hash<float>{}(val(2));
+			size_t seed = eastl::hash<float>{}(val.x);
+			seed ^= eastl::hash<float>{}(val.y);
+			seed ^= eastl::hash<float>{}(val.z);
 			return seed;
 		}
 	};

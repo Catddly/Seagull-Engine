@@ -56,27 +56,32 @@ namespace SG
 			attachDesc.storeOp = ToVkStoreOp(op.storeOp);
 			attachDesc.stencilLoadOp = ToVkLoadOp(op.stencilLoadOp);
 			attachDesc.stencilStoreOp = ToVkStoreOp(op.stencilStoreOp);
-			//attachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			//attachDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // We don't need depth after render pass has finished (DONT_CARE may result in better performance)
-			//attachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			//attachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachDesc.initialLayout = ToVkImageLayout(initStatus);
 			attachDesc.finalLayout = ToVkImageLayout(dstStatus);
 
 			// source dependency is when this subpass depend on. (i.e. this subpass will wait for source dependency finished then it will run)
 			// destination dependency is when this subpass run on. (i.e. this subpass will run on this stage and make sure it will end in this stage)
-
 			VkSubpassDependency dependency = {};
 			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 			dependency.dstSubpass = 0;
-			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-			dependency.srcAccessMask = 0;
-			dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			dependency.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			dependency.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			dependency.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			dependency.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+			dependencies.emplace_back(dependency);
+
+			dependency.srcSubpass = 0;
+			dependency.dstSubpass = VK_SUBPASS_EXTERNAL;
+			dependency.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			dependency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			dependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			dependency.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 			bHaveDepth = true;
 			attachments.emplace_back(eastl::move(attachDesc));
-			dependencies.emplace_back(eastl::move(dependency));
+			dependencies.emplace_back(dependency);
 		}
 
 		return *this;
@@ -84,21 +89,28 @@ namespace SG
 
 	VulkanRenderPass::Builder& VulkanRenderPass::Builder::CombineAsSubpass()
 	{
-		if (attachments.empty() || (attachments.size() == 1 && bHaveDepth))
-		{
-			SG_LOG_ERROR("At least bind one color render target to this subpass!");
-			return *this;
-		}
+		//if (attachments.empty() || (attachments.size() == 1 && bHaveDepth))
+		//{
+		//	SG_LOG_ERROR("At least bind one color render target to this subpass!");
+		//	return *this;
+		//}
 		UInt32 index = 0;
 
 		VkSubpassDescription subpassDesc = {};
 		for (Size i = 0; i < attachments.size(); ++i)
 		{
-			if (bHaveDepth && (attachments[i].stencilLoadOp == VK_ATTACHMENT_LOAD_OP_CLEAR))
+			if (bHaveDepth && (attachments[i].format == VK_FORMAT_D24_UNORM_S8_UINT ||
+				attachments[i].format == VK_FORMAT_D32_SFLOAT ||
+				attachments[i].format == VK_FORMAT_D32_SFLOAT_S8_UINT || 
+				attachments[i].format == VK_FORMAT_D16_UNORM))
 			{
 				VkAttachmentReference depthRef = {};
 				depthRef.attachment = index++;
-				depthRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				depthRef.layout = 
+					(attachments[0].finalLayout == VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL || 
+						attachments[0].finalLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ?
+					VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL : 
+					VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 				depthReference = depthRef;
 
 				subpassDesc.pDepthStencilAttachment = &depthReference;
@@ -125,11 +137,11 @@ namespace SG
 
 	VulkanRenderPass* VulkanRenderPass::Builder::Build()
 	{
-		if (attachments.empty() || (attachments.size() == 1 && bHaveDepth))
-		{
-			SG_LOG_ERROR("At least bind one color render target to this subpass!");
-			return nullptr;
-		}
+		//if (attachments.empty() || (attachments.size() == 1 && bHaveDepth))
+		//{
+		//	SG_LOG_ERROR("At least bind one color render target to this subpass!");
+		//	return nullptr;
+		//}
 		if (subpasses.empty())
 		{
 			SG_LOG_ERROR("At least combine subpass once!");
@@ -207,15 +219,6 @@ namespace SG
 			}
 		}
 
-		if (pRenderTarget->memory == VK_NULL_HANDLE) // it is a render target from the swapchain
-		{
-			if (bHaveSwapChainRT)
-			{
-				SG_LOG_WARN("Already bind a swapchain render target!");
-				return *this;
-			}
-			bHaveSwapChainRT = true;
-		}
 		renderTargets.emplace_back(pRenderTarget);
 		return *this;
 	}
@@ -233,11 +236,11 @@ namespace SG
 
 	VulkanFrameBuffer* VulkanFrameBuffer::Builder::Build()
 	{
-		if (!bHaveSwapChainRT)
-		{
-			SG_LOG_ERROR("You have to bind the render target of the swapchain!");
-			return nullptr;
-		}
+		//if (!bHaveSwapChainRT)
+		//{
+		//	SG_LOG_ERROR("You have to bind the render target of the swapchain!");
+		//	return nullptr;
+		//}
 
 		return Memory::New<VulkanFrameBuffer>(device, renderTargets, pRenderPass);
 	}

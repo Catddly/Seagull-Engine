@@ -25,9 +25,11 @@ namespace SG
 		efGeneric_Read = (((((0x1 | 0x2) | 0x40) | 0x80) | 0x200) | 0x800),
 		efPresent = 0x1000,
 		efCommon = 0x2000,
-		efStencil = 0x4000,
+		efStencil_Read = 0x4000,
+		efStencil_Write = 0x8000,
 		efDepth = efDepth_Write | efDepth_Read,
-		efDepth_Stencil = efDepth_Write | efDepth_Read | efStencil,
+		efDepth_Stencil = efDepth_Write | efDepth_Read | efStencil_Read,
+		efDepth_Stencil_Read_Only = efDepth_Stencil | efStencil_Write,
 	};
 	SG_ENUM_CLASS_FLAG(UInt32, EResourceBarrier);
 

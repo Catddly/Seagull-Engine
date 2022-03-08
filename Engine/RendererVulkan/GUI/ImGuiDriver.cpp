@@ -285,6 +285,7 @@ namespace SG
 		io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;  // We can create multi-viewports on the Renderer side (optional)
 		//io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;  // We can create multi-viewports on the Platform side (optional)
 
+		// for copy-paste functionality
 		io.SetClipboardTextFn = _ImGui_Platform_SetClipboardText_Impl;
 		io.GetClipboardTextFn = _ImGui_Platform_GetClipboardText_Impl;
 		io.ClipboardUserData = OperatingSystem::GetMainWindow();
@@ -297,6 +298,8 @@ namespace SG
 		{
 			style.WindowRounding = 0.0f;
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+
+			_ImGuiBindWindowPlatformFunc();
 		}
 
 		ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
@@ -307,8 +310,6 @@ namespace SG
 		monitor.MainPos = monitor.WorkPos = { (float)monitorRect.left, (float)monitorRect.top };
 		monitor.MainSize = monitor.WorkSize = { (float)GetRectWidth(monitorRect), (float)GetRectHeight(monitorRect) };
 		platformIO.Monitors.push_back(monitor);
-
-		_ImGuiBindWindowPlatformFunc();
 
 		// Our mouse update function expect PlatformHandle to be filled for the main viewport
 		ImGuiViewport* mainViewport = ImGui::GetMainViewport();
@@ -325,13 +326,28 @@ namespace SG
 
 	void ImGuiDriver::OnUpdate(float deltaTime)
 	{
+		UpdateFrameData(deltaTime);
+
+		ImGui::NewFrame();
+		mLayerSystem.OnUpdate(deltaTime); // do user draw
+		ImGui::EndFrame();
+
+		auto& io = ImGui::GetIO();
+		// Update and Render additional Platform Windows
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
+	}
+
+	void ImGuiDriver::UpdateFrameData(float deltaTime)
+	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.DeltaTime = deltaTime;
 
 		io.DisplaySize = { (float)OperatingSystem::GetMainWindow()->GetWidth(), (float)OperatingSystem::GetMainWindow()->GetHeight() };
 		io.DisplayFramebufferScale = { 1.0f, 1.0f };
-
-		//UpdateMouseData();
 
 		ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
 		for (int n = 0; n < platformIO.Viewports.Size; n++)
@@ -347,42 +363,7 @@ namespace SG
 				io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
 			}
 		}
-
 		UpdateCursorData();
-	}
-
-	void ImGuiDriver::OnDraw(Scene* pScene)
-	{
-		ImGui::NewFrame();
-
-		bool bShowDemoWindow = true;
-		ImGui::ShowDemoWindow(&bShowDemoWindow);
-
-		ImGui::Begin("Light");
-		pScene->TraversePointLight([](PointLight& pointLight)
-			{
-				Vector3f position = pointLight.GetPosition();
-				float radius = pointLight.GetRadius();
-				Vector3f color = pointLight.GetColor();
-				ImGui::DragFloat3("Position", position.data(), 0.05f);
-				ImGui::DragFloat("Radius", &radius, 0.1f);
-				ImGui::ColorEdit3("Color", color.data());
-
-				pointLight.SetPosition(position);
-				pointLight.SetRadius(radius);
-				pointLight.SetColor(color);
-			});
-		ImGui::End();
-
-		ImGui::EndFrame();
-
-		auto& io = ImGui::GetIO();
-		// Update and Render additional Platform Windows
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-		}
 	}
 
 	void ImGuiDriver::UpdateMouseData()

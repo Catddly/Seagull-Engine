@@ -2,13 +2,12 @@
 #include "Scene/Camera/PointOrientedCamera.h"
 
 #include "Math/MathBasic.h"
-#include "Math/Transform.h"
 
 namespace SG
 {
 
 	PointOrientedCamera::PointOrientedCamera(const Vector3f& pos, const Vector3f& viewAt)
-		:mViewAtPoint(viewAt), mMoveSpeed(0.15f), mWheelScale(0.25f), BasicCamera(pos, Vector3f::Zero())
+		:mViewAtPoint(viewAt), mMoveSpeed(0.15f), mWheelScale(0.25f), BasicCamera(pos, Vector3f(0.0f))
 	{
 		UpdateViewMatrix();
 	}
@@ -26,22 +25,26 @@ namespace SG
 	{
 		if (Input::IsKeyPressed(KeyCode_MouseLeft))
 		{
-			if (deltaXPos != 0) { Rotate(mViewMatrix, SG_ENGINE_UP_VEC(), -deltaXPos * mMoveSpeed); mbIsViewDirty = true; }
-			if (deltaYPos != 0) { Rotate(mViewMatrix, SG_ENGINE_RIGHT_VEC(), deltaYPos * mMoveSpeed); mbIsViewDirty = true; }
+			if (deltaXPos != 0) { mPosition.x -= deltaXPos * mMoveSpeed * 0.05f; UpdateViewMatrix(); mbIsViewDirty = true; }
+			if (deltaYPos != 0) { mPosition.y -= deltaYPos * mMoveSpeed * 0.05f; UpdateViewMatrix(); mbIsViewDirty = true; }
 		}
 		return true;
 	}
 
 	bool PointOrientedCamera::OnMouseWheelInputUpdate(int direction)
 	{
-		if (direction > 0) 
+		if (direction > 0)
 		{
-			TranslateZ(mViewMatrix, mWheelScale); 
+			//glm::translate(mViewMatrix, { 0.0f, 0.0f, mWheelScale });
+			mPosition.z += mWheelScale * 0.7f;
+			UpdateViewMatrix();
 			mbIsViewDirty = true;
 		}
-		else 
+		else
 		{
-			TranslateZ(mViewMatrix, -mWheelScale);
+			mPosition.z -= mWheelScale * 0.7f;
+			UpdateViewMatrix();
+			//glm::translate(mViewMatrix, { 0.0f, 0.0f, -mWheelScale });
 			mbIsViewDirty = true;
 		}
 		return true;

@@ -33,7 +33,8 @@ project "SRendererVulkan"
         "../../Libs/eastl/include/", -- eastl
         "../../Libs/imgui/include/", -- imgui
         "../../Libs/volk/include/", -- volk
-        "../../Libs/volk/source/"
+        "../../Libs/volk/source/",
+        "../../Libs/glm/",  -- glm
     }
 
     links

@@ -8,7 +8,7 @@ namespace SG
 	class PointOrientedCamera final : public BasicCamera
 	{
 	public:
-		SG_CORE_API PointOrientedCamera(const Vector3f& pos, const Vector3f& viewAt = Vector3f::Zero());
+		SG_CORE_API PointOrientedCamera(const Vector3f& pos, const Vector3f& viewAt = Vector3f(0.0f));
 		SG_CORE_API ~PointOrientedCamera();
 		SG_CLASS_NO_COPY_ASSIGNABLE(PointOrientedCamera);
 
