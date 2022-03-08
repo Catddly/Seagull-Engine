@@ -15,5 +15,5 @@ layout(push_constant) uniform pushConstant
 
 void main()
 {
-	gl_Position =  shadowUbo.lightSpace * constant.model * vec4(inPosWS, 1.0);
+	gl_Position = shadowUbo.lightSpace * constant.model * vec4(inPosWS, 1.0);
 }

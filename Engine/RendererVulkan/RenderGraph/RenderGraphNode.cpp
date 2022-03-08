@@ -17,10 +17,7 @@ namespace SG
 	void RenderGraphNode::AttachResource(UInt32 slot, const RenderGraphInReousrce& resource)
 	{
 		SG_ASSERT(slot <= SG_MAX_RENDER_GRAPH_NODE_RESOURCE && "Exceed the maximun limit of render graph node resources.");
-		if (mInResources[slot] == resource)
-			return;
-		else
-			mInResources[slot] = resource;
+		mInResources[slot] = resource;
 		mResourceValidFlag |= UInt32(1 << slot);
 	}
 

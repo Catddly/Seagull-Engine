@@ -1,6 +1,8 @@
 #pragma once
 
 #include "VulkanDevice.h"
+
+#include "Render/Command.h"
 #include "Render/ResourceBarriers.h"
 #include "Render/FrameBuffer.h"
 
@@ -78,6 +80,8 @@ namespace SG
 		VulkanDevice& device;
 		VkFramebuffer frameBuffer;
 		VkRenderPass  currRenderPass;
+		ClearValue    clearValue;
+		UInt32 numRenderTarget;
 		UInt32 width;
 		UInt32 height;
 	};

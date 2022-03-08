@@ -189,6 +189,7 @@ namespace SG
 		frameBufferCreateInfo.renderPass = pRenderPass->renderPass;
 
 		frameBufferCreateInfo.attachmentCount = static_cast<UInt32>(pRenderTargets.size());
+		numRenderTarget = frameBufferCreateInfo.attachmentCount;
 		frameBufferCreateInfo.pAttachments = imageViews.data();
 
 		frameBufferCreateInfo.width  = pRenderTargets[0]->width;

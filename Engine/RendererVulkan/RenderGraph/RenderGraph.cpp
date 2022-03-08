@@ -195,8 +195,7 @@ namespace SG
 				{
 					auto statusTransition = mResourceStatusKeeper.GetResourceNextStatus(resource->mpRenderTarget);
 					rpBuilder.BindRenderTarget(resource->mpRenderTarget, resource->mLoadStoreClearOp,
-						statusTransition.srcStatus,
-						statusTransition.dstStatus);
+						statusTransition.srcStatus, statusTransition.dstStatus);
 				}
 			}
 			mpCurrRenderPass = rpBuilder.CombineAsSubpass().Build();

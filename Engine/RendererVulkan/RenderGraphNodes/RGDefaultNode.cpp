@@ -67,6 +67,8 @@ namespace SG
 		mpPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShader)
 			.AddCombindSamplerImage("default", "shadow map")
 			.Build();
+
+		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp });
 	}
 
 	RGDefaultNode::~RGDefaultNode()
@@ -97,7 +99,6 @@ namespace SG
 	void RGDefaultNode::Update(float deltaTime, UInt32 frameIndex)
 	{
 		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp });
-		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp });
 
 		static float totalTime = 0.0f;
 		static float speed = 2.5f;
@@ -107,11 +108,8 @@ namespace SG
 		bool bNeedUploadData = false;
 		if (mpCamera->IsViewDirty())
 		{
-			//Scene* pScene = SSystem()->GetMainScene();
 			mUBO.viewPos = mpCamera->GetPosition();
-			//mUBO.viewPos = { 0.0f, 0.0f, -4.0f };
 			mUBO.view = mpCamera->GetViewMatrix();
-			//mUBO.view = BuildViewMatrixCenter(mUBO.viewPos, { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC());
 			bNeedUploadData = true;
 		}
 

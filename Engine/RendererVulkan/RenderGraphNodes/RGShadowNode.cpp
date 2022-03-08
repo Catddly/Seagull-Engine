@@ -59,12 +59,12 @@ namespace SG
 		SamplerCreateDesc samplerCI = {};
 		samplerCI.name = "default";
 		samplerCI.filterMode = EFilterMode::eLinear;
-		samplerCI.addressMode = EAddressMode::eRepeat;
+		samplerCI.addressMode = EAddressMode::eClamp_To_Edge;
 		samplerCI.lodBias = 0.0f;
 		samplerCI.minLod = 0.0f;
 		samplerCI.maxLod = 0.0f;
 		samplerCI.maxAnisotropy = 1.0f;
-		samplerCI.enableAnisotropy = true;
+		samplerCI.enableAnisotropy = false;
 		VK_RESOURCE()->CreateSampler(samplerCI);
 
 		mpShadowShader = VulkanShader::Create(mContext.device);
@@ -74,6 +74,8 @@ namespace SG
 		mpShadowPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShadowShader)
 			.Build();
 		mpShadowPipelineSignature->UploadUniformBufferData("shadowUbo", &mUBO);
+
+		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("shadow map"), mDepthRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil_Read_Only });
 	}
 
 	RGShadowNode::~RGShadowNode()
@@ -91,6 +93,7 @@ namespace SG
 	void RGShadowNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
 		mpShadowPipeline = VulkanPipeline::Builder(mContext.device)
+			.SetDepthStencil(true)
 			.BindSignature(mpShadowPipelineSignature.get())
 			.BindRenderPass(pRenderpass)
 			.BindShader(mpShadowShader.get())
@@ -99,8 +102,6 @@ namespace SG
 
 	void RGShadowNode::Update(float deltaTime, UInt32 frameIndex)
 	{
-		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("shadow map"), mDepthRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil_Read_Only});
-	
 		static float totalTime = 0.0f;
 		static float speed = 2.5f;
 		mPushConstant.model[3][0] = 0.5f * Sin(totalTime);

@@ -31,7 +31,8 @@ void main()
 	outViewPosWS = ubo.viewPos;
 	outPosWS = vec3(constant.model * vec4(inPos, 1.0));
 	outNormalWS = mat3(constant.inverseTransposeModel) * inNormalLS; 
-    gl_Position = ubo.projection * ubo.view * vec4(outPosWS, 1.0);
+    gl_Position = ubo.projection * ubo.view * constant.model * vec4(outPosWS, 1.0);
+    //gl_Position = ubo.lightSpace * constant.model * vec4(outPosWS, 1.0);
 
 	outShadowMapPos = (ubo.lightSpace * constant.model) * vec4(inPos, 1.0);
 }

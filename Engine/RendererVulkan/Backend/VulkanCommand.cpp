@@ -113,7 +113,7 @@ namespace SG
 
 	void VulkanCommandBuffer::BeginRenderPass(VulkanFrameBuffer* pFrameBuffer, const ClearValue& clear)
 	{
-		VkClearValue clearValues[2];
+		VkClearValue clearValues[2] = {};
 		clearValues[0].color = { clear.color[0], clear.color[1], clear.color[2], clear.color[3] };
 		clearValues[1].depthStencil = { clear.depthStencil.depth, clear.depthStencil.stencil };
 
