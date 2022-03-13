@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Base/BasicTypes.h"
-#include "Render/Command.h"
 #include "Render/Swapchain.h"
 #include "Render/ResourceBarriers.h"
 
@@ -26,10 +25,10 @@ namespace SG
 		void BeginRecord(bool bPermanent = false);
 		void EndRecord();
 
-		void BeginRenderPass(VulkanFrameBuffer* pFrameBuffer, const ClearValue& clear); // TODO: change param
+		void BeginRenderPass(VulkanFrameBuffer* pFrameBuffer); // TODO: change param
 		void EndRenderPass();
 
-		void SetViewport(float width, float height, float minDepth, float maxDepth, bool flipY = true);
+		void SetViewport(float width, float height, float minDepth, float maxDepth);
 		void SetScissor(const Rect& rect);
 
 		void BindVertexBuffer(UInt32 firstBinding, UInt32 bindingCount, VulkanBuffer& buffer, const UInt64* pOffsets);
@@ -49,6 +48,8 @@ namespace SG
 		//void BufferBarrier();
 		void ImageBarrier(VulkanTexture* pTex, EResourceBarrier oldBarrier, EResourceBarrier newBarrier);
 		//void MemoryBarrier();
+
+		void SetDepthBias(float biasConstant, float clamp, float slopeFactor);
 	private:
 		friend class VulkanCommandPool;
 		friend class VulkanQueue;

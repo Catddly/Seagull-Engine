@@ -38,12 +38,13 @@ namespace SG
 	class RenderGraphResourceBase
 	{
 	public:
-		RenderGraphResourceBase(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op)
-			:mpRenderTarget(pRenderTarget), mLoadStoreClearOp(op), mSrcStatus(EResourceBarrier::efUndefined), mDstStatus(EResourceBarrier::efUndefined)
+		RenderGraphResourceBase(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, const ClearValue& clearValue)
+			:mpRenderTarget(pRenderTarget), mLoadStoreClearOp(op), mClearValue(clearValue),
+			mSrcStatus(EResourceBarrier::efUndefined), mDstStatus(EResourceBarrier::efUndefined)
 		{}
-		RenderGraphResourceBase(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, 
+		RenderGraphResourceBase(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, const ClearValue& clearValue,
 			EResourceBarrier srcStatus, EResourceBarrier dstStatus)
-			:mpRenderTarget(pRenderTarget), mLoadStoreClearOp(op), mSrcStatus(srcStatus), mDstStatus(dstStatus)
+			:mpRenderTarget(pRenderTarget), mLoadStoreClearOp(op), mClearValue(clearValue), mSrcStatus(srcStatus), mDstStatus(dstStatus)
 		{}
 		virtual ~RenderGraphResourceBase() = default;
 
@@ -58,6 +59,7 @@ namespace SG
 		friend class RenderGraph;
 
 		VulkanRenderTarget* mpRenderTarget;
+		ClearValue          mClearValue;
 		LoadStoreClearOp    mLoadStoreClearOp;
 		EResourceBarrier    mSrcStatus;
 		EResourceBarrier    mDstStatus;
@@ -72,12 +74,12 @@ namespace SG
 	class RenderGraphInReousrce final : public RenderGraphResourceBase<ERGResourceFlow::eIn>
 	{
 	public:
-		RenderGraphInReousrce(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op)
-			: RenderGraphResourceBase(pRenderTarget, op)
+		RenderGraphInReousrce(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, const ClearValue& clearValue)
+			: RenderGraphResourceBase(pRenderTarget, op, clearValue)
 		{}
-		RenderGraphInReousrce(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, 
+		RenderGraphInReousrce(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, const ClearValue& clearValue,
 			EResourceBarrier srcStatus, EResourceBarrier dstStatus)
-			: RenderGraphResourceBase(pRenderTarget, op, srcStatus, dstStatus)
+			: RenderGraphResourceBase(pRenderTarget, op, clearValue, srcStatus, dstStatus)
 		{}
 		~RenderGraphInReousrce() = default;
 	private:

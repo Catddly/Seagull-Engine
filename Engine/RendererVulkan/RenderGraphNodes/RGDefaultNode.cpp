@@ -37,22 +37,27 @@ namespace SG
 		mUBO.proj = mpCamera->GetProjMatrix();
 		//mUBO.proj = BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0, 96.0f);
 		mUBO.pad = 0.0f;
-		mpGeometry = VK_RESOURCE()->GetGeometry("model");
+
+		mpModelGeometry = VK_RESOURCE()->GetGeometry("model");
+		mpGridGeometry = VK_RESOURCE()->GetGeometry("grid");
 
 		mModelPosition = { 0.0f, 0.0f, 0.0f };
 		mModelScale = 1.0f;
 		mModelRotation = { 0.0f, 0.0f, 0.0f };
-		mPushConstant.model = Matrix4f(1.0f);
-		mPushConstant.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstant.model));
+		mPushConstantGeo.model = Matrix4f(1.0f);
+		mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
+
+		mPushConstantGrid.model = glm::scale(Matrix4f(1.0f), { 6.0f, 1.0f, 6.0f });
+		mPushConstantGrid.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGrid.model));
 
 		auto* pDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
-		mUBO.lightSpace = BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0, 96.0f) *
-			BuildViewMatrixCenter(pDirectionalLight->GetPosition(), { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC());
+		mUBO.lightSpace = BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0f, 96.0f) *
+			BuildViewMatrixCenter(pDirectionalLight->GetPosition(), { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC()) * Matrix4f(1.0f);
 
 		// init render resource
 		mpShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
-		//compiler.CompileGLSLShader("basic", mBasicShader);
+		//compiler.CompileGLSLShader("scene", mpShader.get());
 		compiler.CompileGLSLShader("basic1", "phone", mpShader.get());
 
 		VulkanCommandBuffer pCmd;
@@ -68,7 +73,10 @@ namespace SG
 			.AddCombindSamplerImage("default", "shadow map")
 			.Build();
 
-		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp });
+		ClearValue cv = {};
+		cv.depthStencil.depth = 1.0f;
+		cv.depthStencil.stencil = 0;
+		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv });
 	}
 
 	RGDefaultNode::~RGDefaultNode()
@@ -91,6 +99,7 @@ namespace SG
 	{
 		mpPipeline = VulkanPipeline::Builder(mContext.device)
 			.BindSignature(mpPipelineSignature.get())
+			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
 			.BindShader(mpShader.get())
 			.Build();
@@ -98,12 +107,14 @@ namespace SG
 
 	void RGDefaultNode::Update(float deltaTime, UInt32 frameIndex)
 	{
-		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp });
+		ClearValue cv = {};
+		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
+		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
 
 		static float totalTime = 0.0f;
 		static float speed = 2.5f;
-		mPushConstant.model[3][0] = 0.5f * Sin(totalTime);
-		mPushConstant.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstant.model));
+		mPushConstantGeo.model[3][0] = 0.5f * Sin(totalTime);
+		mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
 
 		bool bNeedUploadData = false;
 		if (mpCamera->IsViewDirty())
@@ -139,13 +150,22 @@ namespace SG
 		pBuf.BindPipeline(mpPipeline);
 
 		UInt64 offset[1] = { 0 };
-		VulkanBuffer* pVertexBuffer = mpGeometry->GetVertexBuffer();
-		VulkanBuffer* pIndexBuffer  = mpGeometry->GetIndexBuffer();
+		VulkanBuffer* pVertexBuffer = mpModelGeometry->GetVertexBuffer();
+		VulkanBuffer* pIndexBuffer  = mpModelGeometry->GetIndexBuffer();
 		pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
 		pBuf.BindIndexBuffer(*pIndexBuffer, 0);
 
-		pBuf.PushConstants(mpPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstant);
-		const UInt32 indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
+		pBuf.PushConstants(mpPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstantGeo);
+		UInt32 indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
+		pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
+
+		pVertexBuffer = mpGridGeometry->GetVertexBuffer();
+		pIndexBuffer = mpGridGeometry->GetIndexBuffer();
+		pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
+		pBuf.BindIndexBuffer(*pIndexBuffer, 0);
+
+		pBuf.PushConstants(mpPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstantGrid);
+		indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
 		pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
 	}
 

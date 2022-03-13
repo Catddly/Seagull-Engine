@@ -111,12 +111,8 @@ namespace SG
 			SG_LOG_ERROR("Failed to end command buffer!"); SG_ASSERT(false););
 	}
 
-	void VulkanCommandBuffer::BeginRenderPass(VulkanFrameBuffer* pFrameBuffer, const ClearValue& clear)
+	void VulkanCommandBuffer::BeginRenderPass(VulkanFrameBuffer* pFrameBuffer)
 	{
-		VkClearValue clearValues[2] = {};
-		clearValues[0].color = { clear.color[0], clear.color[1], clear.color[2], clear.color[3] };
-		clearValues[1].depthStencil = { clear.depthStencil.depth, clear.depthStencil.stencil };
-
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.pNext = nullptr;
@@ -125,8 +121,8 @@ namespace SG
 		renderPassBeginInfo.renderArea.extent.width  = pFrameBuffer->width;
 		renderPassBeginInfo.renderArea.extent.height = pFrameBuffer->height;
 
-		renderPassBeginInfo.clearValueCount = 2;
-		renderPassBeginInfo.pClearValues    = clearValues;
+		renderPassBeginInfo.clearValueCount = static_cast<UInt32>(pFrameBuffer->clearValues.size());
+		renderPassBeginInfo.pClearValues    = pFrameBuffer->clearValues.data();
 
 		renderPassBeginInfo.renderPass = pFrameBuffer->currRenderPass;
 		renderPassBeginInfo.framebuffer = pFrameBuffer->frameBuffer;
@@ -139,28 +135,16 @@ namespace SG
 		vkCmdEndRenderPass(commandBuffer);
 	}
 
-	void VulkanCommandBuffer::SetViewport(float width, float height, float minDepth, float maxDepth, bool flipY)
+	void VulkanCommandBuffer::SetViewport(float width, float height, float minDepth, float maxDepth)
 	{
 		// enable VK_KHR_Maintenance1 to flip y coordinate in screen space(viewport).
 		VkViewport viewport = {};
-		if (flipY)
-		{
-			viewport.x = 0.0f;
-			viewport.y = (float)height;
-			viewport.width = (float)width;
-			viewport.height = -(float)height;
-			viewport.minDepth = (float)minDepth;
-			viewport.maxDepth = (float)maxDepth;
-		}
-		else
-		{
-			viewport.x = 0.0f;
-			viewport.y = 0.0f;
-			viewport.width = (float)width;
-			viewport.height = (float)height;
-			viewport.minDepth = (float)minDepth;
-			viewport.maxDepth = (float)maxDepth;
-		}
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = (float)width;
+		viewport.height = (float)height;
+		viewport.minDepth = (float)minDepth;
+		viewport.maxDepth = (float)maxDepth;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 	}
 
@@ -335,6 +319,11 @@ namespace SG
 			1, &barrier);
 
 		pTex->currLayout = barrier.newLayout;
+	}
+
+	void VulkanCommandBuffer::SetDepthBias(float biasConstant, float clamp, float slopeFactor)
+	{
+		vkCmdSetDepthBias(commandBuffer, biasConstant, clamp, slopeFactor);
 	}
 
 }

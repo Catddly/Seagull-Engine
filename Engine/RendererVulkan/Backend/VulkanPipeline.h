@@ -83,7 +83,7 @@ namespace SG
 			Builder& SetColorBlend(bool enable); // TODO: add blend mode.
 			Builder& SetDepthStencil(bool enable);
 			Builder& SetViewport();
-			Builder& SetDynamicStates();
+			Builder& SetDynamicStates(UInt32 addState = VK_DYNAMIC_STATE_MAX_ENUM);
 			Builder& SetMultiSample(ESampleCount sample);
 
 			Builder& BindRenderPass(VulkanRenderPass* pRenderPass) { this->pRenderPass = pRenderPass; return *this; }

@@ -2,7 +2,6 @@
 
 #include "VulkanDevice.h"
 
-#include "Render/Command.h"
 #include "Render/ResourceBarriers.h"
 #include "Render/FrameBuffer.h"
 
@@ -53,7 +52,7 @@ namespace SG
 	class VulkanFrameBuffer
 	{
 	public:
-		VulkanFrameBuffer(VulkanDevice& d, const vector<VulkanRenderTarget*>& pRenderTargets, VulkanRenderPass* pRenderPass);
+		VulkanFrameBuffer(VulkanDevice& d, const vector<VulkanRenderTarget*>& pRenderTargets, const vector<ClearValue>& clearValues, VulkanRenderPass* pRenderPass);
 		~VulkanFrameBuffer();
 
 		class Builder
@@ -65,12 +64,13 @@ namespace SG
 			 * @brief In the VulkanFrameBuffer we bind the render target for a reference of image view,
 			 * it tell the whole render device where to draw on.
 			 */
-			Builder& AddRenderTarget(VulkanRenderTarget* pRenderTarget);
+			Builder& AddRenderTarget(VulkanRenderTarget* pRenderTarget, const ClearValue& clearValue);
 			Builder& BindRenderPass(VulkanRenderPass* pRenderPass);
 			VulkanFrameBuffer* Build();
 		private:
 			VulkanDevice& device;
 			vector<VulkanRenderTarget*> renderTargets;
+			vector<ClearValue>          clearValues;
 			VulkanRenderPass*           pRenderPass;
 			bool bHaveSwapChainRT; // if user had bind the render target of swapchain
 		};
@@ -80,8 +80,7 @@ namespace SG
 		VulkanDevice& device;
 		VkFramebuffer frameBuffer;
 		VkRenderPass  currRenderPass;
-		ClearValue    clearValue;
-		UInt32 numRenderTarget;
+		vector<VkClearValue> clearValues;
 		UInt32 width;
 		UInt32 height;
 	};

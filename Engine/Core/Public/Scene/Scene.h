@@ -21,7 +21,7 @@ namespace SG
 	{
 	public:
 		Scene(const char* name)
-			:mName(name), mpMainCamera(nullptr), mDirectionalLight({ 4.0f, 7.0f, 2.0f }, { -2.0f, -5.0f, -1.0f }, { 1.0f, 1.0f, 1.0f })
+			:mName(name), mpMainCamera(nullptr), mDirectionalLight({ -4.0f, 8.0f, -2.0f }, { -2.0f, 5.0f, -1.0f }, { 1.0f, 1.0f, 1.0f })
 		{}
 
 		//! This function can be dispatched to another thread. 

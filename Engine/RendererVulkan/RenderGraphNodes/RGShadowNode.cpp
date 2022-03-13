@@ -34,15 +34,16 @@ namespace SG
 		);
 
 		mpDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
-		mUBO.lightSpace = BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0, 96.0f) *
-			BuildViewMatrixCenter(mpDirectionalLight->GetPosition(), { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC());
+		mUBO.lightSpace = BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0f, 96.0f) *
+			BuildViewMatrixCenter(mpDirectionalLight->GetPosition(), { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC()) * Matrix4f(1.0f);
 
-		mPushConstant.model = Matrix4f(1.0f);
+		mPushConstantModel.model = Matrix4f(1.0f);
+		mPushConstantGrid.model = glm::scale(Matrix4f(1.0f), { 6.0f, 1.0f, 6.0f });
 
 		TextureCreateDesc texCI = {};
 		texCI.name = "shadow map";
-		texCI.width = 1024;
-		texCI.height = 1024;
+		texCI.width = 2048;
+		texCI.height = 2048;
 		texCI.depth = 1;
 		texCI.array = 1;
 		texCI.mipLevel = 1;
@@ -54,7 +55,8 @@ namespace SG
 		texCI.initLayout = EImageLayout::eUndefined;
 		VK_RESOURCE()->CreateRenderTarget(texCI, true);
 
-		mpGeometry = VK_RESOURCE()->GetGeometry("model");
+		mpModelGeometry = VK_RESOURCE()->GetGeometry("model");
+		mpGridGeometry = VK_RESOURCE()->GetGeometry("grid");
 
 		SamplerCreateDesc samplerCI = {};
 		samplerCI.name = "default";
@@ -75,7 +77,10 @@ namespace SG
 			.Build();
 		mpShadowPipelineSignature->UploadUniformBufferData("shadowUbo", &mUBO);
 
-		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("shadow map"), mDepthRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil_Read_Only });
+		ClearValue cv = {};
+		cv.depthStencil.depth = 1.0f;
+		cv.depthStencil.stencil = 0;
+		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("shadow map"), mDepthRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil_Read_Only });
 	}
 
 	RGShadowNode::~RGShadowNode()
@@ -94,6 +99,9 @@ namespace SG
 	{
 		mpShadowPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetDepthStencil(true)
+			.SetColorBlend(false)
+			.SetRasterizer(VK_CULL_MODE_FRONT_BIT)
+			.SetDynamicStates(VK_DYNAMIC_STATE_DEPTH_BIAS)
 			.BindSignature(mpShadowPipelineSignature.get())
 			.BindRenderPass(pRenderpass)
 			.BindShader(mpShadowShader.get())
@@ -104,7 +112,7 @@ namespace SG
 	{
 		static float totalTime = 0.0f;
 		static float speed = 2.5f;
-		mPushConstant.model[3][0] = 0.5f * Sin(totalTime);
+		mPushConstantModel.model[3][0] = 0.5f * Sin(totalTime);
 
 		totalTime += deltaTime * speed;
 	}
@@ -113,21 +121,31 @@ namespace SG
 	{
 		auto& pBuf = *context.pCmd;
 
-		pBuf.SetViewport(1024.0f, 1024.0f, 0.0f, 1.0f);
-		pBuf.SetScissor({ 0, 0, 1024, 1024 });
-
+		pBuf.SetViewport(2048.0f, 2048.0f, 0.0f, 1.0f);
+		pBuf.SetScissor({ 0, 0, 2048, 2048 });
 		pBuf.BindPipeline(mpShadowPipeline);
 		pBuf.BindPipelineSignature(mpShadowPipelineSignature.get());
 
+		pBuf.SetDepthBias(0.75f, 0.0f, 0.5f);
+
 		UInt64 offset[1] = { 0 };
-		VulkanBuffer* pVertexBuffer = mpGeometry->GetVertexBuffer();
-		VulkanBuffer* pIndexBuffer = mpGeometry->GetIndexBuffer();
+		VulkanBuffer* pVertexBuffer = mpModelGeometry->GetVertexBuffer();
+		VulkanBuffer* pIndexBuffer = mpModelGeometry->GetIndexBuffer();
 		pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
 		pBuf.BindIndexBuffer(*pIndexBuffer, 0);
 
-		pBuf.PushConstants(mpShadowPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstant);
-		const UInt32 indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
+		pBuf.PushConstants(mpShadowPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstantModel);
+		UInt32 indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
 		pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
+
+		//pVertexBuffer = mpGridGeometry->GetVertexBuffer();
+		//pIndexBuffer = mpGridGeometry->GetIndexBuffer();
+		//pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
+		//pBuf.BindIndexBuffer(*pIndexBuffer, 0);
+
+		//pBuf.PushConstants(mpShadowPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstantGrid);
+		//indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
+		//pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
 	}
 
 }

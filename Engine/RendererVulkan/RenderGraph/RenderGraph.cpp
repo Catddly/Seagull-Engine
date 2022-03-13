@@ -105,11 +105,7 @@ namespace SG
 			}
 			auto* pFrameBuffer = mFrameBuffersMap.find(framebufferHash)->second;
 
-			ClearValue cv;
-			cv.color = { 0.03f, 0.03f, 0.03f, 1.0f };
-			cv.depthStencil = { 1.0f, 0 };
-
-			commandBuf.BeginRenderPass(pFrameBuffer, cv);
+			commandBuf.BeginRenderPass(pFrameBuffer);
 			pCurrNode->Draw(drawContext);
 			commandBuf.EndRenderPass();
 		}
@@ -234,7 +230,7 @@ namespace SG
 			{
 				if (resource.has_value())
 				{
-					fbBuilder.AddRenderTarget(resource->mpRenderTarget);
+					fbBuilder.AddRenderTarget(resource->mpRenderTarget, resource->mClearValue);
 				}
 			}
 			auto* pFrameBuffer = fbBuilder.BindRenderPass(mpCurrRenderPass).Build();

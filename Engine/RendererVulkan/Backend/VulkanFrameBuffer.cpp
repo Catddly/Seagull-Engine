@@ -176,12 +176,24 @@ namespace SG
 	/// VulkanFrameBuffer
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanFrameBuffer::VulkanFrameBuffer(VulkanDevice& d, const vector<VulkanRenderTarget*>& pRenderTargets, VulkanRenderPass* pRenderPass)
+	VulkanFrameBuffer::VulkanFrameBuffer(VulkanDevice& d, const vector<VulkanRenderTarget*>& pRenderTargets, const vector<ClearValue>& clearValues, VulkanRenderPass* pRenderPass)
 		:device(d)
 	{
 		vector<VkImageView> imageViews;
 		for (auto* pRt : pRenderTargets)
 			imageViews.emplace_back(pRt->imageView);
+
+		UInt32 index = 0;
+		for (auto& value : clearValues)
+		{
+			VkClearValue clearValue = {};
+			if (!pRenderTargets[index]->IsDepth())
+				clearValue.color = { { value.color.x, value.color.y, value.color.z, value.color.w } };
+			else
+				clearValue.depthStencil = { value.depthStencil.depth, value.depthStencil.stencil };
+			this->clearValues.push_back(clearValue);
+			++index;
+		}
 
 		VkFramebufferCreateInfo frameBufferCreateInfo = {};
 		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -189,7 +201,6 @@ namespace SG
 		frameBufferCreateInfo.renderPass = pRenderPass->renderPass;
 
 		frameBufferCreateInfo.attachmentCount = static_cast<UInt32>(pRenderTargets.size());
-		numRenderTarget = frameBufferCreateInfo.attachmentCount;
 		frameBufferCreateInfo.pAttachments = imageViews.data();
 
 		frameBufferCreateInfo.width  = pRenderTargets[0]->width;
@@ -209,7 +220,7 @@ namespace SG
 		vkDestroyFramebuffer(device.logicalDevice, frameBuffer, nullptr);
 	}
 
-	VulkanFrameBuffer::Builder& VulkanFrameBuffer::Builder::AddRenderTarget(VulkanRenderTarget* pRenderTarget)
+	VulkanFrameBuffer::Builder& VulkanFrameBuffer::Builder::AddRenderTarget(VulkanRenderTarget* pRenderTarget, const ClearValue& clearValue)
 	{
 		if (!renderTargets.empty())
 		{
@@ -221,6 +232,7 @@ namespace SG
 		}
 
 		renderTargets.emplace_back(pRenderTarget);
+		clearValues.push_back(clearValue);
 		return *this;
 	}
 
@@ -237,13 +249,7 @@ namespace SG
 
 	VulkanFrameBuffer* VulkanFrameBuffer::Builder::Build()
 	{
-		//if (!bHaveSwapChainRT)
-		//{
-		//	SG_LOG_ERROR("You have to bind the render target of the swapchain!");
-		//	return nullptr;
-		//}
-
-		return Memory::New<VulkanFrameBuffer>(device, renderTargets, pRenderPass);
+		return Memory::New<VulkanFrameBuffer>(device, renderTargets, clearValues, pRenderPass);
 	}
 
 }

@@ -25,7 +25,7 @@ namespace SG
 	{
 		if (Input::IsKeyPressed(KeyCode_MouseLeft))
 		{
-			if (deltaXPos != 0) { mPosition.x -= deltaXPos * mMoveSpeed * 0.05f; UpdateViewMatrix(); mbIsViewDirty = true; }
+			if (deltaXPos != 0) { mPosition.x += deltaXPos * mMoveSpeed * 0.05f; UpdateViewMatrix(); mbIsViewDirty = true; }
 			if (deltaYPos != 0) { mPosition.y -= deltaYPos * mMoveSpeed * 0.05f; UpdateViewMatrix(); mbIsViewDirty = true; }
 		}
 		return true;

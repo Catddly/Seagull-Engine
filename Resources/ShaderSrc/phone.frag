@@ -9,6 +9,7 @@ layout (set = 0, binding = 0) uniform UBO
 {
 	mat4  view;
 	mat4  projection;
+	mat4  lightSpace;
 	vec3  viewPos;
 	float lightRadius;
 	vec3  lightPos;
@@ -23,30 +24,29 @@ layout (location = 0) out vec4 outColor;
 float SampleShadowMap(vec4 shadowMapPos)
 {
     // for perspective projection, we need to normalized the position
-    shadowMapPos = shadowMapPos / shadowMapPos.w;
+    vec3 shadowCoord = shadowMapPos.xyz / shadowMapPos.w;
 
-    float shadow = 1.0;
-	if (shadowMapPos.z > -1.0 && shadowMapPos.z < 1.0) 
-	{
-		float dist = texture(sShadowMap, shadowMapPos.xy).r; // closest depth to the light
-		if (shadowMapPos.w > 0.0 && dist < shadowMapPos.z) // actual depth in world space
-		{
-			shadow = 0.05;
-		}
-	}
+    float closestDepth = texture(sShadowMap, shadowCoord.xy).r; // closest depth to the light
+    float currentDepth = shadowCoord.z;
+
+    float shadow = currentDepth > closestDepth ? 0.7 : 0.03;
 	return shadow;
 }
 
 void main()
 {
-    float shadow = SampleShadowMap(inShadowMapPos);
-
     // ambient part
-    float ambientIntensity = 0.05;
-    vec3 ambient = ubo.lightColor * ambientIntensity;
+    float ambientIntensity = 0.03;
+    vec3 ambient = vec3(1.0f, 1.0f, 1.0f) * ambientIntensity;
 
     // diffuse part
-    vec3 lightDir = normalize(ubo.lightPos - inPosWS);
+    vec3 lightDir = ubo.lightPos - inPosWS;
+    float distanceSqr = max(dot(lightDir, lightDir), 0.00001);
+    float radius = max(ubo.lightRadius, 0.000001);
+    float d2r2 = distanceSqr / (radius * radius);
+    float rangeAttenuation = max(1.0 - d2r2 * d2r2, 0.0);
+	float lightAttenuation = (rangeAttenuation * rangeAttenuation) / distanceSqr;
+
     float diffuseIntensity = max(dot(inNormalWS, lightDir), 0.0);
     vec3 diffuse = diffuseIntensity * ubo.lightColor;
 
@@ -57,6 +57,8 @@ void main()
     float spec = pow(max(dot(inNormalWS, halfVec), 0.0), 32);
     vec3 specular = specularIntensity * spec * ubo.lightColor;
 
-    vec3 result = (ambient + (1.0 - shadow) * (diffuse + specular)) * vec3(1.0, 1.0, 1.0);
+    float shadow = SampleShadowMap(inShadowMapPos);
+
+    vec3 result = (ambient + (1.0 - shadow) * (diffuse + specular) * lightAttenuation) * vec3(1.0, 1.0, 1.0);
     outColor = vec4(result, 1.0);
 }

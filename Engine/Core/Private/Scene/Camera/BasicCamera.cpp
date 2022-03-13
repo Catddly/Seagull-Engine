@@ -25,6 +25,8 @@ namespace SG
 			mbIsProjDirty = true;
 			mbUseOrtho = false;
 			mProjectionMatrix = BuildPerspectiveMatrix(fovyInDegrees, aspect, zNear, zFar);
+			// inverse the proj matrix for vulkan's clip space coordinate
+			mProjectionMatrix[1][1] *= -1.0f;
 
 			sFovyInDegrees = fovyInDegrees;
 			sAspect        = aspect;
@@ -42,6 +44,8 @@ namespace SG
 			mbIsViewDirty = true;
 			mbUseOrtho = true;
 			mProjectionMatrix = BuildOrthographicMatrix(left, right, top, bottom, zNear, zFar);
+			// inverse the proj matrix for vulkan's clip space coordinate
+			mProjectionMatrix[1][1] *= -1.0f;
 
 			sLeft   = left;
 			sRight  = right;

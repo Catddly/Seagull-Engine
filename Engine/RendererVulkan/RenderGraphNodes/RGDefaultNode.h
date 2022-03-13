@@ -43,7 +43,8 @@ namespace SG
 		RefPtr<VulkanPipelineSignature> mpPipelineSignature;
 		VulkanPipeline*                 mpPipeline;
 		RefPtr<VulkanShader>            mpShader;
-		VulkanGeometry*                 mpGeometry;
+		VulkanGeometry*                 mpModelGeometry;
+		VulkanGeometry*                 mpGridGeometry;
 		const PointLight*               mpPointLight;
 
 		ICamera* mpCamera;
@@ -70,7 +71,8 @@ namespace SG
 			Matrix4f model;
 			Matrix4f inverseTransposeModel;
 		};
-		PushConstant mPushConstant;
+		PushConstant mPushConstantGeo;
+		PushConstant mPushConstantGrid;
 	};
 
 }

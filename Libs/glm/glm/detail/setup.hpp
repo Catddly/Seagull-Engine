@@ -3,7 +3,10 @@
 #include <cassert>
 #include <cstddef>
 
-#define GLM_FORCE_LEFT_HANDED
+// Begin Seagull Modification
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+// End Seagull Modification
 
 #define GLM_VERSION_MAJOR 0
 #define GLM_VERSION_MINOR 9

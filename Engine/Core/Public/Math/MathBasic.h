@@ -31,10 +31,10 @@ namespace SG
 
 #define PI 3.141592653589793238462643383279f
 
-#define SG_ENGINE_UP_VEC()    Vector3f(0.0f, 1.0f, 0.0f) // Seagull engine is y-up right hand-side coordinate
-#define SG_ENGINE_RIGHT_VEC() Vector3f(1.0f, 0.0f, 0.0f)
+#define SG_ENGINE_UP_VEC()    Vector3f( 0.0f, 1.0f, 0.0f) // Seagull engine is y-up right hand-side coordinate
+#define SG_ENGINE_RIGHT_VEC() Vector3f(-1.0f, 0.0f, 0.0f)
 
-	// Seagull Engine Take Left-Hand Y-Up Coordinate System
+	// Seagull Engine Take Right-Handed Y-Up Coordinate System
 	// 
 	//            y
 	//            ^
@@ -42,7 +42,7 @@ namespace SG
 	//            |     -
 	//            |   -
 	//            | -
-	//            0--------->  x
+	// x <--------0
 	//
 
 	SG_INLINE float DegreesToRadians(float degrees)
@@ -96,6 +96,7 @@ namespace SG
 	//! @param [center] Center point where the eyes look at.
 	//! @param [up] Up vector of the world.
 	//! @return a 4x4 matrix represent the view matrix.
+	//! 
 	SG_INLINE Matrix4f BuildViewMatrixCenter(const Vector3f& view, const Vector3f& center, const Vector3f& up)
 	{
 		return glm::lookAt(view, center, up);
@@ -114,7 +115,7 @@ namespace SG
 
 	SG_INLINE Matrix4f BuildOrthographicMatrix(float left, float right, float top, float bottom, float zNear, float zFar)
 	{
-		return glm::ortho(left, right, bottom, top);
+		return glm::ortho(left, right, bottom, top, zNear, zFar);
 	}
 #endif
 

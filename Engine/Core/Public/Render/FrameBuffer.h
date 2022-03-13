@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Math/MathBasic.h"
+
 namespace SG
 {
 
@@ -30,6 +32,16 @@ namespace SG
 				(this->stencilLoadOp == lhs.stencilLoadOp) &&
 				(this->stencilStoreOp == lhs.stencilStoreOp);
 		}
+	};
+
+	struct ClearValue
+	{
+		Vector4f color = { 0.0f, 0.0f, 0.0f, 1.0f };
+		struct
+		{
+			float   depth = 1.0f;
+			UInt32  stencil = 0;
+		} depthStencil;
 	};
 
 }

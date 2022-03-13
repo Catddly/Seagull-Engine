@@ -11,6 +11,7 @@ namespace SG
 	{
 	public:
 		explicit Mesh(const char* name, EMeshType type);
+		Mesh(const char* name, const vector<float>& vertices, const vector<UInt32>& indices);
 		~Mesh() = default;
 
 		const char* GetName() const noexcept { return mName; }

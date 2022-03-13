@@ -90,6 +90,7 @@ namespace SG
 		mpGUIPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetRasterizer(VK_CULL_MODE_NONE)
 			.SetDepthStencil(false)
+			.SetDynamicStates()
 			.BindSignature(mpGUIPipelineSignature.get())
 			.BindRenderPass(pRenderpass)
 			.BindShader(mpGUIShader.get())
@@ -98,7 +99,9 @@ namespace SG
 
 	void RGEditorGUINode::Update(float deltaTime, UInt32 frameIndex)
 	{
-		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp });
+		ClearValue cv = {};
+		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
+		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
 	}
 
 	void RGEditorGUINode::Draw(RGDrawContext& context)
@@ -178,7 +181,7 @@ namespace SG
 		// Do Drawing
 		if (pVertexBuffer && pIndexBuffer)
 		{
-			pBuf.SetViewport(static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f, false);
+			pBuf.SetViewport(static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f);
 
 			pBuf.BindPipeline(mpGUIPipeline);
 

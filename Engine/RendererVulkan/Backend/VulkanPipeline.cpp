@@ -129,8 +129,10 @@ namespace SG
 		SetColorBlend(true);
 		SetDepthStencil(true);
 		SetViewport();
-		SetDynamicStates();
 		SetMultiSample(ESampleCount::eSample_1);
+
+		createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_VIEWPORT);
+		createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_SCISSOR);
 	}
 
 	VulkanPipeline::Builder& VulkanPipeline::Builder::SetVertexLayout(const ShaderAttributesLayout& layout, bool perVertex)
@@ -181,7 +183,7 @@ namespace SG
 		rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizationState.polygonMode = polygonMode;
 		rasterizationState.cullMode = cullMode;
-		rasterizationState.frontFace = VK_FRONT_FACE_CLOCKWISE;
+		rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterizationState.depthClampEnable = depthClamp ? VK_TRUE : VK_FALSE;
 		rasterizationState.depthBiasEnable = VK_TRUE;
 		rasterizationState.lineWidth = 1.0f;
@@ -253,10 +255,10 @@ namespace SG
 		return *this;
 	}
 
-	VulkanPipeline::Builder& VulkanPipeline::Builder::SetDynamicStates()
+	VulkanPipeline::Builder& VulkanPipeline::Builder::SetDynamicStates(UInt32 addState)
 	{
-		createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_VIEWPORT);
-		createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_SCISSOR);
+		if (addState != VK_DYNAMIC_STATE_MAX_ENUM)
+			createInfos.dynamicStates.emplace_back((VkDynamicState)addState);
 
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
 		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;

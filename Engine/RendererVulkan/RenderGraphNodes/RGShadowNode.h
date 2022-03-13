@@ -33,7 +33,8 @@ namespace SG
 		RefPtr<VulkanShader> mpShadowShader;
 		RefPtr<VulkanPipelineSignature> mpShadowPipelineSignature;
 		VulkanPipeline* mpShadowPipeline;
-		VulkanGeometry* mpGeometry;
+		VulkanGeometry* mpModelGeometry;
+		VulkanGeometry* mpGridGeometry;
 
 		DirectionalLight* mpDirectionalLight = nullptr;
 
@@ -47,7 +48,8 @@ namespace SG
 		{
 			Matrix4f model;
 		};
-		PushConstant mPushConstant;
+		PushConstant mPushConstantModel;
+		PushConstant mPushConstantGrid;
 
 		LoadStoreClearOp    mDepthRtLoadStoreOp;
 	};

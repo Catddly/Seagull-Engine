@@ -26,13 +26,18 @@ layout(push_constant) uniform pushConstant
 	mat4 inverseTransposeModel;
 } constant;
 
+const mat4 biasMat = mat4( 
+	0.5, 0.0, 0.0, 0.0,
+	0.0, 0.5, 0.0, 0.0,
+	0.0, 0.0, 1.0, 0.0,
+	0.5, 0.5, 0.0, 1.0 );
+
 void main() 
 {
 	outViewPosWS = ubo.viewPos;
 	outPosWS = vec3(constant.model * vec4(inPos, 1.0));
 	outNormalWS = mat3(constant.inverseTransposeModel) * inNormalLS; 
-    gl_Position = ubo.projection * ubo.view * constant.model * vec4(outPosWS, 1.0);
-    //gl_Position = ubo.lightSpace * constant.model * vec4(outPosWS, 1.0);
+	outShadowMapPos = biasMat * ubo.lightSpace * vec4(outPosWS, 1.0);
 
-	outShadowMapPos = (ubo.lightSpace * constant.model) * vec4(inPos, 1.0);
+    gl_Position = ubo.projection * ubo.view * vec4(outPosWS, 1.0);
 }
