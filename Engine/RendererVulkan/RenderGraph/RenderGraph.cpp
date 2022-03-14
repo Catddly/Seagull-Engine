@@ -62,11 +62,11 @@ namespace SG
 			Memory::Delete(beg->second);
 	}
 
-	void RenderGraph::Update(float deltaTime)
+	void RenderGraph::Update()
 	{
 		for (auto* pCurrNode : mpNodes)
 		{
-			pCurrNode->Update(deltaTime, mFrameIndex);
+			pCurrNode->Update(mFrameIndex);
 
 			// After the update, if some node is changed, compile it.
 			// If there is no new resource attached, compile will simply skip. 
@@ -144,7 +144,7 @@ namespace SG
 
 		for (auto* pCurrNode : mpNodes) // iterate all nodes
 		{
-			pCurrNode->Update(0.0f, mFrameIndex); // update resource, freeze the time
+			pCurrNode->Update(mFrameIndex); // update resource, freeze the time
 
 			for (auto& resource : pCurrNode->mInResources)
 			{

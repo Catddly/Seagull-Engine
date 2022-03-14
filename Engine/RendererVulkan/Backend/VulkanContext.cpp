@@ -79,6 +79,7 @@ namespace SG
 		depthRtCI.sample = ESampleCount::eSample_1;
 		depthRtCI.type = EImageType::e2D;
 		depthRtCI.usage = EImageUsage::efDepth_Stencil;
+		depthRtCI.initLayout = EImageLayout::eUndefined;
 
 		depthRt = VulkanRenderTarget::Create(device, depthRtCI, true);
 

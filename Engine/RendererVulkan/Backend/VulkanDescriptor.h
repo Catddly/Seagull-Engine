@@ -5,11 +5,11 @@
 
 #include "VulkanDevice.h"
 
- 
 #include "volk.h"
 
 #include "Stl/SmartPtr.h"
 #include "Stl/vector.h"
+#include "eastl/array.h"
 #include <eastl/unordered_map.h>
 
 namespace SG
@@ -101,8 +101,10 @@ namespace SG
 		UInt32                       offset = 0;
 		vector<VkWriteDescriptorSet> writes;
 
-		vector<VkDescriptorBufferInfo> bufferInfos;
-		vector<VkDescriptorImageInfo> imageInfos;
+		eastl::array<VkDescriptorBufferInfo, 10> bufferInfos;
+		UInt32                                   currentBufferIndex = 0;
+		eastl::array<VkDescriptorImageInfo, 10>  imageInfos;
+		UInt32                                   currentImageIndex = 0;
 	};
 
 }

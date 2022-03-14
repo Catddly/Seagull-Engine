@@ -5,6 +5,7 @@
 #include "Scene/Camera/ICamera.h"
 #include "Scene/Light/PointLight.h"
 
+#include "RendererVulkan/RenderGraph/CommonUBO.h"
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
 #include "volk.h"
@@ -32,7 +33,7 @@ namespace SG
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
-		virtual void Update(float deltaTime, UInt32 frameIndex) override;
+		virtual void Update(UInt32 frameIndex) override;
 		virtual void Draw(RGDrawContext& context) override;
 	private:
 		VulkanContext&        mContext;
@@ -46,25 +47,10 @@ namespace SG
 		VulkanGeometry*                 mpModelGeometry;
 		VulkanGeometry*                 mpGridGeometry;
 		const PointLight*               mpPointLight;
-
 		ICamera* mpCamera;
-		// Temporary
-		Vector3f mModelPosition;
-		float    mModelScale;
-		Vector3f mModelRotation;
 
-		struct UBO
-		{
-			Matrix4f view;
-			Matrix4f proj;
-			Matrix4f lightSpace;
-			Vector3f viewPos;
-			float    radius;
-			Vector3f position;
-			float    pad;
-			Vector3f color;
-		};
-		UBO mUBO;
+		CameraUBO mCameraUBO;
+		LightUBO  mLightUBO;
 		
 		struct PushConstant
 		{

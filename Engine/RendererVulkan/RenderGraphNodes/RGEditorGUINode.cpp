@@ -89,15 +89,15 @@ namespace SG
 	{
 		mpGUIPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetRasterizer(VK_CULL_MODE_NONE)
-			.SetDepthStencil(false)
 			.SetDynamicStates()
+			.SetDepthStencil(false)
 			.BindSignature(mpGUIPipelineSignature.get())
 			.BindRenderPass(pRenderpass)
 			.BindShader(mpGUIShader.get())
 			.Build();
 	}
 
-	void RGEditorGUINode::Update(float deltaTime, UInt32 frameIndex)
+	void RGEditorGUINode::Update(UInt32 frameIndex)
 	{
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RendererVulkan/RenderGraph/CommonUBO.h"
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
 #include "Stl/SmartPtr.h"
@@ -25,7 +26,7 @@ namespace SG
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
-		virtual void Update(float deltaTime, UInt32 frameIndex) override;
+		virtual void Update(UInt32 frameIndex) override;
 		virtual void Draw(RGDrawContext& context) override;
 	private:
 		VulkanContext& mContext;
@@ -33,23 +34,17 @@ namespace SG
 		RefPtr<VulkanShader> mpShadowShader;
 		RefPtr<VulkanPipelineSignature> mpShadowPipelineSignature;
 		VulkanPipeline* mpShadowPipeline;
-		VulkanGeometry* mpModelGeometry;
-		VulkanGeometry* mpGridGeometry;
 
+		VulkanGeometry* mpModelGeometry;
 		DirectionalLight* mpDirectionalLight = nullptr;
 
-		struct UBO
-		{
-			Matrix4f lightSpace;
-		};
-		UBO mUBO;
+		ShadowUBO mShadowUBO;
 
 		struct PushConstant
 		{
 			Matrix4f model;
 		};
 		PushConstant mPushConstantModel;
-		PushConstant mPushConstantGrid;
 
 		LoadStoreClearOp    mDepthRtLoadStoreOp;
 	};

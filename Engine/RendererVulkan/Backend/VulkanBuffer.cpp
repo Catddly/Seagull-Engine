@@ -13,7 +13,10 @@ namespace SG
 	VulkanBuffer::VulkanBuffer(VulkanDevice& d, const BufferCreateDesc& CI, bool local)
 		:device(d), bLocal(local)
 	{
-		sizeInByteCPU = CI.totalSizeInByte;
+		if (CI.type == EBufferType::efUniform)
+			sizeInByteCPU = MinValueAlignTo(CI.totalSizeInByte, device.physicalDeviceLimits.minUniformBufferOffsetAlignment);
+		else
+			sizeInByteCPU = CI.totalSizeInByte;
 		type = CI.type;
 
 		VkMemoryRequirements memReqs;

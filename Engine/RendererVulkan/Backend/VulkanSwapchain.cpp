@@ -455,6 +455,8 @@ namespace SG
 		samplerCI.compareOp = VK_COMPARE_OP_NEVER;
 		samplerCI.minLod = CI.minLod;
 		samplerCI.maxLod = CI.maxLod;
+
+		samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 		// if this physical render device can use anisotropy
 		if (CI.enableAnisotropy && device.physicalDeviceFeatures.samplerAnisotropy)
 		{

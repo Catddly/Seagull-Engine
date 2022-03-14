@@ -20,6 +20,8 @@
 namespace SG
 {
 
+#define SG_SHADOW_MAP_SIZE 2048
+
 	RGShadowNode::RGShadowNode(VulkanContext& context)
 		:mContext(context),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
@@ -27,23 +29,16 @@ namespace SG
 		Scene* pScene = SSystem()->GetMainScene();
 		pScene->TraverseMesh([&](const Mesh& mesh)
 			{
-				VK_RESOURCE()->CreateGeometry(mesh.GetName(),
-					mesh.GetVertices().data(), static_cast<UInt32>(mesh.GetVertices().size()),
-					mesh.GetIndices().data(), static_cast<UInt32>(mesh.GetIndices().size()));
+				if (mesh.GetName() == "model")
+					mPushConstantModel.model = mesh.GetTransform();
 			}
 		);
-
-		mpDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
-		mUBO.lightSpace = BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0f, 96.0f) *
-			BuildViewMatrixCenter(mpDirectionalLight->GetPosition(), { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC()) * Matrix4f(1.0f);
-
-		mPushConstantModel.model = Matrix4f(1.0f);
-		mPushConstantGrid.model = glm::scale(Matrix4f(1.0f), { 6.0f, 1.0f, 6.0f });
+		mShadowUBO.lightSpaceVP = SSystem()->GetMainScene()->GetDirectionalLight()->GetViewProj();
 
 		TextureCreateDesc texCI = {};
 		texCI.name = "shadow map";
-		texCI.width = 2048;
-		texCI.height = 2048;
+		texCI.width = SG_SHADOW_MAP_SIZE;
+		texCI.height = SG_SHADOW_MAP_SIZE;
 		texCI.depth = 1;
 		texCI.array = 1;
 		texCI.mipLevel = 1;
@@ -56,10 +51,9 @@ namespace SG
 		VK_RESOURCE()->CreateRenderTarget(texCI, true);
 
 		mpModelGeometry = VK_RESOURCE()->GetGeometry("model");
-		mpGridGeometry = VK_RESOURCE()->GetGeometry("grid");
 
 		SamplerCreateDesc samplerCI = {};
-		samplerCI.name = "default";
+		samplerCI.name = "shadow_sampler";
 		samplerCI.filterMode = EFilterMode::eLinear;
 		samplerCI.addressMode = EAddressMode::eClamp_To_Edge;
 		samplerCI.lodBias = 0.0f;
@@ -75,7 +69,7 @@ namespace SG
 
 		mpShadowPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShadowShader)
 			.Build();
-		mpShadowPipelineSignature->UploadUniformBufferData("shadowUbo", &mUBO);
+		mpShadowPipelineSignature->UploadUniformBufferData("shadowUbo", &mShadowUBO);
 
 		ClearValue cv = {};
 		cv.depthStencil.depth = 1.0f;
@@ -90,9 +84,6 @@ namespace SG
 
 	void RGShadowNode::Reset()
 	{
-		//mUBO.view = BuildViewMatrixCenter(mpDirectionalLight->GetPosition(), { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC());
-		//mUBO.proj = BuildOrthographicMatrix(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 10.0f);
-		//mpShadowPipelineSignature->UploadUniformBufferData("shadowUbo", &mUBO);
 	}
 
 	void RGShadowNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -108,25 +99,29 @@ namespace SG
 			.Build();
 	}
 
-	void RGShadowNode::Update(float deltaTime, UInt32 frameIndex)
+	void RGShadowNode::Update(UInt32 frameIndex)
 	{
-		static float totalTime = 0.0f;
-		static float speed = 2.5f;
-		mPushConstantModel.model[3][0] = 0.5f * Sin(totalTime);
-
-		totalTime += deltaTime * speed;
+		SSystem()->GetMainScene()->TraverseMesh([&](const Mesh& mesh)
+			{
+				if (mesh.GetName() == "model")
+				{
+					mPushConstantModel.model = mesh.GetTransform();
+					return;
+				}
+			});
 	}
 
 	void RGShadowNode::Draw(RGDrawContext& context)
 	{
 		auto& pBuf = *context.pCmd;
 
-		pBuf.SetViewport(2048.0f, 2048.0f, 0.0f, 1.0f);
-		pBuf.SetScissor({ 0, 0, 2048, 2048 });
+		pBuf.SetViewport(SG_SHADOW_MAP_SIZE, SG_SHADOW_MAP_SIZE, 0.0f, 1.0f);
+		pBuf.SetScissor({ 0, 0, SG_SHADOW_MAP_SIZE, SG_SHADOW_MAP_SIZE });
+
 		pBuf.BindPipeline(mpShadowPipeline);
 		pBuf.BindPipelineSignature(mpShadowPipelineSignature.get());
 
-		pBuf.SetDepthBias(0.75f, 0.0f, 0.5f);
+		pBuf.SetDepthBias(20.0f, 0.0f, 4.0f);
 
 		UInt64 offset[1] = { 0 };
 		VulkanBuffer* pVertexBuffer = mpModelGeometry->GetVertexBuffer();
@@ -137,15 +132,6 @@ namespace SG
 		pBuf.PushConstants(mpShadowPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstantModel);
 		UInt32 indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
 		pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
-
-		//pVertexBuffer = mpGridGeometry->GetVertexBuffer();
-		//pIndexBuffer = mpGridGeometry->GetIndexBuffer();
-		//pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
-		//pBuf.BindIndexBuffer(*pIndexBuffer, 0);
-
-		//pBuf.PushConstants(mpShadowPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstantGrid);
-		//indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
-		//pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
 	}
 
 }

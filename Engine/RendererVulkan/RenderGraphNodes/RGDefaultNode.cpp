@@ -34,25 +34,30 @@ namespace SG
 			});
 
 		mpCamera = pScene->GetMainCamera();
-		mUBO.proj = mpCamera->GetProjMatrix();
-		//mUBO.proj = BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0, 96.0f);
-		mUBO.pad = 0.0f;
+		mCameraUBO.proj = mpCamera->GetProjMatrix();
 
 		mpModelGeometry = VK_RESOURCE()->GetGeometry("model");
 		mpGridGeometry = VK_RESOURCE()->GetGeometry("grid");
 
-		mModelPosition = { 0.0f, 0.0f, 0.0f };
-		mModelScale = 1.0f;
-		mModelRotation = { 0.0f, 0.0f, 0.0f };
-		mPushConstantGeo.model = Matrix4f(1.0f);
-		mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
-
-		mPushConstantGrid.model = glm::scale(Matrix4f(1.0f), { 6.0f, 1.0f, 6.0f });
-		mPushConstantGrid.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGrid.model));
+		pScene->TraverseMesh([&](const Mesh& mesh)
+			{
+				if (mesh.GetName() == "model")
+				{
+					mPushConstantGeo.model = mesh.GetTransform();
+					mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
+				}
+				else if (mesh.GetName() == "grid")
+				{
+					mPushConstantGrid.model = mesh.GetTransform();
+					mPushConstantGrid.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGrid.model));
+				}
+			}
+		);
 
 		auto* pDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
-		mUBO.lightSpace = BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0f, 96.0f) *
-			BuildViewMatrixCenter(pDirectionalLight->GetPosition(), { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC()) * Matrix4f(1.0f);
+		mLightUBO.lightSpaceVP = pDirectionalLight->GetViewProj();
+		mLightUBO.directionalColor = { pDirectionalLight->GetColor(), 1.0f };
+		mLightUBO.viewDirection = glm::normalize(pDirectionalLight->GetDirection());
 
 		// init render resource
 		mpShader = VulkanShader::Create(mContext.device);
@@ -70,7 +75,7 @@ namespace SG
 		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
 
 		mpPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShader)
-			.AddCombindSamplerImage("default", "shadow map")
+			.AddCombindSamplerImage("shadow_sampler", "shadow map")
 			.Build();
 
 		ClearValue cv = {};
@@ -88,11 +93,16 @@ namespace SG
 	{
 		ClearResources();
 
+		ClearValue cv = {};
+		cv.depthStencil.depth = 1.0f;
+		cv.depthStencil.stencil = 0;
+		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv });
+
 		auto* window = OperatingSystem::GetMainWindow();
 		const float  ASPECT = window->GetAspectRatio();
 		mpCamera->SetPerspective(45.0f, ASPECT);
-		mUBO.proj = mpCamera->GetProjMatrix();
-		VK_RESOURCE()->UpdataBufferData("ubo", &mUBO);
+		mCameraUBO.proj = mpCamera->GetProjMatrix();
+		VK_RESOURCE()->UpdataBufferData("cameraUbo", &mCameraUBO);
 	}
 
 	void RGDefaultNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -105,38 +115,38 @@ namespace SG
 			.Build();
 	}
 
-	void RGDefaultNode::Update(float deltaTime, UInt32 frameIndex)
+	void RGDefaultNode::Update(UInt32 frameIndex)
 	{
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
 		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
 
-		static float totalTime = 0.0f;
-		static float speed = 2.5f;
-		mPushConstantGeo.model[3][0] = 0.5f * Sin(totalTime);
-		mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
-
-		bool bNeedUploadData = false;
 		if (mpCamera->IsViewDirty())
 		{
-			mUBO.viewPos = mpCamera->GetPosition();
-			mUBO.view = mpCamera->GetViewMatrix();
-			bNeedUploadData = true;
+			mCameraUBO.viewPos = mpCamera->GetPosition();
+			mCameraUBO.view = mpCamera->GetViewMatrix();
+			mCameraUBO.viewProj = mCameraUBO.proj * mCameraUBO.view;
+			mpPipelineSignature->UploadUniformBufferData("cameraUbo", &mCameraUBO);
 		}
 
 		if (mpPointLight->IsDirty())
 		{
-			mUBO.position = mpPointLight->GetPosition();
-			mUBO.color = mpPointLight->GetColor();
-			mUBO.radius = mpPointLight->GetRadius();
+			mLightUBO.pointLightColor = mpPointLight->GetColor();
+			mLightUBO.pointLightRadius = mpPointLight->GetRadius();
+			mLightUBO.pointLightPos = mpPointLight->GetPosition();
 			mpPointLight->BeUpdated();
-			bNeedUploadData = true;
+			mpPipelineSignature->UploadUniformBufferData("lightUbo", &mLightUBO);
 		}
 
-		if (bNeedUploadData)
-			mpPipelineSignature->UploadUniformBufferData("ubo", &mUBO);
-
-		totalTime += deltaTime * speed;
+		SSystem()->GetMainScene()->TraverseMesh([&](const Mesh& mesh)
+			{
+				if (mesh.GetName() == "model")
+				{
+					mPushConstantGeo.model = mesh.GetTransform();
+					mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
+					return;
+				}
+			});
 	}
 
 	void RGDefaultNode::Draw(RGDrawContext& context)

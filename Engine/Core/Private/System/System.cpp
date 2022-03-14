@@ -97,6 +97,7 @@ namespace SG
 			mMessageBus.Update();
 			
 			Input::OnUpdate(deltaTime);
+			m3DScene.OnUpdate(deltaTime);
 
 			// modules OnUpdate()
 			mModuleManager.Update(deltaTime);

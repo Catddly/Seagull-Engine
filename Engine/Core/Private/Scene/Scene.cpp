@@ -14,22 +14,41 @@ namespace SG
 		auto* window = OperatingSystem::GetMainWindow();
 		const float ASPECT = window->GetAspectRatio();
 
-		mpMainCamera = MakeRef<PointOrientedCamera>(Vector3f(0.0f, 0.0f, -4.0f));
+		mpMainCamera = MakeRef<PointOrientedCamera>(Vector3f(0.0f, 2.0f, -4.0f));
 		mpMainCamera->SetPerspective(45.0f, ASPECT, 0.01f, 256.0f);
 
-		mMeshes.emplace_back("model", EMeshType::eOBJ);
+		auto& model = mMeshes.emplace_back("model", EMeshType::eOBJ);
+		model.SetRotation({ 0.0, 180.0f, 0.0f });
+
 		vector<float> vertices;
 		vector<UInt32> indices;
 		MeshGenerator::GenGrid(vertices, indices);
-		mMeshes.emplace_back("grid", vertices, indices);
+		auto& grid = mMeshes.emplace_back("grid", vertices, indices);
+		grid.SetScale({ 8.0f, 1.0f, 8.0f });
 
-		mPointLights.emplace_back(Vector3f{ 1.2f, 2.0f, 1.0f }, 10.0f,
+		mPointLights.emplace_back(Vector3f{ -0.85f, 3.0f, -1.5f }, 6.0f,
 			Vector3f{ 1.0f, 1.0f, 1.0f });
 	}
 
 	void Scene::OnSceneUnLoad()
 	{
 
+	}
+
+	void Scene::OnUpdate(float deltaTime)
+	{
+		static float totalTime = 0.0f;
+		static float speed = 2.5f;
+		
+		// Do animation
+		// TODO: this way of setting a value of a given mesh is too silly
+		TraverseMesh([](Mesh& mesh)
+			{
+				if (mesh.GetName() == "model")
+					mesh.SetPosition({ 0.5f * Sin(totalTime), 0.0f, 0.0f });
+			});
+
+		totalTime += deltaTime * speed;
 	}
 
 }

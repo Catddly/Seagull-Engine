@@ -8,6 +8,7 @@
 #include "glm/vec3.hpp"
 #include "glm/vec4.hpp"
 
+#include "glm/gtx/quaternion.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
 #include <cmath>
@@ -28,6 +29,8 @@ namespace SG
 
 	typedef glm::mat<3, 3, int, glm::defaultp> Matrix3i;
 	typedef glm::mat<4, 4, int, glm::defaultp> Matrix4i;
+
+	typedef glm::quat Quternion;
 
 #define PI 3.141592653589793238462643383279f
 

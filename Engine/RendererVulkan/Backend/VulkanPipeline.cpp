@@ -123,6 +123,10 @@ namespace SG
 	VulkanPipeline::Builder::Builder(VulkanDevice& d)
 		: device(d)
 	{
+		// default dynamic status
+		createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_VIEWPORT);
+		createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_SCISSOR);
+
 		// set the default status of pipeline
 		SetInputAssembly();
 		SetRasterizer(VK_CULL_MODE_BACK_BIT, VK_POLYGON_MODE_FILL, false);
@@ -130,9 +134,6 @@ namespace SG
 		SetDepthStencil(true);
 		SetViewport();
 		SetMultiSample(ESampleCount::eSample_1);
-
-		createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_VIEWPORT);
-		createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_SCISSOR);
 	}
 
 	VulkanPipeline::Builder& VulkanPipeline::Builder::SetVertexLayout(const ShaderAttributesLayout& layout, bool perVertex)

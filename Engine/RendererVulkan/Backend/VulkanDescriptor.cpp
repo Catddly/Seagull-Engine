@@ -2,6 +2,7 @@
 #include "VulkanDescriptor.h"
 
 #include "Defs/Defs.h"
+#include "Memory/Memory.h"
 
 #include "VulkanConfig.h"
 #include "VulkanBuffer.h"
@@ -9,7 +10,7 @@
 
 #include "RendererVulkan/Utils/VkConvert.h"
 
-#include "Memory/Memory.h"
+#include "Math/MathBasic.h"
 
 namespace SG
 {
@@ -159,20 +160,20 @@ namespace SG
 		VkDescriptorBufferInfo bufferInfo = {};
 		bufferInfo.buffer = pBuf->buffer;
 		bufferInfo.range = pBuf->sizeInByteCPU;
-		bufferInfo.offset = offset;
+		bufferInfo.offset = 0;
 		offset += pBuf->sizeInByteCPU;
 
-		bufferInfos.emplace_back(eastl::move(bufferInfo));
+		bufferInfos[currentBufferIndex] = eastl::move(bufferInfo);
 
 		VkWriteDescriptorSet write = {};
 		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		write.descriptorType = bindingInfo.descriptorType;
 		write.dstBinding = binding;
-		write.pBufferInfo = &bufferInfos.back();
+		write.pBufferInfo = &bufferInfos[currentBufferIndex++];
 		write.dstArrayElement = 0;
 		write.descriptorCount = bindingInfo.descriptorCount;
 
-		writes.emplace_back(eastl::move(write));
+		writes.push_back(eastl::move(write));
 		return *this;
 	}
 
@@ -191,14 +192,14 @@ namespace SG
 		imageInfo.imageView = pTexture->imageView;
 		imageInfo.imageLayout = pTexture->currLayout;
 
-		imageInfos.emplace_back(eastl::move(imageInfo));
+		imageInfos[currentImageIndex] = eastl::move(imageInfo);
 
 		VkWriteDescriptorSet write = {};
 		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		write.descriptorType = bindingInfo.descriptorType;
 		write.dstBinding = binding;
 		write.dstArrayElement = 0;
-		write.pImageInfo = &imageInfos.back();
+		write.pImageInfo = &imageInfos[currentImageIndex++];
 		write.descriptorCount = bindingInfo.descriptorCount;
 
 		writes.emplace_back(eastl::move(write));

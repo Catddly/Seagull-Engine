@@ -48,6 +48,14 @@ namespace SG
 		VK_RESOURCE()->Initialize(mpContext);
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
+		// create all the mesh resource
+		SSystem()->GetMainScene()->TraverseMesh([](const Mesh& mesh) 
+			{
+				VK_RESOURCE()->CreateGeometry(mesh.GetName().c_str(),
+					mesh.GetVertices().data(), static_cast<UInt32>(mesh.GetVertices().size()),
+					mesh.GetIndices().data(), static_cast<UInt32>(mesh.GetIndices().size()));
+			});
+
 		BuildRenderGraph();
 		// update one frame here to avoid imgui do not draw the first frame.
 		mpGUIDriver->OnUpdate(0.0f);
@@ -68,7 +76,7 @@ namespace SG
 	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
 		mpGUIDriver->OnUpdate(deltaTime);
-		mpRenderGraph->Update(deltaTime);
+		mpRenderGraph->Update();
 	}
 
 	void VulkanRenderDevice::OnDraw()

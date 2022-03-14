@@ -12,6 +12,10 @@ If you are interesting in it, you can contact me with these email: 2565492401@qq
 The graphic language: dx12 and vulkan. (now only has vulkan)  
 pc platform: Windows.  
 
+## Developing Screenshots
+
+![](Screenshots/sample.png)
+
 ## Building
 
 Open the Scripts folder, and run the GenerateProject-Win.bat.  

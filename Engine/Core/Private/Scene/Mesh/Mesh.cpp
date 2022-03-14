@@ -20,7 +20,6 @@ namespace SG
 	Mesh::Mesh(const char* name, const vector<float>& vertices, const vector<UInt32>& indices)
 		:mName(name), mVertices(vertices), mIndices(indices), mType(EMeshType::eUnknown)
 	{
-
 	}
 
 }

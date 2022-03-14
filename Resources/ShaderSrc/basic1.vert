@@ -8,17 +8,24 @@ layout (location = 1) out vec3 outPosWS;
 layout (location = 2) out vec3 outViewPosWS;
 layout (location = 3) out vec4 outShadowMapPos;
 
-layout (set = 0, binding = 0) uniform UBO
+layout (set = 0, binding = 0) uniform CameraUBO
 {
-	mat4  view;
-	mat4  projection;
-	mat4  lightSpace;
-	vec3  viewPos;
-	float lightRadius;
-	vec3  lightPos;
+	mat4 view;
+	mat4 proj;
+	mat4 viewProj;
+    vec3 viewPos;
+} cameraUbo;
+
+layout (set = 0, binding = 1) uniform LightUBO
+{
+	mat4  lightSpaceVP;
+	vec3  viewDirection;
 	float pad;
-	vec3  lightColor;
-} ubo;
+	vec4  directionalColor;
+	vec3  pointLightPos;
+	float pointLightRadius;
+	vec3  pointLightColor;
+} lightUbo;
 
 layout(push_constant) uniform pushConstant 
 {
@@ -34,10 +41,10 @@ const mat4 biasMat = mat4(
 
 void main() 
 {
-	outViewPosWS = ubo.viewPos;
+	outViewPosWS = cameraUbo.viewPos;
 	outPosWS = vec3(constant.model * vec4(inPos, 1.0));
 	outNormalWS = mat3(constant.inverseTransposeModel) * inNormalLS; 
-	outShadowMapPos = biasMat * ubo.lightSpace * vec4(outPosWS, 1.0);
+	outShadowMapPos = biasMat * lightUbo.lightSpaceVP * vec4(outPosWS, 1.0);
 
-    gl_Position = ubo.projection * ubo.view * vec4(outPosWS, 1.0);
+    gl_Position = cameraUbo.proj * cameraUbo.view * vec4(outPosWS, 1.0);
 }
