@@ -14,7 +14,7 @@ namespace SG
 		:device(d), bLocal(local)
 	{
 		if (CI.type == EBufferType::efUniform)
-			sizeInByteCPU = MinValueAlignTo(CI.totalSizeInByte, device.physicalDeviceLimits.minUniformBufferOffsetAlignment);
+			sizeInByteCPU = MinValueAlignTo(CI.totalSizeInByte, static_cast<UInt32>(device.physicalDeviceLimits.minUniformBufferOffsetAlignment));
 		else
 			sizeInByteCPU = CI.totalSizeInByte;
 		type = CI.type;
