@@ -116,7 +116,7 @@ namespace SG
 		return glm::perspective(fovYInRadians, aspect, zNear, zFar);
 	}
 
-	SG_INLINE Matrix4f BuildOrthographicMatrix(float left, float right, float top, float bottom, float zNear, float zFar)
+	SG_INLINE Matrix4f BuildOrthographicMatrix(float left, float right, float bottom, float top, float zNear, float zFar)
 	{
 		return glm::ortho(left, right, bottom, top, zNear, zFar);
 	}

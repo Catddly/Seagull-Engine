@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "RendererVulkan/GUI/TestGUILayer.h"
 
+#include "RendererVulkan/Resource/CommonUBO.h"
+
 #include "imgui/imgui.h"
 
 // TEMPORARY
@@ -28,6 +30,9 @@ namespace SG
 				pointLight.SetRadius(radius);
 				pointLight.SetColor(color);
 			});
+		// TODO: ui should not directly modify the value of ubo. User can modify it via global settings.
+		auto& lightUbo = GetLightUBO();
+		ImGui::DragFloat("Gamma", &lightUbo.gamma, 0.05f, 1.0f, 10.0f);
 		ImGui::End();
 	}
 

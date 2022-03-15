@@ -14,6 +14,7 @@
 
 #include "RendererVulkan/Resource/VulkanGeometry.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
+#include "RendererVulkan/Resource/CommonUBO.h"
 
 #include "Math/MathBasic.h"
 
@@ -33,7 +34,8 @@ namespace SG
 					mPushConstantModel.model = mesh.GetTransform();
 			}
 		);
-		mShadowUBO.lightSpaceVP = SSystem()->GetMainScene()->GetDirectionalLight()->GetViewProj();
+		auto& shadowUbo = GetShadowUBO();
+		shadowUbo.lightSpaceVP = SSystem()->GetMainScene()->GetDirectionalLight()->GetViewProj();
 
 		TextureCreateDesc texCI = {};
 		texCI.name = "shadow map";
@@ -69,7 +71,7 @@ namespace SG
 
 		mpShadowPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShadowShader)
 			.Build();
-		mpShadowPipelineSignature->UploadUniformBufferData("shadowUbo", &mShadowUBO);
+		mpShadowPipelineSignature->UploadUniformBufferData("shadowUbo", &shadowUbo);
 
 		ClearValue cv = {};
 		cv.depthStencil.depth = 1.0f;

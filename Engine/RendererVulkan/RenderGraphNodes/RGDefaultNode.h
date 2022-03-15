@@ -5,7 +5,6 @@
 #include "Scene/Camera/ICamera.h"
 #include "Scene/Light/PointLight.h"
 
-#include "RendererVulkan/RenderGraph/CommonUBO.h"
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
 #include "volk.h"
@@ -49,9 +48,6 @@ namespace SG
 		const PointLight*               mpPointLight;
 		ICamera* mpCamera;
 
-		CameraUBO mCameraUBO;
-		LightUBO  mLightUBO;
-		
 		struct PushConstant
 		{
 			Matrix4f model;

@@ -20,7 +20,7 @@ layout (set = 0, binding = 1) uniform LightUBO
 {
 	mat4  lightSpaceVP;
 	vec3  viewDirection;
-	float pad;
+	float gamma;
 	vec4  directionalColor;
 	vec3  pointLightPos;
 	float pointLightRadius;

@@ -26,8 +26,8 @@ namespace SG
 		auto& grid = mMeshes.emplace_back("grid", vertices, indices);
 		grid.SetScale({ 8.0f, 1.0f, 8.0f });
 
-		mPointLights.emplace_back(Vector3f{ -0.85f, 3.0f, -1.5f }, 6.0f,
-			Vector3f{ 1.0f, 1.0f, 1.0f });
+		mPointLights.emplace_back(Vector3f{ -0.85f, 3.0f, -1.5f }, 1.5f,
+			Vector3f{ 0.159f, 0.3f, 0.755f });
 	}
 
 	void Scene::OnSceneUnLoad()
@@ -45,7 +45,10 @@ namespace SG
 		TraverseMesh([](Mesh& mesh)
 			{
 				if (mesh.GetName() == "model")
+				{
 					mesh.SetPosition({ 0.5f * Sin(totalTime), 0.0f, 0.0f });
+					return;
+				}
 			});
 
 		totalTime += deltaTime * speed;

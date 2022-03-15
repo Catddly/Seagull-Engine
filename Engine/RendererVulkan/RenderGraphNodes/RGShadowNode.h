@@ -1,6 +1,5 @@
 #pragma once
 
-#include "RendererVulkan/RenderGraph/CommonUBO.h"
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
 #include "Stl/SmartPtr.h"
@@ -37,8 +36,6 @@ namespace SG
 
 		VulkanGeometry* mpModelGeometry;
 		DirectionalLight* mpDirectionalLight = nullptr;
-
-		ShadowUBO mShadowUBO;
 
 		struct PushConstant
 		{

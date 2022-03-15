@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RendererVulkan/Config.h"
 #include "Math/MathBasic.h"
 
 namespace SG
@@ -24,7 +25,7 @@ namespace SG
 		// directional light
 		Matrix4f lightSpaceVP;
 		Vector3f viewDirection;
-		float    pad;
+		float    gamma;
 		Vector4f directionalColor;
 		// point light
 		Vector3f pointLightPos;
@@ -32,4 +33,8 @@ namespace SG
 		Vector3f pointLightColor;
 	};
 
+	// temporary
+	SG_RENDERER_VK_API SG_INLINE LightUBO&  GetLightUBO();
+	SG_RENDERER_VK_API SG_INLINE ShadowUBO& GetShadowUBO();
+	SG_RENDERER_VK_API SG_INLINE CameraUBO& GetCameraUBO();
 }

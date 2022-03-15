@@ -24,8 +24,10 @@ namespace SG
 
 		SG_INLINE Matrix4f GetViewProj() const
 		{
-			return BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0f, 96.0f) *
+			return BuildOrthographicMatrix(-10.0f, 10.0f, -10.0f, 10.0f, 0.001f, 100.0f) *
 				BuildViewMatrixCenter(mPosition, { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC());
+			//return BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0f, 96.0f) *
+			//	BuildViewMatrixCenter(mPosition, { 0.0f, 0.0f, 0.0f }, SG_ENGINE_UP_VEC());
 		}
 	private:
 		Vector3f mPosition;

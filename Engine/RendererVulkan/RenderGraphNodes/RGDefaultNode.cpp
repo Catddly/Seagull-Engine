@@ -17,6 +17,7 @@
 
 #include "RendererVulkan/Resource/VulkanGeometry.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
+#include "RendererVulkan/Resource/CommonUBO.h"
 
 namespace SG
 {
@@ -34,7 +35,8 @@ namespace SG
 			});
 
 		mpCamera = pScene->GetMainCamera();
-		mCameraUBO.proj = mpCamera->GetProjMatrix();
+		auto& cameraUbo = GetCameraUBO();
+		cameraUbo.proj = mpCamera->GetProjMatrix();
 
 		mpModelGeometry = VK_RESOURCE()->GetGeometry("model");
 		mpGridGeometry = VK_RESOURCE()->GetGeometry("grid");
@@ -54,10 +56,12 @@ namespace SG
 			}
 		);
 
+		auto& lightUbo = GetLightUBO();
 		auto* pDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
-		mLightUBO.lightSpaceVP = pDirectionalLight->GetViewProj();
-		mLightUBO.directionalColor = { pDirectionalLight->GetColor(), 1.0f };
-		mLightUBO.viewDirection = glm::normalize(pDirectionalLight->GetDirection());
+		lightUbo.lightSpaceVP = pDirectionalLight->GetViewProj();
+		lightUbo.directionalColor = { pDirectionalLight->GetColor(), 1.0f };
+		lightUbo.viewDirection = glm::normalize(pDirectionalLight->GetDirection());
+		lightUbo.gamma = 2.2f;
 
 		// init render resource
 		mpShader = VulkanShader::Create(mContext.device);
@@ -101,8 +105,10 @@ namespace SG
 		auto* window = OperatingSystem::GetMainWindow();
 		const float  ASPECT = window->GetAspectRatio();
 		mpCamera->SetPerspective(45.0f, ASPECT);
-		mCameraUBO.proj = mpCamera->GetProjMatrix();
-		VK_RESOURCE()->UpdataBufferData("cameraUbo", &mCameraUBO);
+
+		auto& cameraUbo = GetCameraUBO();
+		cameraUbo.proj = mpCamera->GetProjMatrix();
+		VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
 	}
 
 	void RGDefaultNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -123,20 +129,22 @@ namespace SG
 
 		if (mpCamera->IsViewDirty())
 		{
-			mCameraUBO.viewPos = mpCamera->GetPosition();
-			mCameraUBO.view = mpCamera->GetViewMatrix();
-			mCameraUBO.viewProj = mCameraUBO.proj * mCameraUBO.view;
-			mpPipelineSignature->UploadUniformBufferData("cameraUbo", &mCameraUBO);
+			auto& cameraUbo = GetCameraUBO();
+			cameraUbo.viewPos = mpCamera->GetPosition();
+			cameraUbo.view = mpCamera->GetViewMatrix();
+			cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
+			mpPipelineSignature->UploadUniformBufferData("cameraUbo", &cameraUbo);
 		}
 
-		if (mpPointLight->IsDirty())
-		{
-			mLightUBO.pointLightColor = mpPointLight->GetColor();
-			mLightUBO.pointLightRadius = mpPointLight->GetRadius();
-			mLightUBO.pointLightPos = mpPointLight->GetPosition();
-			mpPointLight->BeUpdated();
-			mpPipelineSignature->UploadUniformBufferData("lightUbo", &mLightUBO);
-		}
+		//if (mpPointLight->IsDirty())
+		//{
+		auto& lightUbo = GetLightUBO();
+		lightUbo.pointLightColor = mpPointLight->GetColor();
+		lightUbo.pointLightRadius = mpPointLight->GetRadius();
+		lightUbo.pointLightPos = mpPointLight->GetPosition();
+		mpPointLight->BeUpdated();
+		mpPipelineSignature->UploadUniformBufferData("lightUbo", &lightUbo);
+		//}
 
 		SSystem()->GetMainScene()->TraverseMesh([&](const Mesh& mesh)
 			{

@@ -9,7 +9,7 @@ layout (set = 0, binding = 1) uniform LightUBO
 {
 	mat4  lightSpaceVP;
 	vec3  viewDirection;
-	float pad;
+	float gamma;
 	vec4  directionalColor;
 	vec3  pointLightPos;
 	float pointLightRadius;
@@ -72,7 +72,7 @@ vec3 CalcPointLightIntensity(vec3 lightDir)
     float intensity = max(dot(normalize(inNormalWS), lightDir), 0.0);
     intensity += CalcSpecular(lightDir);
 
-    return intensity * attenuation * lightUbo.pointLightColor;
+    return intensity * attenuation * lightUbo.pointLightColor * 0.6f;
 }
 
 vec3 CalcDirectionalLight(vec3 lightDir)
@@ -80,31 +80,24 @@ vec3 CalcDirectionalLight(vec3 lightDir)
     float intensity = max(dot(normalize(inNormalWS), lightDir), 0.0);
     intensity += CalcSpecular(lightDir);
 
-    return intensity * lightUbo.directionalColor.xyz * 0.5f;
+    return intensity * lightUbo.directionalColor.xyz * 0.4f;
 }
 
 void main()
 {
-    // light intensity
+    // light radiance
     vec3 light = vec3(0.0);
 
-    vec3 lightDir = lightUbo.pointLightPos - inPosWS;
-    light += CalcPointLightIntensity(lightDir);
+    light += CalcPointLightIntensity(normalize(lightUbo.pointLightPos - inPosWS));
     light += CalcDirectionalLight(normalize(-lightUbo.viewDirection));
 
     // ambient part
     float ambientIntensity = 0.03;
     vec3 ambient = vec3(1.0f, 1.0f, 1.0f) * ambientIntensity;
 
-    // specular part
-    //float specularIntensity = 0.15f;
-    //vec3 viewDir = normalize(inViewPosWS - inPosWS);
-    //vec3 halfVec = normalize(viewDir + lightDir);
-    //float spec = pow(max(dot(normalize(inNormalWS), halfVec), 0.0), 32);
-    //vec3 specular = specularIntensity * spec * lightUbo.pointLightColor;
-
     float shadow = SampleShadowMapPCF(inShadowMapPos);
-
     vec3 result = (ambient + (1.0 - shadow) * light) * vec3(1.0, 1.0, 1.0);
-    outColor = vec4(result, 1.0);
+
+    // gamma correction (do the reciprocal to flip the brightness to perceived brightness)
+    outColor = vec4(pow(result, vec3(1.0 / lightUbo.gamma)), 1.0);
 }

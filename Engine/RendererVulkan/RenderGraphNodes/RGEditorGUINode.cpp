@@ -231,8 +231,6 @@ namespace SG
 					scissor.bottom = (Int32)(clipMax.y);
 					pBuf.SetScissor(scissor);
 
-					// Bind DescriptorSet with font or user texture
-					//VkDescriptorSet set = (VkDescriptorSet)pcmd->TextureId;
 					pBuf.BindPipelineSignature(mpGUIPipelineSignature.get());
 
 					pBuf.DrawIndexed(pcmd->ElemCount, 1, pcmd->IdxOffset + idxOffest, pcmd->VtxOffset + vtxOffest, 0);
