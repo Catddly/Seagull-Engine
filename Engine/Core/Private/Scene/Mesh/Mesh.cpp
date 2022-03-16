@@ -6,6 +6,13 @@
 namespace SG
 {
 
+	Mesh::Mesh(const char* name, EGennerateMeshType type)
+		:mName(name), mType(EMeshType::eUnknown)
+	{
+		if (type == EGennerateMeshType::eGrid)
+			MeshGenerator::GenGrid(mVertices, mIndices);
+	}
+
 	Mesh::Mesh(const char* name, EMeshType type)
 		:mName(name), mType(type)
 	{

@@ -176,7 +176,7 @@ namespace SG
 		};
 
 		Shader() = default;
-		virtual ~Shader() = default;
+		~Shader() = default;
 
 		SG_INLINE const string&   GetName(EShaderStage stage) { return mShaderStages[stage].name; }
 		SG_INLINE const string&   GetEntryPoint() const { return mEntryPoint; }

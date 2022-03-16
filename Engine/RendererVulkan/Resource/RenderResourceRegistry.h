@@ -2,7 +2,6 @@
 
 #include "RendererVulkan/Config.h"
 #include "Render/Buffer.h"
-#include "Render/Shader.h"
 #include "Render/SwapChain.h"
 
 #include "Stl/vector.h"
@@ -22,6 +21,8 @@ namespace SG
 
 	class VulkanPipeline;
 	class VulkanPipelineSetLayout;
+
+	class Shader;
 
 	class VulkanGeometry;
 

@@ -3,7 +3,7 @@
 #include "RendererVulkan/Config.h"
 #include "Base/BasicTypes.h"
 #include "Render/Queue.h"
-#include "Render/Shader.h"
+#include "Render/Shader/Shader.h"
 #include "Render/Pipeline.h"
 #include "Render/SwapChain.h"
 #include "Render/Buffer.h"

@@ -10,14 +10,13 @@
 int main(int argv, char** argc)
 {
 	using namespace SG;
-	Main::Initialize();
-
 	extern IApp* GetAppInstance();
 	IApp* app = GetAppInstance();
+	Main::AddUserApp(app);
 
+	Main::Initialize();
 	// TODO: replace to runtime binding dll
 	SSystem()->RegisterModule<VulkanRenderDevice>();
-	Main::AddUserApp(app);
 	
 	Main::MainLoop();
 

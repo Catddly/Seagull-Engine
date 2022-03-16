@@ -6,6 +6,8 @@
 #include "System/Input.h"
 #include "User/IApp.h"
 
+#include "Render/Shader/ShaderLibrary.h"
+
 #include "Profile/Timer.h"
 #include "Profile/FpsTimer.h"
 #include "Memory/Memory.h"
@@ -49,11 +51,15 @@ namespace SG
 		mMainThread.pHandle = nullptr;
 		mMainThread.pUser = nullptr;
 
+		mpCurrActiveProcess->OnInit();
+
 		m3DScene.OnSceneLoad();
+		ShaderLibrary::GetInstance()->OnInit();
 	}
 
 	void System::Shutdown()
 	{
+		ShaderLibrary::GetInstance()->OnShutdown();
 		m3DScene.OnSceneUnLoad();
 
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
@@ -70,7 +76,6 @@ namespace SG
 		if (pProcess)
 		{
 			mpCurrActiveProcess = pProcess;
-			pProcess->OnInit();
 		}
 	}
 

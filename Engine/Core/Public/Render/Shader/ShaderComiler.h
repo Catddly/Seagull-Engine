@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/Config.h"
-#include "Render/Shader.h"
+#include "Render/Shader/Shader.h"
 
 #include "Stl/string.h"
 
@@ -44,7 +44,7 @@ namespace SG
 		static void ReadInShaderData(const string& name, UInt32 stage, Shader* pShader, UInt8& checkFlag);
 		static bool CompileShaderVkSDK(const string& actualName, const string& compiledName, string& exePath, const string& pOut);
 
-		//! Use spirv-cross to reflect shader info from .spv(compied shader).
+		//! Use spirv-cross to reflect shader info from .spv(compiled shader).
 		static bool ReflectSPIRV(Shader* pShader);
 	};
 

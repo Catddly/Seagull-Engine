@@ -19,15 +19,10 @@ namespace SG
 
 		auto& model = mMeshes.emplace_back("model", EMeshType::eOBJ);
 		model.SetRotation({ 0.0, 180.0f, 0.0f });
-
-		vector<float> vertices;
-		vector<UInt32> indices;
-		MeshGenerator::GenGrid(vertices, indices);
-		auto& grid = mMeshes.emplace_back("grid", vertices, indices);
+		auto& grid = mMeshes.emplace_back("grid", EGennerateMeshType::eGrid);
 		grid.SetScale({ 8.0f, 1.0f, 8.0f });
 
-		mPointLights.emplace_back(Vector3f{ -0.85f, 3.0f, -1.5f }, 1.5f,
-			Vector3f{ 0.159f, 0.3f, 0.755f });
+		mPointLights.emplace_back(Vector3f{ -0.85f, 3.0f, -1.5f }, 1.5f, Vector3f{ 0.159f, 0.3f, 0.755f });
 	}
 
 	void Scene::OnSceneUnLoad()

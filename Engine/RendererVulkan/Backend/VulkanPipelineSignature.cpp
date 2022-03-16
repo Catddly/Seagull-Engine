@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "VulkanPipelineSignature.h"
 
-#include "Render/Shader.h"
+#include "Render/Shader/Shader.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanShader.h"

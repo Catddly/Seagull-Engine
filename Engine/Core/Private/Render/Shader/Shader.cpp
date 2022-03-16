@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "Render/Shader.h"
+#include "Render/Shader/Shader.h"
 
 namespace SG
 {

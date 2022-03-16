@@ -6,7 +6,6 @@
 #include "Scene/Camera/ICamera.h"
 
 #include "Render/IRenderDevice.h"
-#include "Render/Shader.h"
 #include "Render/GUI/IGUIDriver.h"
 
 #include "Stl/vector.h"

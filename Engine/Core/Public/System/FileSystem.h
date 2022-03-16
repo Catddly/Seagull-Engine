@@ -2,13 +2,18 @@
 
 #include "Defs/Defs.h"
 #include "Base/BasicTypes.h"
+#include "Base/TimePoint.h"
 
 #include "stl/string.h"
 
 namespace SG
 {
 
-#define SG_ENGINE_DEBUG_BASE_OFFSET 3
+#ifdef SG_DEBUG
+#	define SG_ENGINE_DEBUG_BASE_OFFSET 3
+#else
+#	define SG_ENGINE_DEBUG_BASE_OFFSET 0
+#endif
 
 	//! Resource directory base on the root directory.
 	enum class EResourceDirectory
@@ -95,7 +100,9 @@ namespace SG
 		//! Change file stream operations during runtime, can be modified by user.
 		SG_CORE_API static void SetIStreamOp(IStreamOps* pStreamOp);
 
+		//! If this file is exist.
 		SG_CORE_API static bool Exist(const EResourceDirectory directory, const char* filename, UInt32 baseOffset = 0);
+		//! If this file is exist. If it doesn't, create it.
 		SG_CORE_API static bool ExistOrCreate(const EResourceDirectory directory, const string& filename);
 
 		SG_CORE_API static bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, Size rootFolderOffset = 0);
@@ -109,6 +116,15 @@ namespace SG
 		SG_CORE_API static bool IsEndOfFile();
 
 		SG_CORE_API static string GetResourceFolderPath(EResourceDirectory directory, UInt32 baseOffset = 0);
+
+		//! Traverse all the files inside the resourece directory.
+		SG_CORE_API static void TraverseFiles(EResourceDirectory directory, FileTraverseFunc func, UInt32 baseOffset = 0);
+
+		SG_CORE_API static TimePoint GetFileCreateTime(EResourceDirectory directory, const char* filename, UInt32 baseOffset = 0);
+		//! This include the last written to, truncated, or overwritten file.
+		SG_CORE_API static TimePoint GetFileLastWriteTime(EResourceDirectory directory, const char* filename, UInt32 baseOffset = 0);
+		//! This include the last read from, written to, or for executable files, run.
+		SG_CORE_API static TimePoint GetFileLastReadTime(EResourceDirectory directory, const char* filename, UInt32 baseOffset = 0);
 
 		SG_CORE_API static bool CreateFolder(const EResourceDirectory directory, const char* folderName);
 	private:

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Render/MeshGenerate/MeshGenerator.h"
 #include "Archive/ResourceLoader/ResourceDefs.h"
 #include "Scene/Components.h"
 
@@ -11,6 +12,7 @@ namespace SG
 	class Mesh : public TransformComponent
 	{
 	public:
+		explicit Mesh(const char* name, EGennerateMeshType type);
 		explicit Mesh(const char* name, EMeshType type);
 		Mesh(const char* name, const vector<float>& vertices, const vector<UInt32>& indices);
 		~Mesh() = default;

@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 
 #include "System/FileSystem.h"
-#include "Core/Private/Platform/Windows/WindowsStreamOp.h"
+#include "Core/Private/Platform/Windows/StreamOp_Windows.h"
 
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG

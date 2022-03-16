@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Render/Shader.h"
 #include "Render/FrameBuffer.h"
 #include "Scene/Camera/ICamera.h"
 #include "Scene/Light/PointLight.h"
 
+#include "RendererVulkan/Backend/VulkanShader.h"
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
 #include "volk.h"

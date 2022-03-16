@@ -5,6 +5,11 @@
 namespace SG
 {
 
+	enum class EGennerateMeshType
+	{
+		eGrid = 0,
+	};
+
 	class MeshGenerator
 	{
 	public:

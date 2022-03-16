@@ -1,10 +1,11 @@
 #include "StdAfx.h"
-#include "Render/ShaderComiler.h"
+#include "Render/Shader/ShaderComiler.h"
 
 #include "System/System.h"
 #include "System/FileSystem.h"
 #include "System/Logger.h"
 #include "Memory/Memory.h"
+#include "Render/Shader/ShaderLibrary.h"
 
 #include "spirv-cross/spirv_cross.hpp"
 
@@ -153,19 +154,28 @@ namespace SG
 			case 4:	extension = ".frag"; break;
 			case 5:	extension = ".comp"; break;
 			}
+
 			string actualName = binShaderName + extension;
-			string compiledName = actualName;
-			compiledName[actualName.find('.')] = '-';
-			compiledName += ".spv";
-
-			if (FileSystem::Exist(EResourceDirectory::eShader_Binarires, compiledName.c_str())) // already compiled this shader once, skip it.
-			{
-				shaderBits |= (1 << i); // mark as exist.
-				continue;
-			}
-
 			if (FileSystem::Exist(EResourceDirectory::eShader_Sources, actualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
 			{
+				bool bForceToRecompile = false;
+				// Get the time stamp of this shader to check if this shader should force to recompile.
+				TimePoint prevTp = ShaderLibrary::GetInstance()->GetShaderTimeStamp(actualName);
+				TimePoint currTp = FileSystem::GetFileLastWriteTime(EResourceDirectory::eShader_Sources, actualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET);
+				if (!prevTp.IsValid() || currTp > prevTp) // invalid means we can't find shader_env.ini, so you should recompile the shader anyway.
+					bForceToRecompile = true;
+
+				string compiledName = actualName;
+				compiledName[actualName.find('.')] = '-';
+				compiledName += ".spv";
+
+				// Skip this to force recompile shader.
+				if (!bForceToRecompile && FileSystem::Exist(EResourceDirectory::eShader_Binarires, compiledName.c_str())) // already compiled this shader once, skip it.
+				{
+					shaderBits |= (1 << i); // mark as exist.
+					continue;
+				}
+
 				string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + binShaderName + "-" +
 					extension.substr(1, extension.size() - 1) + "-compile.log";
 
@@ -174,10 +184,6 @@ namespace SG
 				else
 					SG_LOG_ERROR("Failed to compile shader: %s", actualName.c_str());
 			}
-			//else
-			//{
-			//	SG_LOG_WARN("Failed to find GLSL shader stage: (%d)", i);
-			//}
 		}
 
 		if (shaderBits == 0)
@@ -197,46 +203,56 @@ namespace SG
 		UInt8 shaderBits = 0;
 		FileSystem::ExistOrCreate(EResourceDirectory::eShader_Binarires, ""); // create ShaderBin folder if it doesn't exist
 
+		string vertActualName = vertShaderName + ".vert";
+		if (FileSystem::Exist(EResourceDirectory::eShader_Sources, vertActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
 		{
-			string commandLine = glslcPath;
+			bool bForceToRecompile = false;
+			// Get the time stamp of this shader to check if this shader should force to recompile.
+			TimePoint prevTp = ShaderLibrary::GetInstance()->GetShaderTimeStamp(vertActualName);
+			TimePoint currTp = FileSystem::GetFileLastWriteTime(EResourceDirectory::eShader_Sources, vertActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET);
+			if (!prevTp.IsValid() || currTp > prevTp) // invalid means we can't find shader_env.ini, so you should recompile the shader anyway.
+				bForceToRecompile = true;
 
-			string vertActualName = vertShaderName + ".vert";
 			string vertCompiledName = vertActualName;
 			vertCompiledName[vertActualName.find('.')] = '-';
 			vertCompiledName += ".spv";
 
-			if (FileSystem::Exist(EResourceDirectory::eShader_Binarires, vertCompiledName.c_str())) // already compiled this shader once, skip it.
+			if (!bForceToRecompile && FileSystem::Exist(EResourceDirectory::eShader_Binarires, vertCompiledName.c_str())) // already compiled this shader once, skip it.
 				shaderBits |= (1 << 0); // mark as exist.
-			else if (FileSystem::Exist(EResourceDirectory::eShader_Sources, vertActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
-			{
-				string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + vertShaderName + "-vert-compile.log";
 
-				if (CompileShaderVkSDK(vertActualName, vertCompiledName, commandLine, pOut))
-					shaderBits |= (1 << 0); // record what shader stage we had compiled
-				else
-					SG_LOG_ERROR("Failed to compile vertex shader: %s", vertActualName.c_str());
-			}
+			string commandLine = glslcPath;
+			string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + vertShaderName + "-vert-compile.log";
+
+			if (CompileShaderVkSDK(vertActualName, vertCompiledName, commandLine, pOut))
+				shaderBits |= (1 << 0); // record what shader stage we had compiled
+			else
+				SG_LOG_ERROR("Failed to compile vertex shader: %s", vertActualName.c_str());
 		}
 
+		string fragActualName = fragShaderName + ".frag";
+		if (FileSystem::Exist(EResourceDirectory::eShader_Sources, fragActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
 		{
-			string commandLine = glslcPath;
+			bool bForceToRecompile = false;
+			// Get the time stamp of this shader to check if this shader should force to recompile.
+			TimePoint prevTp = ShaderLibrary::GetInstance()->GetShaderTimeStamp(vertActualName);
+			TimePoint currTp = FileSystem::GetFileLastWriteTime(EResourceDirectory::eShader_Sources, fragActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET);
+			if (currTp > prevTp)
+				bForceToRecompile = true;
 
-			string fragActualName = fragShaderName + ".frag";
 			string fragCompiledName = fragActualName;
 			fragCompiledName[fragActualName.find('.')] = '-';
 			fragCompiledName += ".spv";
 
 			if (FileSystem::Exist(EResourceDirectory::eShader_Binarires, fragCompiledName.c_str())) // already compiled this shader once, skip it.
 				shaderBits |= (1 << 4); // mark as exist.
-			else if (FileSystem::Exist(EResourceDirectory::eShader_Sources, fragActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
-			{
-				string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + fragShaderName + "-frag-compile.log";
 
-				if (CompileShaderVkSDK(fragActualName, fragCompiledName, commandLine, pOut))
-					shaderBits |= (1 << 4); // record what shader stage we had compiled
-				else
-					SG_LOG_ERROR("Failed to compile fragment shader: %s", fragActualName.c_str());
-			}
+			string commandLine = glslcPath;
+			string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + fragShaderName + "-frag-compile.log";
+
+			if (CompileShaderVkSDK(fragActualName, fragCompiledName, commandLine, pOut))
+				shaderBits |= (1 << 4); // record what shader stage we had compiled
+			else
+				SG_LOG_ERROR("Failed to compile fragment shader: %s", fragActualName.c_str());
 		}
 
 		if (shaderBits == 0)

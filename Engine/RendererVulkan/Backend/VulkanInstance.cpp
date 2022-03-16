@@ -4,7 +4,6 @@
 #include "System/Logger.h"
 #include "Platform/OS.h"
 
-#include "Render/Shader.h"
 #include "Memory/Memory.h"
 
 #include "Stl/vector.h"

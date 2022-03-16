@@ -1,7 +1,10 @@
 #include "StdAfx.h"
 #include "System/FileSystem.h"
 
-#include "Core/Private/Platform/Windows/WindowsStreamOp.h"
+#ifdef SG_PLATFORM_WINDOWS
+#	include "Core/Private/Platform/Windows/StreamOp_Windows.h"
+#	include "Core/Private/Platform/Windows/FileInfo_Windows.h"
+#endif
 #include "Memory/Memory.h"
 
 #include "stl/string.h"
@@ -96,6 +99,15 @@ namespace SG
 		return eastl::move(path);
 	}
 
+	void FileSystem::TraverseFiles(EResourceDirectory directory, FileTraverseFunc func, UInt32 baseOffset)
+	{
+		string folder = GetResourceFolderPath(directory, baseOffset);
+		folder += "*.*"; // represent all the files
+#ifdef SG_PLATFORM_WINDOWS
+		SG::TraverseAllFile(folder.c_str(), func);
+#endif
+	}
+
 	void FileSystem::SetIStreamOp(IStreamOps* pStreamOp)
 	{
 		if (pStreamOp != nullptr)
@@ -153,5 +165,33 @@ namespace SG
 		}
 		return bSuccess;
 	}
+
+	TimePoint FileSystem::GetFileCreateTime(EResourceDirectory directory, const char* filename, UInt32 baseOffset)
+	{
+		string path = GetResourceFolderPath(directory, baseOffset);
+		path += filename;
+#ifdef SG_PLATFORM_WINDOWS
+		return SG::GetFileCreateTime(path.c_str());
+#endif
+	}
+
+	TimePoint FileSystem::GetFileLastWriteTime(EResourceDirectory directory, const char* filename, UInt32 baseOffset)
+	{
+		string path = GetResourceFolderPath(directory, baseOffset);
+		path += filename;
+#ifdef SG_PLATFORM_WINDOWS
+		return SG::GetFileLastWriteTime(path.c_str());
+#endif
+	}
+
+	TimePoint FileSystem::GetFileLastReadTime(EResourceDirectory directory, const char* filename, UInt32 baseOffset)
+	{
+		string path = GetResourceFolderPath(directory, baseOffset);
+		path += filename;
+#ifdef SG_PLATFORM_WINDOWS
+		return SG::GetFileLastReadTime(path.c_str());
+#endif
+	}
+
 
 }
