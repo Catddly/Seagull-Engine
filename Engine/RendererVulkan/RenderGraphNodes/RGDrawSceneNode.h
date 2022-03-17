@@ -24,11 +24,11 @@ namespace SG
 
 	class VulkanGeometry;
 
-	class RGDefaultNode final : public RenderGraphNode
+	class RGDrawSceneNode final : public RenderGraphNode
 	{
 	public:
-		RGDefaultNode(VulkanContext& context);
-		~RGDefaultNode();
+		RGDrawSceneNode(VulkanContext& context);
+		~RGDrawSceneNode();
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;

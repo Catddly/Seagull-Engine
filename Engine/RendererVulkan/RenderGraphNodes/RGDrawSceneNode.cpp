@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "RGDefaultNode.h"
+#include "RGDrawSceneNode.h"
 
 #include "System/System.h"
 #include "System/Logger.h"
@@ -22,7 +22,7 @@
 namespace SG
 {
 
-	RGDefaultNode::RGDefaultNode(VulkanContext& context)
+	RGDrawSceneNode::RGDrawSceneNode(VulkanContext& context)
 		: mContext(context), mpPipeline(nullptr),
 		// Set to default clear ops
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
@@ -62,12 +62,29 @@ namespace SG
 		lightUbo.directionalColor = { pDirectionalLight->GetColor(), 1.0f };
 		lightUbo.viewDirection = glm::normalize(pDirectionalLight->GetDirection());
 		lightUbo.gamma = 2.2f;
+		lightUbo.exposure = 1.0f;
 
 		// init render resource
+#ifdef SG_ENABLE_HDR
+		TextureCreateDesc rtCI;
+		rtCI.name = "HDRColor";
+		rtCI.width = mContext.colorRts[0]->GetWidth();
+		rtCI.height = mContext.colorRts[0]->GetHeight();
+		rtCI.depth = mContext.colorRts[0]->GetDepth();
+		rtCI.array = 1;
+		rtCI.mipLevel = 1;
+		rtCI.format = EImageFormat::eSfloat_R32G32B32A32;
+		rtCI.sample = ESampleCount::eSample_1;
+		rtCI.type = EImageType::e2D;
+		rtCI.usage = EImageUsage::efColor | EImageUsage::efSample;
+		rtCI.initLayout = EImageLayout::eUndefined;
+
+		VK_RESOURCE()->CreateRenderTarget(rtCI);
+#endif
+
 		mpShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
-		//compiler.CompileGLSLShader("scene", mpShader.get());
-		compiler.CompileGLSLShader("basic1", "phone", mpShader.get());
+		compiler.CompileGLSLShader("phone", mpShader.get());
 
 		VulkanCommandBuffer pCmd;
 		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
@@ -82,18 +99,23 @@ namespace SG
 			.AddCombindSamplerImage("shadow_sampler", "shadow map")
 			.Build();
 
+#ifdef SG_ENABLE_HDR
 		ClearValue cv = {};
+		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
+		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("HDRColor"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+#endif
+		cv = {};
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
 		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv });
 	}
 
-	RGDefaultNode::~RGDefaultNode()
+	RGDrawSceneNode::~RGDrawSceneNode()
 	{
 		Memory::Delete(mpPipeline);
 	}
 
-	void RGDefaultNode::Reset()
+	void RGDrawSceneNode::Reset()
 	{
 		ClearResources();
 
@@ -111,7 +133,7 @@ namespace SG
 		VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
 	}
 
-	void RGDefaultNode::Prepare(VulkanRenderPass* pRenderpass)
+	void RGDrawSceneNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
 		mpPipeline = VulkanPipeline::Builder(mContext.device)
 			.BindSignature(mpPipelineSignature.get())
@@ -121,12 +143,13 @@ namespace SG
 			.Build();
 	}
 
-	void RGDefaultNode::Update(UInt32 frameIndex)
+	void RGDrawSceneNode::Update(UInt32 frameIndex)
 	{
-		ClearValue cv = {};
-		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
-		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
-
+#ifndef SG_ENABLE_HDR
+		//ClearValue cv = {};
+		//cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
+		//AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
+#endif 
 		if (mpCamera->IsViewDirty())
 		{
 			auto& cameraUbo = GetCameraUBO();
@@ -155,7 +178,7 @@ namespace SG
 			});
 	}
 
-	void RGDefaultNode::Draw(RGDrawContext& context)
+	void RGDrawSceneNode::Draw(RGDrawContext& context)
 	{
 		auto& pBuf = *context.pCmd;
 

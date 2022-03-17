@@ -92,3 +92,6 @@
 #define __STRUCT__ struct 
 #define interface  __STRUCT__
 #endif
+
+// render relative
+#define SG_ENABLE_HDR 1

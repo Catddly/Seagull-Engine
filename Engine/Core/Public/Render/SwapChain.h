@@ -522,6 +522,7 @@ namespace SG
 	{
 		const char* name;
 		EFilterMode  filterMode;
+		EFilterMode  mipmapMode;
 		EAddressMode addressMode;
 		float minLod;
 		float maxLod;

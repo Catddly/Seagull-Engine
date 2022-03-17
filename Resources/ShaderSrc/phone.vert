@@ -25,6 +25,7 @@ layout (set = 0, binding = 1) uniform LightUBO
 	vec3  pointLightPos;
 	float pointLightRadius;
 	vec3  pointLightColor;
+	float exposure;
 } lightUbo;
 
 layout(push_constant) uniform pushConstant 

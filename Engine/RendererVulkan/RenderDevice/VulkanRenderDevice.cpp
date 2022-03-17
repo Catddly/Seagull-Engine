@@ -16,10 +16,14 @@
 
 // TODO: add graphic api abstraction
 #include "RendererVulkan/RenderGraph/RenderGraph.h"
-#include "RendererVulkan/RenderGraphNodes/RGShadowNode.h"
-#include "RendererVulkan/RenderGraphNodes/RGDefaultNode.h"
-#include "RendererVulkan/RenderGraphNodes/RGEditorGUINode.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
+
+// this node draw the shadow map and output to the lighting node
+#include "RendererVulkan/RenderGraphNodes/RGShadowNode.h"
+// this node draw the scene and do lighting calculation
+#include "RendererVulkan/RenderGraphNodes/RGDrawSceneNode.h"
+// this node draw the final image and the GUI on the top.
+#include "RendererVulkan/RenderGraphNodes/RGFinalOutputNode.h"
 
 #include "RendererVulkan/GUI/ImGuiDriver.h"
 #include "RendererVulkan/GUI/TestGUILayer.h"
@@ -113,8 +117,8 @@ namespace SG
 	{
 		mpRenderGraph = RenderGraphBuilder("Default", mpContext)
 			.NewRenderPass(Memory::New<RGShadowNode>(*mpContext))
-			.NewRenderPass(Memory::New<RGDefaultNode>(*mpContext))
-			.NewRenderPass(Memory::New<RGEditorGUINode>(*mpContext))
+			.NewRenderPass(Memory::New<RGDrawSceneNode>(*mpContext))
+			.NewRenderPass(Memory::New<RGFinalOutputNode>(*mpContext))
 			.Build();
 	}
 

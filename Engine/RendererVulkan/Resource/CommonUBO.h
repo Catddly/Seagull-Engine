@@ -31,6 +31,7 @@ namespace SG
 		Vector3f pointLightPos;
 		float    pointLightRadius;
 		Vector3f pointLightColor;
+		float    exposure;
 	};
 
 	// temporary

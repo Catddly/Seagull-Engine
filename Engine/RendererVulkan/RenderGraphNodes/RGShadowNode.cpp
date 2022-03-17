@@ -57,6 +57,7 @@ namespace SG
 		SamplerCreateDesc samplerCI = {};
 		samplerCI.name = "shadow_sampler";
 		samplerCI.filterMode = EFilterMode::eLinear;
+		samplerCI.mipmapMode = EFilterMode::eLinear;
 		samplerCI.addressMode = EAddressMode::eClamp_To_Edge;
 		samplerCI.lodBias = 0.0f;
 		samplerCI.minLod = 0.0f;

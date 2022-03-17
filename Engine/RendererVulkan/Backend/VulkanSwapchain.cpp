@@ -294,21 +294,21 @@ namespace SG
 		{
 			// iterate over the list of available surface format and
 			// check for the presence of VK_FORMAT_B8G8R8A8_UNORM
-			bool found_B8G8R8A8_UNORM = false;
+			bool bFoundB8G8R8A8UNORM = false;
 			for (auto& surfaceFormat : surfaceFormats)
 			{
 				if (surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
 				{
 					mFormat = surfaceFormat.format;
 					mColorSpace = surfaceFormat.colorSpace;
-					found_B8G8R8A8_UNORM = true;
+					bFoundB8G8R8A8UNORM = true;
 					break;
 				}
 			}
 
 			// in case VK_FORMAT_B8G8R8A8_UNORM is not available
 			// select the first available color format
-			if (!found_B8G8R8A8_UNORM)
+			if (!bFoundB8G8R8A8UNORM)
 			{
 				mFormat = surfaceFormats[0].format;
 				mColorSpace = surfaceFormats[0].colorSpace;
@@ -447,7 +447,7 @@ namespace SG
 		samplerCI.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerCI.magFilter = ToVkFilterMode(CI.filterMode);
 		samplerCI.minFilter = ToVkFilterMode(CI.filterMode);
-		samplerCI.mipmapMode = ToVkMipmapMode(CI.filterMode);
+		samplerCI.mipmapMode = ToVkMipmapMode(CI.mipmapMode);
 		samplerCI.addressModeU = ToVkAddressMode(CI.addressMode);
 		samplerCI.addressModeV = ToVkAddressMode(CI.addressMode);
 		samplerCI.addressModeW = ToVkAddressMode(CI.addressMode);

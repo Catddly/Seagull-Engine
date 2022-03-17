@@ -33,6 +33,7 @@ namespace SG
 		// TODO: ui should not directly modify the value of ubo. User can modify it via global settings.
 		auto& lightUbo = GetLightUBO();
 		ImGui::DragFloat("Gamma", &lightUbo.gamma, 0.05f, 1.0f, 10.0f);
+		ImGui::DragFloat("Exposure", &lightUbo.exposure, 0.05f, 0.01f, 50.0f);
 		ImGui::End();
 	}
 

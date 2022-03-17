@@ -20,22 +20,30 @@ namespace SG
 	class VulkanPipeline;
 	class VulkanShader;
 
-	class RGEditorGUINode final : public RenderGraphNode
+	class RGFinalOutputNode final : public RenderGraphNode
 	{
 	public:
-		RGEditorGUINode(VulkanContext& context);
-		~RGEditorGUINode();
+		RGFinalOutputNode(VulkanContext& context);
+		~RGFinalOutputNode();
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
 		virtual void Update(UInt32 frameIndex) override;
 		virtual void Draw(RGDrawContext& context) override;
 	private:
+		void GUIDraw(VulkanCommandBuffer& pBuf, UInt32 frameIndex);
+	private:
 		VulkanContext&    mContext;
 		VulkanRenderPass* mpRenderPass;
 
 		LoadStoreClearOp  mColorRtLoadStoreOp;
 
+		// draw composition pipeline
+		RefPtr<VulkanPipelineSignature> mpCompPipelineSignature;
+		VulkanPipeline* mpCompPipeline;
+		RefPtr<VulkanShader> mpCompShader;
+
+		// draw gui pipeline
 		RefPtr<VulkanPipelineSignature> mpGUIPipelineSignature;
 		VulkanPipeline* mpGUIPipeline;
 		RefPtr<VulkanShader> mpGUIShader;

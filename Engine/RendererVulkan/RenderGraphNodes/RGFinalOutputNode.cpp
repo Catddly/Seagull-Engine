@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "RGEditorGUINode.h"
+#include "RGFinalOutputNode.h"
 
 #include "Memory/Memory.h"
 
@@ -20,73 +20,120 @@
 namespace SG
 {
 
-	RGEditorGUINode::RGEditorGUINode(VulkanContext& context)
+	RGFinalOutputNode::RGFinalOutputNode(VulkanContext& context)
 		:mContext(context), mpRenderPass(nullptr), mCurrVertexCount(0), mCurrIndexCount(0),
-		mColorRtLoadStoreOp({ ELoadOp::eLoad, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
+		mColorRtLoadStoreOp({ ELoadOp::eDont_Care, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
-		// create imgui font texture
-		ImGuiIO& io = ImGui::GetIO();
-
-		unsigned char* pixels = nullptr;
-		int width, height, bytePerPixel;
-		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytePerPixel);
-		UInt32 fontUploadSize = width * height * bytePerPixel;
-
-		TextureCreateDesc textureCI = {};
-		textureCI.name = "_imgui_font";
-		textureCI.width = static_cast<UInt32>(width);
-		textureCI.height = static_cast<UInt32>(height);
-		textureCI.depth = 1;
-		textureCI.array = 1;
-		textureCI.mipLevel = 1;
-		textureCI.sizeInByte = fontUploadSize;
-		textureCI.pInitData = pixels;
-
-		textureCI.format = EImageFormat::eUnorm_R8G8B8A8;
-		textureCI.sample = ESampleCount::eSample_1;
-		textureCI.usage = EImageUsage::efSample;
-		textureCI.type = EImageType::e2D;
-		if (!VK_RESOURCE()->CreateTexture(textureCI, true))
+		// bottom color render target present
 		{
-			SG_LOG_ERROR("Failed to create texture!");
-			SG_ASSERT(false);
+			mpCompShader = VulkanShader::Create(mContext.device);
+			ShaderCompiler compiler;
+			compiler.CompileGLSLShader("composition", mpCompShader.get());
+
+			SamplerCreateDesc samplerCI = {};
+			samplerCI.name = "comp_sampler";
+			samplerCI.filterMode = EFilterMode::eNearest;
+			samplerCI.mipmapMode = EFilterMode::eLinear;
+			samplerCI.addressMode = EAddressMode::eClamp_To_Edge;
+			samplerCI.lodBias = 0.0f;
+			samplerCI.minLod = 0.0f;
+			samplerCI.maxLod = 1.0f;
+			samplerCI.maxAnisotropy = 1.0f;
+			samplerCI.enableAnisotropy = false;
+			VK_RESOURCE()->CreateSampler(samplerCI);
+
+			// translate color rt from undefined to shader read
+			VulkanCommandBuffer pCmd;
+			mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
+			pCmd.BeginRecord();
+			pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("HDRColor"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
+			pCmd.EndRecord();
+			mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+			mContext.graphicQueue.WaitIdle();
+			mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+
+			mpCompPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpCompShader)
+				.AddCombindSamplerImage("comp_sampler", "HDRColor")
+				.Build();
 		}
 
-		// here we copy the buffer(pixels) to the image
-		VK_RESOURCE()->FlushTextures();
+		// draw ui layer
+		{
+			// create imgui font texture
+			ImGuiIO& io = ImGui::GetIO();
 
-		SamplerCreateDesc samplerCI = {};
-		samplerCI.name = "_imgui_sampler";
-		samplerCI.filterMode = EFilterMode::eLinear;
-		samplerCI.addressMode = EAddressMode::eRepeat;
-		samplerCI.lodBias = 0.0f;
-		samplerCI.minLod = -1000.0f;
-		samplerCI.maxLod = 1000.0f;
-		samplerCI.maxAnisotropy = 1.0f;
-		samplerCI.enableAnisotropy = false;
-		VK_RESOURCE()->CreateSampler(samplerCI);
+			unsigned char* pixels = nullptr;
+			int width, height, bytePerPixel;
+			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytePerPixel);
+			UInt32 fontUploadSize = width * height * bytePerPixel;
 
-		mpGUIShader = VulkanShader::Create(mContext.device);
-		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("_imgui", mpGUIShader.get());
+			TextureCreateDesc textureCI = {};
+			textureCI.name = "_imgui_font";
+			textureCI.width = static_cast<UInt32>(width);
+			textureCI.height = static_cast<UInt32>(height);
+			textureCI.depth = 1;
+			textureCI.array = 1;
+			textureCI.mipLevel = 1;
+			textureCI.sizeInByte = fontUploadSize;
+			textureCI.pInitData = pixels;
 
-		mpGUIPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpGUIShader)
-			.AddCombindSamplerImage("_imgui_sampler", "_imgui_font")
-			.Build();
+			textureCI.format = EImageFormat::eUnorm_R8G8B8A8;
+			textureCI.sample = ESampleCount::eSample_1;
+			textureCI.usage = EImageUsage::efSample;
+			textureCI.type = EImageType::e2D;
+			if (!VK_RESOURCE()->CreateTexture(textureCI, true))
+			{
+				SG_LOG_ERROR("Failed to create texture!");
+				SG_ASSERT(false);
+			}
+
+			// here we copy the buffer(pixels) to the image
+			VK_RESOURCE()->FlushTextures();
+
+			SamplerCreateDesc samplerCI = {};
+			samplerCI.name = "_imgui_sampler";
+			samplerCI.filterMode = EFilterMode::eLinear;
+			samplerCI.mipmapMode = EFilterMode::eLinear;
+			samplerCI.addressMode = EAddressMode::eRepeat;
+			samplerCI.lodBias = 0.0f;
+			samplerCI.minLod = -1000.0f;
+			samplerCI.maxLod = 1000.0f;
+			samplerCI.maxAnisotropy = 1.0f;
+			samplerCI.enableAnisotropy = false;
+			VK_RESOURCE()->CreateSampler(samplerCI);
+
+			mpGUIShader = VulkanShader::Create(mContext.device);
+			ShaderCompiler compiler;
+			compiler.CompileGLSLShader("_imgui", mpGUIShader.get());
+
+			mpGUIPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpGUIShader)
+				.AddCombindSamplerImage("_imgui_sampler", "_imgui_font")
+				.Build();
+		}
 	}
 
-	RGEditorGUINode::~RGEditorGUINode()
+	RGFinalOutputNode::~RGFinalOutputNode()
 	{
+		Memory::Delete(mpCompPipeline);
 		Memory::Delete(mpGUIPipeline);
 	}
 
-	void RGEditorGUINode::Reset()
+	void RGFinalOutputNode::Reset()
 	{
 
 	}
 
-	void RGEditorGUINode::Prepare(VulkanRenderPass* pRenderpass)
+	void RGFinalOutputNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
+		mpCompPipeline = VulkanPipeline::Builder(mContext.device)
+			.SetRasterizer(VK_CULL_MODE_NONE)
+			.SetDynamicStates()
+			.SetDepthStencil(false)
+			.BindSignature(mpCompPipelineSignature.get())
+			.BindRenderPass(pRenderpass)
+			.BindShader(mpCompShader.get())
+			.Build();
+
 		mpGUIPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetRasterizer(VK_CULL_MODE_NONE)
 			.SetDynamicStates()
@@ -97,16 +144,34 @@ namespace SG
 			.Build();
 	}
 
-	void RGEditorGUINode::Update(UInt32 frameIndex)
+	void RGFinalOutputNode::Update(UInt32 frameIndex)
 	{
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
 		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
 	}
 
-	void RGEditorGUINode::Draw(RGDrawContext& context)
+	void RGFinalOutputNode::Draw(RGDrawContext& context)
 	{
-		auto& pBuf = *context.pCmd;
+		// 1. Draw the color rt (just a simple quad on the screen)
+		{
+			auto& pBuf = *context.pCmd;
+
+			pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
+			pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
+
+			pBuf.BindPipeline(mpCompPipeline);
+			pBuf.BindPipelineSignature(mpCompPipelineSignature.get());
+
+			pBuf.Draw(3, 1, 0, 0);
+		}
+
+		// 2. Draw GUI on top of the color rt
+		GUIDraw(*context.pCmd, context.frameIndex);
+	}
+
+	void RGFinalOutputNode::GUIDraw(VulkanCommandBuffer& pBuf, UInt32 frameIndex)
+	{
 		ImGui::Render();
 
 		ImDrawData* drawData = ImGui::GetDrawData();
@@ -115,8 +180,8 @@ namespace SG
 		if (width <= 0 || height <= 0)
 			return;
 
-		const string vtxBufferName = "_imgui_vtx_" + eastl::to_string(context.frameIndex);
-		const string idxBufferName = "_imgui_idx_" + eastl::to_string(context.frameIndex);
+		const string vtxBufferName = "_imgui_vtx_" + eastl::to_string(frameIndex);
+		const string idxBufferName = "_imgui_idx_" + eastl::to_string(frameIndex);
 
 		VulkanBuffer* pVertexBuffer = VK_RESOURCE()->GetBuffer(vtxBufferName);
 		VulkanBuffer* pIndexBuffer = VK_RESOURCE()->GetBuffer(idxBufferName);
@@ -252,7 +317,6 @@ namespace SG
 			scissor.right = (Int32)(width);
 			scissor.bottom = (Int32)(height);
 			pBuf.SetScissor(scissor);
-
 		}
 	}
 
