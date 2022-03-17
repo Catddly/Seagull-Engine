@@ -23,10 +23,13 @@ namespace SG
 		virtual void     SetRotation(const Vector3f& rot) = 0;
 		virtual Vector3f GetRotation() const = 0;
 
-		virtual bool     IsViewDirty() const = 0;
-		virtual bool     IsProjDirty() const = 0;
+		virtual bool IsViewDirty() const = 0;
+		virtual bool IsProjDirty() const = 0;
 
-		virtual void Update(float deltaTime) = 0;
+		virtual void ViewBeUpdated() = 0;
+		virtual void ProjBeUpdated() = 0;
+
+		virtual void OnUpdate(float deltaTime) = 0;
 	};
 
 }

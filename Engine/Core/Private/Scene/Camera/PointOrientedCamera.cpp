@@ -16,11 +16,6 @@ namespace SG
 	{
 	}
 
-	void PointOrientedCamera::Update(float deltaTime)
-	{
-
-	}
-
 	bool PointOrientedCamera::OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos)
 	{
 		if (Input::IsKeyPressed(KeyCode_MouseLeft))
@@ -35,7 +30,6 @@ namespace SG
 	{
 		if (direction > 0)
 		{
-			//glm::translate(mViewMatrix, { 0.0f, 0.0f, mWheelScale });
 			mPosition.z += mWheelScale * 0.7f;
 			UpdateViewMatrix();
 			mbIsViewDirty = true;
@@ -44,7 +38,6 @@ namespace SG
 		{
 			mPosition.z -= mWheelScale * 0.7f;
 			UpdateViewMatrix();
-			//glm::translate(mViewMatrix, { 0.0f, 0.0f, -mWheelScale });
 			mbIsViewDirty = true;
 		}
 		return true;

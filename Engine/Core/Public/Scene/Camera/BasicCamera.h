@@ -15,8 +15,8 @@ namespace SG
 		SG_CORE_API ~BasicCamera();
 		SG_CLASS_NO_COPY_ASSIGNABLE(BasicCamera);
 
-		SG_CORE_API virtual Matrix4f GetViewMatrix() const override { mbIsViewDirty = false; return mViewMatrix; }
-		SG_CORE_API virtual Matrix4f GetProjMatrix() const override { mbIsProjDirty = false; return mProjectionMatrix; }
+		SG_CORE_API virtual Matrix4f GetViewMatrix() const override { return mViewMatrix; }
+		SG_CORE_API virtual Matrix4f GetProjMatrix() const override { return mProjectionMatrix; }
 
 		SG_CORE_API virtual void SetPerspective(float fovyInDegrees, float aspect, float zNear, float zFar) override;
 		SG_CORE_API virtual void SetOrthographic(float left, float right, float top, float bottom, float zNear, float zfar) override;
@@ -26,13 +26,17 @@ namespace SG
 		SG_CORE_API virtual void     SetRotation(const Vector3f& rot) override { mbIsViewDirty = true; mRotation = rot; UpdateViewMatrix(); }
 		SG_CORE_API virtual Vector3f GetRotation() const override { return mRotation; }
 
-		SG_CORE_API virtual bool     IsViewDirty() const override { return mbIsViewDirty; }
-		SG_CORE_API virtual bool     IsProjDirty() const override { return mbIsProjDirty; }
+		SG_CORE_API virtual bool IsViewDirty() const override { return mbIsViewDirty; }
+		SG_CORE_API virtual bool IsProjDirty() const override { return mbIsProjDirty; }
 
-		SG_CORE_API virtual void Update(float deltaTime) override {}
+		SG_CORE_API virtual void ViewBeUpdated() override { mbIsViewDirty = false; }
+		SG_CORE_API virtual void ProjBeUpdated() override { mbIsProjDirty = false; }
+
+		SG_CORE_API virtual void OnUpdate(float deltaTime) { mDeltaTime = deltaTime; }
 	protected:
-		SG_CORE_API virtual void UpdateViewMatrix();
+		SG_CORE_API virtual void UpdateViewMatrix() {}
 	protected:
+		float    mDeltaTime = 0.0f;
 		Vector3f mPosition;
 		Vector3f mRotation;
 

@@ -3,6 +3,7 @@
 
 #include "Platform/OS.h"
 #include "Scene/Camera/PointOrientedCamera.h"
+#include "Scene/Camera/FirstPersonCamera.h"
 #include "Render/MeshGenerate/MeshGenerator.h"
 
 namespace SG
@@ -14,7 +15,7 @@ namespace SG
 		auto* window = OperatingSystem::GetMainWindow();
 		const float ASPECT = window->GetAspectRatio();
 
-		mpMainCamera = MakeRef<PointOrientedCamera>(Vector3f(0.0f, 2.0f, -4.0f));
+		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 2.0f, -4.0f));
 		mpMainCamera->SetPerspective(45.0f, ASPECT, 0.01f, 256.0f);
 
 		auto& model = mMeshes.emplace_back("model", EMeshType::eOBJ);
@@ -32,6 +33,8 @@ namespace SG
 
 	void Scene::OnUpdate(float deltaTime)
 	{
+		mpMainCamera->OnUpdate(deltaTime);
+
 		static float totalTime = 0.0f;
 		static float speed = 2.5f;
 		

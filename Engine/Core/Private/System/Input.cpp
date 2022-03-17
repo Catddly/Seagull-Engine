@@ -10,6 +10,7 @@ namespace SG
 	Input::ListenerContainer Input::mpListeners;
 	Vector2i Input::mPrevFrameMousePos = {};
 
+	float Input::mKeyHoldThresHold = 0.0f;
 	bool Input::mKeyStatusMap[KEYCODE_COUNT] = {};
 	eastl::map<EKeyCode, float> Input::mKeyElapsedTimeMap;
 
@@ -68,7 +69,7 @@ namespace SG
 		for (auto& key : mKeyElapsedTimeMap) // update the timer and pass the hold event
 		{
 			key.second += deltaTime;
-			if (key.second >= 0.5f) // TODO: expose this param to HoldTimeThreshold
+			if (key.second >= mKeyHoldThresHold)
 			{
 				for (auto& e : mpListeners)
 				{
@@ -153,6 +154,12 @@ namespace SG
 	bool Input::IsKeyPressed(EKeyCode keycode)
 	{
 		return mKeyStatusMap[keycode];
+	}
+
+	void Input::SetKeyHoldThreshold(float threshold)
+	{
+		if (threshold >= 0.0f)
+			mKeyHoldThresHold = threshold;
 	}
 
 }

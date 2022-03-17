@@ -134,17 +134,15 @@ namespace SG
 			cameraUbo.view = mpCamera->GetViewMatrix();
 			cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
 			mpPipelineSignature->UploadUniformBufferData("cameraUbo", &cameraUbo);
+			mpCamera->ViewBeUpdated();
 		}
 
-		//if (mpPointLight->IsDirty())
-		//{
 		auto& lightUbo = GetLightUBO();
 		lightUbo.pointLightColor = mpPointLight->GetColor();
 		lightUbo.pointLightRadius = mpPointLight->GetRadius();
 		lightUbo.pointLightPos = mpPointLight->GetPosition();
 		mpPointLight->BeUpdated();
 		mpPipelineSignature->UploadUniformBufferData("lightUbo", &lightUbo);
-		//}
 
 		SSystem()->GetMainScene()->TraverseMesh([&](const Mesh& mesh)
 			{

@@ -7,7 +7,6 @@ namespace SG
 	BasicCamera::BasicCamera(const Vector3f& position, const Vector3f& rotation)
 		:mPosition(position), mRotation(rotation), mbIsViewDirty(true), mbIsProjDirty(true)
 	{
-		UpdateViewMatrix();
 		Input::RegisterListener(EListenerPriority::eLevel2, this);
 	}
 
@@ -54,18 +53,6 @@ namespace SG
 			sZNear  = zNear;
 			sZFar   = zFar;
 		}
-	}
-
-	void BasicCamera::UpdateViewMatrix()
-	{
-		//const Vector3f DIRECTION = PitchYawToUnitVector(mRotation);
-		//mViewMatrix = BuildViewMatrixDirection(mPosition, DIRECTION, SG_ENGINE_UP_VEC());
-		//mViewMatrix = BuildViewMatrixCenter(mPosition, Vector3f(0.0f), SG_ENGINE_UP_VEC());
-		//if (mRotation(2) - 0.0f >= SG_FLOAT_EPSILON) // if the rotation have the roll part
-		//{
-		//	Transform rotationZ(AngleAxis(DegreesToRadians(mRotation(2)), Vector3f(0, 0, -1)));
-		//	mViewMatrix = rotationZ.matrix() * mViewMatrix;
-		//}
 	}
 
 }

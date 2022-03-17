@@ -5,7 +5,7 @@
 namespace SG
 {
 
-	// temporary component system
+	// temporary component
 	// should be replaced by ECS
 
 	//! Pure data + function class.

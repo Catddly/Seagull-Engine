@@ -632,6 +632,8 @@ namespace SG
 		SG_CORE_API static void RemoveListener(IInputListener* pListener);
 
 		SG_CORE_API static bool IsKeyPressed(EKeyCode keycode);
+
+		SG_CORE_API static void SetKeyHoldThreshold(float threshold);
 	private:
 		friend class System;
 		static void OnInit();
@@ -652,9 +654,9 @@ namespace SG
 		static ListenerContainer mpListeners;
 
 		static Vector2i mPrevFrameMousePos;
-
-		static bool mKeyStatusMap[KEYCODE_COUNT];
+		static float    mKeyHoldThresHold;
 		static eastl::map<EKeyCode, float> mKeyElapsedTimeMap;
+		static bool mKeyStatusMap[KEYCODE_COUNT];
 	};
 
 }
