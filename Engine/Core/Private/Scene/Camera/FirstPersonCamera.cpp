@@ -46,7 +46,7 @@ namespace SG
 			{ 
 				float dy = -deltaYPos * mRotateSpeed * mDeltaTime * mAspectRatio;
 				Matrix4f transform = glm::rotate(Matrix4f(1.0f), dy, mRightVec);
-				mUpVec = Vector4f(mUpVec, 0.0f) * transform;
+				mUpVec    = Vector4f(mUpVec, 0.0f) * transform;
 				mFrontVec = Vector4f(mFrontVec, 0.0f) * transform;
 				UpdateViewMatrix();
 				mbIsViewDirty = true;
@@ -57,7 +57,7 @@ namespace SG
 				float dx = deltaXPos * mRotateSpeed * mDeltaTime;
 				Matrix4f transform = Matrix3f(glm::rotate(Matrix4f(1.0f), dx, SG_ENGINE_UP_VEC()));
 				mFrontVec = Vector4f(mFrontVec, 0.0f) * transform;
-				mUpVec = Vector4f(mUpVec, 0.0f) * transform;
+				mUpVec    = Vector4f(mUpVec, 0.0f) * transform;
 				mRightVec = Vector4f(mRightVec, 0.0f) * transform;
 				UpdateViewMatrix();
 				mbIsViewDirty = true;

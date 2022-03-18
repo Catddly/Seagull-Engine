@@ -3,6 +3,8 @@
 
 #include "System/System.h"
 #include "System/Logger.h"
+#include "Render/Shader/ShaderComiler.h"
+#include "Archive/ResourceLoader/RenderResourceLoader.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
@@ -12,8 +14,6 @@
 #include "RendererVulkan/Backend/VulkanPipeline.h"
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
 #include "RendererVulkan/Backend/VulkanShader.h"
-
-#include "Render/Shader/ShaderComiler.h"
 
 #include "RendererVulkan/Resource/VulkanGeometry.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
@@ -28,41 +28,50 @@ namespace SG
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
 	{
-		Scene* pScene = SSystem()->GetMainScene();
-		pScene->TraversePointLight([&](const PointLight& light)
-			{
-				mpPointLight = &light;
-			});
-
-		mpCamera = pScene->GetMainCamera();
-		auto& cameraUbo = GetCameraUBO();
-		cameraUbo.proj = mpCamera->GetProjMatrix();
-
-		mpModelGeometry = VK_RESOURCE()->GetGeometry("model");
-		mpGridGeometry = VK_RESOURCE()->GetGeometry("grid");
-
-		pScene->TraverseMesh([&](const Mesh& mesh)
-			{
-				if (mesh.GetName() == "model")
+		// load scene
+		{
+			Scene* pScene = SSystem()->GetMainScene();
+			pScene->TraversePointLight([&](const PointLight& light)
 				{
-					mPushConstantGeo.model = mesh.GetTransform();
-					mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
-				}
-				else if (mesh.GetName() == "grid")
-				{
-					mPushConstantGrid.model = mesh.GetTransform();
-					mPushConstantGrid.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGrid.model));
-				}
-			}
-		);
+					mpPointLight = &light;
+				});
 
-		auto& lightUbo = GetLightUBO();
-		auto* pDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
-		lightUbo.lightSpaceVP = pDirectionalLight->GetViewProj();
-		lightUbo.directionalColor = { pDirectionalLight->GetColor(), 1.0f };
-		lightUbo.viewDirection = glm::normalize(pDirectionalLight->GetDirection());
-		lightUbo.gamma = 2.2f;
-		lightUbo.exposure = 1.0f;
+			mpCamera = pScene->GetMainCamera();
+			auto& cameraUbo = GetCameraUBO();
+			cameraUbo.proj = mpCamera->GetProjMatrix();
+
+			mpModelGeometry = VK_RESOURCE()->GetGeometry("model");
+			mpGridGeometry = VK_RESOURCE()->GetGeometry("grid");
+
+			pScene->TraverseMesh([&](const Mesh& mesh)
+				{
+					if (mesh.GetName() == "model")
+					{
+						mPushConstantGeo.model = mesh.GetTransform();
+						mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
+					}
+					else if (mesh.GetName() == "grid")
+					{
+						mPushConstantGrid.model = mesh.GetTransform();
+						mPushConstantGrid.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGrid.model));
+					}
+				}
+			);
+
+			auto& lightUbo = GetLightUBO();
+			auto* pDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
+			lightUbo.lightSpaceVP = pDirectionalLight->GetViewProj();
+			lightUbo.directionalColor = { pDirectionalLight->GetColor(), 1.0f };
+			lightUbo.viewDirection = glm::normalize(pDirectionalLight->GetDirection());
+			lightUbo.gamma = 2.2f;
+			lightUbo.exposure = 1.0f;
+
+			auto& skyboxUbo = GetSkyboxUBO();
+			skyboxUbo.proj = cameraUbo.proj;
+
+			// skybox
+			mpSkyboxGeometry = VK_RESOURCE()->GetGeometry("skybox");
+		}
 
 		// init render resource
 #ifdef SG_ENABLE_HDR
@@ -82,9 +91,43 @@ namespace SG
 		VK_RESOURCE()->CreateRenderTarget(rtCI);
 #endif
 
+		// load cube map texture
+		TextureResourceLoader texLoader;
+		Raw2DTexture texData = {};
+		texLoader.LoadFromFile("cubemap_yokohama_rgba.ktx", texData, true, true);
+		TextureCreateDesc texCI = {};
+		texCI.name = "cubemap";
+		texCI.width = texData.width;
+		texCI.height = texData.height;
+		texCI.depth = 1;
+		texCI.array = texData.array;
+		texCI.mipLevel = texData.mipLevel;
+		texCI.format = EImageFormat::eUnorm_R8G8B8A8;
+		texCI.sample = ESampleCount::eSample_1;
+		texCI.usage = EImageUsage::efSample;
+		texCI.type = EImageType::e2D;
+		texCI.pInitData = texData.pData;
+		texCI.sizeInByte = texData.sizeInByte;
+		texCI.pUserData = texData.pUserData;
+		VK_RESOURCE()->CreateTexture(texCI, true);
+		VK_RESOURCE()->FlushTextures();
+
+		SamplerCreateDesc samplerCI = {};
+		samplerCI.name = "cubemap_sampler";
+		samplerCI.filterMode = EFilterMode::eLinear;
+		samplerCI.mipmapMode = EFilterMode::eLinear;
+		samplerCI.addressMode = EAddressMode::eClamp_To_Edge;
+		samplerCI.lodBias = 0.0f;
+		samplerCI.minLod = 0.0f;
+		samplerCI.maxLod = (float)texCI.mipLevel;
+		samplerCI.enableAnisotropy = true;
+		VK_RESOURCE()->CreateSampler(samplerCI);
+
 		mpShader = VulkanShader::Create(mContext.device);
+		mpSkyboxShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
 		compiler.CompileGLSLShader("phone", mpShader.get());
+		compiler.CompileGLSLShader("skybox", mpSkyboxShader.get());
 
 		VulkanCommandBuffer pCmd;
 		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
@@ -94,6 +137,10 @@ namespace SG
 		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
 		mContext.graphicQueue.WaitIdle();
 		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+
+		mpSkyboxPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpSkyboxShader)
+			.AddCombindSamplerImage("cubemap_sampler", "cubemap")
+			.Build();
 
 		mpPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShader)
 			.AddCombindSamplerImage("shadow_sampler", "shadow map")
@@ -112,6 +159,7 @@ namespace SG
 
 	RGDrawSceneNode::~RGDrawSceneNode()
 	{
+		Memory::Delete(mpSkyboxPipeline);
 		Memory::Delete(mpPipeline);
 	}
 
@@ -128,13 +176,24 @@ namespace SG
 		const float  ASPECT = window->GetAspectRatio();
 		mpCamera->SetPerspective(45.0f, ASPECT);
 
+		auto& skyboxUbo = GetSkyboxUBO();
 		auto& cameraUbo = GetCameraUBO();
 		cameraUbo.proj = mpCamera->GetProjMatrix();
+		skyboxUbo.proj = cameraUbo.proj;
+		cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
 		VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
 	}
 
 	void RGDrawSceneNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
+		mpSkyboxPipeline = VulkanPipeline::Builder(mContext.device)
+			.SetRasterizer(VK_CULL_MODE_FRONT_BIT)
+			.BindSignature(mpSkyboxPipelineSignature.get())
+			.SetDynamicStates()
+			.BindRenderPass(pRenderpass)
+			.BindShader(mpSkyboxShader.get())
+			.Build();
+
 		mpPipeline = VulkanPipeline::Builder(mContext.device)
 			.BindSignature(mpPipelineSignature.get())
 			.SetDynamicStates()
@@ -146,17 +205,20 @@ namespace SG
 	void RGDrawSceneNode::Update(UInt32 frameIndex)
 	{
 #ifndef SG_ENABLE_HDR
-		//ClearValue cv = {};
-		//cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
-		//AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
+		ClearValue cv = {};
+		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
+		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
 #endif 
 		if (mpCamera->IsViewDirty())
 		{
+			auto& skyboxUbo = GetSkyboxUBO();
 			auto& cameraUbo = GetCameraUBO();
 			cameraUbo.viewPos = mpCamera->GetPosition();
 			cameraUbo.view = mpCamera->GetViewMatrix();
+			skyboxUbo.model = Matrix4f(Matrix3f(cameraUbo.view)); // eliminate the translation part of the matrix
 			cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
-			mpPipelineSignature->UploadUniformBufferData("cameraUbo", &cameraUbo);
+			VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
+			VK_RESOURCE()->UpdataBufferData("skyboxUbo", &skyboxUbo);
 			mpCamera->ViewBeUpdated();
 		}
 
@@ -165,7 +227,7 @@ namespace SG
 		lightUbo.pointLightRadius = mpPointLight->GetRadius();
 		lightUbo.pointLightPos = mpPointLight->GetPosition();
 		mpPointLight->BeUpdated();
-		mpPipelineSignature->UploadUniformBufferData("lightUbo", &lightUbo);
+		VK_RESOURCE()->UpdataBufferData("lightUbo", &lightUbo);
 
 		SSystem()->GetMainScene()->TraverseMesh([&](const Mesh& mesh)
 			{
@@ -182,6 +244,27 @@ namespace SG
 	{
 		auto& pBuf = *context.pCmd;
 
+		// 1. Draw Skybox
+		{
+			pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 1.0f, 1.0f); // set to the farest
+			pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
+
+			pBuf.BindPipelineSignature(mpSkyboxPipelineSignature.get());
+			pBuf.BindPipeline(mpSkyboxPipeline);
+
+			UInt64 offset[1] = { 0 };
+			VulkanBuffer* pVertexBuffer = mpSkyboxGeometry->GetVertexBuffer();
+			pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
+
+			pBuf.Draw(36, 1, 0, 0);
+		}
+
+		// 2. Draw Scene
+		DrawScene(pBuf);
+	}
+
+	void RGDrawSceneNode::DrawScene(VulkanCommandBuffer& pBuf)
+	{
 		pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
 		pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
@@ -190,7 +273,7 @@ namespace SG
 
 		UInt64 offset[1] = { 0 };
 		VulkanBuffer* pVertexBuffer = mpModelGeometry->GetVertexBuffer();
-		VulkanBuffer* pIndexBuffer  = mpModelGeometry->GetIndexBuffer();
+		VulkanBuffer* pIndexBuffer = mpModelGeometry->GetIndexBuffer();
 		pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
 		pBuf.BindIndexBuffer(*pIndexBuffer, 0);
 

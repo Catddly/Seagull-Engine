@@ -9,8 +9,6 @@
 
 #include "spirv-cross/spirv_cross.hpp"
 
-#include "eastl/set.h"
-
 namespace SG
 {
 
@@ -298,19 +296,6 @@ namespace SG
 
 		return true;
 	}
-
-	// helper to keep the binding or the location ordered
-	template <typename ElementType>
-	struct ShaderAttributesLayoutLocationComparer
-	{
-		bool operator()(const eastl::pair<UInt32, typename ElementType>& lhs,
-			const eastl::pair<UInt32, typename ElementType>& rhs)
-		{
-			return lhs.first < rhs.first;
-		}
-	};
-	template <typename ElementType>
-	using OrderSet = eastl::set<eastl::pair<UInt32, typename ElementType>, ShaderAttributesLayoutLocationComparer<typename ElementType>>;
 
 	bool ShaderCompiler::ReflectSPIRV(Shader* pShader)
 	{

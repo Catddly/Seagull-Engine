@@ -351,6 +351,7 @@ namespace SG
 		if (!IsValidImageFormat(CI.format))
 			SG_ASSERT(false);
 
+		pUserData = CI.pUserData;
 		currLayout = ToVkImageLayout(CI.initLayout);
 
 		width    = CI.width;
@@ -376,6 +377,8 @@ namespace SG
 		imageCI.usage = ToVkImageUsage(usage);
 		imageCI.initialLayout = ToVkImageLayout(CI.initLayout);
 		imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		if (array == 6)
+			imageCI.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
 		VK_CHECK(vkCreateImage(device.logicalDevice, &imageCI, nullptr, &image),
 			SG_LOG_ERROR("Failed to create vulkan texture!"););
@@ -460,7 +463,7 @@ namespace SG
 		// if this physical render device can use anisotropy
 		if (CI.enableAnisotropy && device.physicalDeviceFeatures.samplerAnisotropy)
 		{
-			samplerCI.maxAnisotropy = CI.maxAnisotropy;
+			samplerCI.maxAnisotropy = device.physicalDeviceLimits.maxSamplerAnisotropy;
 			samplerCI.anisotropyEnable = VK_TRUE;
 		}
 		else 

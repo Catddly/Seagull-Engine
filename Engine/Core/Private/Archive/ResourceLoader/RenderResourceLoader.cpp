@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "Archive/ResourceLoader/RenderResourceLoader.h"
 
+#include "Render/SwapChain.h"
 #include "System/FileSystem.h"
 
 // redefine memory allocation for stb_image.h
@@ -21,6 +22,10 @@
 #include "assimp/vector3.h"
 #include "assimp/mesh.h"
 
+// TODO: memory allocation consistency
+#include "ktx/ktx.h"
+#include "ktx/ktxvulkan.h"
+
 #include "Stl/string.h"
 
 #include "Math/MathBasic.h"
@@ -28,25 +33,48 @@
 namespace SG
 {
 
-	bool TextureResourceLoader::LoadFromFile(const char* name, Raw2DTexture& outRaw)
+	bool TextureResourceLoader::LoadFromFile(const char* name, Raw2DTexture& outRaw, bool bNeedMipMap, bool bIsCubeMap)
 	{
-		int width, height, numChannels;
-
+		auto type = GetResourceType(name);
 		string path = FileSystem::GetResourceFolderPath(EResourceDirectory::eTextures, SG_ENGINE_DEBUG_BASE_OFFSET);
 		path += name;
-		unsigned char* pData = stbi_load(path.c_str(), &width, &height, &numChannels, STBI_rgb_alpha);
 
-		outRaw.width = width;
-		outRaw.height = height;
-		outRaw.array = 1;
-		outRaw.mipLevel = 1;
+		if (type == ETextureType::eKTX)
+		{
+			ktxTexture* pTexture;
+			auto error = ktxTexture_CreateFromNamedFile(path.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &pTexture);
+			if (error != KTX_SUCCESS)
+			{
+				SG_LOG_ERROR("Failed to load in ktx texture: %s", name);
+				return false;
+			}
+
+			outRaw.width = pTexture->baseWidth;
+			outRaw.height = pTexture->baseHeight;
+			outRaw.array = pTexture->numFaces;
+			outRaw.mipLevel = pTexture->numLevels;
+			outRaw.pData = pTexture->pData;
+			outRaw.type = ETextureType::eKTX;
+			outRaw.sizeInByte = static_cast<UInt32>(pTexture->dataSize);
+			outRaw.pUserData = pTexture;
+		}
+		else
+		{
+			int width, height, numChannels;
+			unsigned char* pData = stbi_load(path.c_str(), &width, &height, &numChannels, STBI_rgb_alpha);
+
+			outRaw.width = bIsCubeMap ? (width / 4) : width;
+			outRaw.height = bIsCubeMap ? (height / 3) : height;
+			outRaw.array = bIsCubeMap ? 6 : 1;
+			outRaw.mipLevel = CalcMipmapLevel(outRaw.width, outRaw.height);
+			outRaw.sizeInByte = width * height * numChannels;
 		
-		auto type = GetResourceType(name);
-		if (type == ETextureType::eUnknown)
-			return false;
+			if (type == ETextureType::eUnknown)
+				return false;
 
-		outRaw.type  = type;
-		outRaw.pData = pData;
+			outRaw.type  = type;
+			outRaw.pData = pData;
+		}
 		return true;
 	}
 

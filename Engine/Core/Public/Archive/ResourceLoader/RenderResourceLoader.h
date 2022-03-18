@@ -18,9 +18,11 @@ namespace SG
 		UInt32         height;
 		UInt32         array;
 		UInt32         mipLevel;
+		UInt32         sizeInByte;
 
 		ETextureType   type;
 		unsigned char* pData;
+		void*          pUserData;
 
 		Raw2DTexture() = default;
 		Raw2DTexture(UInt32 w, UInt32 h, UInt32 arr, UInt32 mip)
@@ -29,7 +31,9 @@ namespace SG
 
 		~Raw2DTexture()
 		{
-			Memory::Free(pData);
+			//! Warning!! this is dangerous. Figure out a better way to do this.
+			if (!pUserData)
+				Memory::Free(pData);
 		}
 	};
 
@@ -91,7 +95,7 @@ namespace SG
 		TextureResourceLoader() = default;
 		~TextureResourceLoader() = default;
 
-		SG_CORE_API bool LoadFromFile(const char* name, Raw2DTexture& outRaw);
+		SG_CORE_API bool LoadFromFile(const char* name, Raw2DTexture& outRaw, bool bNeedMipMap = false, bool bIsCubeMap = false);
 	private:
 	};
 

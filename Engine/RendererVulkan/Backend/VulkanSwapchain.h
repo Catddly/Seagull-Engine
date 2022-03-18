@@ -56,6 +56,8 @@ namespace SG
 
 		// TODO: make a complete id system
 		UInt32       GetID()     const { return id; }
+
+		void* GetUserData() const { return pUserData; }
 	protected:
 		friend class VulkanCommandBuffer;
 		friend class VulkanDescriptorDataBinder;
@@ -78,6 +80,7 @@ namespace SG
 		EImageUsage  usage;
 
 		UInt32 id;
+		void* pUserData;
 	};
 
 	// TODO: abstract to IResource

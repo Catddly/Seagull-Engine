@@ -35,7 +35,8 @@ project "SCore"
         "Public",
         "../../Libs/assimp/include/",
         "../../Libs/spirv-cross/include/",
-        "../../Libs/glm/"
+        "../../Libs/glm/",
+        "../../Libs/ktx/include/"
     }
 
     links
@@ -43,6 +44,7 @@ project "SCore"
         "mimalloc",
         "assimp",
         "eastl",
+        "ktx",
         "spirv-cross",
     }
 

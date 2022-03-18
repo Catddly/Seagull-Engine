@@ -15,11 +15,12 @@ namespace SG
 		auto* window = OperatingSystem::GetMainWindow();
 		const float ASPECT = window->GetAspectRatio();
 
-		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 2.0f, -4.0f));
+		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 0.5f, 4.0f));
 		mpMainCamera->SetPerspective(45.0f, ASPECT, 0.01f, 256.0f);
 
 		auto& model = mMeshes.emplace_back("model", EMeshType::eOBJ);
-		model.SetRotation({ 0.0, 180.0f, 0.0f });
+		//mMeshes.emplace_back("skybox", EMeshType::eOBJ);
+		mMeshes.emplace_back("skybox", EGennerateMeshType::eSkybox);
 		auto& grid = mMeshes.emplace_back("grid", EGennerateMeshType::eGrid);
 		grid.SetScale({ 8.0f, 1.0f, 8.0f });
 

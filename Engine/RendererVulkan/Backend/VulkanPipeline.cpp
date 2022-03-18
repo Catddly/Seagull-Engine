@@ -227,7 +227,7 @@ namespace SG
 		{
 			depthStencilState.depthTestEnable  = VK_TRUE;
 			depthStencilState.depthWriteEnable = VK_TRUE;
-			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
+			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 			depthStencilState.depthBoundsTestEnable = VK_FALSE;
 			depthStencilState.minDepthBounds = 0.0f;
 			depthStencilState.maxDepthBounds = 1.0f;

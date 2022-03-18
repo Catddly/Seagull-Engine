@@ -53,4 +53,153 @@ namespace SG
 		outIndices.push_back(2);
 	}
 
+	void MeshGenerator::GenSkybox(vector<float>& outVertices)
+	{
+		// [0] triangle (-Z)
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		// [1] triangle (-Z)
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		// [2] triangle (+X)
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		// [3] triangle (+X)
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		// [4] triangle (-Z)
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		// [5] triangle (-Z)
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		// [6] triangle (-X)
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		// [7] triangle (-X)
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		// [8] triangle (+Y)
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		// [9] triangle (+Y)
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		// [10] triangle (-Y)
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		// [11] triangle (-Y)
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+	}
+
 }

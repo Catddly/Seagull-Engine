@@ -10,6 +10,7 @@
 #include <eastl/map.h>
 #include <eastl/fixed_map.h>
 #include <eastl/utility.h>
+#include <eastl/set.h>
 #include "stl/vector.h"
 #include "stl/string_view.h"
 
@@ -220,5 +221,18 @@ namespace SG
 		string mEntryPoint = "main"; // default
 		EShaderLanguage mLanguage;
 	};
+
+	//! Helper class to keep the binding or the location ordered.
+	template <typename ElementType>
+	struct ShaderAttributesLayoutLocationComparer
+	{
+		bool operator()(const eastl::pair<UInt32, typename ElementType>& lhs,
+			const eastl::pair<UInt32, typename ElementType>& rhs)
+		{
+			return lhs.first < rhs.first;
+		}
+	};
+	template <typename ElementType>
+	using OrderSet = eastl::set<eastl::pair<UInt32, typename ElementType>, ShaderAttributesLayoutLocationComparer<typename ElementType>>;
 
 }

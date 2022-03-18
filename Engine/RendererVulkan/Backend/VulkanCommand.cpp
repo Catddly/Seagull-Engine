@@ -224,6 +224,8 @@ namespace SG
 			bufferCopyRegion.imageExtent.width = region[i].width;
 			bufferCopyRegion.imageExtent.height = region[i].height;
 			bufferCopyRegion.imageExtent.depth = region[i].depth;
+			if (bufferCopyRegion.imageExtent.depth == 0)
+				SG_ASSERT(false);
 			bufferCopyRegion.bufferOffset = region[i].offset;
 			bufferCopyRegions[i] = eastl::move(bufferCopyRegion);
 		}
@@ -255,9 +257,9 @@ namespace SG
 
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = pTex->mipLevel;
 		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.levelCount = pTex->mipLevel;
+		barrier.subresourceRange.layerCount = pTex->array;
 	
 		VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM,
 			dstStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;

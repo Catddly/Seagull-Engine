@@ -5,6 +5,7 @@ namespace SG
 {
 
 	static LightUBO  gLightUbo = {};
+	static SkyboxUBO gSkyboxUbo = {};
 	static ShadowUBO gShadowUbo = {};
 	static CameraUBO gCameraUbo = {};
 
@@ -16,6 +17,11 @@ namespace SG
 	ShadowUBO& GetShadowUBO()
 	{
 		return gShadowUbo;
+	}
+
+	SkyboxUBO& GetSkyboxUBO()
+	{
+		return gSkyboxUbo;
 	}
 
 	CameraUBO& GetCameraUBO()

@@ -36,6 +36,7 @@ group "Libs"
     include "Libs/mimalloc/"
     include "Libs/eastl/"
     include "Libs/assimp/"
+    include "Libs/ktx/"
     include "Libs/imgui/"
     include "Libs/spirv-cross/"
 

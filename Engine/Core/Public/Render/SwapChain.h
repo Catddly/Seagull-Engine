@@ -560,6 +560,7 @@ namespace SG
 
 		UInt32         sizeInByte;
 		const void*    pInitData;
+		void*          pUserData;
 	};
 
 	interface RenderTarget
@@ -587,5 +588,13 @@ namespace SG
 	private:
 		static UInt32 mCurrId;
 	};
+
+	// helper function
+	SG_INLINE static UInt32 CalcMipmapLevel(UInt32 width, UInt32 height)
+	{
+		UInt32 numMipW = static_cast<UInt32>(Log2((float)width)) + 1;
+		UInt32 numMipH = static_cast<UInt32>(Log2((float)height)) + 1;
+		return eastl::min(numMipW, numMipH);
+	}
 
 }

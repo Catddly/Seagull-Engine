@@ -11,21 +11,24 @@ namespace SG
 {
 
 	VulkanGeometry::VulkanGeometry(VulkanContext& d, const string& name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex)
-		: mContext(d), mName(name)
+		: mContext(d), mName(name), mpVertexBuffer(nullptr), mpIndexBuffer(nullptr)
 	{
 		auto vbBufferCI = InitVertexBuffer(pVerticies, numVertex);
 
 		BufferCreateDesc ibBufferCI = {};
-		ibBufferCI.name = (name + "_ib").c_str();
-		ibBufferCI.pInitData = pIndices;
 		ibBufferCI.totalSizeInByte = sizeof(UInt32) * numIndex;
-		ibBufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
-
-		mpIndexBuffer = VulkanBuffer::Create(mContext.device, ibBufferCI, true);
-		if (!mpIndexBuffer)
+		if (numIndex != 0)
 		{
-			SG_LOG_ERROR("Failed to create index buffer of geometry %s", name.c_str());
-			SG_ASSERT(false);
+			ibBufferCI.name = (name + "_ib").c_str();
+			ibBufferCI.pInitData = pIndices;
+			ibBufferCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
+
+			mpIndexBuffer = VulkanBuffer::Create(mContext.device, ibBufferCI, true);
+			if (!mpIndexBuffer)
+			{
+				SG_LOG_ERROR("Failed to create index buffer of geometry %s", name.c_str());
+				SG_ASSERT(false);
+			}
 		}
 
 		FlushVBIBStagingBuffer(vbBufferCI, ibBufferCI);
@@ -55,7 +58,8 @@ namespace SG
 	VulkanGeometry::~VulkanGeometry()
 	{
 		Memory::Delete(mpVertexBuffer);
-		Memory::Delete(mpIndexBuffer);
+		if (mpIndexBuffer)
+			Memory::Delete(mpIndexBuffer);
 	}
 
 	BufferCreateDesc VulkanGeometry::InitVertexBuffer(const float* pVerticies, UInt32 numVertex)
@@ -80,18 +84,25 @@ namespace SG
 		vbCI.type = EBufferType::efTransfer_Src;
 		auto* mpVBStagingBuffer = VulkanBuffer::Create(mContext.device, vbCI, false);
 
-		ibCI.type = EBufferType::efTransfer_Src;
-		auto* mpIBStagingBuffer = VulkanBuffer::Create(mContext.device, ibCI, false);
+		VulkanBuffer* mpIBStagingBuffer = nullptr;
+		if (ibCI.totalSizeInByte != 0)
+		{
+			ibCI.type = EBufferType::efTransfer_Src;
+			mpIBStagingBuffer = VulkanBuffer::Create(mContext.device, ibCI, false);
+		}
 
 		VulkanCommandBuffer pCmd;
 		mContext.transferCommandPool->AllocateCommandBuffer(pCmd);
 
 		pCmd.BeginRecord();
 			mpVBStagingBuffer->UploadData(vbCI.pInitData);
-			mpIBStagingBuffer->UploadData(ibCI.pInitData);
-
 			pCmd.CopyBuffer(*mpVBStagingBuffer, *mpVertexBuffer);
-			pCmd.CopyBuffer(*mpIBStagingBuffer, *mpIndexBuffer);
+
+			if (ibCI.totalSizeInByte != 0)
+			{
+				mpIBStagingBuffer->UploadData(ibCI.pInitData);
+				pCmd.CopyBuffer(*mpIBStagingBuffer, *mpIndexBuffer);
+			}
 		pCmd.EndRecord();
 
 		mContext.transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
@@ -100,7 +111,8 @@ namespace SG
 		mContext.transferCommandPool->FreeCommandBuffer(pCmd);
 
 		Memory::Delete(mpVBStagingBuffer);
-		Memory::Delete(mpIBStagingBuffer);
+		if (ibCI.totalSizeInByte != 0)
+			Memory::Delete(mpIBStagingBuffer);
 	}
 
 }

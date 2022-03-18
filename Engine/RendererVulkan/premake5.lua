@@ -35,6 +35,7 @@ project "SRendererVulkan"
         "../../Libs/volk/include/", -- volk
         "../../Libs/volk/source/",
         "../../Libs/glm/",  -- glm
+        "../../Libs/ktx/include/"
     }
 
     links
@@ -43,6 +44,7 @@ project "SRendererVulkan"
         "mimalloc",
         "eastl",
         "imgui",
+        "ktx",
         "SCore",
     }
 

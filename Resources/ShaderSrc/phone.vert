@@ -47,5 +47,5 @@ void main()
 	outNormalWS = mat3(constant.inverseTransposeModel) * inNormalLS; 
 	outShadowMapPos = biasMat * lightUbo.lightSpaceVP * vec4(outPosWS, 1.0);
 
-    gl_Position = cameraUbo.proj * cameraUbo.view * vec4(outPosWS, 1.0);
+    gl_Position = cameraUbo.viewProj * vec4(outPosWS, 1.0);
 }

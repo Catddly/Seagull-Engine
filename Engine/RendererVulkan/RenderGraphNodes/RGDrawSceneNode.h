@@ -35,18 +35,26 @@ namespace SG
 		virtual void Update(UInt32 frameIndex) override;
 		virtual void Draw(RGDrawContext& context) override;
 	private:
+		void DrawScene(VulkanCommandBuffer& pBuf);
+	private:
 		VulkanContext&        mContext;
 
 		LoadStoreClearOp      mColorRtLoadStoreOp;
 		LoadStoreClearOp      mDepthRtLoadStoreOp;
 
+		RefPtr<VulkanPipelineSignature> mpSkyboxPipelineSignature;
+		VulkanPipeline*                 mpSkyboxPipeline;
+		RefPtr<VulkanShader>            mpSkyboxShader;
+
 		RefPtr<VulkanPipelineSignature> mpPipelineSignature;
 		VulkanPipeline*                 mpPipeline;
 		RefPtr<VulkanShader>            mpShader;
-		VulkanGeometry*                 mpModelGeometry;
-		VulkanGeometry*                 mpGridGeometry;
-		const PointLight*               mpPointLight;
-		ICamera* mpCamera;
+
+		VulkanGeometry*   mpModelGeometry;
+		VulkanGeometry*   mpGridGeometry;
+		VulkanGeometry*   mpSkyboxGeometry;
+		const PointLight* mpPointLight;
+		ICamera*          mpCamera;
 
 		struct PushConstant
 		{

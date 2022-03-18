@@ -11,6 +11,8 @@ namespace SG
 	{
 		if (type == EGennerateMeshType::eGrid)
 			MeshGenerator::GenGrid(mVertices, mIndices);
+		else if (type == EGennerateMeshType::eSkybox)
+			MeshGenerator::GenSkybox(mVertices);
 	}
 
 	Mesh::Mesh(const char* name, EMeshType type)

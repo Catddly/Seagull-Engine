@@ -12,6 +12,8 @@
 
 #include "RendererVulkan/Resource/VulkanGeometry.h"
 
+#include "ktx/ktx.h"
+
 namespace SG
 {
 
@@ -252,21 +254,31 @@ namespace SG
 			stagingBuffers[index]->UploadData(data.first.pInitData);
 
 			vector<TextureCopyRegion> copyRegions;
-			copyRegions.resize(data.second->GetNumMipmap());
-
 			UInt32 offset = 0;
-			for (UInt32 i = 0; i < copyRegions.size(); ++i)
+			for (UInt32 face = 0; face < data.second->GetNumArray(); ++face)
 			{
-				TextureCopyRegion copyRegion = {};
-				copyRegion.mipLevel = i;
-				copyRegion.baseArray = 0;
-				copyRegion.layer  = 1;
-				copyRegion.width  = data.second->GetWidth() >> i;
-				copyRegion.height = data.second->GetHeight() >> i;
-				copyRegion.depth  = 1;
-				copyRegion.offset = offset;
-				copyRegions[i] = eastl::move(copyRegion);
-				offset += copyRegion.width * copyRegion.height * ImageFormatToMemoryByte(data.second->GetFormat()); // 4 byte for RGBA
+				for (UInt32 i = 0; i < data.second->GetNumMipmap(); ++i)
+				{
+					TextureCopyRegion copyRegion = {};
+					copyRegion.mipLevel = i;
+					copyRegion.baseArray = face;
+					copyRegion.layer  = 1;
+					copyRegion.width  = data.second->GetWidth() >> i;
+					copyRegion.height = data.second->GetHeight() >> i;
+					copyRegion.depth  = 1;
+					if (data.second->GetNumArray() == 6) // cubemap
+					{
+						Size offset;
+						auto ret = ktxTexture_GetImageOffset(reinterpret_cast<ktxTexture*>(data.second->GetUserData()), i, 0, face, &offset);
+						copyRegion.offset = static_cast<UInt32>(offset);
+					}
+					else
+					{
+						copyRegion.offset = offset;
+						offset += copyRegion.width * copyRegion.height * ImageFormatToMemoryByte(data.second->GetFormat()); // 4 byte for RGBA
+					}
+					copyRegions.emplace_back(copyRegion);
+				}
 			}
 			// transfer image barrier to do the copy
 			pCmd.ImageBarrier(data.second, EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
@@ -274,6 +286,9 @@ namespace SG
 			// transfer complete, switch this texture to a shader read-only texture
 			pCmd.ImageBarrier(data.second, EResourceBarrier::efCopy_Dest, EResourceBarrier::efShader_Resource);
 			++index;
+
+			if (data.second->GetNumArray() == 6) // cubemap resource destroy
+				ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(data.second->GetUserData()));
 		}
 		pCmd.EndRecord();
 

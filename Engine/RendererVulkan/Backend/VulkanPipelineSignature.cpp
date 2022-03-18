@@ -38,16 +38,18 @@ namespace SG
 			BufferCI.name = uboData.first.c_str();
 			BufferCI.totalSizeInByte = uboData.second.layout.GetTotalSizeInByte();
 			BufferCI.type = EBufferType::efUniform;
-			VK_RESOURCE()->CreateBuffer(BufferCI);
+			if (!VK_RESOURCE()->GetBuffer(BufferCI.name))
+				VK_RESOURCE()->CreateBuffer(BufferCI);
 
 			uboLayoutBuilder.AddBinding(EDescriptorType::eUniform_Buffer, uboData.second.stage, GetBinding(uboData.second.setbinding), 1);
 		}
 
 		auto& combineImageLayout = pShader->GetSampledImageLayout(EShaderStage::efFrag);
+		OrderSet<SetBindingKey> orderedSIInputLayout;
 		for (auto& imageData : combineImageLayout)
-		{
+			orderedSIInputLayout.emplace(imageData.second, imageData.second);
+		for (auto& imageData : orderedSIInputLayout)
 			uboLayoutBuilder.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, GetBinding(imageData.second), 1);
-		}
 
 		mpUBODescriptorSetLayout = uboLayoutBuilder.Build();
 		if (!mpUBODescriptorSetLayout)
@@ -62,7 +64,7 @@ namespace SG
 			setDataBinder.BindBuffer(GetBinding(uboData.second.setbinding), VK_RESOURCE()->GetBuffer(uboData.first));
 		// bind combine image
 		UInt32 imageIndex = 0;
-		for (auto& imageData : combineImageLayout)
+		for (auto& imageData : orderedSIInputLayout) // should use the ordered setbinding input data
 		{
 			VulkanTexture* pTex = VK_RESOURCE()->GetTexture(combineImages[imageIndex].second);
 			if (pTex)
@@ -91,6 +93,11 @@ namespace SG
 		{
 			SG_LOG_ERROR("Failed to create pipeline layout with shader: (%s, %s)!", pShader->GetName(EShaderStage::efVert).c_str(), pShader->GetName(EShaderStage::efFrag).c_str());
 			SG_ASSERT(false);
+		}
+
+		if (imageIndex != combineImages.size())
+		{
+			SG_LOG_WARN("The number of textures pass in the shader do not math the number of the bindings!");
 		}
 	}
 

@@ -14,6 +14,12 @@ namespace SG
 		Vector3f viewPos;
 	};
 
+	struct SkyboxUBO
+	{
+		Matrix4f proj;
+		Matrix4f model;
+	};
+
 	struct ShadowUBO
 	{
 		Matrix4f lightSpaceVP;
@@ -37,5 +43,6 @@ namespace SG
 	// temporary
 	SG_RENDERER_VK_API SG_INLINE LightUBO&  GetLightUBO();
 	SG_RENDERER_VK_API SG_INLINE ShadowUBO& GetShadowUBO();
+	SG_RENDERER_VK_API SG_INLINE SkyboxUBO& GetSkyboxUBO();
 	SG_RENDERER_VK_API SG_INLINE CameraUBO& GetCameraUBO();
 }
