@@ -20,12 +20,11 @@ layout (set = 0, binding = 1) uniform LightUBO
 {
 	mat4  lightSpaceVP;
 	vec3  viewDirection;
-	float gamma;
+	float pad;
 	vec4  directionalColor;
 	vec3  pointLightPos;
 	float pointLightRadius;
 	vec3  pointLightColor;
-	float exposure;
 } lightUbo;
 
 layout(push_constant) uniform pushConstant 

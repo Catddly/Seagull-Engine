@@ -51,9 +51,6 @@ namespace SG
 		void DeleteBuffer(const string& name);
 		void FlushBuffers() const;
 
-		//bool CreateGeometry(const char* name, const vector<Vector3f>& vertices, const vector<UInt32>& indices);
-		//bool CreateGeometry(const char* name, const vector<Vector3f>& vertices, const vector<UInt16>& indices);
-
 		bool CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex);
 		bool CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt32 numIndex);
 		SG_RENDERER_VK_API VulkanGeometry* GetGeometry(const string& name) const;
@@ -66,6 +63,7 @@ namespace SG
 		void FlushTextures() const;
 
 		bool CreateRenderTarget(const TextureCreateDesc& textureCI, bool isDepth = false);
+		void DeleteRenderTarget(const string& name);
 		SG_RENDERER_VK_API VulkanRenderTarget* GetRenderTarget(const string& name) const;
 
 		bool CreateSampler(const SamplerCreateDesc& samplerCI);

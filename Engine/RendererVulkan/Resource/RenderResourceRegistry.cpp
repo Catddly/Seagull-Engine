@@ -207,13 +207,13 @@ namespace SG
 			return false;
 		}
 
-		if (bLocal)
+		if (bLocal && textureCI.pInitData)
 		{
-			if (!textureCI.pInitData)
-			{
-				SG_LOG_ERROR("Device local buffer must have initialize data!");
-				return false;
-			}
+			//if (!textureCI.pInitData)
+			//{
+			//	SG_LOG_ERROR("Device local buffer must have initialize data!");
+			//	return false;
+			//}
 			// make a copy of bufferCI
 			BufferCreateDesc bufferCI = {};
 			bufferCI.name = textureCI.name;
@@ -322,6 +322,16 @@ namespace SG
 		}
 
 		return true;
+	}
+
+	void VulkanResourceRegistry::DeleteRenderTarget(const string& name)
+	{
+		auto* pRt = GetRenderTarget(name);
+		if (pRt)
+		{
+			Memory::Delete(pRt);
+			mRenderTargets.erase(name);
+		}
 	}
 
 	VulkanRenderTarget* VulkanResourceRegistry::GetRenderTarget(const string& name) const

@@ -35,6 +35,7 @@ namespace SG
 		virtual void Update(UInt32 frameIndex) override;
 		virtual void Draw(RGDrawContext& context) override;
 	private:
+		void PreCalcIrradianceCubemap(); // for IBL-PBR(image based lighting in physical based rendering) diffuse calculation
 		void DrawScene(VulkanCommandBuffer& pBuf);
 	private:
 		VulkanContext&        mContext;

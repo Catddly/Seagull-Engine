@@ -7,6 +7,7 @@
 
 #include "Stl/string.h"
 #include "Stl/vector.h"
+#include "Stl/unordered_map.h"
 #include "eastl/array.h"
 #include "Stl/SmartPtr.h"
 
@@ -30,14 +31,16 @@ namespace SG
 
 		SG_CORE_API void OnUpdate(float deltaTime);
 
+		SG_CORE_API Mesh* GetMesh(const char* name);
+
 		DirectionalLight* GetDirectionalLight() { return &mDirectionalLight; }
 		ICamera* GetMainCamera() { return mpMainCamera.get(); }
 
 		template <typename Func>
 		void TraverseMesh(Func&& func)
 		{
-			for (auto& mesh : mMeshes)
-				func(mesh);
+			for (auto pNode : mMeshes)
+				func(pNode.second);
 		}
 
 		template <typename Func>
@@ -49,11 +52,11 @@ namespace SG
 	private:
 		string mName;
 
-		DirectionalLight   mDirectionalLight;
-		vector<PointLight> mPointLights;
-		vector<Mesh>       mMeshes;      // TODO: use tree structure to store the meshes
+		DirectionalLight    mDirectionalLight;
+		vector<PointLight>  mPointLights;
+		unordered_map<string, Mesh> mMeshes;      // TODO: use tree structure to store the meshes (for now there are no many meshes in the scene, map is ok)
 
-		RefPtr<ICamera>    mpMainCamera; // TODO: support multiply switchable camera
+		RefPtr<ICamera>     mpMainCamera; // TODO: support multiply switchable camera
 	};
 
 }

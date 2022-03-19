@@ -9,15 +9,21 @@ layout (set = 0, binding = 1) uniform LightUBO
 {
 	mat4  lightSpaceVP;
 	vec3  viewDirection;
-	float gamma;
+	float pad;
 	vec4  directionalColor;
 	vec3  pointLightPos;
 	float pointLightRadius;
 	vec3  pointLightColor;
-    float exposure;
 } lightUbo;
 
-layout(set = 0, binding = 2) uniform sampler2D sShadowMap;
+layout (set = 0, binding = 2) uniform CompositionUBO
+{
+	float gamma;
+    float exposure;
+} compositionUbo;
+
+layout(set = 0, binding = 3) uniform sampler2D sShadowMap;
+layout(set = 0, binding = 4) uniform samplerCube sDiffuseCubeMap;
 
 layout (location = 0) out vec4 outColor;
 
@@ -73,7 +79,7 @@ vec3 CalcPointLightIntensity(vec3 lightDir)
     float intensity = max(dot(normalize(inNormalWS), lightDir), 0.0);
     intensity += CalcSpecular(lightDir);
 
-    return intensity * attenuation * lightUbo.pointLightColor * 20.0f;
+    return intensity * attenuation * lightUbo.pointLightColor * 0.5f;
 }
 
 vec3 CalcDirectionalLight(vec3 lightDir)
@@ -93,15 +99,15 @@ void main()
     light += CalcDirectionalLight(normalize(-lightUbo.viewDirection));
 
     // ambient part
-    float ambientIntensity = 0.03;
-    vec3 ambient = vec3(1.0f, 1.0f, 1.0f) * ambientIntensity;
+    float ambientIntensity = 1.0f;
+    vec3 ambient = texture(sDiffuseCubeMap, inNormalWS).xyz * ambientIntensity;
 
     float shadow = SampleShadowMapPCF(inShadowMapPos);
     vec3 result = (ambient + (1.0 - shadow) * light) * vec3(1.0, 1.0, 1.0);
 
     // tone mapping
-    result = vec3(1.0) - exp(-result * lightUbo.exposure);
+    result = vec3(1.0) - exp(-result * compositionUbo.exposure);
 
     // gamma correction (do the reciprocal to flip the brightness to perceived brightness)
-    outColor = vec4(pow(result, vec3(1.0 / lightUbo.gamma)), 1.0);
+    outColor = vec4(pow(result, vec3(1.0 / compositionUbo.gamma)), 1.0);
 }

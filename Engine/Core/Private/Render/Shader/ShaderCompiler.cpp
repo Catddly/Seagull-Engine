@@ -161,7 +161,10 @@ namespace SG
 				TimePoint prevTp = ShaderLibrary::GetInstance()->GetShaderTimeStamp(actualName);
 				TimePoint currTp = FileSystem::GetFileLastWriteTime(EResourceDirectory::eShader_Sources, actualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET);
 				if (!prevTp.IsValid() || currTp > prevTp) // invalid means we can't find shader_env.ini, so you should recompile the shader anyway.
+				{
 					bForceToRecompile = true;
+					SG_LOG_DEBUG("Force to compile: %s", actualName.c_str());
+				}
 
 				string compiledName = actualName;
 				compiledName[actualName.find('.')] = '-';
@@ -209,7 +212,10 @@ namespace SG
 			TimePoint prevTp = ShaderLibrary::GetInstance()->GetShaderTimeStamp(vertActualName);
 			TimePoint currTp = FileSystem::GetFileLastWriteTime(EResourceDirectory::eShader_Sources, vertActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET);
 			if (!prevTp.IsValid() || currTp > prevTp) // invalid means we can't find shader_env.ini, so you should recompile the shader anyway.
+			{
 				bForceToRecompile = true;
+				SG_LOG_DEBUG("Force to compile: %s", vertActualName.c_str());
+			}
 
 			string vertCompiledName = vertActualName;
 			vertCompiledName[vertActualName.find('.')] = '-';
@@ -235,7 +241,10 @@ namespace SG
 			TimePoint prevTp = ShaderLibrary::GetInstance()->GetShaderTimeStamp(vertActualName);
 			TimePoint currTp = FileSystem::GetFileLastWriteTime(EResourceDirectory::eShader_Sources, fragActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET);
 			if (currTp > prevTp)
+			{
 				bForceToRecompile = true;
+				SG_LOG_DEBUG("Force to compile: %s", fragActualName.c_str());
+			}
 
 			string fragCompiledName = fragActualName;
 			fragCompiledName[fragActualName.find('.')] = '-';

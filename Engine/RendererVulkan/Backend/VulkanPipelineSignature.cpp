@@ -101,20 +101,6 @@ namespace SG
 		}
 	}
 
-	void VulkanPipelineSignature::UploadUniformBufferData(const char* uboName, const void* pData)
-	{
-		auto& uboLayout = mpShader->GetUniformBufferLayout();
-		for (auto& uboData : uboLayout)
-		{
-			if (strcmp(uboData.first.c_str(), uboName) == 0)
-			{
-				VK_RESOURCE()->UpdataBufferData(uboName, pData);
-				return;
-			}
-		}
-		SG_LOG_WARN("Unable to find uniform buffer data for %s, did you spell it wrong?", uboName);
-	}
-
 	RefPtr<VulkanPipelineSignature> VulkanPipelineSignature::Create(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages)
 	{
 		return MakeRef<VulkanPipelineSignature>(context, pShader, combineImages);

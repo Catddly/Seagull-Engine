@@ -13,6 +13,7 @@
 
 #include "Render/Shader/ShaderComiler.h"
 
+#include "RendererVulkan/Resource/CommonUBO.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
 #include "imgui/imgui.h"

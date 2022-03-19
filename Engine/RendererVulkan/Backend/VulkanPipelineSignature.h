@@ -21,8 +21,6 @@ namespace SG
 		VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages);
 		~VulkanPipelineSignature() = default;
 
-		void UploadUniformBufferData(const char* uboName, const void* pData);
-
 		class Builder
 		{
 		public:

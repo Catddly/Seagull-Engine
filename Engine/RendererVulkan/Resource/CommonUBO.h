@@ -31,13 +31,18 @@ namespace SG
 		// directional light
 		Matrix4f lightSpaceVP;
 		Vector3f viewDirection;
-		float    gamma;
+		float    pad;
 		Vector4f directionalColor;
 		// point light
 		Vector3f pointLightPos;
 		float    pointLightRadius;
 		Vector3f pointLightColor;
-		float    exposure;
+	};
+
+	struct CompositionUBO
+	{
+		float gamma;
+		float exposure;
 	};
 
 	// temporary
@@ -45,4 +50,5 @@ namespace SG
 	SG_RENDERER_VK_API SG_INLINE ShadowUBO& GetShadowUBO();
 	SG_RENDERER_VK_API SG_INLINE SkyboxUBO& GetSkyboxUBO();
 	SG_RENDERER_VK_API SG_INLINE CameraUBO& GetCameraUBO();
+	SG_RENDERER_VK_API SG_INLINE CompositionUBO& GetCompositionUBO();
 }

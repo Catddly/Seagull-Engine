@@ -44,6 +44,7 @@ namespace SG
 		// transfer
 		void CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer);
 		void CopyBufferToImage(VulkanBuffer& srcBuffer, VulkanTexture& dstTexture, const vector<TextureCopyRegion>& region);
+		void CopyImage(VulkanTexture& srcTexture, VulkanTexture& dstTexture, const TextureCopyRegion& region);
 
 		//void BufferBarrier();
 		void ImageBarrier(VulkanTexture* pTex, EResourceBarrier oldBarrier, EResourceBarrier newBarrier);

@@ -72,7 +72,7 @@ namespace SG
 
 		mpShadowPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShadowShader)
 			.Build();
-		mpShadowPipelineSignature->UploadUniformBufferData("shadowUbo", &shadowUbo);
+		VK_RESOURCE()->UpdataBufferData("shadowUbo", &shadowUbo);
 
 		ClearValue cv = {};
 		cv.depthStencil.depth = 1.0f;
