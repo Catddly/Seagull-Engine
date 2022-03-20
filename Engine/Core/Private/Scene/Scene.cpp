@@ -23,7 +23,7 @@ namespace SG
 		mMeshes.emplace("skybox", Mesh("skybox", EGennerateMeshType::eSkybox));
 		mMeshes.emplace("grid", Mesh("grid", EGennerateMeshType::eGrid)).first->second.SetScale({ 8.0f, 1.0f, 8.0f });
 
-		mPointLights.emplace_back(Vector3f{ -0.85f, 3.0f, -1.5f }, 1.5f, Vector3f{ 0.159f, 0.3f, 0.755f });
+		mPointLights.emplace_back(Vector3f{ 1.25f, 0.75f, -0.3f }, 3.0f, Vector3f{ 0.0f, 1.0f, 0.705f });
 	}
 
 	void Scene::OnSceneUnLoad()

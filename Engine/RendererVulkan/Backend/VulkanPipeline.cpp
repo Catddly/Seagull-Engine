@@ -157,8 +157,16 @@ namespace SG
 
 		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputState.vertexBindingDescriptionCount = 1;
-		vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
+		if (layout.GetNumAttributes() == 0)
+		{
+			vertexInputState.vertexBindingDescriptionCount = 0;
+			vertexInputState.pVertexBindingDescriptions = nullptr;
+		}
+		else
+		{
+			vertexInputState.vertexBindingDescriptionCount = 1;
+			vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
+		}
 		vertexInputState.vertexAttributeDescriptionCount = static_cast<UInt32>(createInfos.vertexInputAttributs.size());
 		vertexInputState.pVertexAttributeDescriptions    = createInfos.vertexInputAttributs.data();
 
@@ -206,8 +214,8 @@ namespace SG
 			blendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 			blendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 			blendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
-			blendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 		}
+		blendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 		createInfos.colorBlends.emplace_back(blendAttachmentState);
 
 		VkPipelineColorBlendStateCreateInfo colorBlendState = {};

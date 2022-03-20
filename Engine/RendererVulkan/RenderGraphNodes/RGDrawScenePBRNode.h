@@ -24,17 +24,22 @@ namespace SG
 
 	class VulkanGeometry;
 
-	class RGDrawSceneNode final : public RenderGraphNode
+	class RGDrawScenePBRNode final : public RenderGraphNode
 	{
 	public:
-		RGDrawSceneNode(VulkanContext& context);
-		~RGDrawSceneNode();
+		RGDrawScenePBRNode(VulkanContext& context);
+		~RGDrawScenePBRNode();
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
 		virtual void Update(UInt32 frameIndex) override;
 		virtual void Draw(RGDrawContext& context) override;
 	private:
+		void GenerateBRDFLut();
+		//! For IBL-PBR(image based lighting in physical based rendering) diffuse calculation.
+		//! By using Split Sum Approximation.
+		void PreCalcIrradianceCubemap();
+		void PrefilterCubemap();
 		void DrawScene(VulkanCommandBuffer& pBuf);
 	private:
 		VulkanContext&        mContext;

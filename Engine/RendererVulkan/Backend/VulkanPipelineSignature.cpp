@@ -97,7 +97,7 @@ namespace SG
 
 		if (imageIndex != combineImages.size())
 		{
-			SG_LOG_WARN("The number of textures pass in the shader do not math the number of the bindings!");
+			SG_LOG_WARN("The number of textures pass in the shader do not match the number of the bindings!");
 		}
 	}
 

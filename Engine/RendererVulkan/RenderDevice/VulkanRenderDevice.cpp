@@ -22,6 +22,8 @@
 #include "RendererVulkan/RenderGraphNodes/RGShadowNode.h"
 // this node draw the scene and do lighting calculation
 #include "RendererVulkan/RenderGraphNodes/RGDrawSceneNode.h"
+// this node draw the scene and do lighting calculation (with IBL-BRDF-PBR)
+#include "RendererVulkan/RenderGraphNodes/RGDrawScenePBRNode.h"
 // this node draw the final image and the GUI on the top.
 #include "RendererVulkan/RenderGraphNodes/RGFinalOutputNode.h"
 
@@ -117,7 +119,7 @@ namespace SG
 	{
 		mpRenderGraph = RenderGraphBuilder("Default", mpContext)
 			.NewRenderPass(Memory::New<RGShadowNode>(*mpContext))
-			.NewRenderPass(Memory::New<RGDrawSceneNode>(*mpContext))
+			.NewRenderPass(Memory::New<RGDrawScenePBRNode>(*mpContext))
 			.NewRenderPass(Memory::New<RGFinalOutputNode>(*mpContext))
 			.Build();
 	}

@@ -43,6 +43,9 @@ namespace SG
 			else if (type.vecsize == 4)
 				return EShaderDataType::eInt4;
 		}
+		else if (type.basetype == spirv_cross::SPIRType::UInt)
+			if (type.vecsize == 1)
+				return EShaderDataType::eUnorm4;
 		else if (type.basetype == spirv_cross::SPIRType::Boolean)
 			return EShaderDataType::eBool;
 
@@ -222,15 +225,19 @@ namespace SG
 			vertCompiledName += ".spv";
 
 			if (!bForceToRecompile && FileSystem::Exist(EResourceDirectory::eShader_Binarires, vertCompiledName.c_str())) // already compiled this shader once, skip it.
+			{
 				shaderBits |= (1 << 0); // mark as exist.
-
-			string commandLine = glslcPath;
-			string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + vertShaderName + "-vert-compile.log";
-
-			if (CompileShaderVkSDK(vertActualName, vertCompiledName, commandLine, pOut))
-				shaderBits |= (1 << 0); // record what shader stage we had compiled
+			}
 			else
-				SG_LOG_ERROR("Failed to compile vertex shader: %s", vertActualName.c_str());
+			{
+				string commandLine = glslcPath;
+				string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + vertShaderName + "-vert-compile.log";
+
+				if (CompileShaderVkSDK(vertActualName, vertCompiledName, commandLine, pOut))
+					shaderBits |= (1 << 0); // record what shader stage we had compiled
+				else
+					SG_LOG_ERROR("Failed to compile vertex shader: %s", vertActualName.c_str());
+			}
 		}
 
 		string fragActualName = fragShaderName + ".frag";
@@ -238,7 +245,7 @@ namespace SG
 		{
 			bool bForceToRecompile = false;
 			// Get the time stamp of this shader to check if this shader should force to recompile.
-			TimePoint prevTp = ShaderLibrary::GetInstance()->GetShaderTimeStamp(vertActualName);
+			TimePoint prevTp = ShaderLibrary::GetInstance()->GetShaderTimeStamp(fragActualName);
 			TimePoint currTp = FileSystem::GetFileLastWriteTime(EResourceDirectory::eShader_Sources, fragActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET);
 			if (currTp > prevTp)
 			{
@@ -250,16 +257,19 @@ namespace SG
 			fragCompiledName[fragActualName.find('.')] = '-';
 			fragCompiledName += ".spv";
 
-			if (FileSystem::Exist(EResourceDirectory::eShader_Binarires, fragCompiledName.c_str())) // already compiled this shader once, skip it.
+			if (!bForceToRecompile && FileSystem::Exist(EResourceDirectory::eShader_Binarires, fragCompiledName.c_str())) // already compiled this shader once, skip it.
 				shaderBits |= (1 << 4); // mark as exist.
-
-			string commandLine = glslcPath;
-			string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + fragShaderName + "-frag-compile.log";
-
-			if (CompileShaderVkSDK(fragActualName, fragCompiledName, commandLine, pOut))
-				shaderBits |= (1 << 4); // record what shader stage we had compiled
 			else
-				SG_LOG_ERROR("Failed to compile fragment shader: %s", fragActualName.c_str());
+			{
+				string commandLine = glslcPath;
+				string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + fragShaderName + "-frag-compile.log";
+
+				if (CompileShaderVkSDK(fragActualName, fragCompiledName, commandLine, pOut))
+					shaderBits |= (1 << 4); // record what shader stage we had compiled
+				else
+					SG_LOG_ERROR("Failed to compile fragment shader: %s", fragActualName.c_str());
+
+			}
 		}
 
 		if (shaderBits == 0)

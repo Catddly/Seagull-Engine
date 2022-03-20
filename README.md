@@ -14,7 +14,14 @@ pc platform: Windows.
 
 ## Developing Screenshots
 
-![](Screenshots/sample.png)
+Default Scene with IBL and BRDF.
+![](Screenshots/scene_ibl_brdf.png)
+
+Default Scene with phone shading.
+![](Screenshots/scene_phong.png)
+
+Defalut Scene with no skybox.
+![](Screenshots/scene_no_skybox.png)
 
 ## Building
 

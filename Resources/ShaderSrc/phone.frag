@@ -23,7 +23,6 @@ layout (set = 0, binding = 2) uniform CompositionUBO
 } compositionUbo;
 
 layout(set = 0, binding = 3) uniform sampler2D sShadowMap;
-layout(set = 0, binding = 4) uniform samplerCube sDiffuseCubeMap;
 
 layout (location = 0) out vec4 outColor;
 
@@ -95,15 +94,16 @@ void main()
     // light radiance
     vec3 light = vec3(0.0);
 
+    float shadow = SampleShadowMapPCF(inShadowMapPos);
+
     light += CalcPointLightIntensity(normalize(lightUbo.pointLightPos - inPosWS));
-    light += CalcDirectionalLight(normalize(-lightUbo.viewDirection));
+    light += CalcDirectionalLight(normalize(-lightUbo.viewDirection)) * (1.0 - shadow);
 
     // ambient part
-    float ambientIntensity = 1.0f;
-    vec3 ambient = texture(sDiffuseCubeMap, inNormalWS).xyz * ambientIntensity;
+    float ambientIntensity = 0.05f;
+    vec3 ambient = vec3(1.0, 1.0, 1.0) * ambientIntensity;
 
-    float shadow = SampleShadowMapPCF(inShadowMapPos);
-    vec3 result = (ambient + (1.0 - shadow) * light) * vec3(1.0, 1.0, 1.0);
+    vec3 result = (ambient + light) * vec3(1.0, 1.0, 1.0);
 
     // tone mapping
     result = vec3(1.0) - exp(-result * compositionUbo.exposure);
