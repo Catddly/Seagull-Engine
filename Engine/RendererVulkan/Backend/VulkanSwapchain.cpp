@@ -230,9 +230,9 @@ namespace SG
 			vkDestroySwapchainKHR(mDevice.logicalDevice, swapchain, nullptr);
 	}
 
-	bool VulkanSwapchain::AcquireNextImage(VulkanSemaphore* signalSemaphore, UInt32& imageIndex)
+	bool VulkanSwapchain::AcquireNextImage(VulkanSemaphore* pSignalSemaphore, UInt32& imageIndex)
 	{
-		if (vkAcquireNextImageKHR(mDevice.logicalDevice, swapchain, UINT64_MAX, signalSemaphore->semaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
+		if (vkAcquireNextImageKHR(mDevice.logicalDevice, swapchain, UINT64_MAX, pSignalSemaphore->semaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
 		{
 			SG_LOG_WARN("Failed to acquire next image!");
 			return false;
@@ -240,7 +240,7 @@ namespace SG
 		return true;
 	}
 
-	EImageState VulkanSwapchain::Present(VulkanQueue* queue, UInt32 imageIndex, VulkanSemaphore* signalSemaphore)
+	EImageState VulkanSwapchain::Present(VulkanQueue* queue, UInt32 imageIndex, VulkanSemaphore* pWaitSemaphore)
 	{
 		VkPresentInfoKHR presentInfo = {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -248,9 +248,9 @@ namespace SG
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = &swapchain;
 		presentInfo.pImageIndices = &imageIndex;
-		if (signalSemaphore != nullptr)
+		if (pWaitSemaphore != nullptr)
 		{
-			presentInfo.pWaitSemaphores = &signalSemaphore->semaphore;
+			presentInfo.pWaitSemaphores = &pWaitSemaphore->semaphore;
 			presentInfo.waitSemaphoreCount = 1;
 		}
 

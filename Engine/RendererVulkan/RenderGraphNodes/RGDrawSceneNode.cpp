@@ -239,7 +239,7 @@ namespace SG
 			});
 	}
 
-	void RGDrawSceneNode::Draw(RGDrawContext& context)
+	void RGDrawSceneNode::Draw(RGDrawInfo& context)
 	{
 		auto& pBuf = *context.pCmd;
 

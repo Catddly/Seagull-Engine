@@ -24,6 +24,7 @@ namespace SG
 	public:
 		void BeginRecord(bool bPermanent = false);
 		void EndRecord();
+		void Reset(bool bReleaseResource = false);
 
 		void BeginRenderPass(VulkanFrameBuffer* pFrameBuffer); // TODO: change param
 		void EndRenderPass();
@@ -52,9 +53,12 @@ namespace SG
 
 		void SetDepthBias(float biasConstant, float clamp, float slopeFactor);
 	private:
+		bool IsRenderPassValid();
+	private:
 		friend class VulkanCommandPool;
 		friend class VulkanQueue;
 
+		VulkanFrameBuffer* pCurrFrameBuffer = nullptr;
 		VkCommandBuffer commandBuffer;
 		UInt32          queueFamilyIndex; // which queue this command buffer should submit to.
 	};

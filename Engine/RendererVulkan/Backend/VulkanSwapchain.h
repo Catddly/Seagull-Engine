@@ -118,8 +118,8 @@ namespace SG
 		VulkanRenderTarget* GetRenderTarget(UInt32 index) const;
 		void CleanUp();
 
-		bool AcquireNextImage(VulkanSemaphore* signalSemaphore, UInt32& imageIndex);
-		EImageState Present(VulkanQueue* queue, UInt32 imageIndex, VulkanSemaphore* signalSemaphore);
+		bool AcquireNextImage(VulkanSemaphore* pSignalSemaphore, UInt32& imageIndex);
+		EImageState Present(VulkanQueue* queue, UInt32 imageIndex, VulkanSemaphore* pWaitSemaphore);
 	private:
 		bool CreateSurface();
 		void DestroySurface();

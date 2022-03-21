@@ -84,7 +84,7 @@ namespace SG
 		auto& commandBuf = mpContext->commandBuffers[frameIndex];
 		auto* pColorRt = mpContext->colorRts[frameIndex];
 
-		RenderGraphNode::RGDrawContext drawContext = { &commandBuf, frameIndex };
+		RenderGraphNode::RGDrawInfo drawContext = { &commandBuf, frameIndex };
 
 		commandBuf.BeginRecord();
 		for (auto* pCurrNode : mpNodes)
@@ -122,16 +122,16 @@ namespace SG
 			Memory::Delete(beg->second);
 		mFrameBuffersMap.clear();
 
-		// after the resizing, all the render targets had been recreated,
-		// update the node to update the resources which is using in the node.
-		for (auto* pCurrNode : mpNodes)
-			pCurrNode->Reset();
-
 		// re-assign rts' dependencies
 		mResourceStatusKeeper.Clear();
 		for (auto* rt : mpContext->colorRts)
 			mResourceStatusKeeper.AddResourceDenpendency(rt, EResourceBarrier::efUndefined, EResourceBarrier::efPresent);
 		mResourceStatusKeeper.AddResourceDenpendency(mpContext->depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil);
+
+		// after the resizing, all the render targets had been recreated,
+		// update the node to update the resources which is using in the node.
+		for (auto* pCurrNode : mpNodes)
+			pCurrNode->Reset();
 		mFrameIndex = 0;
 	}
 

@@ -22,7 +22,7 @@ namespace SG
 		RenderGraphNode();
 		virtual ~RenderGraphNode() = default;
 
-		struct RGDrawContext
+		struct RGDrawInfo
 		{
 			VulkanCommandBuffer* pCmd;
 			UInt32               frameIndex;
@@ -41,7 +41,7 @@ namespace SG
 		//! Be called every frame to update the necessary resource which used to render.
 		virtual void Update(UInt32 frameIndex) = 0;
 		//! Be called every frame to record render command.
-		virtual void Draw(RGDrawContext& context) = 0;
+		virtual void Draw(RGDrawInfo& context) = 0;
 	private:
 		bool HaveValidResource() const;
 	private:

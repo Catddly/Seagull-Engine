@@ -26,7 +26,7 @@ namespace SG
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
 		virtual void Update(UInt32 frameIndex) override;
-		virtual void Draw(RGDrawContext& context) override;
+		virtual void Draw(RGDrawInfo& context) override;
 	private:
 		VulkanContext& mContext;
 

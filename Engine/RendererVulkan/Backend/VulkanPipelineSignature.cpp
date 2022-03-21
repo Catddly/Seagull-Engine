@@ -23,7 +23,7 @@ namespace SG
 		return VulkanPipelineSignature::Create(mContext, mpShader, mCombineImages);
 	}
 
-	VulkanPipelineSignature::VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages)
+	VulkanPipelineSignature::VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages)
 		:mContext(context), mpShader(pShader)
 	{
 		// bind to the descriptor set

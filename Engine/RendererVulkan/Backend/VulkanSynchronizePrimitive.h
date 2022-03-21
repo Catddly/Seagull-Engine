@@ -31,8 +31,8 @@ namespace SG
 		~VulkanFence();
 
 		void Reset();
-		void Wait(UInt64 timeOut = UINT64_MAX);
-		void WaitAndReset(UInt64 timeOut = UINT64_MAX);
+		void Wait(UInt64 timeOutNs = UINT64_MAX);
+		void WaitAndReset(UInt64 timeOutNs = UINT64_MAX);
 
 		static VulkanFence* Create(VulkanDevice& d, bool bSignaled = false);
 	private:

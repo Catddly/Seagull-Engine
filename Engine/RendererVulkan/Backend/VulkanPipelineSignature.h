@@ -18,7 +18,7 @@ namespace SG
 	class VulkanPipelineSignature
 	{
 	public:
-		VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages);
+		VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages);
 		~VulkanPipelineSignature() = default;
 
 		class Builder
@@ -42,7 +42,7 @@ namespace SG
 		friend class VulkanPipeline;
 		VulkanContext& mContext;
 
-		RefPtr<VulkanShader>              mpShader;
+		RefPtr<VulkanShader>&             mpShader;
 		RefPtr<VulkanDescriptorSetLayout> mpUBODescriptorSetLayout;
 		RefPtr<VulkanPipelineLayout>      mpPipelineLayout;
 		VulkanDescriptorSet               mDescriptorSet;

@@ -59,14 +59,14 @@ namespace SG
 		vkResetFences(device.logicalDevice, 1, &fence);
 	}
 
-	void VulkanFence::Wait(UInt64 timeOut)
+	void VulkanFence::Wait(UInt64 timeOutNs)
 	{
-		vkWaitForFences(device.logicalDevice, 1, &fence, VK_TRUE, timeOut);
+		vkWaitForFences(device.logicalDevice, 1, &fence, VK_TRUE, timeOutNs);
 	}
 
-	void VulkanFence::WaitAndReset(UInt64 timeOut)
+	void VulkanFence::WaitAndReset(UInt64 timeOutNs)
 	{
-		Wait(timeOut);
+		Wait(timeOutNs);
 		Reset();
 	}
 

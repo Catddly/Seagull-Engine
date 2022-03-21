@@ -44,6 +44,9 @@ namespace SG
 			auto& cameraUbo = GetCameraUBO();
 			cameraUbo.proj = mpCamera->GetProjMatrix();
 
+			auto& skyboxUbo = GetSkyboxUBO();
+			skyboxUbo.proj = cameraUbo.proj;
+
 			mpModelGeometry = VK_RESOURCE()->GetGeometry("model");
 			mpGridGeometry = VK_RESOURCE()->GetGeometry("grid");
 
@@ -58,9 +61,6 @@ namespace SG
 			lightUbo.lightSpaceVP = pDirectionalLight->GetViewProj();
 			lightUbo.directionalColor = { pDirectionalLight->GetColor(), 1.0f };
 			lightUbo.viewDirection = glm::normalize(pDirectionalLight->GetDirection());
-
-			auto& skyboxUbo = GetSkyboxUBO();
-			skyboxUbo.proj = cameraUbo.proj;
 
 			// skybox
 			mpSkyboxGeometry = VK_RESOURCE()->GetGeometry("skybox");
@@ -86,6 +86,16 @@ namespace SG
 		rtCI.initLayout = EImageLayout::eUndefined;
 
 		VK_RESOURCE()->CreateRenderTarget(rtCI);
+
+		// translate color rt from undefined to shader read
+		VulkanCommandBuffer pCmd;
+		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
+		pCmd.BeginRecord();
+		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("HDRColor"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
+		pCmd.EndRecord();
+		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+		mContext.graphicQueue.WaitIdle();
+		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
 #endif
 
 		// load cube map texture
@@ -126,15 +136,6 @@ namespace SG
 		compiler.CompileGLSLShader("brdf", mpShader.get());
 		compiler.CompileGLSLShader("skybox", mpSkyboxShader.get());
 
-		VulkanCommandBuffer pCmd;
-		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
-		pCmd.BeginRecord();
-		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("shadow map"), EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil_Read_Only);
-		pCmd.EndRecord();
-		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mContext.graphicQueue.WaitIdle();
-		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
-
 		GenerateBRDFLut();
 		PreCalcIrradianceCubemap();
 		PrefilterCubemap();
@@ -170,15 +171,44 @@ namespace SG
 	void RGDrawScenePBRNode::Reset()
 	{
 		ClearResources();
+#ifdef SG_ENABLE_HDR
+		VK_RESOURCE()->DeleteRenderTarget("HDRColor");
+		TextureCreateDesc rtCI;
+		rtCI.name = "HDRColor";
+		rtCI.width = mContext.colorRts[0]->GetWidth();
+		rtCI.height = mContext.colorRts[0]->GetHeight();
+		rtCI.depth = mContext.colorRts[0]->GetDepth();
+		rtCI.array = 1;
+		rtCI.mipLevel = 1;
+		rtCI.format = EImageFormat::eSfloat_R32G32B32A32;
+		rtCI.sample = ESampleCount::eSample_1;
+		rtCI.type = EImageType::e2D;
+		rtCI.usage = EImageUsage::efColor | EImageUsage::efSample;
+		rtCI.initLayout = EImageLayout::eUndefined;
+		VK_RESOURCE()->CreateRenderTarget(rtCI);
+
+		// translate color rt from undefined to shader read
+		VulkanCommandBuffer pCmd;
+		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
+		pCmd.BeginRecord();
+		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("HDRColor"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
+		pCmd.EndRecord();
+		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+		mContext.graphicQueue.WaitIdle();
+		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
 
 		ClearValue cv = {};
+		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
+		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("HDRColor"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+#endif
+		cv = {};
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
 		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv });
 
 		auto* window = OperatingSystem::GetMainWindow();
-		const float  ASPECT = window->GetAspectRatio();
-		mpCamera->SetPerspective(45.0f, ASPECT);
+		const float ASPECT = window->GetAspectRatio();
+		mpCamera->SetPerspective(45.0f, ASPECT, 0.01f, 256.0f);
 
 		auto& skyboxUbo = GetSkyboxUBO();
 		auto& cameraUbo = GetCameraUBO();
@@ -186,12 +216,14 @@ namespace SG
 		skyboxUbo.proj = cameraUbo.proj;
 		cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
 		VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
+		VK_RESOURCE()->UpdataBufferData("skyboxUbo", &skyboxUbo);
 	}
 
 	void RGDrawScenePBRNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
 		mpSkyboxPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetRasterizer(VK_CULL_MODE_FRONT_BIT)
+			.SetColorBlend(false)
 			.BindSignature(mpSkyboxPipelineSignature.get())
 			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
@@ -199,6 +231,7 @@ namespace SG
 			.Build();
 
 		mpPipeline = VulkanPipeline::Builder(mContext.device)
+			.SetColorBlend(false)
 			.BindSignature(mpPipelineSignature.get())
 			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
@@ -239,18 +272,11 @@ namespace SG
 		auto& compositionUbo = GetCompositionUBO();
 		VK_RESOURCE()->UpdataBufferData("compositionUbo", &compositionUbo);
 
-		SSystem()->GetMainScene()->TraverseMesh([&](const Mesh& mesh)
-			{
-				if (mesh.GetName() == "model")
-				{
-					mPushConstantGeo.model = mesh.GetTransform();
-					mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
-					return;
-				}
-			});
+		mPushConstantGeo.model = SSystem()->GetMainScene()->GetMesh("model")->GetTransform();
+		mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
 	}
 
-	void RGDrawScenePBRNode::Draw(RGDrawContext& context)
+	void RGDrawScenePBRNode::Draw(RGDrawInfo& context)
 	{
 		auto& pBuf = *context.pCmd;
 
@@ -340,7 +366,7 @@ namespace SG
 
 		// do once irradiance command
 		auto* pTempVulkanRenderPass = VulkanRenderPass::Builder(mContext.device)
-			.BindRenderTarget(VK_RESOURCE()->GetRenderTarget("brdf_lut"), mColorRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efRenderTarget)
+			.BindRenderTarget(VK_RESOURCE()->GetRenderTarget("brdf_lut"), mColorRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource)
 			.CombineAsSubpass()
 			.Build();
 
@@ -375,7 +401,6 @@ namespace SG
 			cmdBuf.Draw(3, 1, 0, 0);
 		}
 		cmdBuf.EndRenderPass();
-		cmdBuf.ImageBarrier(VK_RESOURCE()->GetRenderTarget("brdf_lut"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
 		cmdBuf.EndRecord();
 
 		mContext.graphicQueue.SubmitCommands(&cmdBuf, nullptr, nullptr, nullptr);
@@ -446,7 +471,7 @@ namespace SG
 
 		// do once irradiance command
 		auto* pTempVulkanRenderPass = VulkanRenderPass::Builder(mContext.device)
-			.BindRenderTarget(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"), mColorRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efRenderTarget)
+			.BindRenderTarget(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"), mColorRtLoadStoreOp, EResourceBarrier::efRenderTarget, EResourceBarrier::efCopy_Source)
 			.CombineAsSubpass()
 			.Build();
 
@@ -521,8 +546,6 @@ namespace SG
 						cmdBuf.Draw(36, 1, 0, 0);
 					}
 					cmdBuf.EndRenderPass();
-
-					cmdBuf.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"), EResourceBarrier::efRenderTarget, EResourceBarrier::efCopy_Source);
 
 					TextureCopyRegion copyRegion = {};
 					copyRegion.baseArray = face;
@@ -609,7 +632,7 @@ namespace SG
 
 		// do once irradiance command
 		auto* pTempVulkanRenderPass = VulkanRenderPass::Builder(mContext.device)
-			.BindRenderTarget(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"), mColorRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efRenderTarget)
+			.BindRenderTarget(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"), mColorRtLoadStoreOp, EResourceBarrier::efRenderTarget, EResourceBarrier::efCopy_Source)
 			.CombineAsSubpass()
 			.Build();
 
@@ -685,8 +708,6 @@ namespace SG
 					}
 					cmdBuf.EndRenderPass();
 
-					cmdBuf.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"), EResourceBarrier::efRenderTarget, EResourceBarrier::efCopy_Source);
-
 					TextureCopyRegion copyRegion = {};
 					copyRegion.baseArray = face;
 					copyRegion.width = (texSize >> mip);
@@ -700,6 +721,7 @@ namespace SG
 				}
 			}
 		}
+		// now the cubemap is ready to use by shader
 		cmdBuf.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_prefilter"), EResourceBarrier::efCopy_Dest, EResourceBarrier::efShader_Resource);
 		cmdBuf.EndRecord();
 

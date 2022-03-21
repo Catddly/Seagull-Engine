@@ -6,7 +6,7 @@
 namespace SG
 {
 
-	Size RGResourceHasher::operator()(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, Size prev /*= 0*/)
+	Size RGResourceHasher::operator()(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, Size prev)
 	{
 		Size hash = prev;
 		if (!pRenderTarget->IsDepth())

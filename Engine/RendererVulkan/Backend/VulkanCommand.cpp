@@ -111,6 +111,11 @@ namespace SG
 			SG_LOG_ERROR("Failed to end command buffer!"); SG_ASSERT(false););
 	}
 
+	void VulkanCommandBuffer::Reset(bool bReleaseResource)
+	{
+		vkResetCommandBuffer(commandBuffer, bReleaseResource ? VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT : 0);
+	}
+
 	void VulkanCommandBuffer::BeginRenderPass(VulkanFrameBuffer* pFrameBuffer)
 	{
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -124,14 +129,25 @@ namespace SG
 		renderPassBeginInfo.clearValueCount = static_cast<UInt32>(pFrameBuffer->clearValues.size());
 		renderPassBeginInfo.pClearValues    = pFrameBuffer->clearValues.data();
 
-		renderPassBeginInfo.renderPass = pFrameBuffer->currRenderPass;
+		renderPassBeginInfo.renderPass = pFrameBuffer->currRenderPass->renderPass;
 		renderPassBeginInfo.framebuffer = pFrameBuffer->frameBuffer;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		pCurrFrameBuffer = pFrameBuffer;
 	}
 
 	void VulkanCommandBuffer::EndRenderPass()
 	{
+		for (auto& trans : pCurrFrameBuffer->currRenderPass->transitions)
+		{
+			if (trans.srcLayout != VK_IMAGE_LAYOUT_UNDEFINED && trans.pRenderTarget->currLayout != trans.srcLayout)
+			{
+				SG_LOG_WARN("Mismatch renderpass rendertarget image layout.");
+				SG_ASSERT(false);
+			}
+			else
+				trans.pRenderTarget->currLayout = trans.dstLayout;
+		}
 		vkCmdEndRenderPass(commandBuffer);
 	}
 
@@ -160,16 +176,22 @@ namespace SG
 
 	void VulkanCommandBuffer::BindVertexBuffer(UInt32 firstBinding, UInt32 bindingCount, VulkanBuffer& buffer, const UInt64* pOffsets)
 	{
+		if (!IsRenderPassValid())
+			return;
 		vkCmdBindVertexBuffers(commandBuffer, firstBinding, bindingCount, &buffer.buffer, pOffsets);
 	}
 
 	void VulkanCommandBuffer::BindIndexBuffer(VulkanBuffer& buffer, UInt32 offset, VkIndexType type)
 	{
+		if (!IsRenderPassValid())
+			return;
 		vkCmdBindIndexBuffer(commandBuffer, buffer.buffer, offset, type);
 	}
 
 	void VulkanCommandBuffer::PushConstants(VulkanPipelineSignature* pSignature, EShaderStage shaderStage, UInt32 size, UInt32 offset, void* pConstants)
 	{
+		if (!IsRenderPassValid())
+			return;
 		if (pConstants == nullptr)
 		{
 			SG_LOG_WARN("Can not push nullptr data!");
@@ -180,6 +202,8 @@ namespace SG
 
 	void VulkanCommandBuffer::BindPipelineSignature(VulkanPipelineSignature* pSignature)
 	{
+		if (!IsRenderPassValid())
+			return;
 		// TODO: add more set to it 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pSignature->mpPipelineLayout->layout,
 			0, 1, &pSignature->mDescriptorSet.set, 0, nullptr);
@@ -187,16 +211,22 @@ namespace SG
 
 	void VulkanCommandBuffer::BindPipeline(VulkanPipeline* pipeline)
 	{
+		if (!IsRenderPassValid())
+			return;
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
 	}
 
 	void VulkanCommandBuffer::Draw(UInt32 vertexCount, UInt32 instanceCount, UInt32 firstVertex, UInt32 firstInstance)
 	{
+		if (!IsRenderPassValid())
+			return;
 		vkCmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 	}
 
 	void VulkanCommandBuffer::DrawIndexed(UInt32 indexCount, UInt32 instanceCount, UInt32 firstIndex, UInt32 vertexOffset, UInt32 firstInstance)
 	{
+		if (!IsRenderPassValid())
+			return;
 		vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 	}
 
@@ -408,7 +438,19 @@ namespace SG
 
 	void VulkanCommandBuffer::SetDepthBias(float biasConstant, float clamp, float slopeFactor)
 	{
+		if (!IsRenderPassValid())
+			return;
 		vkCmdSetDepthBias(commandBuffer, biasConstant, clamp, slopeFactor);
+	}
+
+	bool VulkanCommandBuffer::IsRenderPassValid()
+	{
+		if (!pCurrFrameBuffer)
+		{
+			SG_LOG_WARN("Did you forget to call BeginRenderPass()?");
+			return false;
+		}
+		return true;
 	}
 
 }

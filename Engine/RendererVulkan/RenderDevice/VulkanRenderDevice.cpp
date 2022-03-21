@@ -91,12 +91,16 @@ namespace SG
 			return;
 
 		mpContext->swapchain.AcquireNextImage(mpContext->pPresentCompleteSemaphore, mCurrentFrameInCPU); // check if next image is presented, and get it as the available image
-		mpContext->pFences[mCurrentFrameInCPU]->WaitAndReset(); // wait for the render commands running on the new image
+		mpContext->pFences[mCurrentFrameInCPU]->WaitAndReset(); // wait for the render commands running on the GPU side to finish
 
+		mpContext->commandBuffers[mCurrentFrameInCPU].Reset();
 		mpRenderGraph->Draw(mCurrentFrameInCPU);
 
 		mpContext->graphicQueue.SubmitCommands(&mpContext->commandBuffers[mCurrentFrameInCPU],
 			mpContext->pRenderCompleteSemaphore, mpContext->pPresentCompleteSemaphore, mpContext->pFences[mCurrentFrameInCPU]); // submit new render commands to the available image
+		// once submit the commands to GPU, pRenderCompleteSemaphore will be locked, and will be unlocked after the GPU finished the commands.
+		// we have to wait for the commands had been executed, then we present this image.
+		// we use semaphore to have GPU-GPU sync.
 		mpContext->swapchain.Present(&mpContext->graphicQueue, mCurrentFrameInCPU, mpContext->pRenderCompleteSemaphore); // present the available image
 
 		mbBlockEvent = false;

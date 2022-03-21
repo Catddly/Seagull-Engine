@@ -28,12 +28,8 @@ namespace SG
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
 		Scene* pScene = SSystem()->GetMainScene();
-		pScene->TraverseMesh([&](const Mesh& mesh)
-			{
-				if (mesh.GetName() == "model")
-					mPushConstantModel.model = mesh.GetTransform();
-			}
-		);
+		mPushConstantModel.model = pScene->GetMesh("model")->GetTransform();
+
 		auto& shadowUbo = GetShadowUBO();
 		shadowUbo.lightSpaceVP = SSystem()->GetMainScene()->GetDirectionalLight()->GetViewProj();
 
@@ -44,13 +40,26 @@ namespace SG
 		texCI.depth = 1;
 		texCI.array = 1;
 		texCI.mipLevel = 1;
-
 		texCI.usage = EImageUsage::efDepth_Stencil | EImageUsage::efSample;
 		texCI.type = EImageType::e2D;
 		texCI.sample = ESampleCount::eSample_1;
 		texCI.format = EImageFormat::eUnorm_D16;
 		texCI.initLayout = EImageLayout::eUndefined;
 		VK_RESOURCE()->CreateRenderTarget(texCI, true);
+
+		//! [Critical] 
+		//! This shadow map is used by DrawSceneNode as shader resource, so we need to transit the image layout here.
+		//! If we create the pipeline signature after the execution of the this ShadowNode, we don't need to do a transition here.
+		//! So this is for consistency of the architecture.
+		//! Two ways, both are OK.
+		VulkanCommandBuffer pCmd;
+		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
+		pCmd.BeginRecord();
+		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("shadow map"), EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil_Read_Only);
+		pCmd.EndRecord();
+		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+		mContext.graphicQueue.WaitIdle();
+		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
 
 		mpModelGeometry = VK_RESOURCE()->GetGeometry("model");
 
@@ -87,6 +96,12 @@ namespace SG
 
 	void RGShadowNode::Reset()
 	{
+		ClearResources();
+
+		ClearValue cv = {};
+		cv.depthStencil.depth = 1.0f;
+		cv.depthStencil.stencil = 0;
+		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("shadow map"), mDepthRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil_Read_Only });
 	}
 
 	void RGShadowNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -104,17 +119,10 @@ namespace SG
 
 	void RGShadowNode::Update(UInt32 frameIndex)
 	{
-		SSystem()->GetMainScene()->TraverseMesh([&](const Mesh& mesh)
-			{
-				if (mesh.GetName() == "model")
-				{
-					mPushConstantModel.model = mesh.GetTransform();
-					return;
-				}
-			});
+		mPushConstantModel.model = SSystem()->GetMainScene()->GetMesh("model")->GetTransform();
 	}
 
-	void RGShadowNode::Draw(RGDrawContext& context)
+	void RGShadowNode::Draw(RGDrawInfo& context)
 	{
 		auto& pBuf = *context.pCmd;
 

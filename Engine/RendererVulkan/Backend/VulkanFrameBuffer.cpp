@@ -30,6 +30,8 @@ namespace SG
 			attachDesc.initialLayout = ToVkImageLayout(initStatus);
 			attachDesc.finalLayout   = ToVkImageLayout(dstStatus);
 
+			transitions.emplace_back(pRenderTarget, attachDesc.initialLayout, attachDesc.finalLayout);
+
 			//VkSubpassDependency dependency = {};
 			//dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 			//dependency.dstSubpass = 0;
@@ -58,6 +60,8 @@ namespace SG
 			attachDesc.stencilStoreOp = ToVkStoreOp(op.stencilStoreOp);
 			attachDesc.initialLayout = ToVkImageLayout(initStatus);
 			attachDesc.finalLayout = ToVkImageLayout(dstStatus);
+
+			transitions.emplace_back(pRenderTarget, attachDesc.initialLayout, attachDesc.finalLayout);
 
 			// source dependency is when this subpass depend on. (i.e. this subpass will wait for source dependency finished then it will run)
 			// destination dependency is when this subpass run on. (i.e. this subpass will run on this stage and make sure it will end in this stage)
@@ -89,11 +93,6 @@ namespace SG
 
 	VulkanRenderPass::Builder& VulkanRenderPass::Builder::CombineAsSubpass()
 	{
-		//if (attachments.empty() || (attachments.size() == 1 && bHaveDepth))
-		//{
-		//	SG_LOG_ERROR("At least bind one color render target to this subpass!");
-		//	return *this;
-		//}
 		UInt32 index = 0;
 
 		VkSubpassDescription subpassDesc = {};
@@ -137,22 +136,18 @@ namespace SG
 
 	VulkanRenderPass* VulkanRenderPass::Builder::Build()
 	{
-		//if (attachments.empty() || (attachments.size() == 1 && bHaveDepth))
-		//{
-		//	SG_LOG_ERROR("At least bind one color render target to this subpass!");
-		//	return nullptr;
-		//}
 		if (subpasses.empty())
 		{
 			SG_LOG_ERROR("At least combine subpass once!");
 			return nullptr;
 		}
 
-		return Memory::New<VulkanRenderPass>(device, attachments, dependencies, subpasses);
+		return Memory::New<VulkanRenderPass>(device, eastl::move(attachments), eastl::move(dependencies), eastl::move(subpasses), eastl::move(transitions));
 	}
 
-	VulkanRenderPass::VulkanRenderPass(VulkanDevice& d, const vector<VkAttachmentDescription>& attachments, const vector<VkSubpassDependency>& dependencies, const vector<VkSubpassDescription>& subpasses)
-		:device(d)
+	VulkanRenderPass::VulkanRenderPass(VulkanDevice& d, const vector<VkAttachmentDescription>& attachments, 
+		const vector<VkSubpassDependency>& dependencies, const vector<VkSubpassDescription>& subpasses, const vector<VulkanImageTransitions>& trans)
+		:device(d), transitions(trans)
 	{
 		VkRenderPassCreateInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -176,18 +171,18 @@ namespace SG
 	/// VulkanFrameBuffer
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanFrameBuffer::VulkanFrameBuffer(VulkanDevice& d, const vector<VulkanRenderTarget*>& pRenderTargets, const vector<ClearValue>& clearValues, VulkanRenderPass* pRenderPass)
+	VulkanFrameBuffer::VulkanFrameBuffer(VulkanDevice& d, const vector<VulkanRenderTarget*>& renderTargets, const vector<ClearValue>& clearValues, VulkanRenderPass* pRenderPass)
 		:device(d)
 	{
 		vector<VkImageView> imageViews;
-		for (auto* pRt : pRenderTargets)
+		for (auto* pRt : renderTargets)
 			imageViews.emplace_back(pRt->imageView);
 
 		UInt32 index = 0;
 		for (auto& value : clearValues)
 		{
 			VkClearValue clearValue = {};
-			if (!pRenderTargets[index]->IsDepth())
+			if (!renderTargets[index]->IsDepth())
 				clearValue.color = { { value.color.x, value.color.y, value.color.z, value.color.w } };
 			else
 				clearValue.depthStencil = { value.depthStencil.depth, value.depthStencil.stencil };
@@ -200,16 +195,16 @@ namespace SG
 
 		frameBufferCreateInfo.renderPass = pRenderPass->renderPass;
 
-		frameBufferCreateInfo.attachmentCount = static_cast<UInt32>(pRenderTargets.size());
+		frameBufferCreateInfo.attachmentCount = static_cast<UInt32>(renderTargets.size());
 		frameBufferCreateInfo.pAttachments = imageViews.data();
 
-		frameBufferCreateInfo.width  = pRenderTargets[0]->width;
-		frameBufferCreateInfo.height = pRenderTargets[0]->height;
+		frameBufferCreateInfo.width  = renderTargets[0]->width;
+		frameBufferCreateInfo.height = renderTargets[0]->height;
 		frameBufferCreateInfo.layers = 1;
 
 		this->width  = frameBufferCreateInfo.width;
 		this->height = frameBufferCreateInfo.height;
-		currRenderPass = pRenderPass->renderPass;
+		currRenderPass = pRenderPass;
 
 		VK_CHECK(vkCreateFramebuffer(device.logicalDevice, &frameBufferCreateInfo, nullptr, &frameBuffer),
 			SG_LOG_ERROR("Failed to create vulkan frame buffer!"););

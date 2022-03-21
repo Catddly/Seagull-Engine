@@ -43,16 +43,6 @@ namespace SG
 			samplerCI.enableAnisotropy = false;
 			VK_RESOURCE()->CreateSampler(samplerCI);
 
-			// translate color rt from undefined to shader read
-			VulkanCommandBuffer pCmd;
-			mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
-			pCmd.BeginRecord();
-			pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("HDRColor"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
-			pCmd.EndRecord();
-			mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-			mContext.graphicQueue.WaitIdle();
-			mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
-
 			mpCompPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpCompShader)
 				.AddCombindSamplerImage("comp_sampler", "HDRColor")
 				.Build();
@@ -121,7 +111,9 @@ namespace SG
 
 	void RGFinalOutputNode::Reset()
 	{
-
+		mpCompPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpCompShader)
+			.AddCombindSamplerImage("comp_sampler", "HDRColor")
+			.Build();
 	}
 
 	void RGFinalOutputNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -152,7 +144,7 @@ namespace SG
 		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
 	}
 
-	void RGFinalOutputNode::Draw(RGDrawContext& context)
+	void RGFinalOutputNode::Draw(RGDrawInfo& context)
 	{
 		// 1. Draw the color rt (just a simple quad on the screen)
 		{

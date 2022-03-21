@@ -10,10 +10,23 @@ namespace SG
 
 	class VulkanRenderTarget;
 
+	struct VulkanImageTransitions
+	{
+		VulkanRenderTarget* pRenderTarget;
+		VkImageLayout       srcLayout;
+		VkImageLayout       dstLayout;
+
+		VulkanImageTransitions(VulkanRenderTarget* pRt, VkImageLayout sLayout, VkImageLayout dLayout)
+			:pRenderTarget(pRt), srcLayout(sLayout), dstLayout(dLayout)
+		{}
+	};
+
 	class VulkanRenderPass
 	{
 	public:
-		VulkanRenderPass(VulkanDevice& d, const vector<VkAttachmentDescription>& attachments, const vector<VkSubpassDependency>& dependencies, const vector<VkSubpassDescription>& subpasses);
+		VulkanRenderPass(VulkanDevice& d, const vector<VkAttachmentDescription>& attachments, 
+			const vector<VkSubpassDependency>& dependencies, const vector<VkSubpassDescription>& subpasses,
+			const vector<VulkanImageTransitions>& trans);
 		~VulkanRenderPass();
 
 		const VkRenderPass& NativeHandle() const { return renderPass; }
@@ -30,8 +43,9 @@ namespace SG
 			 * @brief Combine the render targets you had binded to a subpass.
 			 * The firstly binded render target will be attachment 0, the second render target will be 1 and so on.
 			 */
-			Builder& CombineAsSubpass(); // TODO: support multiple subpass
+			Builder& CombineAsSubpass(); // TODO: support multiple subpass (better for mobile GPU)
 			VulkanRenderPass* Build();
+		private:
 		private:
 			VulkanDevice& device;
 			vector<VkAttachmentDescription> attachments;
@@ -40,13 +54,17 @@ namespace SG
 			bool                            bHaveDepth;
 			VkAttachmentReference           depthReference;
 			vector<VkSubpassDescription>    subpasses;
+
+			vector<VulkanImageTransitions> transitions;
 		};
 	private:
+		friend class VulkanCommandBuffer;
 		friend class VulkanPipeline;
 		friend class VulkanFrameBuffer;
 
 		VulkanDevice& device;
 		VkRenderPass  renderPass;
+		vector<VulkanImageTransitions> transitions;
 	};
 
 	class VulkanFrameBuffer
@@ -78,8 +96,8 @@ namespace SG
 		friend class VulkanCommandBuffer;
 
 		VulkanDevice& device;
+		VulkanRenderPass* currRenderPass;
 		VkFramebuffer frameBuffer;
-		VkRenderPass  currRenderPass;
 		vector<VkClearValue> clearValues;
 		UInt32 width;
 		UInt32 height;
