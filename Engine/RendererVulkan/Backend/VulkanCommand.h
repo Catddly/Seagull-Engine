@@ -41,6 +41,7 @@ namespace SG
 
 		void Draw(UInt32 vertexCount, UInt32 instanceCount, UInt32 firstVertex, UInt32 firstInstance);
 		void DrawIndexed(UInt32 indexCount, UInt32 instanceCount, UInt32 firstIndex, UInt32 vertexOffset, UInt32 firstInstance);
+		void DrawIndexedIndirect();
 
 		// transfer
 		void CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer);

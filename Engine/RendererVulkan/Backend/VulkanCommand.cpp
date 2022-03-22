@@ -230,6 +230,11 @@ namespace SG
 		vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 	}
 
+	void VulkanCommandBuffer::DrawIndexedIndirect()
+	{
+		VkDrawIndexedIndirectCommand indirect;
+	}
+
 	void VulkanCommandBuffer::CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer)
 	{
 		VkBufferCopy copyRegion = {};
