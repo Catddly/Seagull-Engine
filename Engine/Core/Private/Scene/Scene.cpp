@@ -20,7 +20,7 @@ namespace SG
 		mpMainCamera->SetPerspective(45.0f, ASPECT, 0.01f, 256.0f);
 
 		mMeshes.emplace("model", Mesh("model", EMeshType::eOBJ));
-		mMeshes.emplace("skybox", Mesh("skybox", EGennerateMeshType::eSkybox));
+		//mMeshes.emplace("skybox", Mesh("skybox", EGennerateMeshType::eSkybox));
 		mMeshes.emplace("grid", Mesh("grid", EGennerateMeshType::eGrid)).first->second.SetScale({ 8.0f, 1.0f, 8.0f });
 
 		mPointLights.emplace_back(Vector3f{ 1.25f, 0.75f, -0.3f }, 3.0f, Vector3f{ 0.0f, 1.0f, 0.705f });

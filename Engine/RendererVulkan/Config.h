@@ -9,3 +9,5 @@
 #else
 #	define SG_RENDERER_VK_API
 #endif
+
+#define SG_USE_PACKED_BUFFER 1

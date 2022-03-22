@@ -181,14 +181,14 @@ namespace SG
 		vkCmdBindVertexBuffers(commandBuffer, firstBinding, bindingCount, &buffer.buffer, pOffsets);
 	}
 
-	void VulkanCommandBuffer::BindIndexBuffer(VulkanBuffer& buffer, UInt32 offset, VkIndexType type)
+	void VulkanCommandBuffer::BindIndexBuffer(VulkanBuffer& buffer, UInt64 offset, VkIndexType type)
 	{
 		if (!IsRenderPassValid())
 			return;
 		vkCmdBindIndexBuffer(commandBuffer, buffer.buffer, offset, type);
 	}
 
-	void VulkanCommandBuffer::PushConstants(VulkanPipelineSignature* pSignature, EShaderStage shaderStage, UInt32 size, UInt32 offset, void* pConstants)
+	void VulkanCommandBuffer::PushConstants(VulkanPipelineSignature* pSignature, EShaderStage shaderStage, UInt32 size, UInt32 offset, const void* pConstants)
 	{
 		if (!IsRenderPassValid())
 			return;
@@ -233,13 +233,14 @@ namespace SG
 	void VulkanCommandBuffer::DrawIndexedIndirect()
 	{
 		VkDrawIndexedIndirectCommand indirect;
+		SG_NO_USE(indirect);
 	}
 
-	void VulkanCommandBuffer::CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer)
+	void VulkanCommandBuffer::CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer, UInt64 srcOffset, UInt64 dstOffset)
 	{
 		VkBufferCopy copyRegion = {};
-		copyRegion.srcOffset = 0;
-		copyRegion.dstOffset = 0;
+		copyRegion.srcOffset = srcOffset;
+		copyRegion.dstOffset = dstOffset;
 		copyRegion.size = srcBuffer.SizeInByteCPU();
 
 		vkCmdCopyBuffer(commandBuffer, srcBuffer.buffer, dstBuffer.buffer, 1, &copyRegion);

@@ -12,7 +12,6 @@ namespace SG
 	class VulkanPipelineSignature;
 	class VulkanPipeline;
 	class VulkanShader;
-	class VulkanGeometry;
 	class VulkanRenderTarget;
 
 	class DirectionalLight;
@@ -33,17 +32,9 @@ namespace SG
 		RefPtr<VulkanShader> mpShadowShader;
 		RefPtr<VulkanPipelineSignature> mpShadowPipelineSignature;
 		VulkanPipeline* mpShadowPipeline;
-
-		VulkanGeometry* mpModelGeometry;
 		DirectionalLight* mpDirectionalLight = nullptr;
 
-		struct PushConstant
-		{
-			Matrix4f model;
-		};
-		PushConstant mPushConstantModel;
-
-		LoadStoreClearOp    mDepthRtLoadStoreOp;
+		LoadStoreClearOp  mDepthRtLoadStoreOp;
 	};
 
 }

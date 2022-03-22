@@ -45,6 +45,12 @@ namespace SG
 		float exposure;
 	};
 
+	struct PerMeshRenderData
+	{
+		Matrix4f model = Matrix4f(1.0f);
+		Matrix4f inverseTransposeModel = Matrix4f(1.0f);
+	};
+
 	// temporary
 	SG_RENDERER_VK_API SG_INLINE LightUBO&  GetLightUBO();
 	SG_RENDERER_VK_API SG_INLINE ShadowUBO& GetShadowUBO();

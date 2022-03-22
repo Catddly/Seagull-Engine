@@ -15,7 +15,7 @@
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
 #include "RendererVulkan/Backend/VulkanShader.h"
 
-#include "RendererVulkan/Resource/VulkanGeometry.h"
+#include "RendererVulkan/Resource/RenderMesh.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 #include "RendererVulkan/Resource/CommonUBO.h"
 
@@ -40,15 +40,6 @@ namespace SG
 			auto& cameraUbo = GetCameraUBO();
 			cameraUbo.proj = mpCamera->GetProjMatrix();
 
-			mpModelGeometry = VK_RESOURCE()->GetGeometry("model");
-			mpGridGeometry = VK_RESOURCE()->GetGeometry("grid");
-
-			mPushConstantGeo.model = pScene->GetMesh("model")->GetTransform();
-			mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
-
-			mPushConstantGrid.model = pScene->GetMesh("grid")->GetTransform();
-			mPushConstantGrid.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGrid.model));
-
 			auto& lightUbo = GetLightUBO();
 			auto* pDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
 			lightUbo.lightSpaceVP = pDirectionalLight->GetViewProj();
@@ -57,9 +48,6 @@ namespace SG
 
 			auto& skyboxUbo = GetSkyboxUBO();
 			skyboxUbo.proj = cameraUbo.proj;
-
-			// skybox
-			mpSkyboxGeometry = VK_RESOURCE()->GetGeometry("skybox");
 
 			auto& compositionUbo = GetCompositionUBO();
 			compositionUbo.gamma = 2.2f;
@@ -227,16 +215,6 @@ namespace SG
 
 		auto& compositionUbo = GetCompositionUBO();
 		VK_RESOURCE()->UpdataBufferData("compositionUbo", &compositionUbo);
-
-		SSystem()->GetMainScene()->TraverseMesh([&](const Mesh& mesh)
-			{
-				if (mesh.GetName() == "model")
-				{
-					mPushConstantGeo.model = mesh.GetTransform();
-					mPushConstantGeo.inverseTransposeModel = glm::transpose(glm::inverse(mPushConstantGeo.model));
-					return;
-				}
-			});
 	}
 
 	void RGDrawSceneNode::Draw(RGDrawInfo& context)
@@ -251,10 +229,10 @@ namespace SG
 			pBuf.BindPipelineSignature(mpSkyboxPipelineSignature.get());
 			pBuf.BindPipeline(mpSkyboxPipeline);
 
-			UInt64 offset[1] = { 0 };
-			VulkanBuffer* pVertexBuffer = mpSkyboxGeometry->GetVertexBuffer();
-			pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
+			VulkanBuffer* pVertexBuffer = nullptr;
+			const RenderMesh& skybox = VK_RESOURCE()->GetSkyboxRenderMeshData(&pVertexBuffer);
 
+			pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, &skybox.vBOffset);
 			pBuf.Draw(36, 1, 0, 0);
 		}
 
@@ -270,24 +248,16 @@ namespace SG
 		pBuf.BindPipelineSignature(mpPipelineSignature.get());
 		pBuf.BindPipeline(mpPipeline);
 
-		UInt64 offset[1] = { 0 };
-		VulkanBuffer* pVertexBuffer = mpModelGeometry->GetVertexBuffer();
-		VulkanBuffer* pIndexBuffer = mpModelGeometry->GetIndexBuffer();
-		pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
-		pBuf.BindIndexBuffer(*pIndexBuffer, 0);
+		VK_RESOURCE()->TraverseStaticRenderMesh([&](VulkanBuffer* pVB, VulkanBuffer* pIB, RenderMesh& renderMesh)
+			{
+				UInt64 offset = renderMesh.vBOffset;
+				pBuf.BindVertexBuffer(0, 1, *pVB, &offset);
+				pBuf.BindIndexBuffer(*pIB, renderMesh.iBOffset);
 
-		pBuf.PushConstants(mpPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstantGeo);
-		UInt32 indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
-		pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
-
-		pVertexBuffer = mpGridGeometry->GetVertexBuffer();
-		pIndexBuffer = mpGridGeometry->GetIndexBuffer();
-		pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
-		pBuf.BindIndexBuffer(*pIndexBuffer, 0);
-
-		pBuf.PushConstants(mpPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstantGrid);
-		indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
-		pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
+				// TODO: not to use push constant, use read write buffer.
+				pBuf.PushConstants(mpPipelineSignature.get(), EShaderStage::efVert, sizeof(PerMeshRenderData), 0, &renderMesh.renderData);
+				pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), 1, 0, 0, 0);
+			});
 	}
 
 }

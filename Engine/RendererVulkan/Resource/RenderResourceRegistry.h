@@ -3,6 +3,9 @@
 #include "RendererVulkan/Config.h"
 #include "Render/Buffer.h"
 #include "Render/SwapChain.h"
+#include "Scene/Scene.h"
+
+#include "RendererVulkan/Resource/RenderMesh.h"
 
 #include "Stl/vector.h"
 #include <eastl/utility.h>
@@ -11,6 +14,10 @@
 
 namespace SG
 {
+
+#define SG_MAX_PACKED_VERTEX_BUFFER_SIZE 1024 * 1024 * 4 // 4mb
+#define SG_MAX_PACKED_INDEX_BUFFER_SIZE  1024 * 1024 * 4 // 4mb
+
 	// TODO: resource object reference counting
 	class VulkanContext;
 
@@ -23,8 +30,7 @@ namespace SG
 	class VulkanPipelineSetLayout;
 
 	class Shader;
-
-	class VulkanGeometry;
+	class Mesh;
 
 	class VulkanDescriptorSet;
 
@@ -45,15 +51,20 @@ namespace SG
 		void Initialize(const VulkanContext* pContext);
 		void Shutdown();
 
+		void OnUpdate(Scene* pScene);
+
 		// By default, create the buffer using HOST_VISIBLE bit.
 		bool CreateBuffer(const BufferCreateDesc& bufferCI, bool bLocal = false);
 		SG_RENDERER_VK_API VulkanBuffer* GetBuffer(const string& name) const;
 		void DeleteBuffer(const string& name);
 		void FlushBuffers() const;
 
-		bool CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex);
-		bool CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt32 numIndex);
-		SG_RENDERER_VK_API VulkanGeometry* GetGeometry(const string& name) const;
+		// test
+		bool CreateRenderMesh(const Mesh* pMesh);
+		template <typename Func>
+		void TraverseStaticRenderMesh(Func&& func);
+		// Don't do this!
+		SG_RENDERER_VK_API SG_INLINE const RenderMesh& GetSkyboxRenderMeshData(VulkanBuffer** pVertexBuffer) const { *pVertexBuffer = mPackedVertexBuffer; return mSkyboxRenderMesh; }
 
 		bool HaveBuffer(const char* name);
 		bool UpdataBufferData(const char* name, const void* pData);
@@ -78,11 +89,26 @@ namespace SG
 		mutable eastl::unordered_map<string, VulkanTexture*> mTextures;
 		mutable eastl::unordered_map<string, VulkanRenderTarget*> mRenderTargets;
 		mutable eastl::unordered_map<string, VulkanSampler*> mSamplers;
-		mutable eastl::unordered_map<string, VulkanGeometry*> mGeometries;
+		// instead of use unordered_map, now packed all the vertex data into one big vertex data and give offset to them.
+		// temporary
+		VulkanBuffer* mPackedVertexBuffer = nullptr;
+		UInt64        mPackedVBCurrOffset = 0;
+		VulkanBuffer* mPackedIndexBuffer = nullptr;
+		UInt64        mPackedIBCurrOffset = 0;
+
+		RenderMesh mSkyboxRenderMesh;
+		eastl::unordered_map<string, RenderMesh> mStaticRenderMeshes;
 
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanBuffer*>>  mWaitToSubmitBuffers;
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanTexture*>> mWaitToSubmitTextures;
 	};
+
+	template <typename Func>
+	void VulkanResourceRegistry::TraverseStaticRenderMesh(Func&& func)
+	{
+		for (auto node : mStaticRenderMeshes)
+			func(mPackedVertexBuffer, mPackedIndexBuffer, node.second);
+	}
 
 	// for convenience
 #define VK_RESOURCE() VulkanResourceRegistry::GetInstance()

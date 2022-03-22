@@ -22,8 +22,6 @@ namespace SG
 	class VulkanPipeline;
 	class VulkanPipelineSignature;
 
-	class VulkanGeometry;
-
 	class RGDrawScenePBRNode final : public RenderGraphNode
 	{
 	public:
@@ -55,19 +53,8 @@ namespace SG
 		VulkanPipeline*                 mpPipeline;
 		RefPtr<VulkanShader>            mpShader;
 
-		VulkanGeometry*   mpModelGeometry;
-		VulkanGeometry*   mpGridGeometry;
-		VulkanGeometry*   mpSkyboxGeometry;
 		const PointLight* mpPointLight;
 		ICamera*          mpCamera;
-
-		struct PushConstant
-		{
-			Matrix4f model;
-			Matrix4f inverseTransposeModel;
-		};
-		PushConstant mPushConstantGeo;
-		PushConstant mPushConstantGrid;
 	};
 
 }

@@ -33,9 +33,9 @@ namespace SG
 		void SetScissor(const Rect& rect);
 
 		void BindVertexBuffer(UInt32 firstBinding, UInt32 bindingCount, VulkanBuffer& buffer, const UInt64* pOffsets);
-		void BindIndexBuffer(VulkanBuffer& buffer, UInt32 offset, VkIndexType type = VK_INDEX_TYPE_UINT32);
+		void BindIndexBuffer(VulkanBuffer& buffer, UInt64 offset, VkIndexType type = VK_INDEX_TYPE_UINT32);
 
-		void PushConstants(VulkanPipelineSignature* pSignature, EShaderStage shaderStage, UInt32 size, UInt32 offset, void* pConstants);
+		void PushConstants(VulkanPipelineSignature* pSignature, EShaderStage shaderStage, UInt32 size, UInt32 offset, const void* pConstants);
 		void BindPipelineSignature(VulkanPipelineSignature* pSignature);
 		void BindPipeline(VulkanPipeline* pPipeline);
 
@@ -44,7 +44,7 @@ namespace SG
 		void DrawIndexedIndirect();
 
 		// transfer
-		void CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer);
+		void CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer, UInt64 srcOffset = 0, UInt64 dstOffset = 0);
 		void CopyBufferToImage(VulkanBuffer& srcBuffer, VulkanTexture& dstTexture, const vector<TextureCopyRegion>& region);
 		void CopyImage(VulkanTexture& srcTexture, VulkanTexture& dstTexture, const TextureCopyRegion& region);
 
@@ -59,7 +59,7 @@ namespace SG
 		friend class VulkanCommandPool;
 		friend class VulkanQueue;
 
-		VulkanFrameBuffer* pCurrFrameBuffer = nullptr;
+		VulkanFrameBuffer* pCurrFrameBuffer = nullptr; // used to judge whether this is a valid BeginRenderPass().
 		VkCommandBuffer commandBuffer;
 		UInt32          queueFamilyIndex; // which queue this command buffer should submit to.
 	};

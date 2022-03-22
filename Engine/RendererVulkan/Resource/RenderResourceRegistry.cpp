@@ -1,16 +1,16 @@
 #include "StdAfx.h"
 #include "RenderResourceRegistry.h"
 
+#include "System/System.h"
 #include "System/Logger.h"
 #include "Memory/Memory.h"
 #include "Render/SwapChain.h"
+#include "Scene/Mesh/Mesh.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
 #include "RendererVulkan/Backend/VulkanSwapchain.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
-
-#include "RendererVulkan/Resource/VulkanGeometry.h"
 
 #include "ktx/ktx.h"
 
@@ -20,10 +20,58 @@ namespace SG
 	void VulkanResourceRegistry::Initialize(const VulkanContext* pContext)
 	{
 		mpContext = const_cast<VulkanContext*>(pContext);
+
+		// create one big vertex buffer
+		BufferCreateDesc vbCI = {};
+		vbCI.name = "packed_vertex_buffer";
+		vbCI.pInitData = nullptr;
+		vbCI.totalSizeInByte = SG_MAX_PACKED_VERTEX_BUFFER_SIZE;
+		vbCI.type = EBufferType::efVertex | EBufferType::efTransfer_Dst;
+		mPackedVertexBuffer = VulkanBuffer::Create(mpContext->device, vbCI, true);
+
+		// create one big index buffer
+		BufferCreateDesc ibCI = {};
+		ibCI.name = "packed_index_buffer";
+		ibCI.pInitData = nullptr;
+		ibCI.totalSizeInByte = SG_MAX_PACKED_INDEX_BUFFER_SIZE;
+		ibCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
+		mPackedIndexBuffer = VulkanBuffer::Create(mpContext->device, ibCI, true);
+
+		const Mesh* pSkybox = SSystem()->GetMainScene()->GetSkybox();
+		const UInt64 vbSize = pSkybox->GetVertices().size() * sizeof(float);
+
+		BufferCreateDesc stagingBufferCI = {};
+		stagingBufferCI.totalSizeInByte = static_cast<UInt32>(vbSize);
+		stagingBufferCI.type = EBufferType::efTransfer_Src;
+		auto* pVBStagingBuffer = VulkanBuffer::Create(mpContext->device, stagingBufferCI, false);
+		pVBStagingBuffer->UploadData(pSkybox->GetVertices().data());
+
+		VulkanCommandBuffer pCmd;
+		mpContext->transferCommandPool->AllocateCommandBuffer(pCmd);
+
+		pCmd.BeginRecord();
+		pCmd.CopyBuffer(*pVBStagingBuffer, *mPackedVertexBuffer, 0, mPackedVBCurrOffset);
+		pCmd.EndRecord();
+
+		mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+		mpContext->transferQueue.WaitIdle();
+
+		mpContext->transferCommandPool->FreeCommandBuffer(pCmd);
+
+		// eliminate the translation part of the matrix
+		PerMeshRenderData renderData = { Matrix4f(Matrix3f(SSystem()->GetMainScene()->GetMainCamera()->GetViewMatrix())) };
+		mSkyboxRenderMesh = { pSkybox->GetName(), vbSize, 0, mPackedVBCurrOffset, 0, 0, renderData };
+
+		mPackedVBCurrOffset += vbSize;
+
+		Memory::Delete(pVBStagingBuffer);
 	}
 
 	void VulkanResourceRegistry::Shutdown()
 	{
+		Memory::Delete(mPackedVertexBuffer);
+		Memory::Delete(mPackedIndexBuffer);
+
 		// release all the memory
 		for (auto beg = mBuffers.begin(); beg != mBuffers.end(); ++beg)
 			Memory::Delete(beg->second);
@@ -33,8 +81,16 @@ namespace SG
 			Memory::Delete(beg->second);
 		for (auto beg = mSamplers.begin(); beg != mSamplers.end(); ++beg)
 			Memory::Delete(beg->second);
-		for (auto beg = mGeometries.begin(); beg != mGeometries.end(); ++beg)
-			Memory::Delete(beg->second);
+	}
+
+	void VulkanResourceRegistry::OnUpdate(Scene* pScene)
+	{
+		// update all the render data of the render mesh
+		pScene->TraverseMesh([&](Mesh& mesh)
+			{
+				mStaticRenderMeshes[mesh.GetName()].renderData.model = mesh.GetTransform();
+				mStaticRenderMeshes[mesh.GetName()].renderData.inverseTransposeModel = glm::transpose(glm::inverse(mesh.GetTransform()));
+			});
 	}
 
 	VulkanResourceRegistry* VulkanResourceRegistry::GetInstance()
@@ -147,41 +203,72 @@ namespace SG
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Geometry
+	/// RenderMesh
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool VulkanResourceRegistry::CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt32* pIndices, const UInt32 numIndex)
+	bool VulkanResourceRegistry::CreateRenderMesh(const Mesh* pMesh)
 	{
-		if (mGeometries.count(name) != 0)
+		if (!pMesh)
+			return false;
+
+		const UInt64 vbSize = pMesh->GetVertices().size() * sizeof(float);
+		const UInt64 ibSize = pMesh->GetIndices().size() * sizeof(UInt32);
+
+		BufferCreateDesc stagingBufferCI = {};
+		stagingBufferCI.totalSizeInByte = static_cast<UInt32>(vbSize);
+		stagingBufferCI.type = EBufferType::efTransfer_Src;
+		auto* pVBStagingBuffer = VulkanBuffer::Create(mpContext->device, stagingBufferCI, false);
+		pVBStagingBuffer->UploadData(pMesh->GetVertices().data());
+
+		if (mPackedVBCurrOffset + vbSize > SG_MAX_PACKED_VERTEX_BUFFER_SIZE)
 		{
-			SG_LOG_ERROR("Already have a geometry named %s!", name);
+			SG_LOG_ERROR("Vertex buffer exceed boundary!");
+			SG_ASSERT(false);
 			return false;
 		}
 
-		mGeometries[name] = Memory::New<VulkanGeometry>(*mpContext, name, pVerticies, numVertex, pIndices, numIndex);
-		return true;
-	}
-
-	bool VulkanResourceRegistry::CreateGeometry(const char* name, const float* pVerticies, const UInt32 numVertex, const UInt16* pIndices, const UInt32 numIndex)
-	{
-		if (mGeometries.count(name) != 0)
+		VulkanBuffer* pIBStagingBuffer = nullptr;
+		if (ibSize != 0)
 		{
-			SG_LOG_ERROR("Already have a geometry named %s!", name);
-			return false;
+			stagingBufferCI.totalSizeInByte = static_cast<UInt32>(ibSize);;
+			pIBStagingBuffer = VulkanBuffer::Create(mpContext->device, stagingBufferCI, false);
+			pIBStagingBuffer->UploadData(pMesh->GetIndices().data());
+
+			if (mPackedIBCurrOffset + ibSize > SG_MAX_PACKED_INDEX_BUFFER_SIZE)
+			{
+				SG_LOG_ERROR("Index buffer exceed boundary!");
+				SG_ASSERT(false);
+				return false;
+			}
 		}
 
-		mGeometries[name] = Memory::New<VulkanGeometry>(*mpContext, name, pVerticies, numVertex, pIndices, numIndex);
-		return true;
-	}
+		VulkanCommandBuffer pCmd;
+		mpContext->transferCommandPool->AllocateCommandBuffer(pCmd);
 
-	VulkanGeometry* VulkanResourceRegistry::GetGeometry(const string& name) const
-	{
-		if (mGeometries.count(name) == 0)
-		{
-			SG_LOG_ERROR("No geometry named: %s", name);
-			return nullptr;
-		}
-		return mGeometries[name];
+		pCmd.BeginRecord();
+		pCmd.CopyBuffer(*pVBStagingBuffer, *mPackedVertexBuffer, 0, mPackedVBCurrOffset);
+		if (pIBStagingBuffer)
+			pCmd.CopyBuffer(*pIBStagingBuffer, *mPackedIndexBuffer, 0, mPackedIBCurrOffset);
+		pCmd.EndRecord();
+
+		mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+		mpContext->transferQueue.WaitIdle();
+
+		mpContext->transferCommandPool->FreeCommandBuffer(pCmd);
+
+		PerMeshRenderData renderData = { pMesh->GetTransform(), glm::transpose(glm::inverse(pMesh->GetTransform())) };
+		RenderMesh renderMesh = { pMesh->GetName(), vbSize, ibSize, mPackedVBCurrOffset, pIBStagingBuffer ? mPackedIBCurrOffset : 0, 0, renderData };
+
+		mStaticRenderMeshes[pMesh->GetName()] = eastl::move(renderMesh);
+
+		mPackedVBCurrOffset += vbSize;
+		mPackedIBCurrOffset += ibSize;
+
+		Memory::Delete(pVBStagingBuffer);
+		if (pIBStagingBuffer)
+			Memory::Delete(pIBStagingBuffer);
+
+		return true;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////

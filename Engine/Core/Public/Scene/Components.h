@@ -37,4 +37,23 @@ namespace SG
 		Vector3f mRotation;
 	};
 
+	//! Temporary, should use ECS for this.
+	class MaterialComponent
+	{
+	public:
+		SG_INLINE void     SetColor(const Vector3f& color) { mColor = color; }
+		SG_INLINE Vector3f GetColor() const { return mColor; }
+
+		SG_INLINE void  SetRoughness(float roughness) { mRoughness = roughness; }
+		SG_INLINE float GetRoughness() const { return mRoughness; }
+
+		SG_INLINE void  SetMetallic(float metallic) { mMetallic = metallic; }
+		SG_INLINE float GetMetallic()  const { return mMetallic; }
+	private:
+		Vector3f mColor = { 1.0f, 1.0f, 1.0f };
+		float    mMetallic = 0.7f;
+		float    mRoughness = 0.35f;
+	};
+
+
 }

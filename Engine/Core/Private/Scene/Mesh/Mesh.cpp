@@ -6,8 +6,15 @@
 namespace SG
 {
 
+	UInt32 Mesh::NewID()
+	{
+		return msCurrId++;
+	}
+
+	UInt32 Mesh::msCurrId = 1;
+
 	Mesh::Mesh(const char* name, EGennerateMeshType type)
-		:mName(name), mType(EMeshType::eUnknown)
+		:mName(name), mType(EMeshType::eUnknown), mObjectId(NewID())
 	{
 		if (type == EGennerateMeshType::eGrid)
 			MeshGenerator::GenGrid(mVertices, mIndices);
@@ -16,7 +23,7 @@ namespace SG
 	}
 
 	Mesh::Mesh(const char* name, EMeshType type)
-		:mName(name), mType(type)
+		:mName(name), mType(type), mObjectId(NewID())
 	{
 		MeshResourceLoader loader;
 		string fullName = mName;
@@ -27,7 +34,7 @@ namespace SG
 	}
 
 	Mesh::Mesh(const char* name, const vector<float>& vertices, const vector<UInt32>& indices)
-		:mName(name), mVertices(vertices), mIndices(indices), mType(EMeshType::eUnknown)
+		:mName(name), mVertices(vertices), mIndices(indices), mType(EMeshType::eUnknown), mObjectId(NewID())
 	{
 	}
 

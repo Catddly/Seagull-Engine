@@ -12,7 +12,7 @@
 #include "RendererVulkan/Backend/VulkanShader.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
 
-#include "RendererVulkan/Resource/VulkanGeometry.h"
+#include "RendererVulkan/Resource/RenderMesh.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 #include "RendererVulkan/Resource/CommonUBO.h"
 
@@ -27,9 +27,6 @@ namespace SG
 		:mContext(context),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
-		Scene* pScene = SSystem()->GetMainScene();
-		mPushConstantModel.model = pScene->GetMesh("model")->GetTransform();
-
 		auto& shadowUbo = GetShadowUBO();
 		shadowUbo.lightSpaceVP = SSystem()->GetMainScene()->GetDirectionalLight()->GetViewProj();
 
@@ -60,8 +57,6 @@ namespace SG
 		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
 		mContext.graphicQueue.WaitIdle();
 		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
-
-		mpModelGeometry = VK_RESOURCE()->GetGeometry("model");
 
 		SamplerCreateDesc samplerCI = {};
 		samplerCI.name = "shadow_sampler";
@@ -119,7 +114,6 @@ namespace SG
 
 	void RGShadowNode::Update(UInt32 frameIndex)
 	{
-		mPushConstantModel.model = SSystem()->GetMainScene()->GetMesh("model")->GetTransform();
 	}
 
 	void RGShadowNode::Draw(RGDrawInfo& context)
@@ -134,15 +128,26 @@ namespace SG
 
 		pBuf.SetDepthBias(20.0f, 0.0f, 4.0f);
 
-		UInt64 offset[1] = { 0 };
-		VulkanBuffer* pVertexBuffer = mpModelGeometry->GetVertexBuffer();
-		VulkanBuffer* pIndexBuffer = mpModelGeometry->GetIndexBuffer();
-		pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
-		pBuf.BindIndexBuffer(*pIndexBuffer, 0);
+		VK_RESOURCE()->TraverseStaticRenderMesh([&](VulkanBuffer* pVB, VulkanBuffer* pIB, RenderMesh& renderMesh)
+			{
+				UInt64 offset = renderMesh.vBOffset;
+				pBuf.BindVertexBuffer(0, 1, *pVB, &offset);
+				pBuf.BindIndexBuffer(*pIB, renderMesh.iBOffset);
 
-		pBuf.PushConstants(mpShadowPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstantModel);
-		UInt32 indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
-		pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
+				// TODO: not to use push constant, use read write buffer.
+				pBuf.PushConstants(mpShadowPipelineSignature.get(), EShaderStage::efVert, sizeof(Matrix4f), 0, &renderMesh.renderData.model);
+				pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), 1, 0, 0, 0);
+			});
+
+		//UInt64 offset[1] = { 0 };
+		//VulkanBuffer* pVertexBuffer = mpModelGeometry->GetVertexBuffer();
+		//VulkanBuffer* pIndexBuffer = mpModelGeometry->GetIndexBuffer();
+		//pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
+		//pBuf.BindIndexBuffer(*pIndexBuffer, 0);
+
+		//pBuf.PushConstants(mpShadowPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstantModel);
+		//UInt32 indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
+		//pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
 	}
 
 }

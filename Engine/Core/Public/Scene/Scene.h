@@ -22,7 +22,8 @@ namespace SG
 	{
 	public:
 		Scene(const char* name)
-			:mName(name), mpMainCamera(nullptr), mDirectionalLight({ -7.0f, 8.0f, 3.0f }, { 7.0f, -8.0f, -3.0f }, { 1.0f, 1.0f, 1.0f })
+			:mName(name), mpMainCamera(nullptr), mDirectionalLight({ -7.0f, 8.0f, 3.0f }, { 7.0f, -8.0f, -3.0f }, { 1.0f, 1.0f, 1.0f }),
+			mSkyboxMesh("skybox", EGennerateMeshType::eSkybox)
 		{}
 
 		//! This function can be dispatched to another thread. 
@@ -32,6 +33,7 @@ namespace SG
 		SG_CORE_API void OnUpdate(float deltaTime);
 
 		SG_CORE_API Mesh* GetMesh(const char* name);
+		SG_CORE_API const Mesh* GetSkybox() const { return &mSkyboxMesh; }
 
 		DirectionalLight* GetDirectionalLight() { return &mDirectionalLight; }
 		ICamera* GetMainCamera() { return mpMainCamera.get(); }
@@ -52,6 +54,8 @@ namespace SG
 	private:
 		string mName;
 
+		// seperate from scene mesh
+		Mesh mSkyboxMesh;
 		DirectionalLight    mDirectionalLight;
 		vector<PointLight>  mPointLights;
 		unordered_map<string, Mesh> mMeshes;      // TODO: use tree structure to store the meshes (for now there are no many meshes in the scene, map is ok)

@@ -57,9 +57,7 @@ namespace SG
 		// create all the mesh resource
 		SSystem()->GetMainScene()->TraverseMesh([](const Mesh& mesh) 
 			{
-				VK_RESOURCE()->CreateGeometry(mesh.GetName().c_str(),
-					mesh.GetVertices().data(), static_cast<UInt32>(mesh.GetVertices().size()),
-					mesh.GetIndices().data(), static_cast<UInt32>(mesh.GetIndices().size()));
+				VK_RESOURCE()->CreateRenderMesh(&mesh);
 			});
 
 		BuildRenderGraph();
@@ -81,6 +79,8 @@ namespace SG
 
 	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
+		VK_RESOURCE()->OnUpdate(SSystem()->GetMainScene());
+
 		mpGUIDriver->OnUpdate(deltaTime);
 		mpRenderGraph->Update();
 	}
