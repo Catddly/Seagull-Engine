@@ -1,4 +1,4 @@
-#version 450
+#version 460
 
 layout (location = 0) in vec3 inNormalWS;
 layout (location = 1) in vec3 inPosWS;
@@ -31,18 +31,19 @@ layout (location = 0) out vec4 outColor;
 
 #define PI 3.1415926535897932384626433832795
 #define ALBEDO vec3(1.0, 1.0, 1.0)
+#define SHADOW_COLOR vec3(0.003, 0.003, 0.003)
 
 float SampleShadowMap(vec4 shadowMapPos)
 {
     // for perspective projection, we need to normalized the position
     vec3 shadowCoord = shadowMapPos.xyz / shadowMapPos.w;
     if (shadowCoord.z > 1.0) // exceed the depth texture
-        return 0.03;
+        return 0.0;
 
     float closestDepth = texture(sShadowMap, shadowCoord.xy).r; // closest depth to the light
     float currentDepth = shadowCoord.z;
 
-    float shadow = currentDepth > closestDepth ? 0.7 : 0.03;
+    float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
 
 	return shadow;
 }
@@ -58,7 +59,7 @@ float SampleShadowMapPCF(vec4 shadowMapPos)
         for(int dy = -1; dy <= 1; ++dy)
         {
             float depth = texture(sShadowMap, shadowCoord.xy + vec2(dx, dy) * texelSize).r; 
-            shadow += shadowCoord.z > depth ? 0.8 : 0.03;        
+            shadow += shadowCoord.z > depth ? 1.0 : 0.0;        
         }    
     }
     shadow /= 9.0;
@@ -129,7 +130,7 @@ vec3 prefilteredReflection(vec3 R, float roughness)
 	return mix(a, b, lod - lodf);
 }
 
-vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness, vec3 lightColor)
+vec3 directLight(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness, vec3 lightColor)
 {
 	// Precalculate vectors and dot products	
 	vec3 H = normalize(V + L);
@@ -137,10 +138,8 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float
 	float dotNV = clamp(dot(N, V), 0.0, 1.0);
 	float dotNL = clamp(dot(N, L), 0.0, 1.0);
 
-	// Light color fixed
 	vec3 color = vec3(0.0);
-
-	if (dotNL > 0.0) 
+	if (dotNL > 0.0)
     {
 		// D = Normal distribution (Distribution of the microfacets)
 		float D = D_GGX(dotNH, roughness); 
@@ -149,10 +148,13 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float
 		// F = Fresnel factor (Reflectance depending on angle of incidence)
 		vec3 F = F_Schlick(dotNV, F0);
 
-		vec3 spec = D * F * G / (4.0 * dotNL * dotNV + 0.0001); // specular part (kS * f(cook-torrance))
-		vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);
-        vec3 diff = kD * (ALBEDO / PI); // diffuse part (kD * f(lambert))
-		color += (diff + spec) * lightColor * dotNL;
+		vec3 kS = F;
+		vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
+
+        vec3 diffuse = kD * ALBEDO / PI; // diffuse part (kD * f(lambert)) * ao
+		vec3 specular = (D * G) * F / (4.0 * dotNL * dotNV + 0.0001); // specular part (kS * f(cook-torrance))
+
+		color += (diffuse + specular) * lightColor * dotNL;
 	}
 	return color;
 }
@@ -163,45 +165,45 @@ void main()
 	vec3 V = normalize(inViewPosWS - inPosWS);
 	vec3 R = reflect(-V, N); 
 
-	float metallic = 0.8;
-	float roughness = 0.5;
+	float metallic = 0.7f;
+	float roughness = 0.45f;
 
 	vec3 F0 = vec3(0.04);
 	F0 = mix(F0, ALBEDO, metallic);
 
-    float shadow = SampleShadowMapPCF(inShadowMapPos);
+	vec3 directLighting = vec3(0.0);
+	{
+		// point light
+		vec3 pointLightRadiance = CalcPointLightRadiance(normalize(lightUbo.pointLightPos - inPosWS), lightUbo.pointLightColor, lightUbo.pointLightRadius);
+		directLighting += directLight(normalize(lightUbo.pointLightPos - inPosWS), V, N, F0, metallic, roughness, pointLightRadiance);
 
-	vec3 Lo = vec3(0.0);
-    // directional light
-	vec3 L = normalize(-lightUbo.viewDirection);
-	Lo += specularContribution(L, V, N, F0, metallic, roughness, vec3(1.0)) * (1.0 - shadow);
-    // point light
-	L = normalize(lightUbo.pointLightPos - inPosWS);
-    vec3 pointLightRadiance = CalcPointLightRadiance(L, lightUbo.pointLightColor, lightUbo.pointLightRadius);
-	Lo += specularContribution(L, V, N, F0, metallic, roughness, pointLightRadiance);
+		// directional light
+		float shadow = SampleShadowMapPCF(inShadowMapPos); // only affect directional light
+		directLighting += mix(directLight(-lightUbo.viewDirection, V, N, F0, metallic, roughness, lightUbo.directionalColor.rgb), SHADOW_COLOR, shadow); // blend with shadow color
+	}
 	
-	vec2 brdf = texture(sBrdfLutMap, vec2(max(dot(N, V), 0.0), roughness)).rg;
-	vec3 reflection = prefilteredReflection(R, roughness).rgb;	
-	vec3 irradiance = texture(sIrradianceCubeMap, N).rgb;
+	vec3 indirectLighting = vec3(0.0);
+	{
+		vec2 brdf = texture(sBrdfLutMap, vec2(max(dot(N, V), 0.0), roughness)).xy;
+		vec3 reflectionColor = prefilteredReflection(R, roughness).rgb;	
+		vec3 irradiance = texture(sIrradianceCubeMap, N).rgb;
 
-	// Diffuse based on irradiance
-	vec3 diffuse = irradiance * ALBEDO;
+		vec3 kS = F_SchlickR(max(dot(N, V), 0.0), F0, roughness);
+		vec3 kD = vec3(1.0) - kS;
+		kD *= 1.0 - metallic;
 
-	vec3 F = F_SchlickR(max(dot(N, V), 0.0), F0, roughness);
+		vec3 diffuseIBL = kD * irradiance * ALBEDO;
+		vec3 specularIBL = reflectionColor * (kS * brdf.x + brdf.y);
 
-	// Specular reflectance
-	vec3 specular = reflection * (F * brdf.x + brdf.y);
+		indirectLighting = diffuseIBL + specularIBL;  // * ao
+	}
 
-	// Ambient part
-	vec3 kD = 1.0 - F;
-	kD *= 1.0 - metallic;	  
-	vec3 ambient = (kD * diffuse + specular);
-	
-	vec3 color = ambient + Lo;
+	vec3 color = directLighting + indirectLighting;
 
 	// Tone mapping
 	color = Uncharted2Tonemap(color * compositionUbo.exposure);
 	color = color * (1.0f / Uncharted2Tonemap(vec3(11.2f)));	
+
 	// Gamma correction
 	color = pow(color, vec3(1.0f / compositionUbo.gamma));
 

@@ -32,6 +32,11 @@ namespace SG
 		RefPtr<VulkanShader> mpShadowShader;
 		RefPtr<VulkanPipelineSignature> mpShadowPipelineSignature;
 		VulkanPipeline* mpShadowPipeline;
+
+		RefPtr<VulkanShader> mpShadowInstanceShader;
+		RefPtr<VulkanPipelineSignature> mpShadowInstancePipelineSignature;
+		VulkanPipeline* mpShadowInstancePipeline;
+
 		DirectionalLight* mpDirectionalLight = nullptr;
 
 		LoadStoreClearOp  mDepthRtLoadStoreOp;

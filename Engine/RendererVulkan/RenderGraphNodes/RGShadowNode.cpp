@@ -71,10 +71,14 @@ namespace SG
 		VK_RESOURCE()->CreateSampler(samplerCI);
 
 		mpShadowShader = VulkanShader::Create(mContext.device);
+		mpShadowInstanceShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
 		compiler.CompileGLSLShader("shadow", mpShadowShader.get());
+		compiler.CompileGLSLShader("shadow_instance", mpShadowInstanceShader.get());
 
 		mpShadowPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShadowShader)
+			.Build();
+		mpShadowInstancePipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShadowInstanceShader)
 			.Build();
 		VK_RESOURCE()->UpdataBufferData("shadowUbo", &shadowUbo);
 
@@ -86,6 +90,7 @@ namespace SG
 
 	RGShadowNode::~RGShadowNode()
 	{
+		Memory::Delete(mpShadowInstancePipeline);
 		Memory::Delete(mpShadowPipeline);
 	}
 
@@ -101,6 +106,18 @@ namespace SG
 
 	void RGShadowNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
+		mpShadowInstancePipeline = VulkanPipeline::Builder(mContext.device)
+			.SetInputVertexRange(sizeof(float) * 6, 0)
+			.SetInputVertexRange(sizeof(float) * 4, 1)
+			.SetDepthStencil(true)
+			.SetColorBlend(false)
+			.SetRasterizer(VK_CULL_MODE_FRONT_BIT)
+			.SetDynamicStates(VK_DYNAMIC_STATE_DEPTH_BIAS)
+			.BindSignature(mpShadowInstancePipelineSignature.get())
+			.BindRenderPass(pRenderpass)
+			.BindShader(mpShadowInstanceShader.get())
+			.Build();
+
 		mpShadowPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetDepthStencil(true)
 			.SetColorBlend(false)
@@ -123,31 +140,33 @@ namespace SG
 		pBuf.SetViewport(SG_SHADOW_MAP_SIZE, SG_SHADOW_MAP_SIZE, 0.0f, 1.0f);
 		pBuf.SetScissor({ 0, 0, SG_SHADOW_MAP_SIZE, SG_SHADOW_MAP_SIZE });
 
-		pBuf.BindPipeline(mpShadowPipeline);
+		pBuf.SetDepthBias(1.5f, 0.0f, 1.75f);
+
+		// 1.1 Forward Mesh Pass
 		pBuf.BindPipelineSignature(mpShadowPipelineSignature.get());
-
-		pBuf.SetDepthBias(20.0f, 0.0f, 4.0f);
-
-		VK_RESOURCE()->TraverseStaticRenderMesh([&](VulkanBuffer* pVB, VulkanBuffer* pIB, RenderMesh& renderMesh)
+		pBuf.BindPipeline(mpShadowPipeline);
+		VK_RESOURCE()->TraverseStaticRenderMesh([&](const RenderMesh& renderMesh)
 			{
-				UInt64 offset = renderMesh.vBOffset;
-				pBuf.BindVertexBuffer(0, 1, *pVB, &offset);
-				pBuf.BindIndexBuffer(*pIB, renderMesh.iBOffset);
+				pBuf.BindVertexBuffer(0, 1, *renderMesh.pVertexBuffer, &renderMesh.vBOffset);
+				pBuf.BindIndexBuffer(*renderMesh.pIndexBuffer, renderMesh.iBOffset);
 
 				// TODO: not to use push constant, use read write buffer.
 				pBuf.PushConstants(mpShadowPipelineSignature.get(), EShaderStage::efVert, sizeof(Matrix4f), 0, &renderMesh.renderData.model);
 				pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), 1, 0, 0, 0);
 			});
 
-		//UInt64 offset[1] = { 0 };
-		//VulkanBuffer* pVertexBuffer = mpModelGeometry->GetVertexBuffer();
-		//VulkanBuffer* pIndexBuffer = mpModelGeometry->GetIndexBuffer();
-		//pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, offset);
-		//pBuf.BindIndexBuffer(*pIndexBuffer, 0);
+		// 1.2 Forward Instanced Mesh Pass
+		pBuf.BindPipelineSignature(mpShadowInstancePipelineSignature.get());
+		pBuf.BindPipeline(mpShadowInstancePipeline);
+		VK_RESOURCE()->TraverseStaticRenderMeshInstanced([&](const RenderMesh& renderMesh)
+			{
+				pBuf.BindVertexBuffer(0, 1, *renderMesh.pVertexBuffer, &renderMesh.vBOffset);
+				UInt64 offset = 0;
+				pBuf.BindVertexBuffer(1, 1, *renderMesh.pInstanceBuffer, &offset);
+				pBuf.BindIndexBuffer(*renderMesh.pIndexBuffer, renderMesh.iBOffset);
 
-		//pBuf.PushConstants(mpShadowPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &mPushConstantModel);
-		//UInt32 indexCount = pIndexBuffer->SizeInByteCPU() / sizeof(UInt32);
-		//pBuf.DrawIndexed(indexCount, 1, 0, 0, 1);
+				pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), renderMesh.instanceCount, 0, 0, 0);
+			});
 	}
 
 }

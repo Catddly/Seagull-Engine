@@ -11,6 +11,7 @@
 #include "Reflection/Name.h"
 
 #include "Stl/string.h"
+#include "Stl/SmartPtr.h"
 #include <eastl/set.h>
 
 #ifdef SG_PLATFORM_WINDOWS
@@ -93,7 +94,7 @@ namespace SG
 		// TODO: should not be here, move to Main or something
 		bool SystemMainLoop();
 	private:
-		System();
+		System() = default;
 #ifdef SG_PLATFORM_WINDOWS
 		friend LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #endif
@@ -111,9 +112,9 @@ namespace SG
 
 		IProcess*     mpCurrActiveProcess;
 		Thread        mMainThread;
-		string        mRootPath;
+		string        mRootPath = "";
 		// TODO: add a 3DWorld can contain a lot of scenes.
-		Scene         m3DScene;
+		UniquePtr<Scene> mp3DScene = nullptr;
 	};
 
 	template <class T>

@@ -61,10 +61,14 @@ namespace SG
 
 		// test
 		bool CreateRenderMesh(const Mesh* pMesh);
+		void BuildRenderMeshData();
+
 		template <typename Func>
 		void TraverseStaticRenderMesh(Func&& func);
-		// Don't do this!
-		SG_RENDERER_VK_API SG_INLINE const RenderMesh& GetSkyboxRenderMeshData(VulkanBuffer** pVertexBuffer) const { *pVertexBuffer = mPackedVertexBuffer; return mSkyboxRenderMesh; }
+		template <typename Func>
+		void TraverseStaticRenderMeshInstanced(Func&& func);
+
+		SG_RENDERER_VK_API const RenderMesh& GetSkyboxRenderMeshData() const { return mSkyboxRenderMesh; }
 
 		bool HaveBuffer(const char* name);
 		bool UpdataBufferData(const char* name, const void* pData);
@@ -83,6 +87,7 @@ namespace SG
 		SG_RENDERER_VK_API static VulkanResourceRegistry* GetInstance();
 	private:
 		VulkanResourceRegistry() = default;
+		void CreateInnerResource();
 	private:
 		VulkanContext* mpContext;
 		mutable eastl::unordered_map<string, VulkanBuffer*>  mBuffers;
@@ -96,8 +101,17 @@ namespace SG
 		VulkanBuffer* mPackedIndexBuffer = nullptr;
 		UInt64        mPackedIBCurrOffset = 0;
 
+		struct RenderMeshBuildData
+		{
+			UInt32 objectId = UInt32(-1);
+			UInt32 instanceCount = 1;
+			vector<PerInstanceData> perInstanceData = {};
+		};
+		eastl::unordered_map<UInt32, RenderMeshBuildData> mRenderMeshBuildDataMap; // meshId -> RenderMeshBuildData
+
 		RenderMesh mSkyboxRenderMesh;
-		eastl::unordered_map<string, RenderMesh> mStaticRenderMeshes;
+		eastl::unordered_map<UInt32, RenderMesh> mStaticRenderMeshes; // Forward Mesh Pass
+		eastl::unordered_map<UInt32, RenderMesh> mStaticRenderMeshesInstanced; // Forward Instance Mesh Pass
 
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanBuffer*>>  mWaitToSubmitBuffers;
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanTexture*>> mWaitToSubmitTextures;
@@ -107,7 +121,14 @@ namespace SG
 	void VulkanResourceRegistry::TraverseStaticRenderMesh(Func&& func)
 	{
 		for (auto node : mStaticRenderMeshes)
-			func(mPackedVertexBuffer, mPackedIndexBuffer, node.second);
+			func(node.second);
+	}
+
+	template <typename Func>
+	void VulkanResourceRegistry::TraverseStaticRenderMeshInstanced(Func&& func)
+	{
+		for (auto node : mStaticRenderMeshesInstanced)
+			func(node.second);
 	}
 
 	// for convenience

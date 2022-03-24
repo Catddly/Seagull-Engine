@@ -229,10 +229,8 @@ namespace SG
 			pBuf.BindPipelineSignature(mpSkyboxPipelineSignature.get());
 			pBuf.BindPipeline(mpSkyboxPipeline);
 
-			VulkanBuffer* pVertexBuffer = nullptr;
-			const RenderMesh& skybox = VK_RESOURCE()->GetSkyboxRenderMeshData(&pVertexBuffer);
-
-			pBuf.BindVertexBuffer(0, 1, *pVertexBuffer, &skybox.vBOffset);
+			const RenderMesh& skybox = VK_RESOURCE()->GetSkyboxRenderMeshData();
+			pBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
 			pBuf.Draw(36, 1, 0, 0);
 		}
 
@@ -248,11 +246,10 @@ namespace SG
 		pBuf.BindPipelineSignature(mpPipelineSignature.get());
 		pBuf.BindPipeline(mpPipeline);
 
-		VK_RESOURCE()->TraverseStaticRenderMesh([&](VulkanBuffer* pVB, VulkanBuffer* pIB, RenderMesh& renderMesh)
+		VK_RESOURCE()->TraverseStaticRenderMesh([&](const RenderMesh& renderMesh)
 			{
-				UInt64 offset = renderMesh.vBOffset;
-				pBuf.BindVertexBuffer(0, 1, *pVB, &offset);
-				pBuf.BindIndexBuffer(*pIB, renderMesh.iBOffset);
+				pBuf.BindVertexBuffer(0, 1, *renderMesh.pVertexBuffer, &renderMesh.vBOffset);
+				pBuf.BindIndexBuffer(*renderMesh.pIndexBuffer, renderMesh.iBOffset);
 
 				// TODO: not to use push constant, use read write buffer.
 				pBuf.PushConstants(mpPipelineSignature.get(), EShaderStage::efVert, sizeof(PerMeshRenderData), 0, &renderMesh.renderData);

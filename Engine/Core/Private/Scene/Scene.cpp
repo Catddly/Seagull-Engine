@@ -19,8 +19,13 @@ namespace SG
 		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 0.5f, 4.0f));
 		mpMainCamera->SetPerspective(45.0f, ASPECT, 0.01f, 256.0f);
 
-		mMeshes.emplace("model", Mesh("model", EMeshType::eOBJ));
-		//mMeshes.emplace("skybox", Mesh("skybox", EGennerateMeshType::eSkybox));
+		auto& model = mMeshes.emplace("model", Mesh("model", EMeshType::eOBJ)).first->second;
+
+		auto& model_1 = mMeshes.emplace("model_1", Mesh("model_1")).first->second;
+		model_1.Copy(model);
+		model_1.SetPosition({ 0.0f, 0.0f, -1.5f });
+		model_1.SetScale({ 0.6f, 0.6f, 0.6f });
+
 		mMeshes.emplace("grid", Mesh("grid", EGennerateMeshType::eGrid)).first->second.SetScale({ 8.0f, 1.0f, 8.0f });
 
 		mPointLights.emplace_back(Vector3f{ 1.25f, 0.75f, -0.3f }, 3.0f, Vector3f{ 0.0f, 1.0f, 0.705f });

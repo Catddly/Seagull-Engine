@@ -6,6 +6,7 @@
 #include "Memory/Memory.h"
 #include "Render/SwapChain.h"
 #include "Scene/Mesh/Mesh.h"
+#include "Scene/Mesh/MeshDataArchive.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
@@ -17,10 +18,8 @@
 namespace SG
 {
 
-	void VulkanResourceRegistry::Initialize(const VulkanContext* pContext)
+	void VulkanResourceRegistry::CreateInnerResource()
 	{
-		mpContext = const_cast<VulkanContext*>(pContext);
-
 		// create one big vertex buffer
 		BufferCreateDesc vbCI = {};
 		vbCI.name = "packed_vertex_buffer";
@@ -36,35 +35,38 @@ namespace SG
 		ibCI.totalSizeInByte = SG_MAX_PACKED_INDEX_BUFFER_SIZE;
 		ibCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
 		mPackedIndexBuffer = VulkanBuffer::Create(mpContext->device, ibCI, true);
+	}
+
+	void VulkanResourceRegistry::Initialize(const VulkanContext* pContext)
+	{
+		mpContext = const_cast<VulkanContext*>(pContext);
+
+		CreateInnerResource();
 
 		const Mesh* pSkybox = SSystem()->GetMainScene()->GetSkybox();
-		const UInt64 vbSize = pSkybox->GetVertices().size() * sizeof(float);
+		auto& skyboxVertices = MeshDataArchive::GetInstance()->GetData(pSkybox->GetMeshID())->vertices;
+		const UInt64 vbSize = skyboxVertices.size() * sizeof(float);
 
-		BufferCreateDesc stagingBufferCI = {};
-		stagingBufferCI.totalSizeInByte = static_cast<UInt32>(vbSize);
-		stagingBufferCI.type = EBufferType::efTransfer_Src;
-		auto* pVBStagingBuffer = VulkanBuffer::Create(mpContext->device, stagingBufferCI, false);
-		pVBStagingBuffer->UploadData(pSkybox->GetVertices().data());
-
-		VulkanCommandBuffer pCmd;
-		mpContext->transferCommandPool->AllocateCommandBuffer(pCmd);
-
-		pCmd.BeginRecord();
-		pCmd.CopyBuffer(*pVBStagingBuffer, *mPackedVertexBuffer, 0, mPackedVBCurrOffset);
-		pCmd.EndRecord();
-
-		mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mpContext->transferQueue.WaitIdle();
-
-		mpContext->transferCommandPool->FreeCommandBuffer(pCmd);
+		BufferCreateDesc bufferCI = {};
+		bufferCI.name = "skybox_vb";
+		bufferCI.pInitData = skyboxVertices.data();
+		bufferCI.totalSizeInByte = static_cast<UInt32>(vbSize);
+		bufferCI.type = EBufferType::efVertex;
+		CreateBuffer(bufferCI, true);
+		FlushBuffers();
 
 		// eliminate the translation part of the matrix
 		PerMeshRenderData renderData = { Matrix4f(Matrix3f(SSystem()->GetMainScene()->GetMainCamera()->GetViewMatrix())) };
-		mSkyboxRenderMesh = { pSkybox->GetName(), vbSize, 0, mPackedVBCurrOffset, 0, 0, renderData };
-
-		mPackedVBCurrOffset += vbSize;
-
-		Memory::Delete(pVBStagingBuffer);
+		RenderMesh renderMesh = {};
+		mSkyboxRenderMesh.vBSize = vbSize;
+		mSkyboxRenderMesh.iBSize = 0;
+		mSkyboxRenderMesh.vBOffset = 0;
+		mSkyboxRenderMesh.iBOffset = 0;
+		mSkyboxRenderMesh.objectId = 0;
+		mSkyboxRenderMesh.instanceCount = 1;
+		mSkyboxRenderMesh.pVertexBuffer = GetBuffer("skybox_vb");
+		mSkyboxRenderMesh.pIndexBuffer = nullptr;
+		mSkyboxRenderMesh.pInstanceBuffer = nullptr;
 	}
 
 	void VulkanResourceRegistry::Shutdown()
@@ -88,8 +90,11 @@ namespace SG
 		// update all the render data of the render mesh
 		pScene->TraverseMesh([&](Mesh& mesh)
 			{
-				mStaticRenderMeshes[mesh.GetName()].renderData.model = mesh.GetTransform();
-				mStaticRenderMeshes[mesh.GetName()].renderData.inverseTransposeModel = glm::transpose(glm::inverse(mesh.GetTransform()));
+				if (mStaticRenderMeshes.count(mesh.GetMeshID()) != 0)
+				{
+					mStaticRenderMeshes[mesh.GetMeshID()].renderData.model = mesh.GetTransform();
+					mStaticRenderMeshes[mesh.GetMeshID()].renderData.inverseTransposeModel = glm::transpose(glm::inverse(mesh.GetTransform()));
+				}
 			});
 	}
 
@@ -211,64 +216,112 @@ namespace SG
 		if (!pMesh)
 			return false;
 
-		const UInt64 vbSize = pMesh->GetVertices().size() * sizeof(float);
-		const UInt64 ibSize = pMesh->GetIndices().size() * sizeof(UInt32);
-
-		BufferCreateDesc stagingBufferCI = {};
-		stagingBufferCI.totalSizeInByte = static_cast<UInt32>(vbSize);
-		stagingBufferCI.type = EBufferType::efTransfer_Src;
-		auto* pVBStagingBuffer = VulkanBuffer::Create(mpContext->device, stagingBufferCI, false);
-		pVBStagingBuffer->UploadData(pMesh->GetVertices().data());
-
-		if (mPackedVBCurrOffset + vbSize > SG_MAX_PACKED_VERTEX_BUFFER_SIZE)
+		auto node = mRenderMeshBuildDataMap.find(pMesh->GetMeshID());
+		if (node == mRenderMeshBuildDataMap.end())
 		{
-			SG_LOG_ERROR("Vertex buffer exceed boundary!");
-			SG_ASSERT(false);
-			return false;
+			auto node = mRenderMeshBuildDataMap.insert(pMesh->GetMeshID());
+			node.first->second.objectId = pMesh->GetObjectID();
+			node.first->second.instanceCount = 1;
 		}
-
-		VulkanBuffer* pIBStagingBuffer = nullptr;
-		if (ibSize != 0)
+		else // have instance
 		{
-			stagingBufferCI.totalSizeInByte = static_cast<UInt32>(ibSize);;
-			pIBStagingBuffer = VulkanBuffer::Create(mpContext->device, stagingBufferCI, false);
-			pIBStagingBuffer->UploadData(pMesh->GetIndices().data());
-
-			if (mPackedIBCurrOffset + ibSize > SG_MAX_PACKED_INDEX_BUFFER_SIZE)
-			{
-				SG_LOG_ERROR("Index buffer exceed boundary!");
-				SG_ASSERT(false);
-				return false;
-			}
+			node->second.instanceCount += 1;
 		}
-
-		VulkanCommandBuffer pCmd;
-		mpContext->transferCommandPool->AllocateCommandBuffer(pCmd);
-
-		pCmd.BeginRecord();
-		pCmd.CopyBuffer(*pVBStagingBuffer, *mPackedVertexBuffer, 0, mPackedVBCurrOffset);
-		if (pIBStagingBuffer)
-			pCmd.CopyBuffer(*pIBStagingBuffer, *mPackedIndexBuffer, 0, mPackedIBCurrOffset);
-		pCmd.EndRecord();
-
-		mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mpContext->transferQueue.WaitIdle();
-
-		mpContext->transferCommandPool->FreeCommandBuffer(pCmd);
-
-		PerMeshRenderData renderData = { pMesh->GetTransform(), glm::transpose(glm::inverse(pMesh->GetTransform())) };
-		RenderMesh renderMesh = { pMesh->GetName(), vbSize, ibSize, mPackedVBCurrOffset, pIBStagingBuffer ? mPackedIBCurrOffset : 0, 0, renderData };
-
-		mStaticRenderMeshes[pMesh->GetName()] = eastl::move(renderMesh);
-
-		mPackedVBCurrOffset += vbSize;
-		mPackedIBCurrOffset += ibSize;
-
-		Memory::Delete(pVBStagingBuffer);
-		if (pIBStagingBuffer)
-			Memory::Delete(pIBStagingBuffer);
+		auto& perInstanceData = mRenderMeshBuildDataMap[pMesh->GetMeshID()].perInstanceData;
+		perInstanceData.emplace_back(pMesh->GetPosition(), pMesh->GetScale().x);
 
 		return true;
+	}
+
+	void VulkanResourceRegistry::BuildRenderMeshData()
+	{
+		mStaticRenderMeshes.clear();
+		for (auto node : mRenderMeshBuildDataMap)
+		{
+			if (node.second.instanceCount > 1) // move it to the Forward Instance Mesh Pass
+			{
+				BufferCreateDesc bufferCreateDesc = {};
+				bufferCreateDesc.name = (string("instance_vb_") + eastl::to_string(node.first)).c_str();
+				bufferCreateDesc.pInitData = node.second.perInstanceData.data();
+				bufferCreateDesc.totalSizeInByte = sizeof(float) * 4 * node.second.instanceCount;
+				bufferCreateDesc.type = EBufferType::efVertex;
+				CreateBuffer(bufferCreateDesc, true);
+				FlushBuffers();
+
+				SG_LOG_DEBUG("Have instance!");
+			}
+
+			auto* pMeshData = MeshDataArchive::GetInstance()->GetData(node.first);
+			const UInt64 vbSize = pMeshData->vertices.size() * sizeof(float);
+			const UInt64 ibSize = pMeshData->indices.size() * sizeof(UInt32);
+
+			BufferCreateDesc stagingBufferCI = {};
+			stagingBufferCI.totalSizeInByte = static_cast<UInt32>(vbSize);
+			stagingBufferCI.type = EBufferType::efTransfer_Src;
+			auto* pVBStagingBuffer = VulkanBuffer::Create(mpContext->device, stagingBufferCI, false);
+			pVBStagingBuffer->UploadData(pMeshData->vertices.data());
+
+			if (mPackedVBCurrOffset + vbSize > SG_MAX_PACKED_VERTEX_BUFFER_SIZE)
+			{
+				SG_LOG_ERROR("Vertex buffer exceed boundary!");
+				SG_ASSERT(false);
+			}
+
+			VulkanBuffer* pIBStagingBuffer = nullptr;
+			if (ibSize != 0)
+			{
+				stagingBufferCI.totalSizeInByte = static_cast<UInt32>(ibSize);;
+				pIBStagingBuffer = VulkanBuffer::Create(mpContext->device, stagingBufferCI, false);
+				pIBStagingBuffer->UploadData(pMeshData->indices.data());
+
+				if (mPackedIBCurrOffset + ibSize > SG_MAX_PACKED_INDEX_BUFFER_SIZE)
+				{
+					SG_LOG_ERROR("Index buffer exceed boundary!");
+					SG_ASSERT(false);
+				}
+			}
+
+			VulkanCommandBuffer pCmd;
+			mpContext->transferCommandPool->AllocateCommandBuffer(pCmd);
+
+			pCmd.BeginRecord();
+			pCmd.CopyBuffer(*pVBStagingBuffer, *mPackedVertexBuffer, 0, mPackedVBCurrOffset);
+			if (pIBStagingBuffer)
+				pCmd.CopyBuffer(*pIBStagingBuffer, *mPackedIndexBuffer, 0, mPackedIBCurrOffset);
+			pCmd.EndRecord();
+
+			mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+			mpContext->transferQueue.WaitIdle();
+
+			mpContext->transferCommandPool->FreeCommandBuffer(pCmd);
+
+			RenderMesh renderMesh = {};
+			renderMesh.vBSize = vbSize;
+			renderMesh.iBSize = ibSize;
+			renderMesh.vBOffset = mPackedVBCurrOffset;
+			renderMesh.iBOffset = mPackedIBCurrOffset;
+			renderMesh.objectId = node.second.objectId;
+			renderMesh.instanceCount = node.second.instanceCount;
+			renderMesh.pVertexBuffer = mPackedVertexBuffer;
+			renderMesh.pIndexBuffer = mPackedIndexBuffer;
+			renderMesh.pInstanceBuffer = nullptr;
+
+			if (node.second.instanceCount > 1)
+			{
+				renderMesh.pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(node.first)));
+				mStaticRenderMeshesInstanced[node.first] = renderMesh;
+			}
+			else
+				mStaticRenderMeshes[node.first] = renderMesh;
+
+			mPackedVBCurrOffset += vbSize;
+			mPackedIBCurrOffset += ibSize;
+
+			Memory::Delete(pVBStagingBuffer);
+			if (pIBStagingBuffer)
+				Memory::Delete(pIBStagingBuffer);
+		}
+		mRenderMeshBuildDataMap.clear();
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////

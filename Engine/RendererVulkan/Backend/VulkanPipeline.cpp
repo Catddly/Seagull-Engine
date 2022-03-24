@@ -136,23 +136,37 @@ namespace SG
 		SetMultiSample(ESampleCount::eSample_1);
 	}
 
-	VulkanPipeline::Builder& VulkanPipeline::Builder::SetVertexLayout(const ShaderAttributesLayout& layout, bool perVertex)
+	VulkanPipeline::Builder& VulkanPipeline::Builder::SetVertexLayout(const ShaderAttributesLayout& layout)
 	{
-		VkVertexInputBindingDescription vertexInputBinding = {};
-		vertexInputBinding.binding = 0;
-		vertexInputBinding.stride = layout.GetTotalSizeInByte();
-		vertexInputBinding.inputRate = perVertex ? VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE;
+		if (createInfos.vertexInputBindingDesc.empty() && layout.GetNumAttributes() != 0)
+		{
+			VkVertexInputBindingDescription vertexInputBinding = {};
+			vertexInputBinding.binding = 0;
+			vertexInputBinding.stride = layout.GetTotalSizeInByte();
+			vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			createInfos.vertexInputBindingDesc.emplace_back(eastl::move(vertexInputBinding));
+		}
 
 		UInt32 location = 0;
+		UInt32 size = 0;
+		UInt32 inputBindingIndex = 0;
 		for (auto& e : layout)
 		{
+			if (size >= createInfos.vertexInputBindingDesc[inputBindingIndex].stride)
+			{
+				size = 0;
+				++inputBindingIndex;
+			}
+
 			VkVertexInputAttributeDescription vertexInputAttrib = {};
-			vertexInputAttrib.binding = 0;
+			vertexInputAttrib.binding = inputBindingIndex;
 			vertexInputAttrib.location = location;
 			vertexInputAttrib.format = ToVkShaderDataFormat(e.type);
-			vertexInputAttrib.offset = e.offset;
-			++location;
+			vertexInputAttrib.offset = size;
 			createInfos.vertexInputAttributs.emplace_back(vertexInputAttrib);
+			
+			++location;
+			size += e.size;
 		}
 
 		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
@@ -164,13 +178,23 @@ namespace SG
 		}
 		else
 		{
-			vertexInputState.vertexBindingDescriptionCount = 1;
-			vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
+			vertexInputState.vertexBindingDescriptionCount = static_cast<UInt32>(createInfos.vertexInputBindingDesc.size());
+			vertexInputState.pVertexBindingDescriptions = createInfos.vertexInputBindingDesc.data();
 		}
 		vertexInputState.vertexAttributeDescriptionCount = static_cast<UInt32>(createInfos.vertexInputAttributs.size());
 		vertexInputState.pVertexAttributeDescriptions    = createInfos.vertexInputAttributs.data();
 
 		createInfos.vertexInputCI = eastl::move(vertexInputState);
+		return *this;
+	}
+
+	VulkanPipeline::Builder& VulkanPipeline::Builder::SetInputVertexRange(Size size, UInt32 inputRate)
+	{
+		VkVertexInputBindingDescription inputBindingDesc = {};
+		inputBindingDesc.stride = static_cast<UInt32>(size);
+		inputBindingDesc.inputRate = VkVertexInputRate(inputRate);
+		inputBindingDesc.binding = static_cast<UInt32>(createInfos.vertexInputBindingDesc.size());
+		createInfos.vertexInputBindingDesc.emplace_back(eastl::move(inputBindingDesc));
 		return *this;
 	}
 
@@ -292,12 +316,12 @@ namespace SG
 	VulkanPipeline::Builder& VulkanPipeline::Builder::BindShader(VulkanShader* pShader)
 	{
 		this->pShader = pShader; 
-		SetVertexLayout(pShader->GetAttributesLayout(EShaderStage::efVert)); 
 		return *this;
 	}
 
 	VulkanPipeline* VulkanPipeline::Builder::Build()
 	{
+		SetVertexLayout(pShader->GetAttributesLayout(EShaderStage::efVert));
 		return Memory::New<VulkanPipeline>(device, createInfos, pLayout, pRenderPass, pShader);
 	}
 

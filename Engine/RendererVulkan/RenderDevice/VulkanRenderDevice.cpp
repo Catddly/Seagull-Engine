@@ -59,6 +59,7 @@ namespace SG
 			{
 				VK_RESOURCE()->CreateRenderMesh(&mesh);
 			});
+		VK_RESOURCE()->BuildRenderMeshData();
 
 		BuildRenderGraph();
 		// update one frame here to avoid imgui do not draw the first frame.

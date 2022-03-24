@@ -51,6 +51,16 @@ namespace SG
 		Matrix4f inverseTransposeModel = Matrix4f(1.0f);
 	};
 
+	struct PerInstanceData
+	{
+		Vector3f instancePos;
+		float    instanceScale;
+
+		PerInstanceData(const Vector3f& insPos, float insScale)
+			:instancePos(insPos), instanceScale(insScale)
+		{}
+	};
+
 	// temporary
 	SG_RENDERER_VK_API SG_INLINE LightUBO&  GetLightUBO();
 	SG_RENDERER_VK_API SG_INLINE ShadowUBO& GetShadowUBO();

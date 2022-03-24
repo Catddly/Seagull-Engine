@@ -52,6 +52,7 @@ namespace SG
 	public:
 		struct PipelineCreateInfos
 		{
+			vector<VkVertexInputBindingDescription> vertexInputBindingDesc;
 			vector<VkVertexInputAttributeDescription> vertexInputAttributs;
 			VkPipelineVertexInputStateCreateInfo   vertexInputCI;
 			VkPipelineInputAssemblyStateCreateInfo inputAssemblyCI;
@@ -74,6 +75,7 @@ namespace SG
 			Builder(VulkanDevice& d);
 			~Builder() = default;
 			
+			Builder& SetInputVertexRange(Size size, UInt32 inputRate);
 			// TODO: should use SPIRV reflection to automatically bind the vertex layout.
 			// @brief Set vertex buffer layout.
 			// @param [ layout ] The buffer layout.
@@ -92,7 +94,7 @@ namespace SG
 
 			VulkanPipeline* Build();
 		private:
-			Builder& SetVertexLayout(const ShaderAttributesLayout& layout, bool perVertex = true);
+			Builder& SetVertexLayout(const ShaderAttributesLayout& layout);
 		private:
 			VulkanDevice&         device;
 			PipelineCreateInfos   createInfos;

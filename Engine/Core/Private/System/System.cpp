@@ -20,10 +20,6 @@ namespace SG
 	// no implementation yet, just use a forward declaration
 	class C2DEngine;
 
-	System::System()
-		:mRootPath(""), m3DScene("Main Scene")
-	{}
-
 	void System::Initialize()
 	{
 		FileSystem::OnInit();
@@ -53,14 +49,15 @@ namespace SG
 
 		mpCurrActiveProcess->OnInit();
 
-		m3DScene.OnSceneLoad();
+		mp3DScene = MakeUnique<Scene>("Main Scene");
+		mp3DScene->OnSceneLoad();
 		ShaderLibrary::GetInstance()->OnInit();
 	}
 
 	void System::Shutdown()
 	{
 		ShaderLibrary::GetInstance()->OnShutdown();
-		m3DScene.OnSceneUnLoad();
+		mp3DScene->OnSceneUnLoad();
 
 		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
 		Memory::Delete(mpCurrActiveProcess);
@@ -102,7 +99,7 @@ namespace SG
 			mMessageBus.Update();
 			
 			Input::OnUpdate(deltaTime);
-			m3DScene.OnUpdate(deltaTime);
+			mp3DScene->OnUpdate(deltaTime);
 
 			// modules OnUpdate()
 			mModuleManager.Update(deltaTime);
@@ -131,7 +128,7 @@ namespace SG
 
 	Scene* System::GetMainScene()
 	{
-		return &m3DScene;
+		return mp3DScene.get();
 	}
 
 	UInt32 System::GetTotalMemoryUsage() const
