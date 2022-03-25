@@ -53,9 +53,10 @@ namespace SG
 
 	struct PerInstanceData
 	{
-		Vector3f instancePos;
-		float    instanceScale;
+		Vector3f instancePos = Vector3f(0.0f, 0.0f, 0.0f);
+		float    instanceScale = 1.0f;
 
+		PerInstanceData() = default;
 		PerInstanceData(const Vector3f& insPos, float insScale)
 			:instancePos(insPos), instanceScale(insScale)
 		{}

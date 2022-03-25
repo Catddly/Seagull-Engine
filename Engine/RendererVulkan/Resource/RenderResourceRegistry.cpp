@@ -95,6 +95,18 @@ namespace SG
 					mStaticRenderMeshes[mesh.GetMeshID()].renderData.model = mesh.GetTransform();
 					mStaticRenderMeshes[mesh.GetMeshID()].renderData.inverseTransposeModel = glm::transpose(glm::inverse(mesh.GetTransform()));
 				}
+
+				if (mStaticRenderMeshesInstanced.count(mesh.GetMeshID()) != 0)
+				{
+					auto* pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(mesh.GetMeshID())));
+					if (pInstanceBuffer)
+					{
+						PerInstanceData data = {};
+						data.instancePos = mesh.GetPosition();
+						data.instanceScale = mesh.GetScale().x;
+						pInstanceBuffer->UploadData(&data, sizeof(PerInstanceData), sizeof(PerInstanceData) * mesh.GetInstanceID());
+					}
+				}
 			});
 	}
 
@@ -235,7 +247,6 @@ namespace SG
 
 	void VulkanResourceRegistry::BuildRenderMeshData()
 	{
-		mStaticRenderMeshes.clear();
 		for (auto node : mRenderMeshBuildDataMap)
 		{
 			if (node.second.instanceCount > 1) // move it to the Forward Instance Mesh Pass
@@ -245,10 +256,13 @@ namespace SG
 				bufferCreateDesc.pInitData = node.second.perInstanceData.data();
 				bufferCreateDesc.totalSizeInByte = sizeof(float) * 4 * node.second.instanceCount;
 				bufferCreateDesc.type = EBufferType::efVertex;
-				CreateBuffer(bufferCreateDesc, true);
-				FlushBuffers();
+				CreateBuffer(bufferCreateDesc, false);
 
 				SG_LOG_DEBUG("Have instance!");
+			}
+			else
+			{
+				node.second.perInstanceData.set_capacity(0); // clear memory
 			}
 
 			auto* pMeshData = MeshDataArchive::GetInstance()->GetData(node.first);

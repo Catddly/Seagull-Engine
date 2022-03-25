@@ -119,10 +119,12 @@ namespace SG
 		VK_RESOURCE()->CreateSampler(samplerCI);
 
 		mpShader = VulkanShader::Create(mContext.device);
+		mpInstanceShader = VulkanShader::Create(mContext.device);
 		mpSkyboxShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
 		compiler.CompileGLSLShader("brdf", mpShader.get());
 		compiler.CompileGLSLShader("skybox", mpSkyboxShader.get());
+		compiler.CompileGLSLShader("brdf_instance", "brdf", mpInstanceShader.get());
 
 		GenerateBRDFLut();
 		PreCalcIrradianceCubemap();
@@ -130,6 +132,13 @@ namespace SG
 
 		mpSkyboxPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpSkyboxShader)
 			.AddCombindSamplerImage("cubemap_sampler", "cubemap")
+			.Build();
+
+		mpInstancePipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShader)
+			.AddCombindSamplerImage("shadow_sampler", "shadow map")
+			.AddCombindSamplerImage("brdf_lut_sampler", "brdf_lut")
+			.AddCombindSamplerImage("irradiance_cubemap_sampler", "cubemap_irradiance")
+			.AddCombindSamplerImage("prefilter_cubemap_sampler", "cubemap_prefilter")
 			.Build();
 
 		mpPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShader)
@@ -153,6 +162,7 @@ namespace SG
 	RGDrawScenePBRNode::~RGDrawScenePBRNode()
 	{
 		Memory::Delete(mpSkyboxPipeline);
+		Memory::Delete(mpInstancePipeline);
 		Memory::Delete(mpPipeline);
 	}
 
@@ -216,6 +226,16 @@ namespace SG
 			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
 			.BindShader(mpSkyboxShader.get())
+			.Build();
+
+		mpInstancePipeline = VulkanPipeline::Builder(mContext.device)
+			.SetInputVertexRange(sizeof(float) * 6, 0)
+			.SetInputVertexRange(sizeof(float) * 4, 1)
+			.SetColorBlend(false)
+			.BindSignature(mpInstancePipelineSignature.get())
+			.SetDynamicStates()
+			.BindRenderPass(pRenderpass)
+			.BindShader(mpInstanceShader.get())
 			.Build();
 
 		mpPipeline = VulkanPipeline::Builder(mContext.device)
@@ -287,9 +307,9 @@ namespace SG
 		pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
 		//pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
+		// 1.1 Forward Mesh Pass
 		pBuf.BindPipelineSignature(mpPipelineSignature.get());
 		pBuf.BindPipeline(mpPipeline);
-
 		VK_RESOURCE()->TraverseStaticRenderMesh([&](const RenderMesh& renderMesh)
 			{
 				pBuf.BindVertexBuffer(0, 1, *renderMesh.pVertexBuffer, &renderMesh.vBOffset);
@@ -298,6 +318,19 @@ namespace SG
 				// TODO: not to use push constant, use read write buffer.
 				pBuf.PushConstants(mpPipelineSignature.get(), EShaderStage::efVert, sizeof(PerMeshRenderData), 0, &renderMesh.renderData);
 				pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), 1, 0, 0, 0);
+			});
+
+		// 1.2 Forward Instanced Mesh Pass
+		pBuf.BindPipelineSignature(mpInstancePipelineSignature.get());
+		pBuf.BindPipeline(mpInstancePipeline);
+		VK_RESOURCE()->TraverseStaticRenderMeshInstanced([&](const RenderMesh& renderMesh)
+			{
+				pBuf.BindVertexBuffer(0, 1, *renderMesh.pVertexBuffer, &renderMesh.vBOffset);
+				UInt64 offset = 0;
+				pBuf.BindVertexBuffer(1, 1, *renderMesh.pInstanceBuffer, &offset);
+				pBuf.BindIndexBuffer(*renderMesh.pIndexBuffer, renderMesh.iBOffset);
+
+				pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), renderMesh.instanceCount, 0, 0, 0);
 			});
 	}
 

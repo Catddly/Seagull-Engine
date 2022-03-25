@@ -40,6 +40,8 @@ namespace SG
 		DirectionalLight* mpDirectionalLight = nullptr;
 
 		LoadStoreClearOp  mDepthRtLoadStoreOp;
+
+		bool mbDrawShadow = true;
 	};
 
 }

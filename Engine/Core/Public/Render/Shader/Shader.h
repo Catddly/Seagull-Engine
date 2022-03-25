@@ -210,7 +210,7 @@ namespace SG
 		SG_INLINE void ReleaseBinary()
 		{
 			for (auto& data : mShaderStages)
-				data.second.binary.resize(0); // clear all the memory of the binary
+				data.second.binary.set_capacity(0); // clear all the memory of the binary
 		}
 	protected:
 		typedef eastl::fixed_map<EShaderStage, ShaderData, (Size)EShaderStage::NUM_STAGES, false> ShaderStageDataType;

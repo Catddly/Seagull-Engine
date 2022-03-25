@@ -51,10 +51,9 @@ namespace SG
 	{
 		for (auto& shaderModule : mShaderModules)
 			vkDestroyShaderModule(mDevice.logicalDevice, shaderModule, nullptr);
-		mShaderModules.clear();
-		mShaderModules.resize(0); // clear all the memory
-		mShaderStagesCI.clear();
-		mShaderStagesCI.resize(0);  // clear all the memory
+		// clear all the memory
+		mShaderModules.set_capacity(0); 
+		mShaderStagesCI.set_capacity(0);
 	}
 
 	RefPtr<VulkanShader> VulkanShader::Create(VulkanDevice& device)
