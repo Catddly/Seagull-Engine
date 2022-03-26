@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "RendererVulkan/GUI/TestGUILayer.h"
 
-#include "RendererVulkan/Resource/CommonUBO.h"
+#include "Render/CommonRenderData.h"
 
 #include "imgui/imgui.h"
 

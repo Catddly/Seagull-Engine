@@ -144,7 +144,7 @@ namespace SG
 		eastl::map<string, typename ElementType> mUBODataMap;
 	};
 
-	struct UniformBufferLayout
+	struct GPUBufferLayout
 	{
 		SetBindingKey          setbinding;
 		ShaderAttributesLayout layout;
@@ -193,8 +193,11 @@ namespace SG
 			return mShaderStages[stage].stageInputLayout;
 		}
 		SG_INLINE const ShaderAttributesLayout& GetPushConstantLayout(EShaderStage stage) { return mShaderStages[stage].pushConstantLayout; }
-		SG_INLINE const ShaderSetBindingAttributeLayout<UniformBufferLayout>& GetUniformBufferLayout() { return mUniformBufferLayout; }
+		SG_INLINE const ShaderSetBindingAttributeLayout<GPUBufferLayout>& GetUniformBufferLayout() { return mUniformBufferLayout; }
+		SG_INLINE const ShaderSetBindingAttributeLayout<GPUBufferLayout>& GetStorageBufferLayout() { return mStorageBufferLayout; }
 		SG_INLINE const ShaderSetBindingAttributeLayout<SetBindingKey>& GetSampledImageLayout(EShaderStage stage) { return mShaderStages[stage].sampledImageLayout; }
+
+		SG_INLINE const eastl::set<UInt32>& GetSetIndices() const { return mSetIndices; }
 
 		SG_INLINE const Byte* GetBinary(EShaderStage stage)
 		{
@@ -215,7 +218,9 @@ namespace SG
 	protected:
 		typedef eastl::fixed_map<EShaderStage, ShaderData, (Size)EShaderStage::NUM_STAGES, false> ShaderStageDataType;
 		ShaderStageDataType mShaderStages;
-		ShaderSetBindingAttributeLayout<UniformBufferLayout> mUniformBufferLayout;
+		ShaderSetBindingAttributeLayout<GPUBufferLayout> mUniformBufferLayout;
+		ShaderSetBindingAttributeLayout<GPUBufferLayout> mStorageBufferLayout;
+		eastl::set<UInt32> mSetIndices;
 	private:
 		friend class ShaderCompiler;
 		string mEntryPoint = "main"; // default

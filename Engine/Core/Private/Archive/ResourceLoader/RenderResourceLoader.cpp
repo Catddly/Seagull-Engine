@@ -95,7 +95,7 @@ namespace SG
 		SG_LOG_DEBUG("Meshes: %d", scene->mNumMeshes);
 		if (scene->HasMeshes())
 		{
-			SG_LOG_DEBUG("Mesh Name: %s", scene->mRootNode->mName);
+			//SG_LOG_DEBUG("Mesh Name: %s", scene->mRootNode->mName);
 			for (UInt32 i = 0; i < scene->mNumMeshes; ++i)
 			{
 				const aiMesh* pMesh = scene->mMeshes[i];

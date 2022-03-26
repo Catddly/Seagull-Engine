@@ -9,6 +9,8 @@
 
 #include "spirv-cross/spirv_cross.hpp"
 
+#include "eastl/stack.h"
+
 namespace SG
 {
 
@@ -379,6 +381,7 @@ namespace SG
 				const auto& type = compiler.get_type(ubo.type_id);
 				const char* name = compiler.get_name(ubo.id).c_str();
 				const auto set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
+				pShader->mSetIndices.emplace(set);
 				const auto binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
 				const UInt32 key = set * 10 + binding; // calculate key value for the set and binding
 
@@ -390,23 +393,68 @@ namespace SG
 				}
 
 				ShaderAttributesLayout layout = {};
-				if (type.basetype == spirv_cross::SPIRType::Struct)
+				eastl::stack<spirv_cross::SPIRType> memberTypes;
+				memberTypes.push(type);
+				while (!memberTypes.empty())
 				{
-					for (UInt32 i = 0; i < type.member_types.size(); ++i)
+					auto currentType = memberTypes.top();
+					memberTypes.pop();
+
+					for (UInt32 i = 0; i < currentType.member_types.size(); ++i)
 					{
-						const auto memberTypeID = type.member_types[i];
-						const char* memberName = compiler.get_member_name(type.self, i).c_str();
+						const auto memberTypeID = currentType.member_types[i];
+						const char* memberName = compiler.get_member_name(currentType.self, i).c_str();
 						const auto& memberType = compiler.get_type(memberTypeID);
-						layout.Emplace(_SPIRVTypeToShaderDataType(memberType), memberName);
+
+						if (memberType.basetype != spirv_cross::SPIRType::Struct)
+							layout.Emplace(_SPIRVTypeToShaderDataType(memberType), memberName);
+						else
+							memberTypes.push(memberType);
 					}
-				}
-				else
-				{
-					const char* memberName = compiler.get_name(ubo.id).c_str();
-					layout.Emplace(_SPIRVTypeToShaderDataType(type), memberName);
 				}
 
 				pShader->mUniformBufferLayout.Emplace(name, { key, layout, beg->first });
+			}
+
+			// shader storage buffer collection
+			for (auto& ssbo : shaderResources.storage_buffers)
+			{
+				const auto& type = compiler.get_type(ssbo.type_id);
+				const char* name = compiler.get_name(ssbo.id).c_str();
+				const auto set = compiler.get_decoration(ssbo.id, spv::DecorationDescriptorSet);
+				pShader->mSetIndices.emplace(set);
+				const auto binding = compiler.get_decoration(ssbo.id, spv::DecorationBinding);
+				const UInt32 key = set * 10 + binding; // calculate key value for the set and binding
+
+				if (pShader->mStorageBufferLayout.Exist(name)) // may be another stage is using it, too.
+				{
+					auto& data = pShader->mStorageBufferLayout.Get(name);
+					data.stage = data.stage | beg->first;
+					continue;
+				}
+
+				ShaderAttributesLayout layout = {};
+				eastl::stack<spirv_cross::SPIRType> memberTypes;
+				memberTypes.push(type);
+				while (!memberTypes.empty())
+				{
+					auto currentType = memberTypes.top();
+					memberTypes.pop();
+
+					for (UInt32 i = 0; i < currentType.member_types.size(); ++i)
+					{
+						const auto memberTypeID = currentType.member_types[i];
+						const char* memberName = compiler.get_member_name(currentType.self, i).c_str();
+						const auto& memberType = compiler.get_type(memberTypeID);
+
+						if (memberType.basetype != spirv_cross::SPIRType::Struct)
+							layout.Emplace(_SPIRVTypeToShaderDataType(memberType), memberName);
+						else
+							memberTypes.push(memberType);
+					}
+				}
+
+				pShader->mStorageBufferLayout.Emplace(name, { key, layout, beg->first });
 			}
 
 			// shader combine sampler image collection
@@ -416,6 +464,7 @@ namespace SG
 				const auto set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
 				const auto binding = compiler.get_decoration(image.id, spv::DecorationBinding);
 				const UInt32 key = set * 10 + binding; // calculate key value for the set and binding
+				pShader->mSetIndices.emplace(set);
 
 				shaderData.sampledImageLayout.Emplace(name, key);
 			}

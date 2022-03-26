@@ -32,6 +32,8 @@ namespace SG
 	private:
 		static UInt32 NewID();
 	private:
+		friend class RenderDataBuilder;
+
 		string    mName;
 		EMeshType mType;
 		UInt32    mMeshId = UInt32(-1);   //! Used to reference mesh data.

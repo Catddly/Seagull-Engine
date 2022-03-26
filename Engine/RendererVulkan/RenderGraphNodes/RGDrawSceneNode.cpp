@@ -4,6 +4,7 @@
 #include "System/System.h"
 #include "System/Logger.h"
 #include "Render/Shader/ShaderComiler.h"
+#include "Render/CommonRenderData.h"
 #include "Archive/ResourceLoader/RenderResourceLoader.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
@@ -17,7 +18,6 @@
 
 #include "RendererVulkan/Resource/RenderMesh.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
-#include "RendererVulkan/Resource/CommonUBO.h"
 
 namespace SG
 {
@@ -30,7 +30,7 @@ namespace SG
 	{
 		// load scene ubos
 		{
-			Scene* pScene = SSystem()->GetMainScene();
+			auto pScene = SSystem()->GetMainScene();
 			pScene->TraversePointLight([&](const PointLight& light)
 				{
 					mpPointLight = &light;
@@ -229,7 +229,7 @@ namespace SG
 			pBuf.BindPipelineSignature(mpSkyboxPipelineSignature.get());
 			pBuf.BindPipeline(mpSkyboxPipeline);
 
-			const RenderMesh& skybox = VK_RESOURCE()->GetSkyboxRenderMeshData();
+			const RenderMesh& skybox = VK_RESOURCE()->GetSkyboxRenderMesh();
 			pBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
 			pBuf.Draw(36, 1, 0, 0);
 		}
@@ -252,7 +252,7 @@ namespace SG
 				pBuf.BindIndexBuffer(*renderMesh.pIndexBuffer, renderMesh.iBOffset);
 
 				// TODO: not to use push constant, use read write buffer.
-				pBuf.PushConstants(mpPipelineSignature.get(), EShaderStage::efVert, sizeof(PerMeshRenderData), 0, &renderMesh.renderData);
+				pBuf.PushConstants(mpPipelineSignature.get(), EShaderStage::efVert, sizeof(PerObjcetRenderData), 0, &renderMesh.renderData);
 				pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), 1, 0, 0, 0);
 			});
 	}

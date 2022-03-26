@@ -12,7 +12,7 @@
 #include "Profile/FpsTimer.h"
 #include "Memory/Memory.h"
 
-#include <windows.h>
+#include <filesystem>
 
 namespace SG
 {
@@ -27,19 +27,23 @@ namespace SG
 		Input::OnInit();
 		OperatingSystem::OnInit();
 
-		char abPath[SG_MAX_FILE_PATH] = { 0 };
-		::GetModuleFileNameA(NULL, abPath, sizeof(abPath));
-		char drivePath[SG_MAX_DRIVE_PATH] = { 0 };
-		char directoryPath[SG_MAX_DIREC_PATH] = { 0 };
-		_splitpath_s(abPath,
-			drivePath, SG_MAX_DRIVE_PATH,
-			directoryPath, SG_MAX_DIREC_PATH, NULL, 0, NULL, 0);
+		// TODO: wrap in FileSystem API
+		{
+			char abPath[SG_MAX_FILE_PATH] = { 0 };
+			::GetModuleFileNameA(NULL, abPath, sizeof(abPath));
+			char drivePath[SG_MAX_DRIVE_PATH] = { 0 };
+			char directoryPath[SG_MAX_DIREC_PATH] = { 0 };
+			// get rid of the .exe postfix
+			_splitpath_s(abPath,
+				drivePath, SG_MAX_DRIVE_PATH,
+				directoryPath, SG_MAX_DIREC_PATH, NULL, 0, NULL, 0);
 
-		string tempRootPath(drivePath);
-		tempRootPath.append(directoryPath);
-		mRootPath = eastl::move(tempRootPath);
-		// set root directory to where the .exe file is
-		_chdir(mRootPath.c_str());
+			// set root directory to where the .exe file is
+			string tempRootPath(drivePath);
+			tempRootPath.append(directoryPath);
+			mRootPath = eastl::move(tempRootPath);
+			std::filesystem::current_path(mRootPath.c_str());
+		}
 
 		// set current thread to main thread
 		SetCurrThreadName("Main Thread");
@@ -49,8 +53,13 @@ namespace SG
 
 		mpCurrActiveProcess->OnInit();
 
-		mp3DScene = MakeUnique<Scene>("Main Scene");
+		mp3DScene = MakeRef<Scene>("Main Scene");
 		mp3DScene->OnSceneLoad();
+
+		mpRenderDataBuilder = MakeRef<RenderDataBuilder>();
+		mpRenderDataBuilder->SetScene(mp3DScene);
+		mpRenderDataBuilder->BuildData();
+
 		ShaderLibrary::GetInstance()->OnInit();
 	}
 
@@ -126,9 +135,14 @@ namespace SG
 		return false;
 	}
 
-	Scene* System::GetMainScene()
+	RefPtr<Scene> System::GetMainScene()
 	{
-		return mp3DScene.get();
+		return mp3DScene;
+	}
+
+	RefPtr<RenderDataBuilder> System::GetRenderDataBuilder()
+	{
+		return mpRenderDataBuilder;
 	}
 
 	UInt32 System::GetTotalMemoryUsage() const

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RendererVulkan/Resource/CommonUBO.h"
+#include "Render/CommonRenderData.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
 
 #include "Stl/string.h"
@@ -21,7 +21,7 @@ namespace SG
 		VulkanBuffer* pIndexBuffer = nullptr;
 		VulkanBuffer* pInstanceBuffer = nullptr;
 
-		PerMeshRenderData renderData;
+		PerObjcetRenderData renderData;
 	};
 
 }

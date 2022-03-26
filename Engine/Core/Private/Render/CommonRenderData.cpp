@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "RendererVulkan/Resource/CommonUBO.h"
+#include "Render/CommonRenderData.h"
 
 namespace SG
 {

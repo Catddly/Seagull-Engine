@@ -5,6 +5,7 @@
 
 #include "System/FileSystem.h"
 #include "Scene/Scene.h"
+#include "Scene/RenderDataBuilder.h"
 #include "Platform/OS.h"
 #include "Core/Private/System/ModuleManager.h"
 
@@ -61,7 +62,8 @@ namespace SG
 		//! Check if all the modules is loaded.
 		SG_CORE_API bool ValidateModules() const;
 
-		SG_CORE_API Scene* GetMainScene();
+		SG_CORE_API RefPtr<Scene> GetMainScene();
+		SG_CORE_API RefPtr<RenderDataBuilder> GetRenderDataBuilder();
 
 		//! Get current memory usage for all the modules.
 		SG_CORE_API UInt32 GetTotalMemoryUsage() const;
@@ -113,8 +115,10 @@ namespace SG
 		IProcess*     mpCurrActiveProcess;
 		Thread        mMainThread;
 		string        mRootPath = "";
+
 		// TODO: add a 3DWorld can contain a lot of scenes.
-		UniquePtr<Scene> mp3DScene = nullptr;
+		RefPtr<Scene> mp3DScene = nullptr;
+		RefPtr<RenderDataBuilder> mpRenderDataBuilder = nullptr;
 	};
 
 	template <class T>

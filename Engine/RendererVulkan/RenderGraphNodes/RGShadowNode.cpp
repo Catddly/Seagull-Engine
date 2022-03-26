@@ -2,6 +2,7 @@
 #include "RGShadowNode.h"
 
 #include "System/System.h"
+#include "Render/CommonRenderData.h"
 #include "Render/Shader/ShaderComiler.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
@@ -14,7 +15,6 @@
 
 #include "RendererVulkan/Resource/RenderMesh.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
-#include "RendererVulkan/Resource/CommonUBO.h"
 
 #include "Math/MathBasic.h"
 

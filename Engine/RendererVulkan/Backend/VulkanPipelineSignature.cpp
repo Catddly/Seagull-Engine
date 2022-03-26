@@ -23,62 +23,124 @@ namespace SG
 		return VulkanPipelineSignature::Create(mContext, mpShader, mCombineImages);
 	}
 
+	RefPtr<VulkanPipelineSignature> VulkanPipelineSignature::Create(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages)
+	{
+		return MakeRef<VulkanPipelineSignature>(context, pShader, combineImages);
+	}
+
 	VulkanPipelineSignature::VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages)
 		:mContext(context), mpShader(pShader)
 	{
-		// bind to the descriptor set
-		VulkanDescriptorSetLayout::Builder uboLayoutBuilder(mContext.device);
-		
-		// for all the ubo in vertex stage
-		auto& uboLayout = pShader->GetUniformBufferLayout();
-		for (auto& uboData : uboLayout)
+		for (auto setIndex : pShader->GetSetIndices())
 		{
-			// create a buffer for this ubo layout
-			BufferCreateDesc BufferCI = {};
-			BufferCI.name = uboData.first.c_str();
-			BufferCI.totalSizeInByte = uboData.second.layout.GetTotalSizeInByte();
-			BufferCI.type = EBufferType::efUniform;
-			if (!VK_RESOURCE()->GetBuffer(BufferCI.name))
-				VK_RESOURCE()->CreateBuffer(BufferCI);
+			mDescriptorSetData.insert(setIndex);
 
-			uboLayoutBuilder.AddBinding(EDescriptorType::eUniform_Buffer, uboData.second.stage, GetBinding(uboData.second.setbinding), 1);
+			// bind to the descriptor set
+			VulkanDescriptorSetLayout::Builder descLayoutBuilder(mContext.device);
+
+			// for all the ubo in vertex stage
+			auto& uboLayout = pShader->GetUniformBufferLayout();
+			for (auto& uboData : uboLayout)
+			{
+				if (GetSet(uboData.second.setbinding) != setIndex)
+					continue;
+
+				// create a buffer for this ubo layout
+				BufferCreateDesc BufferCI = {};
+				BufferCI.name = uboData.first.c_str();
+				BufferCI.totalSizeInByte = uboData.second.layout.GetTotalSizeInByte();
+				BufferCI.type = EBufferType::efUniform;
+				if (!VK_RESOURCE()->GetBuffer(BufferCI.name))
+					VK_RESOURCE()->CreateBuffer(BufferCI);
+
+				descLayoutBuilder.AddBinding(EDescriptorType::eUniform_Buffer, uboData.second.stage, GetBinding(uboData.second.setbinding), 1);
+			}
+
+			// for all the ssbo
+			auto& ssboLayout = pShader->GetStorageBufferLayout();
+			for (auto& ssboData : ssboLayout)
+			{
+				if (GetSet(ssboData.second.setbinding) != setIndex)
+					continue;
+
+				// create a buffer for this ubo layout
+				BufferCreateDesc BufferCI = {};
+				BufferCI.name = ssboData.first.c_str();
+				BufferCI.totalSizeInByte = ssboData.second.layout.GetTotalSizeInByte();
+				BufferCI.type = EBufferType::efStorage;
+				if (!VK_RESOURCE()->GetBuffer(BufferCI.name))
+					VK_RESOURCE()->CreateBuffer(BufferCI);
+
+				descLayoutBuilder.AddBinding(EDescriptorType::eStorage_Buffer, ssboData.second.stage, GetBinding(ssboData.second.setbinding), 1);
+			}
+
+			auto& combineImageLayout = pShader->GetSampledImageLayout(EShaderStage::efFrag);
+			OrderSet<SetBindingKey> orderedSIInputLayout;
+			for (auto& imageData : combineImageLayout)
+				orderedSIInputLayout.emplace(imageData.second, imageData.second);
+			for (auto& imageData : orderedSIInputLayout)
+			{
+				if (GetSet(imageData.second) != setIndex)
+					continue;
+				descLayoutBuilder.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, GetBinding(imageData.second), 1);
+			}
+
+			mDescriptorSetData[setIndex].descriptorSetLayout = descLayoutBuilder.Build();
+			if (!mDescriptorSetData[setIndex].descriptorSetLayout)
+			{
+				SG_LOG_ERROR("Failed to create descriptor set layout with shader: (%s, %s) (set: %d)!", pShader->GetName(EShaderStage::efVert).c_str(), pShader->GetName(EShaderStage::efFrag).c_str(), setIndex);
+				SG_ASSERT(false);
+			}
 		}
 
-		auto& combineImageLayout = pShader->GetSampledImageLayout(EShaderStage::efFrag);
-		OrderSet<SetBindingKey> orderedSIInputLayout;
-		for (auto& imageData : combineImageLayout)
-			orderedSIInputLayout.emplace(imageData.second, imageData.second);
-		for (auto& imageData : orderedSIInputLayout)
-			uboLayoutBuilder.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, GetBinding(imageData.second), 1);
-
-		mpUBODescriptorSetLayout = uboLayoutBuilder.Build();
-		if (!mpUBODescriptorSetLayout)
+		UInt32 numImages = 0;
+		for (auto setIndex : pShader->GetSetIndices())
 		{
-			SG_LOG_ERROR("Failed to create uniform buffer set layout with shader: (%s, %s)!", pShader->GetName(EShaderStage::efVert).c_str(), pShader->GetName(EShaderStage::efFrag).c_str());
-			SG_ASSERT(false);
-		}
+			auto pSetLayout = mDescriptorSetData[setIndex].descriptorSetLayout;
+			VulkanDescriptorDataBinder setDataBinder(*mContext.pDefaultDescriptorPool, *pSetLayout);
+			// bind ubo buffer
+			auto& uboLayout = pShader->GetUniformBufferLayout();
+			for (auto& uboData : uboLayout)
+			{
+				if (GetSet(uboData.second.setbinding) != setIndex)
+					continue;
+				setDataBinder.BindBuffer(GetBinding(uboData.second.setbinding), VK_RESOURCE()->GetBuffer(uboData.first));
+			}
+			// bind storage buffer
+			auto& ssboLayout = pShader->GetStorageBufferLayout();
+			for (auto& ssboData : ssboLayout)
+			{
+				if (GetSet(ssboData.second.setbinding) != setIndex)
+					continue;
+				setDataBinder.BindBuffer(GetBinding(ssboData.second.setbinding), VK_RESOURCE()->GetBuffer(ssboData.first));
+			}
+			// bind combine image
+			auto& combineImageLayout = pShader->GetSampledImageLayout(EShaderStage::efFrag);
+			OrderSet<SetBindingKey> orderedSIInputLayout;
+			for (auto& imageData : combineImageLayout)
+				orderedSIInputLayout.emplace(imageData.second, imageData.second);
+			UInt32 imageIndex = 0;
+			for (auto& imageData : orderedSIInputLayout) // should use the ordered setbinding input data
+			{
+				if (GetSet(imageData.second) != setIndex)
+					continue;
+				VulkanTexture* pTex = VK_RESOURCE()->GetTexture(combineImages[imageIndex].second);
+				if (pTex)
+					setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first), pTex);
+				else
+					setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first),
+						VK_RESOURCE()->GetRenderTarget(combineImages[imageIndex].second));
+				++imageIndex;
+			}
 
-		VulkanDescriptorDataBinder setDataBinder(*mContext.pDefaultDescriptorPool, *mpUBODescriptorSetLayout);
-		// bind ubo buffer
-		for (auto& uboData : uboLayout)
-			setDataBinder.BindBuffer(GetBinding(uboData.second.setbinding), VK_RESOURCE()->GetBuffer(uboData.first));
-		// bind combine image
-		UInt32 imageIndex = 0;
-		for (auto& imageData : orderedSIInputLayout) // should use the ordered setbinding input data
-		{
-			VulkanTexture* pTex = VK_RESOURCE()->GetTexture(combineImages[imageIndex].second);
-			if (pTex)
-				setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first), pTex);
-			else
-				setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first),
-					VK_RESOURCE()->GetRenderTarget(combineImages[imageIndex].second));
-			++imageIndex;
+			setDataBinder.Bind(mDescriptorSetData[setIndex].descriptorSet);
+			mDescriptorSetData[setIndex].descriptorSet.belongingSet = setIndex;
+			numImages += imageIndex;
 		}
-		setDataBinder.Bind(mDescriptorSet);
 
 		VulkanPipelineLayout::Builder pipelineLayoutBuilder(mContext.device);
-		if (mpUBODescriptorSetLayout)
-			pipelineLayoutBuilder.AddDescriptorSetLayout(mpUBODescriptorSetLayout.get());
+		for (auto setIndex : pShader->GetSetIndices())
+			pipelineLayoutBuilder.AddDescriptorSetLayout(mDescriptorSetData[setIndex].descriptorSetLayout.get());
 
 		auto& pushConstantLayout = pShader->GetPushConstantLayout(EShaderStage::efVert);
 		if (pushConstantLayout.GetTotalSizeInByte() != 0)
@@ -95,15 +157,10 @@ namespace SG
 			SG_ASSERT(false);
 		}
 
-		if (imageIndex != combineImages.size())
+		if (numImages != combineImages.size())
 		{
 			SG_LOG_WARN("The number of textures pass in the shader do not match the number of the bindings!");
 		}
-	}
-
-	RefPtr<VulkanPipelineSignature> VulkanPipelineSignature::Create(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages)
-	{
-		return MakeRef<VulkanPipelineSignature>(context, pShader, combineImages);
 	}
 
 }

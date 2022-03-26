@@ -55,11 +55,7 @@ namespace SG
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
 		// create all the mesh resource
-		SSystem()->GetMainScene()->TraverseMesh([](const Mesh& mesh) 
-			{
-				VK_RESOURCE()->CreateRenderMesh(&mesh);
-			});
-		VK_RESOURCE()->BuildRenderMeshData();
+		VK_RESOURCE()->BuildRenderMesh(SSystem()->GetRenderDataBuilder());
 
 		BuildRenderGraph();
 		// update one frame here to avoid imgui do not draw the first frame.
@@ -70,7 +66,7 @@ namespace SG
 	{
 		mpContext->device.WaitIdle();
 
-		mpRenderGraph.reset(nullptr);
+		mpRenderGraph.reset();
 		VK_RESOURCE()->Shutdown();
 		Memory::Delete(mpContext);
 		SG_LOG_INFO("RenderDevice - Vulkan Shutdown");

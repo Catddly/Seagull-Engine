@@ -204,9 +204,11 @@ namespace SG
 	{
 		if (!IsRenderPassValid())
 			return;
-		// TODO: add more set to it 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pSignature->mpPipelineLayout->layout,
-			0, 1, &pSignature->mDescriptorSet.set, 0, nullptr);
+		for (auto& set : pSignature->mDescriptorSetData)
+		{
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pSignature->mpPipelineLayout->layout,
+				set.first, 1, &set.second.descriptorSet.set, 0, nullptr);
+		}
 	}
 
 	void VulkanCommandBuffer::BindPipeline(VulkanPipeline* pipeline)

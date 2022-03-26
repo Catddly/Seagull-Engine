@@ -42,10 +42,16 @@ namespace SG
 		friend class VulkanPipeline;
 		VulkanContext& mContext;
 
-		RefPtr<VulkanShader>&             mpShader;
-		RefPtr<VulkanDescriptorSetLayout> mpUBODescriptorSetLayout;
-		RefPtr<VulkanPipelineLayout>      mpPipelineLayout;
-		VulkanDescriptorSet               mDescriptorSet;
+		struct SetLayoutAndHandle
+		{
+			RefPtr<VulkanDescriptorSetLayout> descriptorSetLayout;
+			VulkanDescriptorSet descriptorSet;
+		};
+
+		RefPtr<VulkanShader>&        mpShader;
+		RefPtr<VulkanPipelineLayout> mpPipelineLayout;
+		eastl::unordered_map<UInt32, SetLayoutAndHandle> mDescriptorSetData;
+
 	};
 
 }

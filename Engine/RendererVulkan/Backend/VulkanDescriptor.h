@@ -74,10 +74,13 @@ namespace SG
 	class VulkanDescriptorSet
 	{
 	public:
+		UInt32 GetSetIndex() const { return belongingSet; }
 	private:
+		friend class VulkanPipelineSignature;
 		friend class VulkanDescriptorDataBinder;
 		friend class VulkanCommandBuffer;
 		VkDescriptorSet set;
+		UInt32          belongingSet = 0;
 	};
 
 	class VulkanSampler;
