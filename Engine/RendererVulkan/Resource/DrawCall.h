@@ -1,14 +1,11 @@
 #pragma once
 
-#include "Render/CommonRenderData.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
-
-#include "Stl/string.h"
 
 namespace SG
 {
 
-	struct RenderMesh
+	struct DrawCall
 	{
 		UInt64 vBSize = 0;
 		UInt64 iBSize = 0;
@@ -20,8 +17,6 @@ namespace SG
 		VulkanBuffer* pVertexBuffer = nullptr;
 		VulkanBuffer* pIndexBuffer = nullptr;
 		VulkanBuffer* pInstanceBuffer = nullptr;
-
-		PerObjcetRenderData renderData;
 	};
 
 }

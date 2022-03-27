@@ -22,9 +22,9 @@ namespace SG
 	{
 	public:
 		Scene(const char* name)
-			:mName(name), mpMainCamera(nullptr), mDirectionalLight({ -7.0f, 8.0f, 3.0f }, { 7.0f, -8.0f, -3.0f }, { 1.0f, 1.0f, 1.0f }),
-			mSkyboxMesh("skybox", EGennerateMeshType::eSkybox)
-		{}
+			:mName(name), mpMainCamera(nullptr)
+		{
+		}
 
 		//! This function can be dispatched to another thread. 
 		SG_CORE_API void OnSceneLoad();
@@ -32,33 +32,37 @@ namespace SG
 
 		SG_CORE_API void OnUpdate(float deltaTime);
 
-		SG_CORE_API Mesh* GetMesh(const char* name);
-		SG_CORE_API const Mesh* GetSkybox() const { return &mSkyboxMesh; }
+		SG_CORE_API RefPtr<Mesh> GetMesh(const char* name);
+		SG_CORE_API const Mesh* GetSkybox() const { return mpSkyboxMesh.get(); }
 
-		DirectionalLight* GetDirectionalLight() { return &mDirectionalLight; }
+		DirectionalLight* GetDirectionalLight() { return mpDirectionalLight.get(); }
 		ICamera* GetMainCamera() { return mpMainCamera.get(); }
 
 		template <typename Func>
-		void TraverseMesh(Func&& func)
+		SG_INLINE void TraverseMesh(Func&& func)
 		{
 			for (auto pNode : mMeshes)
-				func(pNode.second);
+				func(*pNode.second);
 		}
 
 		template <typename Func>
-		void TraversePointLight(Func&& func)
+		SG_INLINE void TraversePointLight(Func&& func)
 		{
 			for (auto& pointLight : mPointLights)
 				func(pointLight);
 		}
 	private:
+		void DefaultScene();
+		void MaterialTestScene();
+	private:
 		string mName;
 
 		// seperate from scene mesh
-		Mesh mSkyboxMesh;
-		DirectionalLight    mDirectionalLight;
+		RefPtr<Mesh> mpSkyboxMesh;
+		RefPtr<DirectionalLight> mpDirectionalLight;
 		vector<PointLight>  mPointLights;
-		unordered_map<string, Mesh> mMeshes;      // TODO: use tree structure to store the meshes (for now there are no many meshes in the scene, map is ok)
+		// WHY it will fail to update mesh using TraverseMesh() when the type is unordered_map<string, Mesh>?
+		unordered_map<string, RefPtr<Mesh>> mMeshes; // TODO: use tree structure to store the meshes (for now there are no many meshes in the scene, map is ok)
 
 		RefPtr<ICamera>     mpMainCamera; // TODO: support multiply switchable camera
 	};

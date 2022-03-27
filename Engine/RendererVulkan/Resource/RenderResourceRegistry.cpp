@@ -23,7 +23,6 @@ namespace SG
 		// create one big vertex buffer
 		BufferCreateDesc vbCI = {};
 		vbCI.name = "packed_vertex_buffer";
-		vbCI.pInitData = nullptr;
 		vbCI.totalSizeInByte = SG_MAX_PACKED_VERTEX_BUFFER_SIZE;
 		vbCI.type = EBufferType::efVertex | EBufferType::efTransfer_Dst;
 		mPackedVertexBuffer = VulkanBuffer::Create(mpContext->device, vbCI, true);
@@ -31,15 +30,13 @@ namespace SG
 		// create one big index buffer
 		BufferCreateDesc ibCI = {};
 		ibCI.name = "packed_index_buffer";
-		ibCI.pInitData = nullptr;
 		ibCI.totalSizeInByte = SG_MAX_PACKED_INDEX_BUFFER_SIZE;
 		ibCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
 		mPackedIndexBuffer = VulkanBuffer::Create(mpContext->device, ibCI, true);
 
 		BufferCreateDesc ssboCI = {};
-		ssboCI.name = "ssbo_object";
-		ssboCI.pInitData = nullptr;
-		ssboCI.totalSizeInByte = sizeof(PerObjcetRenderData) * SG_MAX_NUM_OBJECT;
+		ssboCI.name = "perObjectBuffer";
+		ssboCI.totalSizeInByte = sizeof(ObjcetRenderData) * SG_MAX_NUM_OBJECT;
 		ssboCI.type = EBufferType::efStorage;
 		CreateBuffer(ssboCI);
 	}
@@ -69,8 +66,8 @@ namespace SG
 		FlushBuffers();
 
 		// eliminate the translation part of the matrix
-		PerObjcetRenderData renderData = { Matrix4f(Matrix3f(SSystem()->GetMainScene()->GetMainCamera()->GetViewMatrix())) };
-		RenderMesh renderMesh = {};
+		ObjcetRenderData renderData = { Matrix4f(Matrix3f(SSystem()->GetMainScene()->GetMainCamera()->GetViewMatrix())) };
+		DrawCall renderMesh = {};
 		mSkyboxRenderMesh.vBSize = vbSize;
 		mSkyboxRenderMesh.iBSize = 0;
 		mSkyboxRenderMesh.vBOffset = 0;
@@ -99,14 +96,18 @@ namespace SG
 
 	void VulkanResourceRegistry::OnUpdate(WeakRefPtr<Scene> pScene)
 	{
-		// update all the render data of the render mesh
 		auto pLScene = pScene.lock();
+		auto* pSSBOObject = GetBuffer("perObjectBuffer");
+
+		// update all the render data of the render mesh
 		pLScene->TraverseMesh([&](const Mesh& mesh)
 			{
 				if (mStaticRenderMeshes.count(mesh.GetMeshID()) != 0)
 				{
-					mStaticRenderMeshes[mesh.GetMeshID()].renderData.model = mesh.GetTransform();
-					mStaticRenderMeshes[mesh.GetMeshID()].renderData.inverseTransposeModel = glm::transpose(glm::inverse(mesh.GetTransform()));
+					ObjcetRenderData renderData;
+					renderData.model = mesh.GetTransform();
+					renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
+					pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.GetObjectID());
 				}
 
 				if (mStaticRenderMeshesInstanced.count(mesh.GetMeshID()) != 0)
@@ -193,7 +194,7 @@ namespace SG
 
 				mpContext->transferCommandPool->FreeCommandBuffer(pCmd);
 
-				RenderMesh renderMesh = {};
+				DrawCall renderMesh = {};
 				renderMesh.vBSize = vbSize;
 				renderMesh.iBSize = ibSize;
 				renderMesh.vBOffset = mPackedVBCurrOffset;

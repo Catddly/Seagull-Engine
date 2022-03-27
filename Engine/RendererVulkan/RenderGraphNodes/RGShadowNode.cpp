@@ -13,7 +13,7 @@
 #include "RendererVulkan/Backend/VulkanShader.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
 
-#include "RendererVulkan/Resource/RenderMesh.h"
+#include "RendererVulkan/Resource/DrawCall.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
 #include "Math/MathBasic.h"
@@ -27,7 +27,7 @@ namespace SG
 		:mContext(context),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
-		mbDrawShadow = false;
+		mbDrawShadow = true;
 
 		auto& shadowUbo = GetShadowUBO();
 		shadowUbo.lightSpaceVP = SSystem()->GetMainScene()->GetDirectionalLight()->GetViewProj();
@@ -149,27 +149,25 @@ namespace SG
 			// 1.1 Forward Mesh Pass
 			pBuf.BindPipelineSignature(mpShadowPipelineSignature.get());
 			pBuf.BindPipeline(mpShadowPipeline);
-			VK_RESOURCE()->TraverseStaticRenderMesh([&](const RenderMesh& renderMesh)
+			VK_RESOURCE()->TraverseStaticMeshDrawCall([&](const DrawCall& dc)
 				{
-					pBuf.BindVertexBuffer(0, 1, *renderMesh.pVertexBuffer, &renderMesh.vBOffset);
-					pBuf.BindIndexBuffer(*renderMesh.pIndexBuffer, renderMesh.iBOffset);
+					pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
+					pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
 
-					// TODO: not to use push constant, use read write buffer.
-					pBuf.PushConstants(mpShadowPipelineSignature.get(), EShaderStage::efVert, sizeof(Matrix4f), 0, &renderMesh.renderData.model);
-					pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), 1, 0, 0, 0);
+					pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), 1, 0, 0, dc.objectId /* corresponding to gl_BaseInstance */);
 				});
 
 			// 1.2 Forward Instanced Mesh Pass
 			pBuf.BindPipelineSignature(mpShadowInstancePipelineSignature.get());
 			pBuf.BindPipeline(mpShadowInstancePipeline);
-			VK_RESOURCE()->TraverseStaticRenderMeshInstanced([&](const RenderMesh& renderMesh)
+			VK_RESOURCE()->TraverseStaticMeshInstancedDrawCall([&](const DrawCall& dc)
 				{
-					pBuf.BindVertexBuffer(0, 1, *renderMesh.pVertexBuffer, &renderMesh.vBOffset);
+					pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
 					UInt64 offset = 0;
-					pBuf.BindVertexBuffer(1, 1, *renderMesh.pInstanceBuffer, &offset);
-					pBuf.BindIndexBuffer(*renderMesh.pIndexBuffer, renderMesh.iBOffset);
+					pBuf.BindVertexBuffer(1, 1, *dc.pInstanceBuffer, &offset);
+					pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
 
-					pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), renderMesh.instanceCount, 0, 0, 0);
+					pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), dc.instanceCount, 0, 0, 0);
 				});
 		}
 	}

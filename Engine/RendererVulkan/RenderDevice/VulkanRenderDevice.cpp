@@ -59,7 +59,7 @@ namespace SG
 
 		BuildRenderGraph();
 		// update one frame here to avoid imgui do not draw the first frame.
-		mpGUIDriver->OnUpdate(0.0f);
+		mpGUIDriver->OnUpdate(0.00000001f);
 	}
 
 	void VulkanRenderDevice::OnShutdown()

@@ -8,28 +8,19 @@ layout (set = 0, binding = 0) uniform UBO
 	mat4 lightSpace;
 } shadowUbo;
 
-//struct PerMeshRenderData
-//{
-//	mat4 model;
-//	mat4 inverseTransposeModel;
-//	float metallic;
-//	float roughness;
-//	float pad1;
-//	float pad2;
-//};
-
-//// all object matrices
-//layout(std140, set = 1, binding = 0) readonly buffer PerMeshBuffer
-//{
-//	PerMeshRenderData objects[];
-//} perMeshBuffer;
-
-layout(push_constant) uniform PushConstant 
+struct ObjectRenderData
 {
 	mat4 model;
-} pushConstant;
+	mat4 inverseTransposeModel;
+};
+
+// all object matrices
+layout(std140, set = 1, binding = 0) readonly buffer PerObjectBuffer
+{
+	ObjectRenderData objects[];
+} perObjectBuffer;
 
 void main()
 {
-	gl_Position = shadowUbo.lightSpace * pushConstant.model * vec4(inPosWS, 1.0);
+	gl_Position = shadowUbo.lightSpace * perObjectBuffer.objects[gl_BaseInstance].model * vec4(inPosWS, 1.0);
 }

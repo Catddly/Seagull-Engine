@@ -45,7 +45,7 @@ namespace SG
 		float exposure;
 	};
 
-	struct PerObjcetRenderData
+	struct ObjcetRenderData
 	{
 		Matrix4f model = Matrix4f(1.0f);
 		Matrix4f inverseTransposeModel = Matrix4f(1.0f);

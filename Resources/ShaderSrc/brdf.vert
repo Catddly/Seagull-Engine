@@ -27,27 +27,23 @@ layout (set = 0, binding = 1) uniform LightUBO
 	vec3  pointLightColor;
 } lightUbo;
 
-//struct PerMeshRenderData
-//{
-//	mat4 model;
-//	mat4 inverseTransposeModel;
-//	float metallic;
-//	float roughness;
-//	float pad1;
-//	float pad2;
-//};
-
-//// all object matrices
-//layout(std140, set = 1, binding = 0) readonly buffer PerMeshBuffer
-//{
-//	PerMeshRenderData objects[];
-//} perMeshBuffer;
-
-layout(push_constant) uniform PushConstant 
+struct ObjectRenderData
 {
 	mat4 model;
 	mat4 inverseTransposeModel;
-} pushConstant;
+};
+
+// all object matrices
+layout(std140, set = 1, binding = 0) readonly buffer PerObjectBuffer
+{
+	ObjectRenderData objects[];
+} perObjectBuffer;
+
+//layout(push_constant) uniform PushConstant 
+//{
+//	mat4 model;
+//	mat4 inverseTransposeModel;
+//} pushConstant;
 
 const mat4 biasMat = mat4( 
 	0.5, 0.0, 0.0, 0.0,
@@ -58,8 +54,8 @@ const mat4 biasMat = mat4(
 void main() 
 {
 	outViewPosWS = cameraUbo.viewPos;
-	outPosWS = vec3(pushConstant.model * vec4(inPos, 1.0));
-	outNormalWS = mat3(pushConstant.inverseTransposeModel) * inNormalLS; 
+	outPosWS = vec3(perObjectBuffer.objects[gl_BaseInstance].model * vec4(inPos, 1.0));
+	outNormalWS = mat3(perObjectBuffer.objects[gl_BaseInstance].inverseTransposeModel) * inNormalLS; 
 	outShadowMapPos = biasMat * lightUbo.lightSpaceVP * vec4(outPosWS, 1.0);
 
     gl_Position = cameraUbo.viewProj * vec4(outPosWS, 1.0);

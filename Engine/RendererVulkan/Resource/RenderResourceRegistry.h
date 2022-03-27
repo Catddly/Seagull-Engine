@@ -6,7 +6,7 @@
 #include "Scene/Scene.h"
 #include "Scene/RenderDataBuilder.h"
 
-#include "RendererVulkan/Resource/RenderMesh.h"
+#include "RendererVulkan/Resource/DrawCall.h"
 
 #include "Stl/vector.h"
 #include <eastl/utility.h>
@@ -58,11 +58,11 @@ namespace SG
 
 		void BuildRenderMesh(RefPtr<RenderDataBuilder> renderDataBuilder);
 
-		const RenderMesh& GetSkyboxRenderMesh() const { return mSkyboxRenderMesh; }
+		const DrawCall& GetSkyboxRenderMesh() const { return mSkyboxRenderMesh; }
 		template <typename Func>
-		void TraverseStaticRenderMesh(Func&& func);
+		void TraverseStaticMeshDrawCall(Func&& func);
 		template <typename Func>
-		void TraverseStaticRenderMeshInstanced(Func&& func);
+		void TraverseStaticMeshInstancedDrawCall(Func&& func);
 
 		/// Buffer Begin
 		// By default, create the buffer using HOST_VISIBLE bit.
@@ -110,23 +110,23 @@ namespace SG
 		VulkanBuffer* mPackedIndexBuffer = nullptr;
 		UInt64        mPackedIBCurrOffset = 0;
 
-		RenderMesh mSkyboxRenderMesh;
-		eastl::unordered_map<UInt32, RenderMesh> mStaticRenderMeshes; // Forward Mesh Pass
-		eastl::unordered_map<UInt32, RenderMesh> mStaticRenderMeshesInstanced; // Forward Instance Mesh Pass
+		DrawCall mSkyboxRenderMesh;
+		eastl::unordered_map<UInt32, DrawCall> mStaticRenderMeshes; // Forward Mesh Pass
+		eastl::unordered_map<UInt32, DrawCall> mStaticRenderMeshesInstanced; // Forward Instance Mesh Pass
 
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanBuffer*>>  mWaitToSubmitBuffers;
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanTexture*>> mWaitToSubmitTextures;
 	};
 
 	template <typename Func>
-	void VulkanResourceRegistry::TraverseStaticRenderMesh(Func&& func)
+	void VulkanResourceRegistry::TraverseStaticMeshDrawCall(Func&& func)
 	{
 		for (auto node : mStaticRenderMeshes)
 			func(node.second);
 	}
 
 	template <typename Func>
-	void VulkanResourceRegistry::TraverseStaticRenderMeshInstanced(Func&& func)
+	void VulkanResourceRegistry::TraverseStaticMeshInstancedDrawCall(Func&& func)
 	{
 		for (auto node : mStaticRenderMeshesInstanced)
 			func(node.second);

@@ -6,7 +6,7 @@
 namespace SG
 {
 
-	RenderDataBuilder::RenderDataBuilder(WeakRefPtr<Scene> pScene)
+	RenderDataBuilder::RenderDataBuilder(RefPtr<Scene> pScene)
 		:mpScene(pScene)
 	{
 	}
@@ -36,7 +36,7 @@ namespace SG
 				}
 				else // have instance
 				{
-					mesh.mInstanceId = node->second.instanceCount - 1;
+					mesh.mInstanceId = node->second.instanceCount;
 					node->second.instanceCount += 1;
 				}
 				auto& perInstanceData = mRenderMeshBuildDataMap[mesh.GetMeshID()].perInstanceData;

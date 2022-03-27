@@ -22,7 +22,7 @@ namespace SG
 	{
 	public:
 		RenderDataBuilder() = default;
-		RenderDataBuilder(WeakRefPtr<Scene> pScene);
+		RenderDataBuilder(RefPtr<Scene> pScene);
 
 		void SetScene(WeakRefPtr<Scene> pScene);
 		void BuildData();

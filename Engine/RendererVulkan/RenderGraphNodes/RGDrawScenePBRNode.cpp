@@ -16,7 +16,7 @@
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
 #include "RendererVulkan/Backend/VulkanShader.h"
 
-#include "RendererVulkan/Resource/RenderMesh.h"
+#include "RendererVulkan/Resource/DrawCall.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
 namespace SG
@@ -293,7 +293,7 @@ namespace SG
 			pBuf.BindPipelineSignature(mpSkyboxPipelineSignature.get());
 			pBuf.BindPipeline(mpSkyboxPipeline);
 
-			const RenderMesh& skybox = VK_RESOURCE()->GetSkyboxRenderMesh();
+			const DrawCall& skybox = VK_RESOURCE()->GetSkyboxRenderMesh();
 			pBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
 			pBuf.Draw(36, 1, 0, 0);
 		}
@@ -308,29 +308,27 @@ namespace SG
 		//pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
 		// 1.1 Forward Mesh Pass
-		pBuf.BindPipelineSignature(mpPipelineSignature.get());
 		pBuf.BindPipeline(mpPipeline);
-		VK_RESOURCE()->TraverseStaticRenderMesh([&](const RenderMesh& renderMesh)
+		pBuf.BindPipelineSignature(mpPipelineSignature.get());
+		VK_RESOURCE()->TraverseStaticMeshDrawCall([&](const DrawCall& dc)
 			{
-				pBuf.BindVertexBuffer(0, 1, *renderMesh.pVertexBuffer, &renderMesh.vBOffset);
-				pBuf.BindIndexBuffer(*renderMesh.pIndexBuffer, renderMesh.iBOffset);
+				pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
+				pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
 
-				// TODO: not to use push constant, use read write buffer.
-				pBuf.PushConstants(mpPipelineSignature.get(), EShaderStage::efVert, sizeof(PerObjcetRenderData), 0, &renderMesh.renderData);
-				pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), 1, 0, 0, 0);
+				pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), 1, 0, 0, dc.objectId /* corresponding to gl_BaseInstance */);
 			});
 
 		// 1.2 Forward Instanced Mesh Pass
 		pBuf.BindPipelineSignature(mpInstancePipelineSignature.get());
 		pBuf.BindPipeline(mpInstancePipeline);
-		VK_RESOURCE()->TraverseStaticRenderMeshInstanced([&](const RenderMesh& renderMesh)
+		VK_RESOURCE()->TraverseStaticMeshInstancedDrawCall([&](const DrawCall& dc)
 			{
-				pBuf.BindVertexBuffer(0, 1, *renderMesh.pVertexBuffer, &renderMesh.vBOffset);
+				pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
 				UInt64 offset = 0;
-				pBuf.BindVertexBuffer(1, 1, *renderMesh.pInstanceBuffer, &offset);
-				pBuf.BindIndexBuffer(*renderMesh.pIndexBuffer, renderMesh.iBOffset);
+				pBuf.BindVertexBuffer(1, 1, *dc.pInstanceBuffer, &offset);
+				pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
 
-				pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), renderMesh.instanceCount, 0, 0, 0);
+				pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), dc.instanceCount, 0, 0, 0);
 			});
 	}
 
@@ -547,7 +545,7 @@ namespace SG
 						pushConstant.deltaTheta = (0.5f * float(PI)) / 64.0f;
 						cmdBuf.PushConstants(pIrradiancePipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &pushConstant);
 
-						const RenderMesh& skybox = VK_RESOURCE()->GetSkyboxRenderMesh();
+						const DrawCall& skybox = VK_RESOURCE()->GetSkyboxRenderMesh();
 						cmdBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
 						cmdBuf.Draw(36, 1, 0, 0);
 					}
@@ -707,7 +705,7 @@ namespace SG
 						pushConstant.mvp = BuildPerspectiveMatrix(glm::radians(90.0f), 1.0f, 0.1f, 256.0f) * directionMats[face];
 						cmdBuf.PushConstants(pPrefilterPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &pushConstant);
 
-						const RenderMesh& skybox = VK_RESOURCE()->GetSkyboxRenderMesh();
+						const DrawCall& skybox = VK_RESOURCE()->GetSkyboxRenderMesh();
 						cmdBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
 						cmdBuf.Draw(36, 1, 0, 0);
 					}

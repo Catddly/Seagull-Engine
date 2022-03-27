@@ -27,6 +27,7 @@ namespace SG
 		const EMeshType GetType() const noexcept { return mType; }
 
 		const UInt32 GetMeshID()     const { return mMeshId; }
+		const void SetInstanceID(UInt32 id) { mInstanceId = id; }
 		const UInt32 GetInstanceID() const { return mInstanceId; }
 		const UInt32 GetObjectID()   const { return mObjectId; }
 	private:
