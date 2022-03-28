@@ -4,6 +4,8 @@
 #include "System/Logger.h"
 #include "System/FileSystem.h"
 
+#include "Stl/vector.h"
+
 namespace SG
 {
 
@@ -71,7 +73,7 @@ namespace SG
 	{
 		if (FileSystem::Open(EResourceDirectory::eRoot, "shader_env.ini", EFileMode::efWrite))
 		{
-			FileSystem::TraverseFiles(EResourceDirectory::eShader_Sources, [](const char* filename)
+			FileSystem::TraverseFileAndSubDirectoryInFolder(EResourceDirectory::eShader_Sources, "", [](const char* filename)
 				{
 					// filename
 					string writeStr = "[";

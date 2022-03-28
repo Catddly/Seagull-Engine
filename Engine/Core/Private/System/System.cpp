@@ -27,23 +27,16 @@ namespace SG
 		Input::OnInit();
 		OperatingSystem::OnInit();
 
-		// TODO: wrap in FileSystem API
-		{
-			char abPath[SG_MAX_FILE_PATH] = { 0 };
-			::GetModuleFileNameA(NULL, abPath, sizeof(abPath));
-			char drivePath[SG_MAX_DRIVE_PATH] = { 0 };
-			char directoryPath[SG_MAX_DIREC_PATH] = { 0 };
-			// get rid of the .exe postfix
-			_splitpath_s(abPath,
-				drivePath, SG_MAX_DRIVE_PATH,
-				directoryPath, SG_MAX_DIREC_PATH, NULL, 0, NULL, 0);
-
-			// set root directory to where the .exe file is
-			string tempRootPath(drivePath);
-			tempRootPath.append(directoryPath);
-			mRootPath = eastl::move(tempRootPath);
-			std::filesystem::current_path(mRootPath.c_str());
-		}
+#ifdef SG_PLATFORM_WINDOWS
+		char abPath[SG_MAX_FILE_PATH] = { 0 };
+		::GetModuleFileNameA(NULL, abPath, sizeof(abPath));
+		string myProcessPath = abPath;
+#else
+#	error Can not set the default root path in this platform.
+#endif
+		Size slashPos = myProcessPath.find_last_of('\\');
+		myProcessPath = myProcessPath.substr(0, slashPos);
+		SetRootPath(myProcessPath);
 
 		// set current thread to main thread
 		SetCurrThreadName("Main Thread");
@@ -51,7 +44,8 @@ namespace SG
 		mMainThread.pHandle = nullptr;
 		mMainThread.pUser = nullptr;
 
-		mpCurrActiveProcess->OnInit();
+		if (mpCurrActiveProcess)
+			mpCurrActiveProcess->OnInit();
 
 		mp3DScene = MakeRef<Scene>("Main Scene");
 		mp3DScene->OnSceneLoad();
@@ -149,6 +143,11 @@ namespace SG
 	{
 		// no implementation yet.
 		return 0;
+	}
+
+	void System::SetRootPath(const string& path)
+	{
+		std::filesystem::current_path(path.c_str());
 	}
 
 	int System::RunProcess(const string& command, const char* pOut)

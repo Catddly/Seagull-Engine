@@ -53,7 +53,7 @@ namespace SG
 
 		CreateInnerResource();
 
-		const Mesh* pSkybox = SSystem()->GetMainScene()->GetSkybox();
+		const auto pSkybox = SSystem()->GetMainScene()->GetSkybox();
 		auto& skyboxVertices = MeshDataArchive::GetInstance()->GetData(pSkybox->GetMeshID())->vertices;
 		const UInt64 vbSize = skyboxVertices.size() * sizeof(float);
 
@@ -68,15 +68,15 @@ namespace SG
 		// eliminate the translation part of the matrix
 		ObjcetRenderData renderData = { Matrix4f(Matrix3f(SSystem()->GetMainScene()->GetMainCamera()->GetViewMatrix())) };
 		DrawCall renderMesh = {};
-		mSkyboxRenderMesh.vBSize = vbSize;
-		mSkyboxRenderMesh.iBSize = 0;
-		mSkyboxRenderMesh.vBOffset = 0;
-		mSkyboxRenderMesh.iBOffset = 0;
-		mSkyboxRenderMesh.objectId = 0;
-		mSkyboxRenderMesh.instanceCount = 1;
-		mSkyboxRenderMesh.pVertexBuffer = GetBuffer("skybox_vb");
-		mSkyboxRenderMesh.pIndexBuffer = nullptr;
-		mSkyboxRenderMesh.pInstanceBuffer = nullptr;
+		mSkyboxDrawCall.vBSize = vbSize;
+		mSkyboxDrawCall.iBSize = 0;
+		mSkyboxDrawCall.vBOffset = 0;
+		mSkyboxDrawCall.iBOffset = 0;
+		mSkyboxDrawCall.objectId = 0;
+		mSkyboxDrawCall.instanceCount = 1;
+		mSkyboxDrawCall.pVertexBuffer = GetBuffer("skybox_vb");
+		mSkyboxDrawCall.pIndexBuffer = nullptr;
+		mSkyboxDrawCall.pInstanceBuffer = nullptr;
 	}
 
 	void VulkanResourceRegistry::Shutdown()
@@ -102,7 +102,7 @@ namespace SG
 		// update all the render data of the render mesh
 		pLScene->TraverseMesh([&](const Mesh& mesh)
 			{
-				if (mStaticRenderMeshes.count(mesh.GetMeshID()) != 0)
+				if (mStaticMeshDrawCall.count(mesh.GetMeshID()) != 0)
 				{
 					ObjcetRenderData renderData;
 					renderData.model = mesh.GetTransform();
@@ -110,7 +110,7 @@ namespace SG
 					pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.GetObjectID());
 				}
 
-				if (mStaticRenderMeshesInstanced.count(mesh.GetMeshID()) != 0)
+				if (mStaticMeshDrawCallInstanced.count(mesh.GetMeshID()) != 0)
 				{
 					auto* pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(mesh.GetMeshID())));
 					if (pInstanceBuffer)
@@ -208,10 +208,10 @@ namespace SG
 				if (buildData.instanceCount > 1)
 				{
 					renderMesh.pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(meshId)));
-					mStaticRenderMeshesInstanced[meshId] = renderMesh;
+					mStaticMeshDrawCallInstanced[meshId] = renderMesh;
 				}
 				else
-					mStaticRenderMeshes[meshId] = renderMesh;
+					mStaticMeshDrawCall[meshId] = renderMesh;
 
 				mPackedVBCurrOffset += vbSize;
 				mPackedIBCurrOffset += ibSize;

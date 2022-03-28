@@ -293,7 +293,7 @@ namespace SG
 			pBuf.BindPipelineSignature(mpSkyboxPipelineSignature.get());
 			pBuf.BindPipeline(mpSkyboxPipeline);
 
-			const DrawCall& skybox = VK_RESOURCE()->GetSkyboxRenderMesh();
+			const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();
 			pBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
 			pBuf.Draw(36, 1, 0, 0);
 		}
@@ -545,7 +545,7 @@ namespace SG
 						pushConstant.deltaTheta = (0.5f * float(PI)) / 64.0f;
 						cmdBuf.PushConstants(pIrradiancePipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &pushConstant);
 
-						const DrawCall& skybox = VK_RESOURCE()->GetSkyboxRenderMesh();
+						const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();
 						cmdBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
 						cmdBuf.Draw(36, 1, 0, 0);
 					}
@@ -705,7 +705,7 @@ namespace SG
 						pushConstant.mvp = BuildPerspectiveMatrix(glm::radians(90.0f), 1.0f, 0.1f, 256.0f) * directionMats[face];
 						cmdBuf.PushConstants(pPrefilterPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &pushConstant);
 
-						const DrawCall& skybox = VK_RESOURCE()->GetSkyboxRenderMesh();
+						const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();
 						cmdBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
 						cmdBuf.Draw(36, 1, 0, 0);
 					}

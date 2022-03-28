@@ -229,7 +229,7 @@ namespace SG
 			pBuf.BindPipelineSignature(mpSkyboxPipelineSignature.get());
 			pBuf.BindPipeline(mpSkyboxPipeline);
 
-			const DrawCall& skybox = VK_RESOURCE()->GetSkyboxRenderMesh();
+			const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();
 			pBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
 			pBuf.Draw(36, 1, 0, 0);
 		}

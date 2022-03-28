@@ -12,11 +12,12 @@ namespace SG
 		return msCurrId++;
 	}
 
-	UInt32 Mesh::msCurrId = 1;
+	UInt32 Mesh::msCurrId = 0;
 
 	Mesh::Mesh(const char* name)
 		:mName(name), mType(EMeshType::eUnknown), mObjectId(NewID()), mInstanceId(0)
 	{
+
 	}
 
 	Mesh::Mesh(const char* name, EGennerateMeshType type)

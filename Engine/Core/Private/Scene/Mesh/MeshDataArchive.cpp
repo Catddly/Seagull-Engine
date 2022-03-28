@@ -12,7 +12,7 @@ namespace SG
 	{
 		auto& md = const_cast<MeshData&>(meshData);
 		mMeshDatas[msCurrKey] = md;
-		SG_LOG_DEBUG("New Mesh Data");
+		//SG_LOG_DEBUG("New Mesh Data");
 		return msCurrKey++;
 	}
 

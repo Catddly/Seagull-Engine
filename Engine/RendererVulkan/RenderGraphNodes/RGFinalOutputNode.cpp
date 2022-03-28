@@ -94,7 +94,7 @@ namespace SG
 
 			mpGUIShader = VulkanShader::Create(mContext.device);
 			ShaderCompiler compiler;
-			compiler.CompileGLSLShader("_imgui", mpGUIShader.get());
+			compiler.CompileGLSLShader("imgui/_imgui", mpGUIShader.get());
 
 			mpGUIPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpGUIShader)
 				.AddCombindSamplerImage("_imgui_sampler", "_imgui_font")

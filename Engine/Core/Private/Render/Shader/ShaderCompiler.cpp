@@ -82,14 +82,6 @@ namespace SG
 			pShader->mShaderStages[EShaderStage(1 << i)].name = binShaderName;
 		}
 
-		//if ((shaderBits & (1 << 0)) == 0 || (shaderBits & (1 << 4)) == 0) // if vert or frag stage is missing
-		//{
-		//	pShader->mShaderStages.clear();
-
-		//	SG_LOG_WARN("Necessary shader stages(vert or frag) is/are missing!");
-		//	return false;
-		//}
-
 		if (shaderBits == 0)
 		{
 			SG_LOG_ERROR("No SPIRV shader is found! (%s)", binShaderName.c_str());
@@ -135,19 +127,23 @@ namespace SG
 
 	bool ShaderCompiler::CompileGLSLShader(const string& binShaderName, Shader* pShader)
 	{
-		char* glslc = "";
-		Size num = 1;
-		_dupenv_s(&glslc, &num, "VULKAN_SDK");
-		string glslcPath = glslc;
-		glslcPath += "\\Bin32\\glslc.exe ";
-
 		UInt8 shaderBits = 0;
 		FileSystem::ExistOrCreate(EResourceDirectory::eShader_Binarires, ""); // create ShaderBin folder if it doesn't exist
+
+		string folderPath = "";
+		Size beginPos = 0;
+		Size slashPos = binShaderName.find_first_of('/', beginPos);
+		while (slashPos != string::npos) // this shader is inside a folder
+		{
+			folderPath += binShaderName.substr(beginPos, slashPos - beginPos + 1);
+			beginPos = slashPos + 1;
+			slashPos = binShaderName.find_first_of('/', beginPos);
+		}
+		FileSystem::ExistOrCreate(EResourceDirectory::eShader_Binarires, folderPath); // create folders in ShaderBin
 
 		for (UInt32 i = 0; i < (UInt32)EShaderStage::NUM_STAGES; ++i)
 		{
 			string extension;
-			string commandLine = glslcPath;
 			switch (i)
 			{
 			case 0: extension = ".vert"; break;
@@ -185,10 +181,18 @@ namespace SG
 				string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + binShaderName + "-" +
 					extension.substr(1, extension.size() - 1) + "-compile.log";
 
-				if (CompileShaderVkSDK(actualName, compiledName, commandLine, pOut))
-					shaderBits |= (1 << i); // record what shader stage we had compiled
+#if SG_FORCE_USE_VULKAN_SDK
+				if (CompileShaderVkSDK(actualName, compiledName, pOut))
+#else
+				if (CompileShaderVendor(actualName, compiledName, pOut))
+#endif
+				{
+					Size splitPos = pOut.find_last_of('/');
+					if (!CheckCompileError(actualName, folderPath + pOut.substr(splitPos + 1, pOut.size() - splitPos - 1)))
+						shaderBits |= (1 << i); // record what shader stage we had compiled
+				}
 				else
-					SG_LOG_ERROR("Failed to compile shader: %s", actualName.c_str());
+					SG_LOG_ERROR("Failed to run shader compiler!");
 			}
 		}
 
@@ -200,12 +204,6 @@ namespace SG
 
 	bool ShaderCompiler::CompileGLSLShader(const string& vertShaderName, const string& fragShaderName, Shader* pShader)
 	{
-		char* glslc = "";
-		Size num = 1;
-		_dupenv_s(&glslc, &num, "VULKAN_SDK");
-		string glslcPath = glslc;
-		glslcPath += "\\Bin32\\glslc.exe ";
-
 		UInt8 shaderBits = 0;
 		FileSystem::ExistOrCreate(EResourceDirectory::eShader_Binarires, ""); // create ShaderBin folder if it doesn't exist
 
@@ -232,13 +230,20 @@ namespace SG
 			}
 			else
 			{
-				string commandLine = glslcPath;
 				string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + vertShaderName + "-vert-compile.log";
 
-				if (CompileShaderVkSDK(vertActualName, vertCompiledName, commandLine, pOut))
-					shaderBits |= (1 << 0); // record what shader stage we had compiled
+#if SG_FORCE_USE_VULKAN_SDK
+				if (CompileShaderVkSDK(vertActualName, vertCompiledName, pOut))
+#else
+				if (CompileShaderVendor(vertActualName, vertCompiledName, pOut))
+#endif
+				{
+					Size splitPos = pOut.find_last_of('/');
+					if (!CheckCompileError(vertActualName, pOut.substr(splitPos + 1, pOut.size() - splitPos - 1)))
+						shaderBits |= (1 << 0); // record what shader stage we had compiled
+				}
 				else
-					SG_LOG_ERROR("Failed to compile vertex shader: %s", vertActualName.c_str());
+					SG_LOG_ERROR("Failed to run shader compiler!");
 			}
 		}
 
@@ -263,14 +268,20 @@ namespace SG
 				shaderBits |= (1 << 4); // mark as exist.
 			else
 			{
-				string commandLine = glslcPath;
 				string pOut = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + fragShaderName + "-frag-compile.log";
 
-				if (CompileShaderVkSDK(fragActualName, fragCompiledName, commandLine, pOut))
-					shaderBits |= (1 << 4); // record what shader stage we had compiled
+#if SG_FORCE_USE_VULKAN_SDK
+				if (CompileShaderVkSDK(fragActualName, fragCompiledName, pOut))
+#else
+				if (CompileShaderVendor(fragActualName, fragCompiledName, pOut))
+#endif
+				{
+					Size splitPos = pOut.find_last_of('/');
+					if (!CheckCompileError(fragActualName, pOut.substr(splitPos + 1, pOut.size() - splitPos - 1)))
+						shaderBits |= (1 << 4); // record what shader stage we had compiled
+				}
 				else
-					SG_LOG_ERROR("Failed to compile fragment shader: %s", fragActualName.c_str());
-
+					SG_LOG_ERROR("Failed to run shader compiler!");
 			}
 		}
 
@@ -296,8 +307,14 @@ namespace SG
 		}
 	}
 
-	bool ShaderCompiler::CompileShaderVkSDK(const string& actualName, const string& compiledName, string& exePath, const string& pOut)
+	bool ShaderCompiler::CompileShaderVkSDK(const string& actualName, const string& compiledName, const string& pOut)
 	{
+		char* glslc = "";
+		Size num = 1;
+		_dupenv_s(&glslc, &num, "VULKAN_SDK");
+		string exePath = glslc;
+		exePath += "\\Bin32\\glslc.exe ";
+
 		string shaderPath = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Sources, SG_ENGINE_DEBUG_BASE_OFFSET);
 		shaderPath += actualName;
 		string outputPath = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + compiledName;
@@ -310,12 +327,49 @@ namespace SG
 
 		// create a process to use vulkanSDK to compile shader sources to binary (spirv)
 		if (SSystem()->RunProcess(exePath, pOut.c_str()) != 0)
-		{
-			SG_LOG_WARN("%s", pOut);
 			return false;
-		}
-
 		return true;
+	}
+
+	bool ShaderCompiler::CompileShaderVendor(const string& actualName, const string& compiledName, const string& pOut)
+	{
+		string exePath = FileSystem::GetResourceFolderPath(EResourceDirectory::eVendor, SG_ENGINE_DEBUG_BASE_OFFSET);
+		exePath += "glslc.exe ";
+
+		string shaderPath = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Sources, SG_ENGINE_DEBUG_BASE_OFFSET);
+		shaderPath += actualName;
+		string outputPath = FileSystem::GetResourceFolderPath(EResourceDirectory::eShader_Binarires) + compiledName;
+
+		exePath += shaderPath;
+		exePath += " -o ";
+		exePath += outputPath;
+
+		const char* args[3] = { shaderPath.c_str(), "-o", outputPath.c_str() };
+
+		// create a process to use vulkanSDK to compile shader sources to binary (spirv)
+		if (SSystem()->RunProcess(exePath, pOut.c_str()) != 0)
+			return false;
+		return true;
+	}
+
+	bool ShaderCompiler::CheckCompileError(const string& actualName, const string& outputMessage)
+	{
+		bool bHaveError = false;
+		if (FileSystem::FileSize(EResourceDirectory::eShader_Binarires, outputMessage) != 0) // failed to compile shader, log out the error message
+		{
+			bHaveError = true;
+			if (FileSystem::Open(EResourceDirectory::eShader_Binarires, outputMessage.c_str(), EFileMode::efRead))
+			{
+				string errorMessage = "";
+				errorMessage.resize(FileSystem::FileSize());
+				FileSystem::Read(errorMessage.data(), errorMessage.size() * sizeof(char));
+				SG_LOG_ERROR("Failed to compile shader: %s\n%s", actualName.c_str(), errorMessage.c_str());
+				FileSystem::Close();
+			}
+		}
+		if (!FileSystem::RemoveFile(EResourceDirectory::eShader_Binarires, outputMessage))
+			SG_LOG_DEBUG("Failed to remove file: %s", outputMessage.c_str());
+		return bHaveError;
 	}
 
 	bool ShaderCompiler::ReflectSPIRV(Shader* pShader)

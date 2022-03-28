@@ -47,6 +47,10 @@
 #	define SG_ASSERT(x) do { if(!(x)) __debugbreak(); } while(false)
 #endif
 
+#ifndef SG_DEPRECATED
+#	define SG_DEPRECATED [[deprecated]]
+#endif
+
 #define SG_NO_USE(x) (void(x))
 
 #define SG_CONSTEXPR constexpr

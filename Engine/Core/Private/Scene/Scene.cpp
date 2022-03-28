@@ -34,14 +34,14 @@ namespace SG
 	{
 		mpMainCamera->OnUpdate(deltaTime);
 
-		//static float totalTime = 0.0f;
-		//static float speed = 2.5f;
+		static float totalTime = 0.0f;
+		static float speed = 2.5f;
 
 		// Do animation
-		//Mesh* pModel = GetMesh("model");
-		//pModel->SetPosition({ Sin(totalTime) * 0.5f, 0.0f, 0.0f });
+		auto pModel = GetMesh("model");
+		pModel->SetPosition({ Sin(totalTime) * 0.5f, 0.0f, 0.0f });
 
-		//totalTime += deltaTime * speed;
+		totalTime += deltaTime * speed;
 	}
 
 	RefPtr<Mesh> Scene::GetMesh(const char* name)

@@ -11,7 +11,7 @@ namespace SG
 	TimePoint GetFileLastWriteTime(const char* filename);
 	TimePoint GetFileLastReadTime(const char* filename);
 
-	void TraverseAllFile(const char* folder, FileTraverseFunc func);
+	SG_DEPRECATED void TraverseAllFile(const char* folder, FileTraverseFunc func);
 
 }
 #endif

@@ -42,7 +42,9 @@ namespace SG
 		SG_CORE_API static bool CompileGLSLShader(const string& vertShaderName, const string& fragShaderName, Shader* pShader);
 	private:
 		static void ReadInShaderData(const string& name, UInt32 stage, Shader* pShader, UInt8& checkFlag);
-		static bool CompileShaderVkSDK(const string& actualName, const string& compiledName, string& exePath, const string& pOut);
+		static bool CompileShaderVkSDK(const string& actualName, const string& compiledName, const string& pOut);
+		static bool CompileShaderVendor(const string& actualName, const string& compiledName, const string& pOut);
+		static bool CheckCompileError(const string& actualName, const string& outputMessage);
 
 		//! Use spirv-cross to reflect shader info from .spv(compiled shader).
 		static bool ReflectSPIRV(Shader* pShader);

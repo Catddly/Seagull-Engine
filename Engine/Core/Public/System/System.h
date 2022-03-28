@@ -68,6 +68,8 @@ namespace SG
 		//! Get current memory usage for all the modules.
 		SG_CORE_API UInt32 GetTotalMemoryUsage() const;
 
+		SG_CORE_API void SetRootPath(const string& path);
+
 		SG_CORE_API int  RunProcess(const string& command, const char* pOut);
 
 		SG_CORE_API void RegisterSystemMessageListener(ISystemMessageListener* pListener);
@@ -114,7 +116,6 @@ namespace SG
 
 		IProcess*     mpCurrActiveProcess;
 		Thread        mMainThread;
-		string        mRootPath = "";
 
 		// TODO: add a 3DWorld can contain a lot of scenes.
 		RefPtr<Scene> mp3DScene = nullptr;

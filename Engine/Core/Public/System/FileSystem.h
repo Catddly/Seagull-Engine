@@ -26,6 +26,7 @@ namespace SG
 		eFonts,
 		eLog,
 		eScripts,
+		eVendor,
 		Num_Directory,
 	};
 
@@ -115,10 +116,19 @@ namespace SG
 		SG_CORE_API static bool Flush();
 		SG_CORE_API static bool IsEndOfFile();
 
-		SG_CORE_API static string GetResourceFolderPath(EResourceDirectory directory, UInt32 baseOffset = 0);
+		SG_CORE_API static Size FileSize(const EResourceDirectory directory, const string& filename);
 
-		//! Traverse all the files inside the resourece directory.
-		SG_CORE_API static void TraverseFiles(EResourceDirectory directory, FileTraverseFunc func, UInt32 baseOffset = 0);
+		SG_CORE_API static bool RemoveFile(const EResourceDirectory directory, const string& filename);
+
+		SG_CORE_API static string GetResourceFolderPath(EResourceDirectory directory, UInt32 baseOffset = 0);
+		SG_CORE_API static string GetResourceFolderName(EResourceDirectory directory);
+
+		SG_CORE_API static string ToAbsolutePath(const string& path);
+		SG_CORE_API static string ToRelativePath(const string& path);
+
+		SG_CORE_API static void TraverseFileAndSubDirectoryInFolder(EResourceDirectory directory, const string& folderPath, FileTraverseFunc func, UInt32 baseOffset = 0);
+		//! Traverse all the files inside the resource directory.
+		SG_CORE_API static void TraverseFilesInFolder(EResourceDirectory directory, const string& folderPath, FileTraverseFunc func, UInt32 baseOffset = 0);
 
 		SG_CORE_API static TimePoint GetFileCreateTime(EResourceDirectory directory, const char* filename, UInt32 baseOffset = 0);
 		//! This include the last written to, truncated, or overwritten file.
@@ -140,7 +150,7 @@ namespace SG
 		static IStreamOps* mStreamOp;
 		static FileStream  mStream;
 
-		static const char* sResourceDirectory[9];
+		static const char* sResourceDirectory[(UInt32)EResourceDirectory::Num_Directory + 1];
 	};
 
 }

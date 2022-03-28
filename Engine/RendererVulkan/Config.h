@@ -11,3 +11,5 @@
 #endif
 
 #define SG_USE_PACKED_BUFFER 1
+
+#define SG_FORCE_USE_VULKAN_SDK 0

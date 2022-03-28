@@ -55,10 +55,9 @@ namespace SG
 		void Shutdown();
 
 		void OnUpdate(WeakRefPtr<Scene> pScene);
-
 		void BuildRenderMesh(RefPtr<RenderDataBuilder> renderDataBuilder);
 
-		const DrawCall& GetSkyboxRenderMesh() const { return mSkyboxRenderMesh; }
+		const DrawCall& GetSkyboxDrawCall() const { return mSkyboxDrawCall; }
 		template <typename Func>
 		void TraverseStaticMeshDrawCall(Func&& func);
 		template <typename Func>
@@ -103,6 +102,9 @@ namespace SG
 		mutable eastl::unordered_map<string, VulkanRenderTarget*> mRenderTargets;
 		mutable eastl::unordered_map<string, VulkanSampler*> mSamplers;
 
+		mutable vector<eastl::pair<BufferCreateDesc, VulkanBuffer*>>  mWaitToSubmitBuffers;
+		mutable vector<eastl::pair<BufferCreateDesc, VulkanTexture*>> mWaitToSubmitTextures;
+
 		// instead of use unordered_map, now packed all the vertex data into one big vertex data and give offset to them.
 		// temporary
 		VulkanBuffer* mPackedVertexBuffer = nullptr;
@@ -110,25 +112,22 @@ namespace SG
 		VulkanBuffer* mPackedIndexBuffer = nullptr;
 		UInt64        mPackedIBCurrOffset = 0;
 
-		DrawCall mSkyboxRenderMesh;
-		eastl::unordered_map<UInt32, DrawCall> mStaticRenderMeshes; // Forward Mesh Pass
-		eastl::unordered_map<UInt32, DrawCall> mStaticRenderMeshesInstanced; // Forward Instance Mesh Pass
-
-		mutable vector<eastl::pair<BufferCreateDesc, VulkanBuffer*>>  mWaitToSubmitBuffers;
-		mutable vector<eastl::pair<BufferCreateDesc, VulkanTexture*>> mWaitToSubmitTextures;
+		DrawCall mSkyboxDrawCall;
+		eastl::unordered_map<UInt32, DrawCall> mStaticMeshDrawCall; // Forward Mesh Pass
+		eastl::unordered_map<UInt32, DrawCall> mStaticMeshDrawCallInstanced; // Forward Instance Mesh Pass
 	};
 
 	template <typename Func>
 	void VulkanResourceRegistry::TraverseStaticMeshDrawCall(Func&& func)
 	{
-		for (auto node : mStaticRenderMeshes)
+		for (auto node : mStaticMeshDrawCall)
 			func(node.second);
 	}
 
 	template <typename Func>
 	void VulkanResourceRegistry::TraverseStaticMeshInstancedDrawCall(Func&& func)
 	{
-		for (auto node : mStaticRenderMeshesInstanced)
+		for (auto node : mStaticMeshDrawCallInstanced)
 			func(node.second);
 	}
 

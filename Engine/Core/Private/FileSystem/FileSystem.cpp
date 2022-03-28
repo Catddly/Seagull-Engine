@@ -8,11 +8,13 @@
 #include "Memory/Memory.h"
 
 #include "stl/string.h"
+#include "eastl/queue.h"
+#include <filesystem>
 
 namespace SG
 {
 
-	const char* FileSystem::sResourceDirectory[9] = {
+	const char* FileSystem::sResourceDirectory[(UInt32)EResourceDirectory::Num_Directory + 1] = {
 		"",
 		"ShaderBin",
 		"ShaderSrc",
@@ -21,6 +23,7 @@ namespace SG
 		"Font",
 		"Log",
 		"Script",
+		"Vendor",
 		""
 	};
 
@@ -32,6 +35,8 @@ namespace SG
 #ifdef SG_PLATFORM_WINDOWS
 		mStreamOp = Memory::New<WindowsStreamOp>();
 #endif
+		if (!mStreamOp)
+			SG_ASSERT(false);
 	}
 
 	void FileSystem::OnShutdown()
@@ -74,6 +79,20 @@ namespace SG
 		return mStreamOp->FileSize(&mStream);
 	}
 
+	Size FileSystem::FileSize(const EResourceDirectory directory, const string& filename)
+	{
+		string file = GetResourceFolderPath(directory);
+		file += filename;
+		return std::filesystem::file_size(file.c_str());
+	}
+
+	bool FileSystem::RemoveFile(const EResourceDirectory directory, const string& filename)
+	{
+		string file = GetResourceFolderPath(directory);
+		file += filename;
+		return std::filesystem::remove(file.c_str());
+	}
+
 	bool FileSystem::Flush()
 	{
 		return mStreamOp->Flush(&mStream);
@@ -94,18 +113,70 @@ namespace SG
 			path += "Resources/";
 		}
 
-		path += sResourceDirectory[(UInt32)directory];
+		path += GetResourceFolderName(directory);
 		path += "/";
 		return eastl::move(path);
 	}
 
-	void FileSystem::TraverseFiles(EResourceDirectory directory, FileTraverseFunc func, UInt32 baseOffset)
+	string FileSystem::GetResourceFolderName(EResourceDirectory directory)
+	{
+		if (directory == EResourceDirectory::Num_Directory)
+			SG_ASSERT(false && "Invalid directory");
+		return sResourceDirectory[(UInt32)directory];
+	}
+
+	string FileSystem::ToAbsolutePath(const string& path)
+	{
+		return std::filesystem::absolute(path.c_str()).generic_string().c_str();
+	}
+
+	string FileSystem::ToRelativePath(const string& path)
+	{
+		return std::filesystem::relative(path.c_str()).generic_string().c_str();
+	}
+
+	void FileSystem::TraverseFileAndSubDirectoryInFolder(EResourceDirectory directory, const string& folderPath, FileTraverseFunc func, UInt32 baseOffset)
 	{
 		string folder = GetResourceFolderPath(directory, baseOffset);
-		folder += "*.*"; // represent all the files
-#ifdef SG_PLATFORM_WINDOWS
-		SG::TraverseAllFile(folder.c_str(), func);
-#endif
+		folder += folderPath;
+
+		if (Exist(directory, folderPath.c_str(), baseOffset))
+		{
+			eastl::queue<std::filesystem::directory_iterator> iterators;
+			iterators.emplace(folder.c_str());
+
+			while (!iterators.empty())
+			{
+				const auto iterator = iterators.front();
+				iterators.pop();
+
+				for (const auto& fileEntry : iterator)
+				{
+					if (fileEntry.is_directory())
+						iterators.emplace(fileEntry);
+					else
+					{
+						string filename = fileEntry.path().generic_string().c_str();
+						string folderPath = GetResourceFolderName(directory);
+						Size splitPos = filename.find(folderPath);
+						func(filename.substr(splitPos + folderPath.size() + 1, filename.size() - splitPos).c_str());
+					}
+				}
+			}
+		}
+	}
+
+	void FileSystem::TraverseFilesInFolder(EResourceDirectory directory, const string& folderPath, FileTraverseFunc func, UInt32 baseOffset)
+	{
+		string folder = GetResourceFolderPath(directory, baseOffset);
+		folder += folderPath;
+
+		if (Exist(directory, folderPath.c_str(), baseOffset))
+		{
+			std::filesystem::directory_iterator iterator{ folderPath.c_str() };
+			for (const auto& fileEntry : iterator)
+				func(fileEntry.path().filename().generic_string().c_str());
+		}
 	}
 
 	void FileSystem::SetIStreamOp(IStreamOps* pStreamOp)
@@ -117,22 +188,15 @@ namespace SG
 	bool FileSystem::Exist(const EResourceDirectory directory, const char* filename, UInt32 baseOffset)
 	{
 		string filepath = GetResourceFolderPath(directory, baseOffset);
-
 		filepath += filename;
-		if (_access(filepath.c_str(), 0) == 0)
-			return true;
-		else
-			return false;
+		return std::filesystem::exists(filepath.c_str());
 	}
 
 	bool FileSystem::CreateFolder(const EResourceDirectory directory, const char* folderName)
 	{
-		string path = sResourceDirectory[(UInt32)directory];
-		path += "//";
+		string path = GetResourceFolderName(directory) + "/";
 		path += folderName;
-		if (_mkdir(path.c_str()) == 0)
-			return true;
-		return false;
+		return std::filesystem::create_directory(path.c_str());
 	}
 
 	bool FileSystem::ExistOrCreate(const EResourceDirectory directory, const string& filename)
