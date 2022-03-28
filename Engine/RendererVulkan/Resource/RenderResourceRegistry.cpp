@@ -39,10 +39,14 @@ namespace SG
 		ssboCI.totalSizeInByte = sizeof(ObjcetRenderData) * SG_MAX_NUM_OBJECT;
 		ssboCI.type = EBufferType::efStorage;
 		CreateBuffer(ssboCI);
+
+		mIndirectDrawBatcher.CreateIndirectBuffer();
 	}
 
 	void VulkanResourceRegistry::DestroyInnerResource()
 	{
+		mIndirectDrawBatcher.DestroyIndirectBuffer();
+
 		Memory::Delete(mPackedVertexBuffer);
 		Memory::Delete(mPackedIndexBuffer);
 	}
@@ -194,24 +198,28 @@ namespace SG
 
 				mpContext->transferCommandPool->FreeCommandBuffer(pCmd);
 
-				DrawCall renderMesh = {};
-				renderMesh.vBSize = vbSize;
-				renderMesh.iBSize = ibSize;
-				renderMesh.vBOffset = mPackedVBCurrOffset;
-				renderMesh.iBOffset = mPackedIBCurrOffset;
-				renderMesh.objectId = buildData.objectId;
-				renderMesh.instanceCount = buildData.instanceCount;
-				renderMesh.pVertexBuffer = mPackedVertexBuffer;
-				renderMesh.pIndexBuffer = mPackedIndexBuffer;
-				renderMesh.pInstanceBuffer = nullptr;
+				DrawCall dc = {};
+				dc.vBSize = vbSize;
+				dc.iBSize = ibSize;
+				dc.vBOffset = mPackedVBCurrOffset;
+				dc.iBOffset = mPackedIBCurrOffset;
+				dc.objectId = buildData.objectId;
+				dc.instanceCount = buildData.instanceCount;
+				dc.pVertexBuffer = mPackedVertexBuffer;
+				dc.pIndexBuffer = mPackedIndexBuffer;
+				dc.pInstanceBuffer = nullptr;
 
 				if (buildData.instanceCount > 1)
 				{
-					renderMesh.pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(meshId)));
-					mStaticMeshDrawCallInstanced[meshId] = renderMesh;
+					dc.pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(meshId)));
+					mStaticMeshDrawCallInstanced[meshId] = dc;
+					mIndirectDrawBatcher.AddMeshPassDrawCall(EMeshPass::eForwardInstanced, dc);
 				}
 				else
-					mStaticMeshDrawCall[meshId] = renderMesh;
+				{
+					mStaticMeshDrawCall[meshId] = dc;
+					mIndirectDrawBatcher.AddMeshPassDrawCall(EMeshPass::eForward, dc);
+				}
 
 				mPackedVBCurrOffset += vbSize;
 				mPackedIBCurrOffset += ibSize;
@@ -220,6 +228,12 @@ namespace SG
 				if (pIBStagingBuffer)
 					Memory::Delete(pIBStagingBuffer);
 			});
+		mIndirectDrawBatcher.FinishBuildMeshPass(GetBuffer("indirectBuffer"));
+	}
+
+	void VulkanResourceRegistry::DrawIndirect(EMeshPass meshPass, VulkanCommandBuffer& buf)
+	{
+		mIndirectDrawBatcher.Draw(meshPass, buf);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////

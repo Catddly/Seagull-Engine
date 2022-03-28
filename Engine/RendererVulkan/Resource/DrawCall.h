@@ -5,6 +5,23 @@
 namespace SG
 {
 
+	struct DrawIndirect
+	{
+		UInt32 vertexCount;
+		UInt32 instanceCount;
+		UInt32 firstVertex;
+		UInt32 firstInstance;
+	};
+
+	struct DrawIndexedIndirectCommand
+	{
+		UInt32 indexCount;
+		UInt32 instanceCount;
+		UInt32 firstIndex;
+		Int32  vertexOffset;
+		UInt32 firstInstance;
+	};
+
 	struct DrawCall
 	{
 		UInt64 vBSize = 0;

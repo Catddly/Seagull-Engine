@@ -310,26 +310,28 @@ namespace SG
 		// 1.1 Forward Mesh Pass
 		pBuf.BindPipeline(mpPipeline);
 		pBuf.BindPipelineSignature(mpPipelineSignature.get());
-		VK_RESOURCE()->TraverseStaticMeshDrawCall([&](const DrawCall& dc)
-			{
-				pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
-				pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
+		VK_RESOURCE()->DrawIndirect(EMeshPass::eForward, pBuf);
+		//VK_RESOURCE()->TraverseStaticMeshDrawCall([&](const DrawCall& dc)
+		//	{
+		//		pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
+		//		pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
 
-				pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), 1, 0, 0, dc.objectId /* corresponding to gl_BaseInstance */);
-			});
+		//		pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), 1, 0, 0, dc.objectId /* corresponding to gl_BaseInstance */);
+		//	});
 
 		// 1.2 Forward Instanced Mesh Pass
-		pBuf.BindPipelineSignature(mpInstancePipelineSignature.get());
 		pBuf.BindPipeline(mpInstancePipeline);
-		VK_RESOURCE()->TraverseStaticMeshInstancedDrawCall([&](const DrawCall& dc)
-			{
-				pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
-				UInt64 offset = 0;
-				pBuf.BindVertexBuffer(1, 1, *dc.pInstanceBuffer, &offset);
-				pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
+		pBuf.BindPipelineSignature(mpInstancePipelineSignature.get());
+		VK_RESOURCE()->DrawIndirect(EMeshPass::eForwardInstanced, pBuf);
+		//VK_RESOURCE()->TraverseStaticMeshInstancedDrawCall([&](const DrawCall& dc)
+		//	{
+		//		pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
+		//		UInt64 offset = 0;
+		//		pBuf.BindVertexBuffer(1, 1, *dc.pInstanceBuffer, &offset);
+		//		pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
 
-				pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), dc.instanceCount, 0, 0, 0);
-			});
+		//		pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), dc.instanceCount, 0, 0, 0);
+		//	});
 	}
 
 	void RGDrawScenePBRNode::GenerateBRDFLut()

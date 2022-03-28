@@ -232,10 +232,11 @@ namespace SG
 		vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 	}
 
-	void VulkanCommandBuffer::DrawIndexedIndirect()
+	void VulkanCommandBuffer::DrawIndexedIndirect(VulkanBuffer* pIndirectBuffer, UInt32 offset, UInt32 dcCount, UInt32 stride)
 	{
-		VkDrawIndexedIndirectCommand indirect;
-		SG_NO_USE(indirect);
+		if (!IsRenderPassValid())
+			return;
+		vkCmdDrawIndexedIndirect(commandBuffer, pIndirectBuffer->buffer, offset, dcCount, stride);
 	}
 
 	void VulkanCommandBuffer::CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer, UInt64 srcOffset, UInt64 dstOffset)

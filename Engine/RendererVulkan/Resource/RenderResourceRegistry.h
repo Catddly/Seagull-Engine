@@ -7,6 +7,7 @@
 #include "Scene/RenderDataBuilder.h"
 
 #include "RendererVulkan/Resource/DrawCall.h"
+#include "RendererVulkan/IndirectDraw/IndirectDrawBatcher.h"
 
 #include "Stl/vector.h"
 #include <eastl/utility.h>
@@ -63,6 +64,8 @@ namespace SG
 		template <typename Func>
 		void TraverseStaticMeshInstancedDrawCall(Func&& func);
 
+		void DrawIndirect(EMeshPass meshPass, VulkanCommandBuffer& buf);
+
 		/// Buffer Begin
 		// By default, create the buffer using HOST_VISIBLE bit.
 		bool CreateBuffer(const BufferCreateDesc& bufferCI, bool bLocal = false);
@@ -113,8 +116,10 @@ namespace SG
 		UInt64        mPackedIBCurrOffset = 0;
 
 		DrawCall mSkyboxDrawCall;
-		eastl::unordered_map<UInt32, DrawCall> mStaticMeshDrawCall; // Forward Mesh Pass
-		eastl::unordered_map<UInt32, DrawCall> mStaticMeshDrawCallInstanced; // Forward Instance Mesh Pass
+		eastl::unordered_map<UInt32, DrawCall> mStaticMeshDrawCall; // Forward Mesh Pass (meshId -> DrawCall)
+		eastl::unordered_map<UInt32, DrawCall> mStaticMeshDrawCallInstanced; // Forward Instance Mesh Pass (meshId -> DrawCall)
+
+		IndirectDrawBatcher mIndirectDrawBatcher;
 	};
 
 	template <typename Func>
