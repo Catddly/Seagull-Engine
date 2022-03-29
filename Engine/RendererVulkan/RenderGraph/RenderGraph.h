@@ -53,8 +53,10 @@ namespace SG
 		mutable UInt32 mFrameIndex = 0;
 
 		eastl::hash_map<Size, VulkanRenderPass*>  mRenderPassesMap;
+		// Why vector here?
+		// Because we see each render graph resource as one resource, it may contain multiple render target in it.
+		// In Most Case, the size of the vector is always one.
 		eastl::hash_map<Size, VulkanFrameBuffer*> mFrameBuffersMap;
-
 		VulkanRenderPass* mpCurrRenderPass;
 
 		const char* mName;

@@ -100,6 +100,10 @@ namespace SG
 				.AddCombindSamplerImage("_imgui_sampler", "_imgui_font")
 				.Build();
 		}
+
+		ClearValue cv = {};
+		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
+		AttachResource(0, { mContext.colorRts.data(), static_cast<UInt32>(mContext.colorRts.size()), mColorRtLoadStoreOp, cv });
 	}
 
 	RGFinalOutputNode::~RGFinalOutputNode()
@@ -138,9 +142,6 @@ namespace SG
 
 	void RGFinalOutputNode::Update(UInt32 frameIndex)
 	{
-		ClearValue cv = {};
-		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
-		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
 	}
 
 	void RGFinalOutputNode::Draw(RGDrawInfo& context)

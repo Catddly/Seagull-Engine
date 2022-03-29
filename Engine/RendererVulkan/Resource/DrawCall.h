@@ -5,7 +5,7 @@
 namespace SG
 {
 
-	struct DrawIndirect
+	struct DrawIndirectCommand
 	{
 		UInt32 vertexCount;
 		UInt32 instanceCount;

@@ -32,32 +32,6 @@ namespace SG
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
 	{
-		// load scene ubos
-		{
-			auto pScene = SSystem()->GetMainScene();
-			pScene->TraversePointLight([&](const PointLight& light)
-				{
-					mpPointLight = &light;
-				});
-
-			mpCamera = pScene->GetMainCamera();
-			auto& cameraUbo = GetCameraUBO();
-			cameraUbo.proj = mpCamera->GetProjMatrix();
-
-			auto& skyboxUbo = GetSkyboxUBO();
-			skyboxUbo.proj = cameraUbo.proj;
-
-			auto& lightUbo = GetLightUBO();
-			auto* pDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
-			lightUbo.lightSpaceVP = pDirectionalLight->GetViewProj();
-			lightUbo.directionalColor = { pDirectionalLight->GetColor(), 1.0f };
-			lightUbo.viewDirection = glm::normalize(pDirectionalLight->GetDirection());
-
-			auto& compositionUbo = GetCompositionUBO();
-			compositionUbo.gamma = 2.2f;
-			compositionUbo.exposure = 1.0f;
-		}
-
 		// init render resource
 #ifdef SG_ENABLE_HDR
 		TextureCreateDesc rtCI;
@@ -157,6 +131,12 @@ namespace SG
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
 		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv });
+
+#ifndef SG_ENABLE_HDR
+		ClearValue cv = {};
+		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
+		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
+#endif
 	}
 
 	RGDrawScenePBRNode::~RGDrawScenePBRNode()
@@ -203,18 +183,6 @@ namespace SG
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
 		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv });
-
-		auto* window = OperatingSystem::GetMainWindow();
-		const float ASPECT = window->GetAspectRatio();
-		mpCamera->SetPerspective(45.0f, ASPECT, 0.01f, 256.0f);
-
-		auto& skyboxUbo = GetSkyboxUBO();
-		auto& cameraUbo = GetCameraUBO();
-		cameraUbo.proj = mpCamera->GetProjMatrix();
-		skyboxUbo.proj = cameraUbo.proj;
-		cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
-		VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
-		VK_RESOURCE()->UpdataBufferData("skyboxUbo", &skyboxUbo);
 	}
 
 	void RGDrawScenePBRNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -249,36 +217,7 @@ namespace SG
 
 	void RGDrawScenePBRNode::Update(UInt32 frameIndex)
 	{
-#ifndef SG_ENABLE_HDR
-		ClearValue cv = {};
-		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
-		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
-#endif 
-		if (mpCamera->IsViewDirty())
-		{
-			auto& skyboxUbo = GetSkyboxUBO();
-			auto& cameraUbo = GetCameraUBO();
-			cameraUbo.viewPos = mpCamera->GetPosition();
-			cameraUbo.view = mpCamera->GetViewMatrix();
-			skyboxUbo.model = Matrix4f(Matrix3f(cameraUbo.view)); // eliminate the translation part of the matrix
-			cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
-			VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
-			VK_RESOURCE()->UpdataBufferData("skyboxUbo", &skyboxUbo);
-			mpCamera->ViewBeUpdated();
-		}
 
-		if (mpPointLight->IsDirty())
-		{
-			auto& lightUbo = GetLightUBO();
-			lightUbo.pointLightColor = mpPointLight->GetColor();
-			lightUbo.pointLightRadius = mpPointLight->GetRadius();
-			lightUbo.pointLightPos = mpPointLight->GetPosition();
-			mpPointLight->BeUpdated();
-			VK_RESOURCE()->UpdataBufferData("lightUbo", &lightUbo);
-		}
-
-		auto& compositionUbo = GetCompositionUBO();
-		VK_RESOURCE()->UpdataBufferData("compositionUbo", &compositionUbo);
 	}
 
 	void RGDrawScenePBRNode::Draw(RGDrawInfo& context)

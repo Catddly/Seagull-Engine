@@ -128,6 +128,7 @@ namespace SG
 	void VulkanRenderDevice::WindowResize()
 	{
 		mpContext->WindowResize();
+		VK_RESOURCE()->WindowResize();
 		mpRenderGraph->WindowResize();
 	}
 

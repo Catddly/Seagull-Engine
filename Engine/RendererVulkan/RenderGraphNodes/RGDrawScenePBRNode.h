@@ -56,9 +56,6 @@ namespace SG
 		RefPtr<VulkanPipelineSignature> mpPipelineSignature;
 		VulkanPipeline*                 mpPipeline;
 		RefPtr<VulkanShader>            mpShader;
-
-		const PointLight* mpPointLight;
-		ICamera*          mpCamera;
 	};
 
 }

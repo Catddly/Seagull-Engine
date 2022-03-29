@@ -81,6 +81,23 @@ namespace SG
 		mSkyboxDrawCall.pVertexBuffer = GetBuffer("skybox_vb");
 		mSkyboxDrawCall.pIndexBuffer = nullptr;
 		mSkyboxDrawCall.pInstanceBuffer = nullptr;
+
+		// init ubos
+		auto pScene = SSystem()->GetMainScene();
+		auto& cameraUbo = GetCameraUBO();
+		cameraUbo.proj = pScene->GetMainCamera()->GetProjMatrix();
+		auto& skyboxUbo = GetSkyboxUBO();
+		skyboxUbo.proj = cameraUbo.proj;
+
+		auto& lightUbo = GetLightUBO();
+		auto* pDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
+		lightUbo.lightSpaceVP = pDirectionalLight->GetViewProj();
+		lightUbo.directionalColor = { pDirectionalLight->GetColor(), 1.0f };
+		lightUbo.viewDirection = glm::normalize(pDirectionalLight->GetDirection());
+
+		auto& compositionUbo = GetCompositionUBO();
+		compositionUbo.gamma = 2.2f;
+		compositionUbo.exposure = 1.0f;
 	}
 
 	void VulkanResourceRegistry::Shutdown()
@@ -126,6 +143,52 @@ namespace SG
 					}
 				}
 			});
+
+		auto* pCamera = pLScene->GetMainCamera();
+		if (pCamera->IsViewDirty())
+		{
+			auto& skyboxUbo = GetSkyboxUBO();
+			auto& cameraUbo = GetCameraUBO();
+			cameraUbo.viewPos = pCamera->GetPosition();
+			cameraUbo.view = pCamera->GetViewMatrix();
+			skyboxUbo.model = Matrix4f(Matrix3f(cameraUbo.view)); // eliminate the translation part of the matrix
+			cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
+			UpdataBufferData("cameraUbo", &cameraUbo);
+			UpdataBufferData("skyboxUbo", &skyboxUbo);
+			pCamera->ViewBeUpdated();
+		}
+
+		pLScene->TraversePointLight([=](const PointLight& light) 
+			{
+				if (light.IsDirty())
+				{
+					auto& lightUbo = GetLightUBO();
+					lightUbo.pointLightColor = light.GetColor();
+					lightUbo.pointLightRadius = light.GetRadius();
+					lightUbo.pointLightPos = light.GetPosition();
+					light.BeUpdated();
+					UpdataBufferData("lightUbo", &lightUbo);
+				}
+			});
+
+		auto& compositionUbo = GetCompositionUBO();
+		UpdataBufferData("compositionUbo", &compositionUbo);
+	}
+
+	void VulkanResourceRegistry::WindowResize()
+	{
+		auto pScene = SSystem()->GetMainScene();
+		auto* window = OperatingSystem::GetMainWindow();
+		const float  ASPECT = window->GetAspectRatio();
+		pScene->GetMainCamera()->SetPerspective(45.0f, ASPECT, 0.01f, 256.0f);
+
+		auto& skyboxUbo = GetSkyboxUBO();
+		auto& cameraUbo = GetCameraUBO();
+		cameraUbo.proj = pScene->GetMainCamera()->GetProjMatrix();
+		skyboxUbo.proj = cameraUbo.proj;
+		cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
+		VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
+		VK_RESOURCE()->UpdataBufferData("skyboxUbo", &skyboxUbo);
 	}
 
 	VulkanResourceRegistry* VulkanResourceRegistry::GetInstance()

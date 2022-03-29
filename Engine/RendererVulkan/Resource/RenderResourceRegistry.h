@@ -56,6 +56,8 @@ namespace SG
 		void Shutdown();
 
 		void OnUpdate(WeakRefPtr<Scene> pScene);
+		void WindowResize();
+
 		void BuildRenderMesh(RefPtr<RenderDataBuilder> renderDataBuilder);
 
 		const DrawCall& GetSkyboxDrawCall() const { return mSkyboxDrawCall; }

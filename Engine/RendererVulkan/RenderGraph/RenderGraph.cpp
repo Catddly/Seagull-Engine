@@ -79,7 +79,7 @@ namespace SG
 
 	void RenderGraph::Draw(UInt32 frameIndex) const
 	{
-		SG_ASSERT(!mFrameBuffersMap.empty() && "RenderGraphBuilder should call Complete() or RenderGraph should call Compile() after the node insertion!");
+		SG_ASSERT(!mFrameBuffersMap.empty() && "RenderGraphBuilder should call Build() or RenderGraph should call Compile() after the node insertion!");
 
 		auto& commandBuf = mpContext->commandBuffers[frameIndex];
 		auto* pColorRt = mpContext->colorRts[frameIndex];
@@ -96,9 +96,9 @@ namespace SG
 				if (resource.has_value())
 				{
 					UInt32 address[3] = {
-						resource->mpRenderTarget->GetID(),
-						resource->mpRenderTarget->GetNumMipmap(),
-						resource->mpRenderTarget->GetNumArray(),
+						resource->GetRenderTarget()->GetID(),
+						resource->GetRenderTarget()->GetNumMipmap(),
+						resource->GetRenderTarget()->GetNumArray(),
 					};
 					framebufferHash = HashMemory32Array(address, 3, framebufferHash);
 				}
@@ -138,20 +138,18 @@ namespace SG
 	void RenderGraph::Compile()
 	{
 		// add rts' dependencies
-		for (auto* rt : mpContext->colorRts)
-			mResourceStatusKeeper.AddResourceDenpendency(rt, EResourceBarrier::efUndefined, EResourceBarrier::efPresent);
+		mResourceStatusKeeper.AddResourceDenpendency(mpContext->colorRts[0], EResourceBarrier::efUndefined, EResourceBarrier::efPresent);
 		mResourceStatusKeeper.AddResourceDenpendency(mpContext->depthRt, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil);
 
 		for (auto* pCurrNode : mpNodes) // iterate all nodes
 		{
-			pCurrNode->Update(mFrameIndex); // update resource, freeze the time
-
+			//pCurrNode->Update(mFrameIndex); // update resource, freeze the time
 			for (auto& resource : pCurrNode->mInResources)
 			{
 				if (resource.has_value())
 				{
-					if (resource->mSrcStatus != EResourceBarrier::efUndefined || resource->mDstStatus != EResourceBarrier::efUndefined)
-						mResourceStatusKeeper.AddResourceDenpendency(resource->mpRenderTarget, resource->mSrcStatus, resource->mDstStatus);
+					if (resource->GetSrcStatus() != EResourceBarrier::efUndefined || resource->GetDstStatus() != EResourceBarrier::efUndefined)
+						mResourceStatusKeeper.AddResourceDenpendency(resource->GetRenderTarget(), resource->GetSrcStatus(), resource->GetDstStatus());
 				}
 			}
 
@@ -176,7 +174,7 @@ namespace SG
 			if (resource.has_value())
 			{
 				// calculate the hash value
-				renderpassHash = resource->GetDataHash(renderpassHash);
+				renderpassHash = resource->GetDataHash(renderpassHash);	
 			}
 		}
 
@@ -189,8 +187,8 @@ namespace SG
 			{
 				if (resource.has_value())
 				{
-					auto statusTransition = mResourceStatusKeeper.GetResourceNextStatus(resource->mpRenderTarget);
-					rpBuilder.BindRenderTarget(resource->mpRenderTarget, resource->mLoadStoreClearOp,
+					auto statusTransition = mResourceStatusKeeper.GetResourceNextStatus(resource->GetRenderTarget());
+					rpBuilder.BindRenderTarget(resource->GetRenderTarget(), resource->GetLoadStoreClearOp(),
 						statusTransition.srcStatus, statusTransition.dstStatus);
 				}
 			}
@@ -206,17 +204,26 @@ namespace SG
 
 	void RenderGraph::CompileFrameBuffers(const RenderGraphNode* pCurrNode)
 	{
+		// Each Render Graph Resource Should Have its own FrameBuffer!
+
 		// calculate the hash data
 		Size framebufferHash = 0;
+		UInt32 currIndex = 0;
+		vector<eastl::pair<VulkanRenderTarget*, ClearValue>> frameRtCollection;
 		for (auto& resource : pCurrNode->mInResources)
 		{
 			if (resource.has_value())
 			{
+				bool bHaveMultiResource = false;
+				if (resource->GetNumRenderTarget() != 1)
+					bHaveMultiResource = true;
+
 				UInt32 address[3] = {
-					resource->mpRenderTarget->GetID(),
-					resource->mpRenderTarget->GetNumMipmap(),
-					resource->mpRenderTarget->GetNumArray(),
+					resource->GetRenderTarget(bHaveMultiResource ? currIndex : 0)->GetID(),
+					resource->GetRenderTarget(bHaveMultiResource ? currIndex : 0)->GetNumMipmap(),
+					resource->GetRenderTarget(bHaveMultiResource ? currIndex : 0)->GetNumArray(),
 				};
+				frameRtCollection.emplace_back(resource->GetRenderTarget(bHaveMultiResource ? currIndex : 0), resource->GetClearValue());
 				framebufferHash = HashMemory32Array(address, 3, framebufferHash);
 			}
 		}
@@ -226,12 +233,9 @@ namespace SG
 		if (pFrameBufferNode == mFrameBuffersMap.end()) // Didn't find this framebuffer, then create a new one
 		{
 			VulkanFrameBuffer::Builder fbBuilder(mpContext->device);
-			for (auto& resource : pCurrNode->mInResources)
+			for (auto& resource : frameRtCollection)
 			{
-				if (resource.has_value())
-				{
-					fbBuilder.AddRenderTarget(resource->mpRenderTarget, resource->mClearValue);
-				}
+				fbBuilder.AddRenderTarget(resource.first, resource.second);
 			}
 			auto* pFrameBuffer = fbBuilder.BindRenderPass(mpCurrRenderPass).Build();
 
