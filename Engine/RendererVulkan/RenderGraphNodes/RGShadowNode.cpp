@@ -29,9 +29,6 @@ namespace SG
 	{
 		mbDrawShadow = true;
 
-		auto& shadowUbo = GetShadowUBO();
-		shadowUbo.lightSpaceVP = SSystem()->GetMainScene()->GetDirectionalLight()->GetViewProj();
-
 		TextureCreateDesc texCI = {};
 		texCI.name = "shadow map";
 		texCI.width = SG_SHADOW_MAP_SIZE;
@@ -82,7 +79,6 @@ namespace SG
 			.Build();
 		mpShadowInstancePipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShadowInstanceShader)
 			.Build();
-		VK_RESOURCE()->UpdataBufferData("shadowUbo", &shadowUbo);
 
 		ClearValue cv = {};
 		cv.depthStencil.depth = 1.0f;
@@ -98,8 +94,6 @@ namespace SG
 
 	void RGShadowNode::Reset()
 	{
-		ClearResources();
-
 		ClearValue cv = {};
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
@@ -129,10 +123,6 @@ namespace SG
 			.BindRenderPass(pRenderpass)
 			.BindShader(mpShadowShader.get())
 			.Build();
-	}
-
-	void RGShadowNode::Update(UInt32 frameIndex)
-	{
 	}
 
 	void RGShadowNode::Draw(RGDrawInfo& context)

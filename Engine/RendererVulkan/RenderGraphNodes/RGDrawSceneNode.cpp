@@ -109,7 +109,7 @@ namespace SG
 		cv = {};
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
-		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv });
+		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil });
 
 #ifndef SG_ENABLE_HDR
 		ClearValue cv = {};
@@ -128,10 +128,16 @@ namespace SG
 	{
 		ClearResources();
 
+#ifdef SG_ENABLE_HDR
 		ClearValue cv = {};
+		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
+		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("HDRColor"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+#endif
+
+		cv = {};
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
-		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv });
+		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil });
 	}
 
 	void RGDrawSceneNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -150,10 +156,6 @@ namespace SG
 			.BindRenderPass(pRenderpass)
 			.BindShader(mpShader.get())
 			.Build();
-	}
-
-	void RGDrawSceneNode::Update(UInt32 frameIndex)
-	{
 	}
 
 	void RGDrawSceneNode::Draw(RGDrawInfo& context)

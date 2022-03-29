@@ -21,7 +21,7 @@ namespace SG
 {
 
 	RGFinalOutputNode::RGFinalOutputNode(VulkanContext& context)
-		:mContext(context), mpRenderPass(nullptr), mCurrVertexCount(0), mCurrIndexCount(0),
+		:mContext(context), mCurrVertexCount(0), mCurrIndexCount(0),
 		mColorRtLoadStoreOp({ ELoadOp::eDont_Care, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
 		// bottom color render target present
@@ -103,7 +103,8 @@ namespace SG
 
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
-		AttachResource(0, { mContext.colorRts.data(), static_cast<UInt32>(mContext.colorRts.size()), mColorRtLoadStoreOp, cv });
+		AttachResource(0, { mContext.colorRts.data(), static_cast<UInt32>(mContext.colorRts.size()), mColorRtLoadStoreOp, cv,
+			EResourceBarrier::efUndefined, EResourceBarrier::efPresent });
 	}
 
 	RGFinalOutputNode::~RGFinalOutputNode()
@@ -117,6 +118,11 @@ namespace SG
 		mpCompPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpCompShader)
 			.AddCombindSamplerImage("comp_sampler", "HDRColor")
 			.Build();
+
+		ClearValue cv = {};
+		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
+		AttachResource(0, { mContext.colorRts.data(), static_cast<UInt32>(mContext.colorRts.size()), mColorRtLoadStoreOp, cv,
+			EResourceBarrier::efUndefined, EResourceBarrier::efPresent });
 	}
 
 	void RGFinalOutputNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -138,10 +144,6 @@ namespace SG
 			.BindRenderPass(pRenderpass)
 			.BindShader(mpGUIShader.get())
 			.Build();
-	}
-
-	void RGFinalOutputNode::Update(UInt32 frameIndex)
-	{
 	}
 
 	void RGFinalOutputNode::Draw(RGDrawInfo& context)

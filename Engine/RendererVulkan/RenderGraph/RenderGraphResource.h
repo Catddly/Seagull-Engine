@@ -1,11 +1,13 @@
 #pragma once
 
 #include "Defs/Defs.h"
+#include "Memory/Memory.h"
 #include "Render/FrameBuffer.h"
 #include "Render/ResourceBarriers.h"
 
 #include "RendererVulkan/Config.h"
 
+#include "Stl/vector.h"
 #include "Stl/Hash.h"
 
 namespace SG
@@ -38,22 +40,26 @@ namespace SG
 	class RenderGraphResourceBase
 	{
 	public:
-		RenderGraphResourceBase(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, const ClearValue& clearValue)
-			:mppRenderTarget(&pRenderTarget), mLoadStoreClearOp(op), mClearValue(clearValue), mNumRenderTarget(1),
-			mSrcStatus(EResourceBarrier::efUndefined), mDstStatus(EResourceBarrier::efUndefined)
-		{}
-		RenderGraphResourceBase(VulkanRenderTarget** ppRenderTarget, UInt32 numRt, LoadStoreClearOp op, const ClearValue& clearValue)
-			:mppRenderTarget(ppRenderTarget), mLoadStoreClearOp(op), mClearValue(clearValue), mNumRenderTarget(numRt),
-			mSrcStatus(EResourceBarrier::efUndefined), mDstStatus(EResourceBarrier::efUndefined)
-		{}
 		RenderGraphResourceBase(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, const ClearValue& clearValue,
 			EResourceBarrier srcStatus, EResourceBarrier dstStatus)
-			:mppRenderTarget(&pRenderTarget), mLoadStoreClearOp(op), mClearValue(clearValue), mNumRenderTarget(1),
+			:mLoadStoreClearOp(op), mClearValue(clearValue),
 			mSrcStatus(srcStatus), mDstStatus(dstStatus)
-		{}
+		{
+			mpRenderTargets.resize(1);
+			mpRenderTargets[0] = pRenderTarget;
+		}
+		RenderGraphResourceBase(VulkanRenderTarget** ppRenderTarget, UInt32 numRt, LoadStoreClearOp op, const ClearValue& clearValue,
+			EResourceBarrier srcStatus, EResourceBarrier dstStatus)
+			:mLoadStoreClearOp(op), mClearValue(clearValue),
+			mSrcStatus(srcStatus), mDstStatus(dstStatus)
+		{
+			mpRenderTargets.resize(numRt);
+			for (UInt32 i = 0; i < numRt; ++i)
+				mpRenderTargets[i] = ppRenderTarget[i];
+		}
 		virtual ~RenderGraphResourceBase() = default;
 
-		SG_INLINE UInt32 GetNumRenderTarget() const { return mNumRenderTarget; }
+		SG_INLINE UInt32 GetNumRenderTarget() const { return static_cast<UInt32>(mpRenderTargets.size()); }
 		SG_INLINE VulkanRenderTarget* GetRenderTarget(UInt32 index = 0) const;
 		SG_INLINE Size GetDataHash(Size prev = 0, UInt32 index = 0) const;
 
@@ -64,50 +70,47 @@ namespace SG
 
 		SG_INLINE bool operator==(const RenderGraphResourceBase& rhs) const
 		{
-			if (this->mNumRenderTarget != rhs.mNumRenderTarget)
+			if (this->mpRenderTargets.size() != rhs.mpRenderTargets.size())
 				return false;
 			bool bTheSame = (this->mLoadStoreClearOp == rhs.mLoadStoreClearOp);
 			if (!bTheSame)
 				return false;
-			for (UInt32 i = 0; i < mNumRenderTarget; ++i)
-				bTheSame &= (this->mppRenderTarget[i] == rhs.mppRenderTarget[i]);
+			for (UInt32 i = 0; i < mpRenderTargets.size(); ++i)
+				bTheSame &= (this->mpRenderTargets[i] == rhs.mpRenderTargets[i]);
 			return bTheSame;
 		}
 	private:
-		VulkanRenderTarget** mppRenderTarget;
-		UInt32               mNumRenderTarget;
-		ClearValue           mClearValue;
-		LoadStoreClearOp     mLoadStoreClearOp;
-		EResourceBarrier     mSrcStatus;
-		EResourceBarrier     mDstStatus;
+		vector<VulkanRenderTarget*> mpRenderTargets;
+		ClearValue       mClearValue;
+		LoadStoreClearOp mLoadStoreClearOp;
+		EResourceBarrier mSrcStatus = EResourceBarrier::efUndefined;
+		EResourceBarrier mDstStatus = EResourceBarrier::efUndefined;
 	};
 
 	template <ERGResourceFlow flow>
 	SG_INLINE VulkanRenderTarget* SG::RenderGraphResourceBase<flow>::GetRenderTarget(UInt32 index) const
 	{
-		SG_ASSERT(index < mNumRenderTarget && "Index exceed the boundary!");
-		return mppRenderTarget[index];
+		SG_ASSERT(index < mpRenderTargets.size() && "Index exceed the boundary!");
+		return mpRenderTargets[index];
 	}
 
 	template <ERGResourceFlow flow>
 	SG_INLINE Size RenderGraphResourceBase<flow>::GetDataHash(Size prev, UInt32 index) const
 	{
-		SG_ASSERT(index < mNumRenderTarget && "Index exceed the boundary!");
-		return RGResourceHasher{}(mppRenderTarget[index], mLoadStoreClearOp, prev);
+		SG_ASSERT(index < mpRenderTargets.size() && "Index exceed the boundary!");
+		return RGResourceHasher{}(mpRenderTargets[index], mLoadStoreClearOp, prev);
 	}
 
 	class RenderGraphInReousrce final : public RenderGraphResourceBase<ERGResourceFlow::eIn>
 	{
 	public:
-		RenderGraphInReousrce(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, const ClearValue& clearValue)
-			: RenderGraphResourceBase(pRenderTarget, op, clearValue)
-		{}
-		RenderGraphInReousrce(VulkanRenderTarget** ppRenderTarget, UInt32 numRt, LoadStoreClearOp op, const ClearValue& clearValue)
-			: RenderGraphResourceBase(ppRenderTarget, numRt, op, clearValue)
-		{}
 		RenderGraphInReousrce(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, const ClearValue& clearValue,
 			EResourceBarrier srcStatus, EResourceBarrier dstStatus)
 			: RenderGraphResourceBase(pRenderTarget, op, clearValue, srcStatus, dstStatus)
+		{}
+		RenderGraphInReousrce(VulkanRenderTarget** ppRenderTarget, UInt32 numRt, LoadStoreClearOp op, const ClearValue& clearValue,
+			EResourceBarrier srcStatus, EResourceBarrier dstStatus)
+			: RenderGraphResourceBase(ppRenderTarget, numRt, op, clearValue, srcStatus, dstStatus)
 		{}
 		~RenderGraphInReousrce() = default;
 	private:

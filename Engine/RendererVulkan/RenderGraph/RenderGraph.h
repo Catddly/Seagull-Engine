@@ -50,12 +50,14 @@ namespace SG
 	private:
 		friend class RenderGraphBuilder;
 		VulkanContext* mpContext;
-		mutable UInt32 mFrameIndex = 0;
+		//mutable UInt32 mFrameIndex = 0;
 
+		//! Render pass describes how to draw at a certain stage of the GPU pipeline.
 		eastl::hash_map<Size, VulkanRenderPass*>  mRenderPassesMap;
 		// Why vector here?
 		// Because we see each render graph resource as one resource, it may contain multiple render target in it.
 		// In Most Case, the size of the vector is always one.
+		//! Frame buffer describes what to draw at a certain stage of the GPU pipeline.
 		eastl::hash_map<Size, VulkanFrameBuffer*> mFrameBuffersMap;
 		VulkanRenderPass* mpCurrRenderPass;
 

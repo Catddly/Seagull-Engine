@@ -24,10 +24,10 @@ namespace SG
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
-		virtual void Update(UInt32 frameIndex) override;
 		virtual void Draw(RGDrawInfo& context) override;
 	private:
 		VulkanContext& mContext;
+		LoadStoreClearOp  mDepthRtLoadStoreOp;
 
 		RefPtr<VulkanShader> mpShadowShader;
 		RefPtr<VulkanPipelineSignature> mpShadowPipelineSignature;
@@ -36,10 +36,6 @@ namespace SG
 		RefPtr<VulkanShader> mpShadowInstanceShader;
 		RefPtr<VulkanPipelineSignature> mpShadowInstancePipelineSignature;
 		VulkanPipeline* mpShadowInstancePipeline;
-
-		DirectionalLight* mpDirectionalLight = nullptr;
-
-		LoadStoreClearOp  mDepthRtLoadStoreOp;
 
 		bool mbDrawShadow = true;
 	};

@@ -28,14 +28,11 @@ namespace SG
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
-		virtual void Update(UInt32 frameIndex) override;
 		virtual void Draw(RGDrawInfo& context) override;
 	private:
 		void GUIDraw(VulkanCommandBuffer& pBuf, UInt32 frameIndex);
 	private:
 		VulkanContext&    mContext;
-		VulkanRenderPass* mpRenderPass;
-
 		LoadStoreClearOp  mColorRtLoadStoreOp;
 
 		// draw composition pipeline

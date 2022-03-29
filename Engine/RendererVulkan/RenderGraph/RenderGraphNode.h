@@ -38,8 +38,6 @@ namespace SG
 		virtual void Reset() = 0;
 		//! Be called when the render graph finish compiling, user can use renderpass to create pipeline.
 		virtual void Prepare(VulkanRenderPass* pRenderpass) = 0;
-		//! Be called every frame to update the necessary resource which used to render.
-		virtual void Update(UInt32 frameIndex) = 0;
 		//! Be called every frame to record render command.
 		virtual void Draw(RGDrawInfo& context) = 0;
 	private:

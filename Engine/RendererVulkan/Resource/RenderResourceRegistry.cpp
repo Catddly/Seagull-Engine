@@ -84,6 +84,9 @@ namespace SG
 
 		// init ubos
 		auto pScene = SSystem()->GetMainScene();
+
+		auto& shadowUbo = GetShadowUBO();
+		shadowUbo.lightSpaceVP = pScene->GetDirectionalLight()->GetViewProj();
 		auto& cameraUbo = GetCameraUBO();
 		cameraUbo.proj = pScene->GetMainCamera()->GetProjMatrix();
 		auto& skyboxUbo = GetSkyboxUBO();
@@ -173,6 +176,8 @@ namespace SG
 
 		auto& compositionUbo = GetCompositionUBO();
 		UpdataBufferData("compositionUbo", &compositionUbo);
+		auto& shadowUbo = GetShadowUBO();
+		UpdataBufferData("shadowUbo", &shadowUbo);
 	}
 
 	void VulkanResourceRegistry::WindowResize()
