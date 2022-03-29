@@ -31,9 +31,14 @@ namespace SG
 
 	//! Split the hash function from RenderGraphResourceBase,
 	//! then we only get one function instance but not as same as the number of ERGResourceFlow.
-	struct RGResourceHasher
+	struct RGRenderPassHasher
 	{
 		Size operator()(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, Size prev = 0);
+	};
+
+	struct RGFrameBufferHasher
+	{
+		Size operator()(VulkanRenderTarget* pRenderTarget, Size prev = 0);
 	};
 
 	template <ERGResourceFlow flow>
@@ -61,7 +66,9 @@ namespace SG
 
 		SG_INLINE UInt32 GetNumRenderTarget() const { return static_cast<UInt32>(mpRenderTargets.size()); }
 		SG_INLINE VulkanRenderTarget* GetRenderTarget(UInt32 index = 0) const;
-		SG_INLINE Size GetDataHash(Size prev = 0, UInt32 index = 0) const;
+
+		SG_INLINE Size GetRenderPassHash(Size prev = 0, UInt32 index = 0) const;
+		SG_INLINE Size GetFrameBufferHash(Size prev = 0, UInt32 index = 0) const;
 
 		SG_INLINE ClearValue GetClearValue() const { return mClearValue; }
 		SG_INLINE LoadStoreClearOp GetLoadStoreClearOp() const { return mLoadStoreClearOp; }
@@ -95,10 +102,17 @@ namespace SG
 	}
 
 	template <ERGResourceFlow flow>
-	SG_INLINE Size RenderGraphResourceBase<flow>::GetDataHash(Size prev, UInt32 index) const
+	SG_INLINE Size RenderGraphResourceBase<flow>::GetRenderPassHash(Size prev, UInt32 index) const
 	{
 		SG_ASSERT(index < mpRenderTargets.size() && "Index exceed the boundary!");
-		return RGResourceHasher{}(mpRenderTargets[index], mLoadStoreClearOp, prev);
+		return RGRenderPassHasher{}(mpRenderTargets[index], mLoadStoreClearOp, prev);
+	}
+
+	template <ERGResourceFlow flow>
+	SG_INLINE Size SG::RenderGraphResourceBase<flow>::GetFrameBufferHash(Size prev, UInt32 index) const
+	{
+		SG_ASSERT(index < mpRenderTargets.size() && "Index exceed the boundary!");
+		return RGFrameBufferHasher{}(mpRenderTargets[index], prev);
 	}
 
 	class RenderGraphInReousrce final : public RenderGraphResourceBase<ERGResourceFlow::eIn>

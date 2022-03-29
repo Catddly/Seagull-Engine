@@ -98,9 +98,10 @@ namespace SG
 				{
 					buf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
 					buf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
+
+					auto& indirectDrawCall = mIndirectDrawCalls[(UInt32)meshPass];
+					buf.DrawIndexedIndirect(VK_RESOURCE()->GetBuffer("indirectBuffer"), indirectDrawCall.offset, indirectDrawCall.indirectDrawCount, indirectDrawCall.stride);
 				});
-			auto& indirectDrawCall = mIndirectDrawCalls[(UInt32)meshPass];
-			buf.DrawIndexedIndirect(VK_RESOURCE()->GetBuffer("indirectBuffer"), indirectDrawCall.offset, indirectDrawCall.indirectDrawCount, indirectDrawCall.stride);
 		}
 		else if (meshPass == EMeshPass::eForwardInstanced)
 		{
@@ -110,9 +111,10 @@ namespace SG
 					UInt64 offset = 0;
 					buf.BindVertexBuffer(1, 1, *dc.pInstanceBuffer, &offset);
 					buf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
+
+					auto& indirectDrawCallIns = mIndirectDrawCalls[(UInt32)meshPass];
+					buf.DrawIndexedIndirect(VK_RESOURCE()->GetBuffer("indirectBuffer"), indirectDrawCallIns.offset, indirectDrawCallIns.indirectDrawCount, indirectDrawCallIns.stride);
 				});
-			auto& indirectDrawCallIns = mIndirectDrawCalls[(UInt32)meshPass];
-			buf.DrawIndexedIndirect(VK_RESOURCE()->GetBuffer("indirectBuffer"), indirectDrawCallIns.offset, indirectDrawCallIns.indirectDrawCount, indirectDrawCallIns.stride);
 		}
 	}
 

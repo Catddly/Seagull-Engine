@@ -34,9 +34,7 @@ namespace SG
 		explicit RenderGraph(const char* name, VulkanContext* pContext);
 		~RenderGraph();
 
-		void Update();
 		void Draw(UInt32 frameIndex) const;
-
 		void WindowResize();
 
 		SG_INLINE const char* GetName() const { return mName; }
@@ -45,21 +43,16 @@ namespace SG
 		//! If the nodes of this render graph had changed, compile it again.
 		void Compile();
 
-		void CompileRenderPasses(const RenderGraphNode* pCurrNode);
+		VulkanRenderPass* CompileRenderPasses(const RenderGraphNode* pCurrNode);
 		void CompileFrameBuffers(const RenderGraphNode* pCurrNode);
 	private:
 		friend class RenderGraphBuilder;
 		VulkanContext* mpContext;
-		//mutable UInt32 mFrameIndex = 0;
 
 		//! Render pass describes how to draw at a certain stage of the GPU pipeline.
 		eastl::hash_map<Size, VulkanRenderPass*>  mRenderPassesMap;
-		// Why vector here?
-		// Because we see each render graph resource as one resource, it may contain multiple render target in it.
-		// In Most Case, the size of the vector is always one.
 		//! Frame buffer describes what to draw at a certain stage of the GPU pipeline.
 		eastl::hash_map<Size, VulkanFrameBuffer*> mFrameBuffersMap;
-		VulkanRenderPass* mpCurrRenderPass;
 
 		const char* mName;
 		vector<RenderGraphNode*> mpNodes;

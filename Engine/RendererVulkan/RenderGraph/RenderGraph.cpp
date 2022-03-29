@@ -62,21 +62,6 @@ namespace SG
 			Memory::Delete(beg->second);
 	}
 
-	void RenderGraph::Update()
-	{
-		//for (auto* pCurrNode : mpNodes)
-		//{
-		//	pCurrNode->Update(mFrameIndex);
-		//
-		//	// After the update, if some node is changed, compile it.
-		//	// If there is no new resource attached, compile will simply skip. 
-		//	CompileRenderPasses(pCurrNode);
-		//	CompileFrameBuffers(pCurrNode);
-		//}
-		// TODO:: status change detection
-		//mResourceStatusKeeper.Reset();
-	}
-
 	void RenderGraph::Draw(UInt32 frameIndex) const
 	{
 		SG_ASSERT(!mFrameBuffersMap.empty() && "RenderGraphBuilder should call Build() or RenderGraph should call Compile() after the node insertion!");
@@ -118,9 +103,6 @@ namespace SG
 	{
 		mpContext->device.WaitIdle();
 
-		for (auto& beg = mRenderPassesMap.begin(); beg != mRenderPassesMap.end(); ++beg)
-			Memory::Delete(beg->second);
-		mRenderPassesMap.clear();
 		for (auto& beg = mFrameBuffersMap.begin(); beg != mFrameBuffersMap.end(); ++beg)
 			Memory::Delete(beg->second);
 		mFrameBuffersMap.clear();
@@ -147,7 +129,6 @@ namespace SG
 				SG_ASSERT(false);
 			}
 
-			CompileRenderPasses(pCurrNode);
 			CompileFrameBuffers(pCurrNode);
 		}
 	}
@@ -170,14 +151,14 @@ namespace SG
 				SG_ASSERT(false);
 			}
 
-			CompileRenderPasses(pCurrNode);
+			auto* pRenderPass = CompileRenderPasses(pCurrNode);
 			CompileFrameBuffers(pCurrNode);
 
-			pCurrNode->Prepare(mpCurrRenderPass);
+			pCurrNode->Prepare(pRenderPass);
 		}
 	}
 
-	void RenderGraph::CompileRenderPasses(const RenderGraphNode* pCurrNode)
+	VulkanRenderPass* RenderGraph::CompileRenderPasses(const RenderGraphNode* pCurrNode)
 	{
 		Size renderpassHash = 0;
 		for (auto& resource : pCurrNode->mInResources)
@@ -185,7 +166,7 @@ namespace SG
 			if (resource.has_value())
 			{
 				// calculate the hash value
-				renderpassHash = resource->GetDataHash(renderpassHash);	
+				renderpassHash = resource->GetRenderPassHash(renderpassHash);
 			}
 		}
 
@@ -203,14 +184,11 @@ namespace SG
 						statusTransition.srcStatus, statusTransition.dstStatus);
 				}
 			}
-			mpCurrRenderPass = rpBuilder.CombineAsSubpass().Build();
-
-			mRenderPassesMap[renderpassHash] = mpCurrRenderPass; // append the new render pass to the map
+			auto* pRenderPass = rpBuilder.CombineAsSubpass().Build();
+			mRenderPassesMap[renderpassHash] = pRenderPass; // append the new render pass to the map
+			return pRenderPass;
 		}
-		else // this render pass already exist, just use it
-		{
-			mpCurrRenderPass = pRenderPassNode->second;
-		}
+		return pRenderPassNode->second;
 	}
 
 	void RenderGraph::CompileFrameBuffers(const RenderGraphNode* pCurrNode)
@@ -230,7 +208,9 @@ namespace SG
 		for (UInt32 i = 0; i < maxNum; ++i)
 		{
 			Size framebufferHash = 0;
+			Size renderpassHash = 0;
 			vector<eastl::pair<VulkanRenderTarget*, ClearValue>> frameRtCollection;
+
 			for (auto& resource : pCurrNode->mInResources)
 			{
 				if (resource.has_value())
@@ -239,13 +219,10 @@ namespace SG
 					if (resource->GetNumRenderTarget() != 1)
 						bHaveMultiResource = true;
 
-					UInt32 address[3] = {
-						resource->GetRenderTarget(bHaveMultiResource ? currIndex : 0)->GetID(),
-						resource->GetRenderTarget(bHaveMultiResource ? currIndex : 0)->GetNumMipmap(),
-						resource->GetRenderTarget(bHaveMultiResource ? currIndex : 0)->GetNumArray(),
-					};
 					frameRtCollection.emplace_back(resource->GetRenderTarget(bHaveMultiResource ? currIndex : 0), resource->GetClearValue());
-					framebufferHash = HashMemory32Array(address, 3, framebufferHash);
+
+					renderpassHash = resource->GetRenderPassHash(renderpassHash);
+					framebufferHash = resource->GetFrameBufferHash(framebufferHash, bHaveMultiResource ? currIndex : 0);
 				}
 			}
 
@@ -256,7 +233,9 @@ namespace SG
 				VulkanFrameBuffer::Builder fbBuilder(mpContext->device);
 				for (auto& resource : frameRtCollection)
 					fbBuilder.AddRenderTarget(resource.first, resource.second);
-				auto* pFrameBuffer = fbBuilder.BindRenderPass(mpCurrRenderPass).Build();
+
+				auto* pRenderPass = mRenderPassesMap.find(renderpassHash)->second;
+				auto* pFrameBuffer = fbBuilder.BindRenderPass(pRenderPass).Build();
 
 				mFrameBuffersMap[framebufferHash] = pFrameBuffer; // append the new framebuffer to the map
 			}

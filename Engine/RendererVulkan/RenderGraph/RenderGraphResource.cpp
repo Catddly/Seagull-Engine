@@ -6,7 +6,7 @@
 namespace SG
 {
 
-	Size RGResourceHasher::operator()(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, Size prev)
+	Size RGRenderPassHasher::operator()(VulkanRenderTarget* pRenderTarget, LoadStoreClearOp op, Size prev)
 	{
 		Size hash = prev;
 		if (!pRenderTarget->IsDepth())
@@ -29,7 +29,17 @@ namespace SG
 			return HashMemory32Array(address, 4, hash);
 		}
 		return hash;
+	}
 
+	Size RGFrameBufferHasher::operator()(VulkanRenderTarget* pRenderTarget, Size prev)
+	{
+		Size hash = prev;
+		UInt32 address[3] = {
+			pRenderTarget->GetID(),
+			pRenderTarget->GetNumMipmap(),
+			pRenderTarget->GetNumArray()
+		};
+		return HashMemory32Array(address, 3, hash);
 	}
 
 }
