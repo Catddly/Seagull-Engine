@@ -16,14 +16,14 @@ namespace SG
 
 		mpSkyboxMesh = MakeRef<Mesh>("skybox", EGennerateMeshType::eSkybox);
 
-		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 0.0f, 15.0f));
+		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 0.5f, 4.0f));
 		mpMainCamera->SetPerspective(45.0f, ASPECT, 0.01f, 256.0f);
 
 		mpDirectionalLight = MakeRef<DirectionalLight>(Vector3f{ -7.0f, 8.0f, 3.0f }, Vector3f{ 7.0f, -8.0f, -3.0f }, Vector3f{ 1.0f, 1.0f, 1.0f });
 		mPointLights.emplace_back(Vector3f{ 1.25f, 0.75f, -0.3f }, 3.0f, Vector3f{ 0.0f, 1.0f, 0.705f });
 
-		//DefaultScene();
-		MaterialTestScene();
+		DefaultScene();
+		//MaterialTestScene();
 	}
 
 	void Scene::OnSceneUnLoad()
@@ -34,14 +34,14 @@ namespace SG
 	{
 		mpMainCamera->OnUpdate(deltaTime);
 
-		//static float totalTime = 0.0f;
-		//static float speed = 2.5f;
+		static float totalTime = 0.0f;
+		static float speed = 2.5f;
 
-		//// Do animation
-		//auto pModel = GetMesh("model");
-		//pModel->SetPosition({ Sin(totalTime) * 0.5f, 0.0f, 0.0f });
+		// Do animation
+		auto pModel = GetMesh("model");
+		pModel->SetPosition({ Sin(totalTime) * 0.5f, 0.0f, 0.0f });
 
-		//totalTime += deltaTime * speed;
+		totalTime += deltaTime * speed;
 	}
 
 	RefPtr<Mesh> Scene::GetMesh(const char* name)

@@ -5,6 +5,8 @@
 #include "Render/CommonRenderData.h"
 #include "Render/Shader/ShaderComiler.h"
 
+#include "Math/MathBasic.h"
+
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanSwapchain.h"
 #include "RendererVulkan/Backend/VulkanPipelineSignature.h"
@@ -16,7 +18,8 @@
 #include "RendererVulkan/Resource/DrawCall.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
-#include "Math/MathBasic.h"
+#include "RendererVulkan/Renderer/Renderer.h"
+#include "RendererVulkan/Renderer/IndirectRenderer.h"
 
 namespace SG
 {
@@ -136,31 +139,17 @@ namespace SG
 
 		if (mbDrawShadow)
 		{
+			IndirectRenderer::Begin(&pBuf);
 			// 1.1 Forward Mesh Pass
-			pBuf.BindPipelineSignature(mpShadowPipelineSignature.get());
 			pBuf.BindPipeline(mpShadowPipeline);
-			VK_RESOURCE()->DrawIndirect(EMeshPass::eForward, pBuf);
-			//VK_RESOURCE()->TraverseStaticMeshDrawCall([&](const DrawCall& dc)
-			//	{
-			//		pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
-			//		pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
-
-			//		pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), 1, 0, 0, dc.objectId /* corresponding to gl_BaseInstance */);
-			//	});
+			pBuf.BindPipelineSignature(mpShadowPipelineSignature.get());
+			IndirectRenderer::Draw(EMeshPass::eForward);
 
 			// 1.2 Forward Instanced Mesh Pass
-			pBuf.BindPipelineSignature(mpShadowInstancePipelineSignature.get());
 			pBuf.BindPipeline(mpShadowInstancePipeline);
-			VK_RESOURCE()->DrawIndirect(EMeshPass::eForwardInstanced, pBuf);
-			//VK_RESOURCE()->TraverseStaticMeshInstancedDrawCall([&](const DrawCall& dc)
-			//	{
-			//		pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
-			//		UInt64 offset = 0;
-			//		pBuf.BindVertexBuffer(1, 1, *dc.pInstanceBuffer, &offset);
-			//		pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
-
-			//		pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), dc.instanceCount, 0, 0, 0);
-			//	});
+			pBuf.BindPipelineSignature(mpShadowInstancePipelineSignature.get());
+			IndirectRenderer::Draw(EMeshPass::eForwardInstanced);
+			IndirectRenderer::End();
 		}
 	}
 

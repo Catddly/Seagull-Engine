@@ -171,29 +171,18 @@ namespace SG
 			pBuf.BindPipeline(mpSkyboxPipeline);
 
 			const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();
-			pBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
+			pBuf.BindVertexBuffer(0, 1, *skybox.drawMesh.pVertexBuffer, &skybox.drawMesh.vBOffset);
 			pBuf.Draw(36, 1, 0, 0);
 		}
 
 		// 2. Draw Scene
-		DrawScene(pBuf);
+		//DrawScene(pBuf);
 	}
 
 	void RGDrawSceneNode::DrawScene(VulkanCommandBuffer& pBuf)
 	{
 		pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
 		//pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
-
-		pBuf.BindPipelineSignature(mpPipelineSignature.get());
-		pBuf.BindPipeline(mpPipeline);
-
-		VK_RESOURCE()->TraverseStaticMeshDrawCall([&](const DrawCall& renderMesh)
-			{
-				pBuf.BindVertexBuffer(0, 1, *renderMesh.pVertexBuffer, &renderMesh.vBOffset);
-				pBuf.BindIndexBuffer(*renderMesh.pIndexBuffer, renderMesh.iBOffset);
-
-				pBuf.DrawIndexed(static_cast<UInt32>(renderMesh.iBSize / sizeof(UInt32)), 1, 0, 0, renderMesh.objectId /* corresponding to gl_BaseInstance */);
-			});
 	}
 
 }

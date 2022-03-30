@@ -12,8 +12,6 @@
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
-#include "Archive/ResourceLoader/RenderResourceLoader.h"
-
 // TODO: add graphic api abstraction
 #include "RendererVulkan/RenderGraph/RenderGraph.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
@@ -27,6 +25,9 @@
 // this node draw the final image and the GUI on the top.
 #include "RendererVulkan/RenderGraphNodes/RGFinalOutputNode.h"
 
+#include "RendererVulkan/Renderer/Renderer.h"
+#include "RendererVulkan/Renderer/IndirectRenderer.h"
+
 #include "RendererVulkan/GUI/ImGuiDriver.h"
 #include "RendererVulkan/GUI/TestGUILayer.h"
 
@@ -34,7 +35,7 @@ namespace SG
 {
 
 	VulkanRenderDevice::VulkanRenderDevice()
-		:mCurrentFrameInCPU(0), mbBlockEvent(true)
+		:mCurrentFrame(0), mbBlockEvent(true)
 	{
 		SSystem()->RegisterSystemMessageListener(this);
 	}
@@ -55,7 +56,8 @@ namespace SG
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
 		// create all the mesh resource
-		VK_RESOURCE()->BuildRenderMesh(SSystem()->GetRenderDataBuilder());
+		//VK_RESOURCE()->BuildRenderMesh(SSystem()->GetRenderDataBuilder());
+		IndirectRenderer::CollectRenderData(SSystem()->GetRenderDataBuilder());
 
 		BuildRenderGraph();
 		// update one frame here to avoid imgui do not draw the first frame.
@@ -86,18 +88,18 @@ namespace SG
 		if (mbWindowMinimal)
 			return;
 
-		mpContext->swapchain.AcquireNextImage(mpContext->pPresentCompleteSemaphore, mCurrentFrameInCPU); // check if next image is presented, and get it as the available image
-		mpContext->pFences[mCurrentFrameInCPU]->WaitAndReset(); // wait for the render commands running on the GPU side to finish
+		mpContext->swapchain.AcquireNextImage(mpContext->pPresentCompleteSemaphore, mCurrentFrame); // check if next image is presented, and get it as the available image
+		mpContext->pFences[mCurrentFrame]->WaitAndReset(); // wait for the render commands running on the GPU side to finish
 
-		mpContext->commandBuffers[mCurrentFrameInCPU].Reset();
-		mpRenderGraph->Draw(mCurrentFrameInCPU);
+		mpContext->commandBuffers[mCurrentFrame].Reset();
+		mpRenderGraph->Draw(mCurrentFrame);
 
-		mpContext->graphicQueue.SubmitCommands(&mpContext->commandBuffers[mCurrentFrameInCPU],
-			mpContext->pRenderCompleteSemaphore, mpContext->pPresentCompleteSemaphore, mpContext->pFences[mCurrentFrameInCPU]); // submit new render commands to the available image
+		mpContext->graphicQueue.SubmitCommands(&mpContext->commandBuffers[mCurrentFrame],
+			mpContext->pRenderCompleteSemaphore, mpContext->pPresentCompleteSemaphore, mpContext->pFences[mCurrentFrame]); // submit new render commands to the available image
 		// once submit the commands to GPU, pRenderCompleteSemaphore will be locked, and will be unlocked after the GPU finished the commands.
 		// we have to wait for the commands had been executed, then we present this image.
 		// we use semaphore to have GPU-GPU sync.
-		mpContext->swapchain.Present(&mpContext->graphicQueue, mCurrentFrameInCPU, mpContext->pRenderCompleteSemaphore); // present the available image
+		mpContext->swapchain.Present(&mpContext->graphicQueue, mCurrentFrame, mpContext->pRenderCompleteSemaphore); // present the available image
 
 		mbBlockEvent = false;
 	}

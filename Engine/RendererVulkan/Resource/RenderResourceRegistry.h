@@ -58,15 +58,7 @@ namespace SG
 		void OnUpdate(WeakRefPtr<Scene> pScene);
 		void WindowResize();
 
-		void BuildRenderMesh(RefPtr<RenderDataBuilder> renderDataBuilder);
-
 		const DrawCall& GetSkyboxDrawCall() const { return mSkyboxDrawCall; }
-		template <typename Func>
-		void TraverseStaticMeshDrawCall(Func&& func);
-		template <typename Func>
-		void TraverseStaticMeshInstancedDrawCall(Func&& func);
-
-		void DrawIndirect(EMeshPass meshPass, VulkanCommandBuffer& buf);
 
 		/// Buffer Begin
 		// By default, create the buffer using HOST_VISIBLE bit.
@@ -98,8 +90,6 @@ namespace SG
 		static VulkanResourceRegistry* GetInstance();
 	private:
 		VulkanResourceRegistry() = default;
-		void CreateInnerResource();
-		void DestroyInnerResource();
 	private:
 		VulkanContext* mpContext;
 		mutable eastl::unordered_map<string, VulkanBuffer*>  mBuffers;
@@ -110,33 +100,8 @@ namespace SG
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanBuffer*>>  mWaitToSubmitBuffers;
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanTexture*>> mWaitToSubmitTextures;
 
-		// instead of use unordered_map, now packed all the vertex data into one big vertex data and give offset to them.
-		// temporary
-		VulkanBuffer* mPackedVertexBuffer = nullptr;
-		UInt64        mPackedVBCurrOffset = 0;
-		VulkanBuffer* mPackedIndexBuffer = nullptr;
-		UInt64        mPackedIBCurrOffset = 0;
-
 		DrawCall mSkyboxDrawCall;
-		eastl::unordered_map<UInt32, DrawCall> mStaticMeshDrawCall; // Forward Mesh Pass (meshId -> DrawCall)
-		eastl::unordered_map<UInt32, DrawCall> mStaticMeshDrawCallInstanced; // Forward Instance Mesh Pass (meshId -> DrawCall)
-
-		IndirectDrawBatcher mIndirectDrawBatcher;
 	};
-
-	template <typename Func>
-	void VulkanResourceRegistry::TraverseStaticMeshDrawCall(Func&& func)
-	{
-		for (auto node : mStaticMeshDrawCall)
-			func(node.second);
-	}
-
-	template <typename Func>
-	void VulkanResourceRegistry::TraverseStaticMeshInstancedDrawCall(Func&& func)
-	{
-		for (auto node : mStaticMeshDrawCallInstanced)
-			func(node.second);
-	}
 
 	// for convenience
 #define VK_RESOURCE() VulkanResourceRegistry::GetInstance()

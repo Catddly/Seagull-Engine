@@ -24,10 +24,14 @@ namespace SG
 	{
 		const char*  name;
 		EBufferType  type;
-		UInt32       totalSizeInByte;
-		const void*  pInitData;
+		UInt32       bufferSize = 0;
 
-		bool         bLocal : 1;
+		const void*  pInitData;
+		UInt32       dataSize = 0;
+		UInt32       dataOffset = 0;
+
+		bool         bLocal;
+		bool         bSubBufer = false;
 	};
 
 }

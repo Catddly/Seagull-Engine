@@ -205,7 +205,7 @@ namespace SG
 			if (!pVertexBuffer || bNeedToCreateVtxBuffer)
 			{
 				bufferCI.name = vtxBufferName.c_str();
-				bufferCI.totalSizeInByte = vtxBufferSize;
+				bufferCI.bufferSize = vtxBufferSize;
 				bufferCI.type = EBufferType::efVertex;
 				VK_RESOURCE()->CreateBuffer(bufferCI);
 			}
@@ -213,7 +213,7 @@ namespace SG
 			if (!pIndexBuffer || bNeedToCreateIdxBuffer)
 			{
 				bufferCI.name = idxBufferName.c_str();
-				bufferCI.totalSizeInByte = idxBufferSize;
+				bufferCI.bufferSize = idxBufferSize;
 				bufferCI.type = EBufferType::efIndex;
 				VK_RESOURCE()->CreateBuffer(bufferCI);
 			}

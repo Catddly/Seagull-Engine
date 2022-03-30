@@ -19,6 +19,9 @@
 #include "RendererVulkan/Resource/DrawCall.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
+#include "RendererVulkan/Renderer/Renderer.h"
+#include "RendererVulkan/Renderer/IndirectRenderer.h"
+
 namespace SG
 {
 
@@ -227,7 +230,7 @@ namespace SG
 			pBuf.BindPipeline(mpSkyboxPipeline);
 
 			const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();
-			pBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
+			pBuf.BindVertexBuffer(0, 1, *skybox.drawMesh.pVertexBuffer, &skybox.drawMesh.vBOffset);
 			pBuf.Draw(36, 1, 0, 0);
 		}
 
@@ -240,31 +243,17 @@ namespace SG
 		pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
 		//pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
+		IndirectRenderer::Begin(&pBuf);
 		// 1.1 Forward Mesh Pass
 		pBuf.BindPipeline(mpPipeline);
 		pBuf.BindPipelineSignature(mpPipelineSignature.get());
-		VK_RESOURCE()->DrawIndirect(EMeshPass::eForward, pBuf);
-		//VK_RESOURCE()->TraverseStaticMeshDrawCall([&](const DrawCall& dc)
-		//	{
-		//		pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
-		//		pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
-
-		//		pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), 1, 0, 0, dc.objectId /* corresponding to gl_BaseInstance */);
-		//	});
+		IndirectRenderer::Draw(EMeshPass::eForward);
 
 		// 1.2 Forward Instanced Mesh Pass
 		pBuf.BindPipeline(mpInstancePipeline);
 		pBuf.BindPipelineSignature(mpInstancePipelineSignature.get());
-		VK_RESOURCE()->DrawIndirect(EMeshPass::eForwardInstanced, pBuf);
-		//VK_RESOURCE()->TraverseStaticMeshInstancedDrawCall([&](const DrawCall& dc)
-		//	{
-		//		pBuf.BindVertexBuffer(0, 1, *dc.pVertexBuffer, &dc.vBOffset);
-		//		UInt64 offset = 0;
-		//		pBuf.BindVertexBuffer(1, 1, *dc.pInstanceBuffer, &offset);
-		//		pBuf.BindIndexBuffer(*dc.pIndexBuffer, dc.iBOffset);
-
-		//		pBuf.DrawIndexed(static_cast<UInt32>(dc.iBSize / sizeof(UInt32)), dc.instanceCount, 0, 0, 0);
-		//	});
+		IndirectRenderer::Draw(EMeshPass::eForwardInstanced);
+		IndirectRenderer::End();
 	}
 
 	void RGDrawScenePBRNode::GenerateBRDFLut()
@@ -481,7 +470,7 @@ namespace SG
 						cmdBuf.PushConstants(pIrradiancePipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &pushConstant);
 
 						const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();
-						cmdBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
+						cmdBuf.BindVertexBuffer(0, 1, *skybox.drawMesh.pVertexBuffer, &skybox.drawMesh.vBOffset);
 						cmdBuf.Draw(36, 1, 0, 0);
 					}
 					cmdBuf.EndRenderPass();
@@ -641,7 +630,7 @@ namespace SG
 						cmdBuf.PushConstants(pPrefilterPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &pushConstant);
 
 						const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();
-						cmdBuf.BindVertexBuffer(0, 1, *skybox.pVertexBuffer, &skybox.vBOffset);
+						cmdBuf.BindVertexBuffer(0, 1, *skybox.drawMesh.pVertexBuffer, &skybox.drawMesh.vBOffset);
 						cmdBuf.Draw(36, 1, 0, 0);
 					}
 					cmdBuf.EndRenderPass();

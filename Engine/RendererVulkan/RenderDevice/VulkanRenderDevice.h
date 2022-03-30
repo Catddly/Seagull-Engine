@@ -40,7 +40,7 @@ namespace SG
 
 		UniquePtr<RenderGraph> mpRenderGraph = nullptr;
 		UniquePtr<IGUIDriver>  mpGUIDriver = nullptr;
-		UInt32 mCurrentFrameInCPU = 0;
+		UInt32 mCurrentFrame = 0;
 
 		bool mbBlockEvent = true;
 		bool mbWindowMinimal = false;

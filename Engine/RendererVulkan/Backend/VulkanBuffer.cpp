@@ -14,9 +14,9 @@ namespace SG
 		:device(d), bLocal(local)
 	{
 		if (CI.type == EBufferType::efUniform)
-			sizeInByteCPU = MinValueAlignTo(CI.totalSizeInByte, static_cast<UInt32>(device.physicalDeviceLimits.minUniformBufferOffsetAlignment));
+			sizeInByteCPU = MinValueAlignTo(CI.bufferSize, static_cast<UInt32>(device.physicalDeviceLimits.minUniformBufferOffsetAlignment));
 		else
-			sizeInByteCPU = CI.totalSizeInByte;
+			sizeInByteCPU = CI.bufferSize;
 		type = CI.type;
 
 		VkMemoryRequirements memReqs;

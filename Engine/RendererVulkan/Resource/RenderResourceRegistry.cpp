@@ -18,44 +18,15 @@
 namespace SG
 {
 
-	void VulkanResourceRegistry::CreateInnerResource()
-	{
-		// create one big vertex buffer
-		BufferCreateDesc vbCI = {};
-		vbCI.name = "packed_vertex_buffer";
-		vbCI.totalSizeInByte = SG_MAX_PACKED_VERTEX_BUFFER_SIZE;
-		vbCI.type = EBufferType::efVertex | EBufferType::efTransfer_Dst;
-		mPackedVertexBuffer = VulkanBuffer::Create(mpContext->device, vbCI, true);
-
-		// create one big index buffer
-		BufferCreateDesc ibCI = {};
-		ibCI.name = "packed_index_buffer";
-		ibCI.totalSizeInByte = SG_MAX_PACKED_INDEX_BUFFER_SIZE;
-		ibCI.type = EBufferType::efIndex | EBufferType::efTransfer_Dst;
-		mPackedIndexBuffer = VulkanBuffer::Create(mpContext->device, ibCI, true);
-
-		BufferCreateDesc ssboCI = {};
-		ssboCI.name = "perObjectBuffer";
-		ssboCI.totalSizeInByte = sizeof(ObjcetRenderData) * SG_MAX_NUM_OBJECT;
-		ssboCI.type = EBufferType::efStorage;
-		CreateBuffer(ssboCI);
-
-		mIndirectDrawBatcher.CreateIndirectBuffer();
-	}
-
-	void VulkanResourceRegistry::DestroyInnerResource()
-	{
-		mIndirectDrawBatcher.DestroyIndirectBuffer();
-
-		Memory::Delete(mPackedVertexBuffer);
-		Memory::Delete(mPackedIndexBuffer);
-	}
-
 	void VulkanResourceRegistry::Initialize(const VulkanContext* pContext)
 	{
 		mpContext = const_cast<VulkanContext*>(pContext);
 
-		CreateInnerResource();
+		BufferCreateDesc ssboCI = {};
+		ssboCI.name = "perObjectBuffer";
+		ssboCI.bufferSize = sizeof(ObjcetRenderData) * SG_MAX_NUM_OBJECT;
+		ssboCI.type = EBufferType::efStorage;
+		CreateBuffer(ssboCI);
 
 		const auto pSkybox = SSystem()->GetMainScene()->GetSkybox();
 		auto& skyboxVertices = MeshDataArchive::GetInstance()->GetData(pSkybox->GetMeshID())->vertices;
@@ -64,7 +35,7 @@ namespace SG
 		BufferCreateDesc bufferCI = {};
 		bufferCI.name = "skybox_vb";
 		bufferCI.pInitData = skyboxVertices.data();
-		bufferCI.totalSizeInByte = static_cast<UInt32>(vbSize);
+		bufferCI.bufferSize = static_cast<UInt32>(vbSize);
 		bufferCI.type = EBufferType::efVertex;
 		CreateBuffer(bufferCI, true);
 		FlushBuffers();
@@ -72,17 +43,17 @@ namespace SG
 		// eliminate the translation part of the matrix
 		ObjcetRenderData renderData = { Matrix4f(Matrix3f(SSystem()->GetMainScene()->GetMainCamera()->GetViewMatrix())) };
 		DrawCall renderMesh = {};
-		mSkyboxDrawCall.vBSize = vbSize;
-		mSkyboxDrawCall.iBSize = 0;
-		mSkyboxDrawCall.vBOffset = 0;
-		mSkyboxDrawCall.iBOffset = 0;
+		mSkyboxDrawCall.drawMesh.vBSize = vbSize;
+		mSkyboxDrawCall.drawMesh.iBSize = 0;
+		mSkyboxDrawCall.drawMesh.vBOffset = 0;
+		mSkyboxDrawCall.drawMesh.iBOffset = 0;
+		mSkyboxDrawCall.drawMesh.pVertexBuffer = GetBuffer("skybox_vb");
+		mSkyboxDrawCall.drawMesh.pIndexBuffer = nullptr;
+		mSkyboxDrawCall.drawMesh.pInstanceBuffer = nullptr;
 		mSkyboxDrawCall.objectId = 0;
 		mSkyboxDrawCall.instanceCount = 1;
-		mSkyboxDrawCall.pVertexBuffer = GetBuffer("skybox_vb");
-		mSkyboxDrawCall.pIndexBuffer = nullptr;
-		mSkyboxDrawCall.pInstanceBuffer = nullptr;
-
-		// init ubos
+		
+		// init uniform buffers
 		auto pScene = SSystem()->GetMainScene();
 
 		auto& shadowUbo = GetShadowUBO();
@@ -105,8 +76,6 @@ namespace SG
 
 	void VulkanResourceRegistry::Shutdown()
 	{
-		DestroyInnerResource();
-
 		// release all the memory
 		for (auto beg = mBuffers.begin(); beg != mBuffers.end(); ++beg)
 			Memory::Delete(beg->second);
@@ -126,7 +95,7 @@ namespace SG
 		// update all the render data of the render mesh
 		pLScene->TraverseMesh([&](const Mesh& mesh)
 			{
-				if (mStaticMeshDrawCall.count(mesh.GetMeshID()) != 0)
+				if (mesh.GetInstanceID() == 0)
 				{
 					ObjcetRenderData renderData;
 					renderData.model = mesh.GetTransform();
@@ -134,16 +103,13 @@ namespace SG
 					pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.GetObjectID());
 				}
 
-				if (mStaticMeshDrawCallInstanced.count(mesh.GetMeshID()) != 0)
+				auto* pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(mesh.GetMeshID())).c_str());
+				if (pInstanceBuffer)
 				{
-					auto* pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(mesh.GetMeshID())));
-					if (pInstanceBuffer)
-					{
-						PerInstanceData data = {};
-						data.instancePos = mesh.GetPosition();
-						data.instanceScale = mesh.GetScale().x;
-						pInstanceBuffer->UploadData(&data, sizeof(PerInstanceData), sizeof(PerInstanceData) * mesh.GetInstanceID());
-					}
+					PerInstanceData data = {};
+					data.instancePos = mesh.GetPosition();
+					data.instanceScale = mesh.GetScale().x;
+					pInstanceBuffer->UploadData(&data, sizeof(PerInstanceData), sizeof(PerInstanceData) * mesh.GetInstanceID());
 				}
 			});
 
@@ -203,117 +169,24 @@ namespace SG
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// RenderMesh
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	void VulkanResourceRegistry::BuildRenderMesh(RefPtr<RenderDataBuilder> renderDataBuilder)
-	{
-		renderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RenderMeshBuildData& buildData)
-			{
-				if (buildData.instanceCount > 1) // move it to the Forward Instance Mesh Pass
-				{
-					BufferCreateDesc bufferCreateDesc = {};
-					bufferCreateDesc.name = (string("instance_vb_") + eastl::to_string(meshId)).c_str();
-					bufferCreateDesc.pInitData = buildData.perInstanceData.data();
-					bufferCreateDesc.totalSizeInByte = sizeof(float) * 4 * buildData.instanceCount;
-					bufferCreateDesc.type = EBufferType::efVertex;
-					CreateBuffer(bufferCreateDesc, false);
-
-					SG_LOG_DEBUG("Have instance!");
-				}
-
-				auto* pMeshData = MeshDataArchive::GetInstance()->GetData(meshId);
-				const UInt64 vbSize = pMeshData->vertices.size() * sizeof(float);
-				const UInt64 ibSize = pMeshData->indices.size() * sizeof(UInt32);
-
-				BufferCreateDesc stagingBufferCI = {};
-				stagingBufferCI.totalSizeInByte = static_cast<UInt32>(vbSize);
-				stagingBufferCI.type = EBufferType::efTransfer_Src;
-				auto* pVBStagingBuffer = VulkanBuffer::Create(mpContext->device, stagingBufferCI, false);
-				pVBStagingBuffer->UploadData(pMeshData->vertices.data());
-
-				if (mPackedVBCurrOffset + vbSize > SG_MAX_PACKED_VERTEX_BUFFER_SIZE)
-				{
-					SG_LOG_ERROR("Vertex buffer exceed boundary!");
-					SG_ASSERT(false);
-				}
-
-				VulkanBuffer* pIBStagingBuffer = nullptr;
-				if (ibSize != 0)
-				{
-					stagingBufferCI.totalSizeInByte = static_cast<UInt32>(ibSize);;
-					pIBStagingBuffer = VulkanBuffer::Create(mpContext->device, stagingBufferCI, false);
-					pIBStagingBuffer->UploadData(pMeshData->indices.data());
-
-					if (mPackedIBCurrOffset + ibSize > SG_MAX_PACKED_INDEX_BUFFER_SIZE)
-					{
-						SG_LOG_ERROR("Index buffer exceed boundary!");
-						SG_ASSERT(false);
-					}
-				}
-
-				VulkanCommandBuffer pCmd;
-				mpContext->transferCommandPool->AllocateCommandBuffer(pCmd);
-
-				pCmd.BeginRecord();
-				pCmd.CopyBuffer(*pVBStagingBuffer, *mPackedVertexBuffer, 0, mPackedVBCurrOffset);
-				if (pIBStagingBuffer)
-					pCmd.CopyBuffer(*pIBStagingBuffer, *mPackedIndexBuffer, 0, mPackedIBCurrOffset);
-				pCmd.EndRecord();
-
-				mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-				mpContext->transferQueue.WaitIdle();
-
-				mpContext->transferCommandPool->FreeCommandBuffer(pCmd);
-
-				DrawCall dc = {};
-				dc.vBSize = vbSize;
-				dc.iBSize = ibSize;
-				dc.vBOffset = mPackedVBCurrOffset;
-				dc.iBOffset = mPackedIBCurrOffset;
-				dc.objectId = buildData.objectId;
-				dc.instanceCount = buildData.instanceCount;
-				dc.pVertexBuffer = mPackedVertexBuffer;
-				dc.pIndexBuffer = mPackedIndexBuffer;
-				dc.pInstanceBuffer = nullptr;
-
-				if (buildData.instanceCount > 1)
-				{
-					dc.pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(meshId)));
-					mStaticMeshDrawCallInstanced[meshId] = dc;
-					mIndirectDrawBatcher.AddMeshPassDrawCall(EMeshPass::eForwardInstanced, dc);
-				}
-				else
-				{
-					mStaticMeshDrawCall[meshId] = dc;
-					mIndirectDrawBatcher.AddMeshPassDrawCall(EMeshPass::eForward, dc);
-				}
-
-				mPackedVBCurrOffset += vbSize;
-				mPackedIBCurrOffset += ibSize;
-
-				Memory::Delete(pVBStagingBuffer);
-				if (pIBStagingBuffer)
-					Memory::Delete(pIBStagingBuffer);
-			});
-		mIndirectDrawBatcher.FinishBuildMeshPass(GetBuffer("indirectBuffer"));
-	}
-
-	void VulkanResourceRegistry::DrawIndirect(EMeshPass meshPass, VulkanCommandBuffer& buf)
-	{
-		mIndirectDrawBatcher.Draw(meshPass, buf);
-	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Buffers
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool VulkanResourceRegistry::CreateBuffer(const BufferCreateDesc& bufferCI, bool bLocal)
 	{
-		if (mBuffers.count(bufferCI.name) != 0)
+		if (mBuffers.count(bufferCI.name) != 0) // do data copy
 		{
-			SG_LOG_ERROR("Already have a render buffer named %s!", bufferCI.name);
-			return false;
+			if (bLocal)
+			{
+				if (!bufferCI.pInitData)
+				{
+					SG_LOG_ERROR("Device local buffer must have initialize data!");
+					return false;
+				}
+				// make a copy of bufferCI
+				mWaitToSubmitBuffers.push_back({ bufferCI, GetBuffer(bufferCI.name) });
+				return true;
+			}
 		}
 
 		auto& bufferCreateInfo = const_cast<BufferCreateDesc&>(bufferCI);
@@ -328,7 +201,12 @@ namespace SG
 		}
 
 		if (!bLocal && bufferCI.pInitData)
-			pBuffer->UploadData(bufferCI.pInitData);
+		{
+			if (bufferCI.bSubBufer)
+				pBuffer->UploadData(bufferCI.pInitData, bufferCI.dataSize, bufferCI.dataOffset);
+			else
+				pBuffer->UploadData(bufferCI.pInitData);
+		}
 
 		if (bLocal)
 		{
@@ -357,9 +235,13 @@ namespace SG
 		for (auto& data : mWaitToSubmitBuffers) // copy all the buffers data using staging buffer
 		{
 			data.first.type = EBufferType::efTransfer_Src;
+			if (data.first.bSubBufer)
+				data.first.bufferSize = data.first.dataSize;
+
 			stagingBuffers.emplace_back(VulkanBuffer::Create(mpContext->device, data.first, false));
 			stagingBuffers[index]->UploadData(data.first.pInitData);
-			pCmd.CopyBuffer(*stagingBuffers[index], *data.second);
+
+			pCmd.CopyBuffer(*stagingBuffers[index], *data.second, 0, data.first.bSubBufer ? data.first.dataOffset : 0);
 			++index;
 		}
 		pCmd.EndRecord();
@@ -443,7 +325,7 @@ namespace SG
 			bufferCI.bLocal = bLocal;
 			bufferCI.type = EBufferType::efTransfer_Src;
 			bufferCI.pInitData = textureCI.pInitData;
-			bufferCI.totalSizeInByte = textureCI.sizeInByte;
+			bufferCI.bufferSize = textureCI.sizeInByte;
 			mWaitToSubmitTextures.push_back({ bufferCI, pTex });
 		}
 		return true;

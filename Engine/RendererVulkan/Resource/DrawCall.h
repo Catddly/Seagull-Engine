@@ -22,18 +22,41 @@ namespace SG
 		UInt32 firstInstance;
 	};
 
-	struct DrawCall
+	struct DrawMesh
 	{
 		UInt64 vBSize = 0;
-		UInt64 iBSize = 0;
 		UInt64 vBOffset = 0;
+		VulkanBuffer* pVertexBuffer = nullptr;
+
+		UInt64 iBSize = 0;
 		UInt64 iBOffset = 0;
+		VulkanBuffer* pIndexBuffer = nullptr;
+
+		UInt64 instanceOffset = 0;
+		VulkanBuffer* pInstanceBuffer = nullptr;
+	};
+
+	struct DrawMaterial
+	{
+
+	};
+
+	struct DrawCall
+	{
+		DrawMesh drawMesh;
+		DrawMaterial drawMaterial;
+
 		UInt32 objectId;
 		UInt32 instanceCount = 1;
+	};
 
-		VulkanBuffer* pVertexBuffer = nullptr;
-		VulkanBuffer* pIndexBuffer = nullptr;
-		VulkanBuffer* pInstanceBuffer = nullptr;
+	struct IndirectDrawCall
+	{
+		DrawMesh drawMesh;
+		DrawMaterial drawMaterial;
+
+		UInt32 first = 0;
+		UInt32 count = 0;
 	};
 
 }

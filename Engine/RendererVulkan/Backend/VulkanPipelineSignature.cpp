@@ -48,7 +48,7 @@ namespace SG
 				// create a buffer for this ubo layout
 				BufferCreateDesc BufferCI = {};
 				BufferCI.name = uboData.first.c_str();
-				BufferCI.totalSizeInByte = uboData.second.layout.GetTotalSizeInByte();
+				BufferCI.bufferSize = uboData.second.layout.GetTotalSizeInByte();
 				BufferCI.type = EBufferType::efUniform;
 				if (!VK_RESOURCE()->GetBuffer(BufferCI.name))
 					VK_RESOURCE()->CreateBuffer(BufferCI);
@@ -66,7 +66,7 @@ namespace SG
 				// create a buffer for this ubo layout
 				BufferCreateDesc BufferCI = {};
 				BufferCI.name = ssboData.first.c_str();
-				BufferCI.totalSizeInByte = ssboData.second.layout.GetTotalSizeInByte();
+				BufferCI.bufferSize = ssboData.second.layout.GetTotalSizeInByte();
 				BufferCI.type = EBufferType::efStorage;
 				if (!VK_RESOURCE()->GetBuffer(BufferCI.name))
 					VK_RESOURCE()->CreateBuffer(BufferCI);
