@@ -40,7 +40,7 @@ namespace SG
 					node->second.instanceCount += 1;
 				}
 				auto& perInstanceData = mRenderMeshBuildDataMap[mesh.GetMeshID()].perInstanceData;
-				perInstanceData.emplace_back(mesh.GetPosition(), mesh.GetScale().x);
+				perInstanceData.emplace_back(mesh.GetPosition(), mesh.GetScale().x, mesh.GetMetallic(), mesh.GetRoughness());
 			});
 
 		for (auto node : mRenderMeshBuildDataMap) // clear the memory that is not necessary

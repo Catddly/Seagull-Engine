@@ -7,7 +7,6 @@
 #include "Scene/RenderDataBuilder.h"
 
 #include "RendererVulkan/Resource/DrawCall.h"
-#include "RendererVulkan/IndirectDraw/IndirectDrawBatcher.h"
 
 #include "Stl/vector.h"
 #include <eastl/utility.h>

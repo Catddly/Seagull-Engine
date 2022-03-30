@@ -5,27 +5,13 @@ layout (location = 1) in vec3 inNormalLS;
 // per instance attributes
 layout (location = 2) in vec3  inInstancePos;
 layout (location = 3) in float inInstanceScale;
+layout (location = 4) in float inMetallic;
+layout (location = 5) in float inRoughness;
 
 layout (set = 0, binding = 0) uniform UBO
 {
 	mat4 lightSpace;
 } shadowUbo;
-
-//struct PerMeshRenderData
-//{
-//	mat4 model;
-//	mat4 inverseTransposeModel;
-//	float metallic;
-//	float roughness;
-//	float pad1;
-//	float pad2;
-//};
-
-//// all object matrices
-//layout(std140, set = 1, binding = 0) readonly buffer PerMeshBuffer
-//{
-//	PerMeshRenderData objects[];
-//} perMeshBuffer;
 
 void main()
 {

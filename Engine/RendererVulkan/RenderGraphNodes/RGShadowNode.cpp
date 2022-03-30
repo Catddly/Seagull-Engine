@@ -106,8 +106,8 @@ namespace SG
 	void RGShadowNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
 		mpShadowInstancePipeline = VulkanPipeline::Builder(mContext.device)
-			.SetInputVertexRange(sizeof(float) * 6, 0)
-			.SetInputVertexRange(sizeof(float) * 4, 1)
+			.SetInputVertexRange(sizeof(Vertex), 0)
+			.SetInputVertexRange(sizeof(PerInstanceData), 1)
 			.SetDepthStencil(true)
 			.SetColorBlend(false)
 			.SetRasterizer(VK_CULL_MODE_FRONT_BIT)

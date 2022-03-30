@@ -12,6 +12,8 @@
 namespace SG
 {
 
+#define SG_MAX_DRAW_CALL 100
+
 	//! State machine, a functionality class to record draw command, and persist the render context.
 	class IndirectRenderer
 	{
@@ -30,8 +32,7 @@ namespace SG
 	private:
 		static VulkanCommandBuffer* mpCmdBuf;
 
-		static eastl::fixed_map<EMeshPass, vector<DrawIndexedIndirectCommand>, (UInt32)EMeshPass::NUM_MESH_PASS> mDrawCallMap;
-		static eastl::fixed_map<EMeshPass, IndirectDrawCall, (UInt32)EMeshPass::NUM_MESH_PASS> mIndirectDrawCallMap;
+		static eastl::fixed_map<EMeshPass, vector<IndirectDrawCall>, (UInt32)EMeshPass::NUM_MESH_PASS> mDrawCallMap;
 		static UInt32 mPackedVBCurrOffset;
 		static UInt32 mPackedIBCurrOffset;
 

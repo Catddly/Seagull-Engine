@@ -6,6 +6,12 @@
 namespace SG
 {
 
+	struct Vertex
+	{
+		Vector3f position;
+		Vector3f normal;
+	};
+
 	struct CameraUBO
 	{
 		Matrix4f view;
@@ -55,10 +61,12 @@ namespace SG
 	{
 		Vector3f instancePos = Vector3f(0.0f, 0.0f, 0.0f);
 		float    instanceScale = 1.0f;
+		float    instanceMetallic = 0.0f;
+		float    instanceRoughness = 0.0f;
 
 		PerInstanceData() = default;
-		PerInstanceData(const Vector3f& insPos, float insScale)
-			:instancePos(insPos), instanceScale(insScale)
+		PerInstanceData(const Vector3f& insPos, float insScale, float metallic, float roughness)
+			:instancePos(insPos), instanceScale(insScale), instanceMetallic(metallic), instanceRoughness(roughness)
 		{}
 	};
 

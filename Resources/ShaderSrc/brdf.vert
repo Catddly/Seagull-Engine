@@ -7,6 +7,8 @@ layout (location = 0) out vec3 outNormalWS;
 layout (location = 1) out vec3 outPosWS;
 layout (location = 2) out vec3 outViewPosWS;
 layout (location = 3) out vec4 outShadowMapPos;
+layout (location = 4) out float outMetallic;
+layout (location = 5) out float outRoughness;
 
 layout (set = 0, binding = 0) uniform CameraUBO
 {
@@ -39,12 +41,6 @@ layout(std140, set = 1, binding = 0) readonly buffer PerObjectBuffer
 	ObjectRenderData objects[];
 } perObjectBuffer;
 
-//layout(push_constant) uniform PushConstant 
-//{
-//	mat4 model;
-//	mat4 inverseTransposeModel;
-//} pushConstant;
-
 const mat4 biasMat = mat4( 
 	0.5, 0.0, 0.0, 0.0,
 	0.0, 0.5, 0.0, 0.0,
@@ -57,6 +53,8 @@ void main()
 	outPosWS = vec3(perObjectBuffer.objects[gl_BaseInstance].model * vec4(inPos, 1.0));
 	outNormalWS = mat3(perObjectBuffer.objects[gl_BaseInstance].inverseTransposeModel) * inNormalLS; 
 	outShadowMapPos = biasMat * lightUbo.lightSpaceVP * vec4(outPosWS, 1.0);
+	outMetallic = 0.7f;
+	outRoughness = 0.7f;
 
     gl_Position = cameraUbo.viewProj * vec4(outPosWS, 1.0);
 }

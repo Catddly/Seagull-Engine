@@ -79,7 +79,6 @@ namespace SG
 	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
 		VK_RESOURCE()->OnUpdate(SSystem()->GetMainScene());
-
 		mpGUIDriver->OnUpdate(deltaTime);
 	}
 

@@ -199,8 +199,8 @@ namespace SG
 			.Build();
 
 		mpInstancePipeline = VulkanPipeline::Builder(mContext.device)
-			.SetInputVertexRange(sizeof(float) * 6, 0)
-			.SetInputVertexRange(sizeof(float) * 4, 1)
+			.SetInputVertexRange(sizeof(Vertex), 0)
+			.SetInputVertexRange(sizeof(PerInstanceData), 1)
 			.SetColorBlend(false)
 			.BindSignature(mpInstancePipelineSignature.get())
 			.SetDynamicStates()

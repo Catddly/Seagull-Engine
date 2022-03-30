@@ -4,6 +4,8 @@ layout (location = 0) in vec3 inNormalWS;
 layout (location = 1) in vec3 inPosWS;
 layout (location = 2) in vec3 inViewPosWS;
 layout (location = 3) in vec4 inShadowMapPos;
+layout (location = 4) in flat float inMetallic;
+layout (location = 5) in flat float inRoughness;
 
 layout (set = 0, binding = 1) uniform LightUBO
 {
@@ -165,8 +167,8 @@ void main()
 	vec3 V = normalize(inViewPosWS - inPosWS);
 	vec3 R = reflect(-V, N); 
 
-	float metallic = 0.7f;
-	float roughness = 0.45f;
+	float metallic = inMetallic;
+	float roughness = inRoughness;
 
 	vec3 F0 = vec3(0.04);
 	F0 = mix(F0, ALBEDO, metallic);

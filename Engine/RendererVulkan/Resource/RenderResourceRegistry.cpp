@@ -109,6 +109,8 @@ namespace SG
 					PerInstanceData data = {};
 					data.instancePos = mesh.GetPosition();
 					data.instanceScale = mesh.GetScale().x;
+					data.instanceMetallic = mesh.GetMetallic();
+					data.instanceRoughness = mesh.GetRoughness();
 					pInstanceBuffer->UploadData(&data, sizeof(PerInstanceData), sizeof(PerInstanceData) * mesh.GetInstanceID());
 				}
 			});

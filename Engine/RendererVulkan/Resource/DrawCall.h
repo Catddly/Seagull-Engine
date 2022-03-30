@@ -24,6 +24,7 @@ namespace SG
 
 	struct DrawMesh
 	{
+		UInt32 meshId;
 		UInt64 vBSize = 0;
 		UInt64 vBOffset = 0;
 		VulkanBuffer* pVertexBuffer = nullptr;

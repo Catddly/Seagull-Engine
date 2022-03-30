@@ -10,8 +10,7 @@ namespace SG
 
 	VulkanCommandBuffer* IndirectRenderer::mpCmdBuf = nullptr;
 
-	eastl::fixed_map<EMeshPass, vector<DrawIndexedIndirectCommand>, (UInt32)EMeshPass::NUM_MESH_PASS> IndirectRenderer::mDrawCallMap;
-	eastl::fixed_map<EMeshPass, IndirectDrawCall, (UInt32)EMeshPass::NUM_MESH_PASS> IndirectRenderer::mIndirectDrawCallMap;
+	eastl::fixed_map<EMeshPass, vector<IndirectDrawCall>, (UInt32)EMeshPass::NUM_MESH_PASS> IndirectRenderer::mDrawCallMap;
 	UInt32 IndirectRenderer::mPackedVBCurrOffset = 0;
 	UInt32 IndirectRenderer::mPackedIBCurrOffset = 0;
 
@@ -20,6 +19,7 @@ namespace SG
 
 	void IndirectRenderer::CollectRenderData(RefPtr<RenderDataBuilder> pRenderDataBuilder)
 	{
+		vector<DrawIndexedIndirectCommand> indirectCommands;
 		pRenderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RenderMeshBuildData& buildData)
 			{
 				if (buildData.instanceCount > 1) // move it to the Forward Instance Mesh Pass
@@ -27,7 +27,7 @@ namespace SG
 					BufferCreateDesc bufferCreateDesc = {};
 					bufferCreateDesc.name = (string("instance_vb_") + eastl::to_string(meshId)).c_str();
 					bufferCreateDesc.pInitData = buildData.perInstanceData.data();
-					bufferCreateDesc.bufferSize = sizeof(float) * 4 * buildData.instanceCount;
+					bufferCreateDesc.bufferSize = sizeof(PerInstanceData) * buildData.instanceCount;
 					bufferCreateDesc.type = EBufferType::efVertex;
 
 					VK_RESOURCE()->CreateBuffer(bufferCreateDesc, false);
@@ -72,21 +72,39 @@ namespace SG
 				VK_RESOURCE()->CreateBuffer(ibCI, true);
 				VK_RESOURCE()->FlushBuffers();
 
-				DrawIndexedIndirectCommand indirect;
-				indirect.firstIndex = mPackedIBCurrOffset / sizeof(UInt32);
-				indirect.firstInstance = buildData.instanceCount == 1 ? buildData.objectId : 0;
-				indirect.indexCount = static_cast<UInt32>(ibSize / sizeof(UInt32));
-				indirect.instanceCount = buildData.instanceCount;
-				indirect.vertexOffset = mPackedVBCurrOffset / (sizeof(float) * 6);
+				IndirectDrawCall indirectDc;
+				indirectDc.drawMesh.pVertexBuffer = VK_RESOURCE()->GetBuffer("packed_vertex_buffer_0");
+				indirectDc.drawMesh.vBSize = vbSize;
+				indirectDc.drawMesh.vBOffset = mPackedVBCurrOffset;
+				indirectDc.drawMesh.pIndexBuffer = VK_RESOURCE()->GetBuffer("packed_index_buffer_0");;
+				indirectDc.drawMesh.iBSize = ibSize;
+				indirectDc.drawMesh.iBOffset = mPackedIBCurrOffset;
+				indirectDc.drawMesh.pInstanceBuffer = nullptr;
+				indirectDc.drawMesh.instanceOffset = 0;
+
+				indirectDc.count = 1;
+				indirectDc.first = static_cast<UInt32>(indirectCommands.size());
 
 				if (buildData.instanceCount == 1)
 				{
-					mDrawCallMap[EMeshPass::eForward].emplace_back(eastl::move(indirect));
+					mDrawCallMap[EMeshPass::eForward].emplace_back(eastl::move(indirectDc));
 				}
 				else
 				{
-					mDrawCallMap[EMeshPass::eForwardInstanced].emplace_back(eastl::move(indirect));
+					indirectDc.drawMesh.pInstanceBuffer = VK_RESOURCE()->GetBuffer((string("instance_vb_") + eastl::to_string(meshId)));
+					mDrawCallMap[EMeshPass::eForwardInstanced].emplace_back(eastl::move(indirectDc));
 				}
+
+				DrawIndexedIndirectCommand indirect;
+				//indirect.firstIndex = mPackedIBCurrOffset / sizeof(UInt32);
+				indirect.firstIndex = 0;
+				indirect.firstInstance = buildData.instanceCount == 1 ? buildData.objectId : 0;
+				indirect.indexCount = static_cast<UInt32>(ibSize / sizeof(UInt32));
+				indirect.instanceCount = buildData.instanceCount;
+				indirect.vertexOffset = 0;
+				//indirect.vertexOffset = mPackedVBCurrOffset / (sizeof(float) * 6);
+
+				indirectCommands.emplace_back(eastl::move(indirect));
 
 				mPackedVBCurrOffset += static_cast<UInt32>(vbSize);
 				mPackedIBCurrOffset += static_cast<UInt32>(ibSize);
@@ -100,36 +118,7 @@ namespace SG
 
 		UInt32 offset = 0;
 		auto* pIndirectBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer");
-
-		{
-			auto& indirectBuffers = mDrawCallMap[EMeshPass::eForward];
-			pIndirectBuffer->UploadData(indirectBuffers.data(), static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand) * indirectBuffers.size()), offset);
-
-			IndirectDrawCall indirectDrawCall;
-			indirectDrawCall.drawMesh.pVertexBuffer = VK_RESOURCE()->GetBuffer("packed_vertex_buffer_0");
-			indirectDrawCall.drawMesh.pIndexBuffer = VK_RESOURCE()->GetBuffer("packed_index_buffer_0");
-			indirectDrawCall.count = static_cast<UInt32>(indirectBuffers.size());
-			indirectDrawCall.first = offset / sizeof(DrawIndexedIndirectCommand);
-
-			offset += static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand) * indirectBuffers.size());
-			mIndirectDrawCallMap[EMeshPass::eForward] = eastl::move(indirectDrawCall);
-		}
-
-		{
-
-			auto& indirectInstanceBuffers = mDrawCallMap[EMeshPass::eForwardInstanced];
-			pIndirectBuffer->UploadData(indirectInstanceBuffers.data(), static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand) * indirectInstanceBuffers.size()), offset);
-
-			IndirectDrawCall indirectDrawCall;
-			indirectDrawCall.drawMesh.pVertexBuffer = VK_RESOURCE()->GetBuffer("packed_vertex_buffer_0");
-			indirectDrawCall.drawMesh.pIndexBuffer = VK_RESOURCE()->GetBuffer("packed_index_buffer_0");
-			indirectDrawCall.drawMesh.pInstanceBuffer = VK_RESOURCE()->GetBuffer("instance_vb_1");
-			indirectDrawCall.count = static_cast<UInt32>(indirectInstanceBuffers.size());
-			indirectDrawCall.first = offset / sizeof(DrawIndexedIndirectCommand);
-
-			offset += static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand) * indirectInstanceBuffers.size());
-			mIndirectDrawCallMap[EMeshPass::eForwardInstanced] = eastl::move(indirectDrawCall);
-		}
+		pIndirectBuffer->UploadData(indirectCommands.data(), static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand) * indirectCommands.size()), offset);
 
 		mbDrawCallReady = true;
 	}
@@ -168,19 +157,23 @@ namespace SG
 		// TODO: think of a more generic way to draw.
 		if (meshPass == EMeshPass::eForward)
 		{
-			auto& dc = mIndirectDrawCallMap[meshPass];
-			BindMesh(dc.drawMesh);
-			BindMaterial(dc.drawMaterial);
+			for (auto& dc : mDrawCallMap[meshPass])
+			{
+				BindMesh(dc.drawMesh);
+				BindMaterial(dc.drawMaterial);
 
-			mpCmdBuf->DrawIndexedIndirect(VK_RESOURCE()->GetBuffer("indirectBuffer"), dc.first * sizeof(DrawIndexedIndirectCommand), dc.count, sizeof(DrawIndexedIndirectCommand));
+				mpCmdBuf->DrawIndexedIndirect(VK_RESOURCE()->GetBuffer("indirectBuffer"), dc.first * sizeof(DrawIndexedIndirectCommand), dc.count, sizeof(DrawIndexedIndirectCommand));
+			}
 		}
 		else if (meshPass == EMeshPass::eForwardInstanced)
 		{
-			auto& dc = mIndirectDrawCallMap[meshPass];
-			BindInstanceMesh(dc.drawMesh);
-			BindMaterial(dc.drawMaterial);
+			for (auto& dc : mDrawCallMap[meshPass])
+			{
+				BindInstanceMesh(dc.drawMesh);
+				BindMaterial(dc.drawMaterial);
 
-			mpCmdBuf->DrawIndexedIndirect(VK_RESOURCE()->GetBuffer("indirectBuffer"), dc.first * sizeof(DrawIndexedIndirectCommand), dc.count, sizeof(DrawIndexedIndirectCommand));
+				mpCmdBuf->DrawIndexedIndirect(VK_RESOURCE()->GetBuffer("indirectBuffer"), dc.first * sizeof(DrawIndexedIndirectCommand), dc.count, sizeof(DrawIndexedIndirectCommand));
+			}
 		}
 	}
 

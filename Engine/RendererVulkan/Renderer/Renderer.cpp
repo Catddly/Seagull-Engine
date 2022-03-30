@@ -88,13 +88,11 @@ namespace SG
 				if (buildData.instanceCount == 1)
 				{
 					mDrawCallMap[EMeshPass::eForward].emplace_back(eastl::move(dc));
-					//mIndirectDrawBatcher.AddMeshPassDrawCall(EMeshPass::eForwardInstanced, dc);
 				}
 				else
 				{
 					dc.drawMesh.pInstanceBuffer = VK_RESOURCE()->GetBuffer((string("instance_vb_") + eastl::to_string(meshId)));
 					mDrawCallMap[EMeshPass::eForwardInstanced].emplace_back(eastl::move(dc));
-					//mIndirectDrawBatcher.AddMeshPassDrawCall(EMeshPass::eForward, dc);
 				}
 
 				mPackedVBCurrOffset += vbSize;
