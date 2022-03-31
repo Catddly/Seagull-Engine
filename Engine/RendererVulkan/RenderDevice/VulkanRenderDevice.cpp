@@ -56,7 +56,7 @@ namespace SG
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
 		// create all the mesh resource
-		//VK_RESOURCE()->BuildRenderMesh(SSystem()->GetRenderDataBuilder());
+		IndirectRenderer::OnInit();
 		IndirectRenderer::CollectRenderData(SSystem()->GetRenderDataBuilder());
 
 		BuildRenderGraph();
@@ -67,6 +67,8 @@ namespace SG
 	void VulkanRenderDevice::OnShutdown()
 	{
 		mpContext->device.WaitIdle();
+
+		IndirectRenderer::OnShutdown();
 
 		mpRenderGraph.reset();
 		VK_RESOURCE()->Shutdown();

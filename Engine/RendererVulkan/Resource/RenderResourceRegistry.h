@@ -19,7 +19,7 @@ namespace SG
 #define SG_MAX_PACKED_VERTEX_BUFFER_SIZE 1024 * 1024 * 4 // 4mb
 #define SG_MAX_PACKED_INDEX_BUFFER_SIZE  1024 * 1024 * 4 // 4mb
 
-#define SG_MAX_NUM_OBJECT 100
+#define SG_MAX_NUM_OBJECT 250
 
 	// TODO: resource object reference counting
 	class VulkanContext;

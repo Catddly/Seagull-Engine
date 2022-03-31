@@ -18,6 +18,8 @@ namespace SG
 	class IndirectRenderer
 	{
 	public:
+		static void OnInit();
+		static void OnShutdown();
 		//! Collect the render data from RenderDataBuilder, make render resource and packed to drawcall.
 		static void CollectRenderData(RefPtr<RenderDataBuilder> pRenderDataBuilder);
 
@@ -27,7 +29,6 @@ namespace SG
 		static void Draw(EMeshPass meshPass);
 	private:
 		static void BindMesh(const DrawMesh& drawMesh);
-		static void BindInstanceMesh(const DrawMesh& drawMesh);
 		static void BindMaterial(const DrawMaterial& drawMaterial);
 	private:
 		static VulkanCommandBuffer* mpCmdBuf;
@@ -36,6 +37,7 @@ namespace SG
 		static UInt32 mPackedVBCurrOffset;
 		static UInt32 mPackedIBCurrOffset;
 
+		static bool mbRendererInit;
 		static bool mbBeginDraw;
 		static bool mbDrawCallReady;
 	};

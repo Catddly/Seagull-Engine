@@ -128,7 +128,7 @@ namespace SG
 	void RGFinalOutputNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
 		mpCompPipeline = VulkanPipeline::Builder(mContext.device)
-			.SetRasterizer(VK_CULL_MODE_NONE)
+			.SetRasterizer(ECullMode::eNone)
 			.SetDynamicStates()
 			.SetDepthStencil(false)
 			.BindSignature(mpCompPipelineSignature.get())
@@ -137,7 +137,7 @@ namespace SG
 			.Build();
 
 		mpGUIPipeline = VulkanPipeline::Builder(mContext.device)
-			.SetRasterizer(VK_CULL_MODE_NONE)
+			.SetRasterizer(ECullMode::eNone)
 			.SetDynamicStates()
 			.SetDepthStencil(false)
 			.BindSignature(mpGUIPipelineSignature.get())

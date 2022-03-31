@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Render/Pipeline.h"
 #include "Render/SwapChain.h"
 #include "Render/Queue.h"
 #include "Render/Descriptor.h"
@@ -12,6 +13,10 @@
 
 namespace SG
 {
+
+	VkVertexInputRate ToVkVertexInputRate(EVertexInputRate vertexip);
+	VkPolygonMode ToVkPolygonMode(EPolygonMode polymode);
+	VkCullModeFlags ToVkCullMode(ECullMode cullmode);
 
 	VkImageLayout ToVkImageLayout(EImageLayout layout);
 

@@ -33,6 +33,7 @@ struct ObjectRenderData
 {
 	mat4 model;
 	mat4 inverseTransposeModel;
+	vec4 mrxx;
 };
 
 // all object matrices
@@ -53,8 +54,8 @@ void main()
 	outPosWS = vec3(perObjectBuffer.objects[gl_BaseInstance].model * vec4(inPos, 1.0));
 	outNormalWS = mat3(perObjectBuffer.objects[gl_BaseInstance].inverseTransposeModel) * inNormalLS; 
 	outShadowMapPos = biasMat * lightUbo.lightSpaceVP * vec4(outPosWS, 1.0);
-	outMetallic = 0.7f;
-	outRoughness = 0.7f;
+	outMetallic = perObjectBuffer.objects[gl_BaseInstance].mrxx.x;
+	outRoughness = perObjectBuffer.objects[gl_BaseInstance].mrxx.y;
 
     gl_Position = cameraUbo.viewProj * vec4(outPosWS, 1.0);
 }

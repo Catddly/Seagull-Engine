@@ -20,9 +20,6 @@ namespace SG
 
 		virtual void UpdateViewMatrix() override;
 	private:
-		Vector3f mUpVec = SG_ENGINE_UP_VEC();
-		Vector3f mFrontVec = SG_ENGINE_FRONT_VEC();
-		Vector3f mRightVec = SG_ENGINE_RIGHT_VEC();
 		float mMoveSpeed = 5.0f;
 		float mRotateSpeed = 1.5f;
 		float mAspectRatio;

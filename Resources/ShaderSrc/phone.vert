@@ -27,18 +27,6 @@ layout (set = 0, binding = 1) uniform LightUBO
 	vec3  pointLightColor;
 } lightUbo;
 
-//struct PerMeshRenderData
-//{
-//	mat4 model;
-//	mat4 inverseTransposeModel;
-//};
-
-//// all object matrices
-//layout(std140, set = 1, binding = 0) readonly buffer PerMeshBuffer
-//{
-//	PerMeshRenderData objects[];
-//} perMeshBuffer;
-
 layout(push_constant) uniform PushConstant 
 {
 	mat4 model;

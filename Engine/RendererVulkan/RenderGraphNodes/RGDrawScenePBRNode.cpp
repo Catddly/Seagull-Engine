@@ -35,6 +35,8 @@ namespace SG
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
 	{
+		PrepareGPUCulling();
+
 		// init render resource
 #ifdef SG_ENABLE_HDR
 		TextureCreateDesc rtCI;
@@ -144,6 +146,7 @@ namespace SG
 
 	RGDrawScenePBRNode::~RGDrawScenePBRNode()
 	{
+		Memory::Delete(mpGPUCullingPipeline);
 		Memory::Delete(mpSkyboxPipeline);
 		Memory::Delete(mpInstancePipeline);
 		Memory::Delete(mpPipeline);
@@ -190,7 +193,7 @@ namespace SG
 	void RGDrawScenePBRNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
 		mpSkyboxPipeline = VulkanPipeline::Builder(mContext.device)
-			.SetRasterizer(VK_CULL_MODE_FRONT_BIT)
+			.SetRasterizer(ECullMode::eFront)
 			.SetColorBlend(false)
 			.BindSignature(mpSkyboxPipelineSignature.get())
 			.SetDynamicStates()
@@ -199,8 +202,8 @@ namespace SG
 			.Build();
 
 		mpInstancePipeline = VulkanPipeline::Builder(mContext.device)
-			.SetInputVertexRange(sizeof(Vertex), 0)
-			.SetInputVertexRange(sizeof(PerInstanceData), 1)
+			.SetInputVertexRange(sizeof(Vertex), EVertexInputRate::ePerVertex)
+			.SetInputVertexRange(sizeof(PerInstanceData), EVertexInputRate::ePerInstance)
 			.SetColorBlend(false)
 			.BindSignature(mpInstancePipelineSignature.get())
 			.SetDynamicStates()
@@ -308,7 +311,7 @@ namespace SG
 
 		auto* pBrdfLutPipeline = VulkanPipeline::Builder(mContext.device)
 			.BindSignature(pBrdfLutPipelineSignature.get())
-			.SetRasterizer(VK_CULL_MODE_NONE)
+			.SetRasterizer(ECullMode::eNone)
 			.SetColorBlend(false)
 			.SetDepthStencil(false)
 			.SetDynamicStates()
@@ -413,7 +416,7 @@ namespace SG
 
 		auto* pIrradiancePipeline = VulkanPipeline::Builder(mContext.device)
 			.BindSignature(pIrradiancePipelineSignature.get())
-			.SetRasterizer(VK_CULL_MODE_NONE)
+			.SetRasterizer(ECullMode::eNone)
 			.SetDepthStencil(false)
 			.SetColorBlend(false)
 			.SetDynamicStates()
@@ -573,7 +576,7 @@ namespace SG
 
 		auto* pPrefilterPipeline = VulkanPipeline::Builder(mContext.device)
 			.BindSignature(pPrefilterPipelineSignature.get())
-			.SetRasterizer(VK_CULL_MODE_NONE)
+			.SetRasterizer(ECullMode::eNone)
 			.SetDepthStencil(false)
 			.SetColorBlend(false)
 			.SetDynamicStates()
@@ -660,6 +663,21 @@ namespace SG
 		Memory::Delete(pTempFrameBuffer);
 		Memory::Delete(pTempVulkanRenderPass);
 		VK_RESOURCE()->DeleteRenderTarget("cubemap_prefilter_rt");
+	}
+
+	void RGDrawScenePBRNode::PrepareGPUCulling()
+	{
+		mpGPUCullingShader = VulkanShader::Create(mContext.device);
+		ShaderCompiler compiler;
+		compiler.CompileGLSLShader("culling/culling", mpGPUCullingShader.get());
+
+		mpGPUCullingPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpGPUCullingShader)
+			.Build();
+
+		mpGPUCullingPipeline = VulkanPipeline::Builder(mContext.device, EPipelineType::eCompute)
+			.BindSignature(mpGPUCullingPipelineSignature.get())
+			.BindShader(mpGPUCullingShader.get())
+			.Build();
 	}
 
 }

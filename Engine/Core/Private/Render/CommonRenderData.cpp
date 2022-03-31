@@ -9,6 +9,7 @@ namespace SG
 	static ShadowUBO gShadowUbo = {};
 	static CameraUBO gCameraUbo = {};
 	static CompositionUBO gCompositionUbo = {};
+	static GPUCullUBO gGPUCullUbo = {};
 
 	LightUBO& GetLightUBO()
 	{
@@ -33,6 +34,11 @@ namespace SG
 	CompositionUBO& GetCompositionUBO()
 	{
 		return gCompositionUbo;
+	}
+
+	GPUCullUBO& GetGPUCullUBO()
+	{
+		return gGPUCullUbo;
 	}
 
 }

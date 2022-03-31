@@ -1,0 +1,158 @@
+#version 460
+
+// defined work group size
+layout (local_size_x = 256) in; // 256 elements at a time
+
+layout (set = 0, binding = 0) uniform CullUBO
+{
+    vec3 viewPos;
+    float zNear;
+    vec3 rightVec;
+    float zFar;
+    vec3 frontVec;
+    float fovY;
+    vec3 upVec;
+    float aspectRatio;
+    uint numObjects;
+} cullUbo;
+
+struct ObjectRenderData
+{
+	mat4 model;
+	mat4 inverseTransposeModel;
+	vec4 mrxx;
+};
+
+// all object matrices
+layout(std140, set = 1, binding = 0) readonly buffer PerObjectBuffer
+{
+	ObjectRenderData objects[];
+} perObjectBuffer;
+
+struct CullingData
+{
+    vec3  albedo;
+    float pad;
+};
+
+layout(std140, set = 1, binding = 1) buffer CullingOutputData
+{
+    CullingData objects[];
+} cullingOutputData;
+
+struct Plane
+{
+    vec3 normal;
+    vec3 center;
+};
+
+struct Sphere
+{
+    vec3 center;
+    float radius;
+};
+
+struct Frustum
+{
+    Plane nearPlane;
+    Plane farPlane;
+    Plane rightPlane;
+    Plane leftPlane;
+    Plane topPlane;
+    Plane bottomPlane;
+};
+
+Frustum BuildFrustumFromCamera()
+{
+    Frustum frustum;
+    const float halfVLength = cullUbo.zFar * tan(cullUbo.fovY * 0.5f);
+    const float halfHLength = cullUbo.aspectRatio * halfVLength;
+    const vec3 frontMulFar = cullUbo.frontVec * cullUbo.zFar;
+
+    frustum.nearPlane.center = cullUbo.viewPos + cullUbo.zNear * cullUbo.frontVec;
+    frustum.nearPlane.normal = cullUbo.frontVec;
+
+    frustum.farPlane.center = cullUbo.viewPos + frontMulFar;
+    frustum.farPlane.normal = -cullUbo.frontVec;
+
+    frustum.rightPlane.center = cullUbo.viewPos;
+    frustum.rightPlane.normal = cross(cullUbo.upVec, frontMulFar + cullUbo.rightVec * halfHLength);
+
+    frustum.leftPlane.center = cullUbo.viewPos;
+    frustum.leftPlane.normal = cross(frontMulFar - cullUbo.rightVec * halfHLength, cullUbo.upVec);
+
+    frustum.topPlane.center = cullUbo.viewPos;
+    frustum.topPlane.normal = cross(cullUbo.rightVec, frontMulFar - cullUbo.upVec * halfVLength);
+
+    frustum.bottomPlane.center = cullUbo.viewPos;
+    frustum.bottomPlane.normal = cross(frontMulFar + cullUbo.upVec * halfVLength, cullUbo.rightVec);
+
+    return frustum;
+}
+
+Sphere BuildBoundingSphereFromModel(mat4 model)
+{
+    const vec3 xColumn = { model[0][0], model[1][0], model[2][0] };
+    const vec3 yColumn = { model[0][1], model[1][1], model[2][1] };
+    const vec3 zColumn = { model[0][2], model[1][2], model[2][2] };
+
+    const vec3 globalScale = { length(xColumn), length(yColumn), length(zColumn) };
+    const vec3 globalCenter = (model * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+    const float maxScale = max(max(globalScale.x, globalScale.y), globalScale.z);
+
+    Sphere bSphere;
+    bSphere.center = globalCenter;
+    bSphere.radius = maxScale;
+
+    return bSphere;
+}
+
+// here we use bounding sphere
+bool IsOnOrForwardPlane(Plane plane, Sphere sphere)
+{
+    float signDistance = dot(plane.normal, sphere.center - plane.center);
+    return (signDistance > 0.0) && (signDistance > sphere.radius);
+}
+
+bool IsOnOrInFrustum(Frustum frustum, Sphere sphere)
+{
+    if (!IsOnOrForwardPlane(frustum.nearPlane, sphere))
+        return false;
+    if (!IsOnOrForwardPlane(frustum.farPlane, sphere))
+        return false;
+    if (!IsOnOrForwardPlane(frustum.rightPlane, sphere))
+        return false;
+    if (!IsOnOrForwardPlane(frustum.leftPlane, sphere))
+        return false;
+    if (!IsOnOrForwardPlane(frustum.topPlane, sphere))
+        return false;
+    if (!IsOnOrForwardPlane(frustum.bottomPlane, sphere))
+        return false;
+    return true;
+}
+
+#define TEST_NOT_CULL_ALBEDO vec3(1.0, 1.0, 1.0)
+#define TEST_CULL_ALBEDO     vec3(1.0, 0.0, 0.0)
+
+void main()
+{
+    // grab global ID
+	uint gID = gl_GlobalInvocationID.x;
+
+    // make sure we don't access past the buffer size
+    if (gID < cullUbo.numObjects)
+    {
+        // calculate the frustum of the camera
+        Frustum frustum = BuildFrustumFromCamera();
+        Sphere sphere = BuildBoundingSphereFromModel(perObjectBuffer.objects[gID].model);
+
+        if (IsOnOrInFrustum(frustum, sphere))
+        {
+            cullingOutputData.objects[gID].albedo = TEST_NOT_CULL_ALBEDO;
+        }
+        else
+        {
+            cullingOutputData.objects[gID].albedo = TEST_CULL_ALBEDO;
+        }
+    }
+}

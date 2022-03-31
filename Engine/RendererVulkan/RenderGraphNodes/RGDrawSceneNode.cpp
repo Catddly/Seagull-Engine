@@ -143,7 +143,7 @@ namespace SG
 	void RGDrawSceneNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
 		mpSkyboxPipeline = VulkanPipeline::Builder(mContext.device)
-			.SetRasterizer(VK_CULL_MODE_FRONT_BIT)
+			.SetRasterizer(ECullMode::eFront)
 			.BindSignature(mpSkyboxPipelineSignature.get())
 			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)

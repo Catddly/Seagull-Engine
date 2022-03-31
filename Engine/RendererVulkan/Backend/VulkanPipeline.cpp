@@ -79,7 +79,7 @@ namespace SG
 	/// VulkanPipeline
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanPipeline::VulkanPipeline(VulkanDevice& d, const PipelineCreateInfos& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, VulkanShader* pShader)
+	VulkanPipeline::VulkanPipeline(VulkanDevice& d, const GraphicPipelineCreateInfo& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, VulkanShader* pShader)
 		:device(d)
 	{
 		VkPipelineCacheCreateInfo createInfo = {};
@@ -114,26 +114,51 @@ namespace SG
 		pShader->DestroyPipelineShader();
 	}
 
+	VulkanPipeline::VulkanPipeline(VulkanDevice& d, VulkanPipelineLayout* pLayout, VulkanShader* pShader)
+		:device(d)
+	{
+		VkPipelineCacheCreateInfo createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+		VK_CHECK(vkCreatePipelineCache(device.logicalDevice, &createInfo, nullptr, &pipelineCache),
+			SG_LOG_ERROR("Failed to create pipeline cache!"); pipelineCache = VK_NULL_HANDLE;);
+
+		VkComputePipelineCreateInfo computePipelineCreateInfo = {};
+
+		computePipelineCreateInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+		computePipelineCreateInfo.layout = pLayout->layout;
+
+		pShader->CreatePipelineShader();
+
+		computePipelineCreateInfo.stage = pShader->GetShaderStagesCI()[0];
+		VK_CHECK(vkCreateComputePipelines(device.logicalDevice, pipelineCache, 1, &computePipelineCreateInfo, nullptr, &pipeline),
+			SG_LOG_ERROR("Failed to create compute pipeline!"););
+
+		pShader->DestroyPipelineShader();
+	}
+
 	VulkanPipeline::~VulkanPipeline()
 	{
 		vkDestroyPipelineCache(device.logicalDevice, pipelineCache, nullptr);
 		vkDestroyPipeline(device.logicalDevice, pipeline, nullptr);
 	}
 
-	VulkanPipeline::Builder::Builder(VulkanDevice& d)
-		: device(d)
+	VulkanPipeline::Builder::Builder(VulkanDevice& d, EPipelineType type)
+		:device(d), pipelineType(type)
 	{
-		// default dynamic status
-		createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_VIEWPORT);
-		createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_SCISSOR);
+		if (type == EPipelineType::eGraphic)
+		{
+			// default dynamic status
+			createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_VIEWPORT);
+			createInfos.dynamicStates.emplace_back(VK_DYNAMIC_STATE_SCISSOR);
 
-		// set the default status of pipeline
-		SetInputAssembly();
-		SetRasterizer(VK_CULL_MODE_BACK_BIT, VK_POLYGON_MODE_FILL, false);
-		SetColorBlend(true);
-		SetDepthStencil(true);
-		SetViewport();
-		SetMultiSample(ESampleCount::eSample_1);
+			// set the default status of pipeline
+			SetInputAssembly();
+			SetRasterizer(ECullMode::eBack, EPolygonMode::eFill, false);
+			SetColorBlend(true);
+			SetDepthStencil(true);
+			SetViewport();
+			SetMultiSample(ESampleCount::eSample_1);
+		}
 	}
 
 	VulkanPipeline::Builder& VulkanPipeline::Builder::SetVertexLayout(const ShaderAttributesLayout& layout)
@@ -188,11 +213,11 @@ namespace SG
 		return *this;
 	}
 
-	VulkanPipeline::Builder& VulkanPipeline::Builder::SetInputVertexRange(Size size, UInt32 inputRate)
+	VulkanPipeline::Builder& VulkanPipeline::Builder::SetInputVertexRange(Size size, EVertexInputRate inputRate)
 	{
 		VkVertexInputBindingDescription inputBindingDesc = {};
 		inputBindingDesc.stride = static_cast<UInt32>(size);
-		inputBindingDesc.inputRate = VkVertexInputRate(inputRate);
+		inputBindingDesc.inputRate = ToVkVertexInputRate(inputRate);
 		inputBindingDesc.binding = static_cast<UInt32>(createInfos.vertexInputBindingDesc.size());
 		createInfos.vertexInputBindingDesc.emplace_back(eastl::move(inputBindingDesc));
 		return *this;
@@ -210,12 +235,12 @@ namespace SG
 		return *this;
 	}
 
-	VulkanPipeline::Builder& VulkanPipeline::Builder::SetRasterizer(VkCullModeFlags cullMode, VkPolygonMode polygonMode, bool depthClamp)
+	VulkanPipeline::Builder& VulkanPipeline::Builder::SetRasterizer(ECullMode cullMode, EPolygonMode polygonMode, bool depthClamp)
 	{
 		VkPipelineRasterizationStateCreateInfo rasterizationState = {};
 		rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-		rasterizationState.polygonMode = polygonMode;
-		rasterizationState.cullMode = cullMode;
+		rasterizationState.polygonMode = ToVkPolygonMode(polygonMode);
+		rasterizationState.cullMode = ToVkCullMode(cullMode);
 		rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterizationState.depthClampEnable = depthClamp ? VK_TRUE : VK_FALSE;
 		rasterizationState.depthBiasEnable = VK_TRUE;
@@ -321,8 +346,16 @@ namespace SG
 
 	VulkanPipeline* VulkanPipeline::Builder::Build()
 	{
-		SetVertexLayout(pShader->GetAttributesLayout(EShaderStage::efVert));
-		return Memory::New<VulkanPipeline>(device, createInfos, pLayout, pRenderPass, pShader);
+		if (pipelineType == EPipelineType::eGraphic)
+		{
+			SetVertexLayout(pShader->GetAttributesLayout(EShaderStage::efVert));
+			return Memory::New<VulkanPipeline>(device, createInfos, pLayout, pRenderPass, pShader);
+		}
+		else if (pipelineType == EPipelineType::eCompute)
+		{
+			return Memory::New<VulkanPipeline>(device, pLayout, pShader);
+		}
+		return nullptr;
 	}
 
 }

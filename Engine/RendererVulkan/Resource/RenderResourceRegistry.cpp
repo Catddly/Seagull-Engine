@@ -28,6 +28,18 @@ namespace SG
 		ssboCI.type = EBufferType::efStorage;
 		CreateBuffer(ssboCI);
 
+		ssboCI = {};
+		ssboCI.name = "cullingOutputData";
+		ssboCI.bufferSize = sizeof(CullingOutputData) * SG_MAX_NUM_OBJECT;
+		ssboCI.type = EBufferType::efStorage;
+		CreateBuffer(ssboCI);
+
+		BufferCreateDesc cullBufferCI = {};
+		cullBufferCI.name = "cullUbo";
+		cullBufferCI.bufferSize = sizeof(GPUCullUBO) * SG_MAX_NUM_OBJECT;
+		cullBufferCI.type = EBufferType::efUniform;
+		CreateBuffer(cullBufferCI);
+
 		const auto pSkybox = SSystem()->GetMainScene()->GetSkybox();
 		auto& skyboxVertices = MeshDataArchive::GetInstance()->GetData(pSkybox->GetMeshID())->vertices;
 		const UInt64 vbSize = skyboxVertices.size() * sizeof(float);
@@ -59,7 +71,8 @@ namespace SG
 		auto& shadowUbo = GetShadowUBO();
 		shadowUbo.lightSpaceVP = pScene->GetDirectionalLight()->GetViewProj();
 		auto& cameraUbo = GetCameraUBO();
-		cameraUbo.proj = pScene->GetMainCamera()->GetProjMatrix();
+		auto* pCamera = pScene->GetMainCamera();
+		cameraUbo.proj = pCamera->GetProjMatrix();
 		auto& skyboxUbo = GetSkyboxUBO();
 		skyboxUbo.proj = cameraUbo.proj;
 
@@ -72,6 +85,28 @@ namespace SG
 		auto& compositionUbo = GetCompositionUBO();
 		compositionUbo.gamma = 2.2f;
 		compositionUbo.exposure = 1.0f;
+
+		auto* pSSBOObject = GetBuffer("perObjectBuffer");
+		// update all the render data of the render mesh
+		pScene->TraverseMesh([&](const Mesh& mesh)
+			{
+				ObjcetRenderData renderData;
+				renderData.model = mesh.GetTransform();
+				renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
+				renderData.MRXX = { mesh.GetMetallic(), mesh.GetRoughness(), 0.0f, 0.0f };
+				pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.GetObjectID());
+
+				auto* pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(mesh.GetMeshID())).c_str());
+				if (pInstanceBuffer)
+				{
+					PerInstanceData data = {};
+					data.instancePos = mesh.GetPosition();
+					data.instanceScale = mesh.GetScale().x;
+					data.instanceMetallic = mesh.GetMetallic();
+					data.instanceRoughness = mesh.GetRoughness();
+					pInstanceBuffer->UploadData(&data, sizeof(PerInstanceData), sizeof(PerInstanceData) * mesh.GetInstanceID());
+				}
+			});
 	}
 
 	void VulkanResourceRegistry::Shutdown()
@@ -93,27 +128,28 @@ namespace SG
 		auto* pSSBOObject = GetBuffer("perObjectBuffer");
 
 		// update all the render data of the render mesh
-		pLScene->TraverseMesh([&](const Mesh& mesh)
-			{
-				if (mesh.GetInstanceID() == 0)
-				{
-					ObjcetRenderData renderData;
-					renderData.model = mesh.GetTransform();
-					renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
-					pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.GetObjectID());
-				}
+		//pLScene->TraverseMesh([&](const Mesh& mesh)
+		//	{
+		//		if (mesh.GetInstanceID() == 0)
+		//		{
+		//			ObjcetRenderData renderData;
+		//			renderData.model = mesh.GetTransform();
+		//			renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
+		//			renderData.MRXX = { mesh.GetMetallic(), mesh.GetRoughness(), 0.0f, 0.0f };
+		//			pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.GetObjectID());
+		//		}
 
-				auto* pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(mesh.GetMeshID())).c_str());
-				if (pInstanceBuffer)
-				{
-					PerInstanceData data = {};
-					data.instancePos = mesh.GetPosition();
-					data.instanceScale = mesh.GetScale().x;
-					data.instanceMetallic = mesh.GetMetallic();
-					data.instanceRoughness = mesh.GetRoughness();
-					pInstanceBuffer->UploadData(&data, sizeof(PerInstanceData), sizeof(PerInstanceData) * mesh.GetInstanceID());
-				}
-			});
+		//		auto* pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(mesh.GetMeshID())).c_str());
+		//		if (pInstanceBuffer)
+		//		{
+		//			PerInstanceData data = {};
+		//			data.instancePos = mesh.GetPosition();
+		//			data.instanceScale = mesh.GetScale().x;
+		//			data.instanceMetallic = mesh.GetMetallic();
+		//			data.instanceRoughness = mesh.GetRoughness();
+		//			pInstanceBuffer->UploadData(&data, sizeof(PerInstanceData), sizeof(PerInstanceData) * mesh.GetInstanceID());
+		//		}
+		//	});
 
 		auto* pCamera = pLScene->GetMainCamera();
 		if (pCamera->IsViewDirty())

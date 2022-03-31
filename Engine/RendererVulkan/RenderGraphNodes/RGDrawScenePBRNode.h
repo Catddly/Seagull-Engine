@@ -32,6 +32,8 @@ namespace SG
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
 		virtual void Draw(RGDrawInfo& context) override;
 	private:
+		void PrepareGPUCulling();
+
 		void GenerateBRDFLut();
 		//! For IBL-PBR(image based lighting in physical based rendering) diffuse calculation.
 		//! By using Split Sum Approximation.
@@ -42,6 +44,10 @@ namespace SG
 		VulkanContext&        mContext;
 		LoadStoreClearOp      mColorRtLoadStoreOp;
 		LoadStoreClearOp      mDepthRtLoadStoreOp;
+
+		RefPtr<VulkanPipelineSignature> mpGPUCullingPipelineSignature;
+		VulkanPipeline*                 mpGPUCullingPipeline;
+		RefPtr<VulkanShader>            mpGPUCullingShader;
 
 		RefPtr<VulkanPipelineSignature> mpSkyboxPipelineSignature;
 		VulkanPipeline*                 mpSkyboxPipeline;

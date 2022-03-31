@@ -50,7 +50,7 @@ namespace SG
 	class VulkanPipeline
 	{
 	public:
-		struct PipelineCreateInfos
+		struct GraphicPipelineCreateInfo
 		{
 			vector<VkVertexInputBindingDescription> vertexInputBindingDesc;
 			vector<VkVertexInputAttributeDescription> vertexInputAttributs;
@@ -66,22 +66,23 @@ namespace SG
 			VkPipelineDynamicStateCreateInfo       dynamicStateCI;
 		};
 
-		VulkanPipeline(VulkanDevice& d, const PipelineCreateInfos& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, VulkanShader* pShader);
+		VulkanPipeline(VulkanDevice& d, const GraphicPipelineCreateInfo& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, VulkanShader* pShader);
+		VulkanPipeline(VulkanDevice& d, VulkanPipelineLayout* pLayout, VulkanShader* pShader);
 		~VulkanPipeline();
 
 		class Builder
 		{
 		public:
-			Builder(VulkanDevice& d);
+			Builder(VulkanDevice& d, EPipelineType type = EPipelineType::eGraphic);
 			~Builder() = default;
 			
-			Builder& SetInputVertexRange(Size size, UInt32 inputRate);
+			Builder& SetInputVertexRange(Size size, EVertexInputRate inputRate);
 			// TODO: should use SPIRV reflection to automatically bind the vertex layout.
 			// @brief Set vertex buffer layout.
 			// @param [ layout ] The buffer layout.
 			// @param [ perVertex ] True if vertex bind per vertex shader or false will bind per instance.
 			Builder& SetInputAssembly(VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-			Builder& SetRasterizer(VkCullModeFlags cullMode, VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL, bool depthClamp = false);
+			Builder& SetRasterizer(ECullMode cullMode, EPolygonMode polygonMode = EPolygonMode::eFill, bool depthClamp = false);
 			Builder& SetColorBlend(bool enable); // TODO: add blend mode.
 			Builder& SetDepthStencil(bool enable);
 			Builder& SetViewport();
@@ -97,10 +98,11 @@ namespace SG
 			Builder& SetVertexLayout(const ShaderAttributesLayout& layout);
 		private:
 			VulkanDevice&         device;
-			PipelineCreateInfos   createInfos;
+			GraphicPipelineCreateInfo   createInfos;
 			VulkanPipelineLayout* pLayout;
 			VulkanRenderPass*     pRenderPass;
 			VulkanShader*         pShader;
+			EPipelineType         pipelineType;
 		};
 	private:
 		friend class VulkanCommandBuffer;

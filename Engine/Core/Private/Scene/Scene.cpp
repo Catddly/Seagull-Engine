@@ -16,13 +16,13 @@ namespace SG
 
 		mpSkyboxMesh = MakeRef<Mesh>("skybox", EGennerateMeshType::eSkybox);
 
-		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 0.0f, 15.0f));
-		mpMainCamera->SetPerspective(45.0f, ASPECT, 0.01f, 256.0f);
+		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 0.5f, 7.0f));
+		mpMainCamera->SetPerspective(60.0f, ASPECT, 0.01f, 256.0f);
 
 		mpDirectionalLight = MakeRef<DirectionalLight>(Vector3f{ -7.0f, 8.0f, 3.0f }, Vector3f{ 7.0f, -8.0f, -3.0f }, Vector3f{ 1.0f, 1.0f, 1.0f });
 		mPointLights.emplace_back(Vector3f{ 1.25f, 0.75f, -0.3f }, 3.0f, Vector3f{ 0.0f, 1.0f, 0.705f });
 
-		//DefaultScene();
+		DefaultScene();
 		MaterialTestScene();
 	}
 
@@ -56,16 +56,25 @@ namespace SG
 	void Scene::DefaultScene()
 	{
 		auto model = mMeshes.emplace("model", MakeRef<Mesh>("model", "model", EMeshType::eOBJ)).first->second;
+		model->SetMetallic(0.2f);
+		model->SetRoughness(0.8f);
+
 		auto model_1 = mMeshes.emplace("model_1", MakeRef<Mesh>("model_1")).first->second;
 		model_1->Copy(*model);
 		model_1->SetPosition({ 0.0f, 0.0f, -1.5f });
 		model_1->SetScale({ 0.6f, 0.6f, 0.6f });
+		model_1->SetMetallic(0.8f);
+		model_1->SetRoughness(0.35f);
+
 		auto grid = mMeshes.emplace("grid", MakeRef<Mesh>("grid", EGennerateMeshType::eGrid)).first->second;
 		grid->SetScale({ 8.0f, 1.0f, 8.0f });
+		grid->SetMetallic(0.0f);
+		grid->SetRoughness(0.76f);
 	}
 
 	void Scene::MaterialTestScene()
 	{
+		const float zPos = -4.0f;
 		const float INTERVAL = 1.5f;
 		for (UInt32 i = 0; i < 10; ++i)
 		{
@@ -75,7 +84,7 @@ namespace SG
 				if (i == 0 && j == 0)
 				{
 					auto& mesh = mMeshes.emplace(name.c_str(), MakeRef<Mesh>(name.c_str(), "sphere", EMeshType::eOBJ)).first->second;
-					mesh->SetPosition({ -7.0f + i * INTERVAL, -7.0f + j * INTERVAL, 0.0f });
+					mesh->SetPosition({ -7.0f + i * INTERVAL, -7.0f + j * INTERVAL, zPos });
 					mesh->SetScale({ 0.7f, 0.7f, 0.7f });
 					mesh->SetMetallic((i + 1) * 0.1f);
 					mesh->SetRoughness((10 - j) * 0.1f);
@@ -84,7 +93,7 @@ namespace SG
 				{
 					auto& mesh = mMeshes.emplace(name.c_str(), MakeRef<Mesh>(name.c_str())).first->second;
 					mesh->Copy(*GetMesh("sphere0_0"));
-					mesh->SetPosition({ -7.0f + i * INTERVAL, -7.0f + j * INTERVAL, 0.0f });
+					mesh->SetPosition({ -7.0f + i * INTERVAL, -7.0f + j * INTERVAL, zPos });
 					mesh->SetScale({ 0.7f, 0.7f, 0.7f });
 					mesh->SetMetallic((i + 1) * 0.1f);
 					mesh->SetRoughness((10 - j) * 0.1f);

@@ -17,20 +17,18 @@ namespace SG
 
 	void BasicCamera::SetPerspective(float fovyInDegrees, float aspect, float zNear, float zFar)
 	{
-		static float sFovyInDegrees = 0, sAspect = 0, sZNear = 0, sZFar = 0;
-
-		if (mbUseOrtho || fovyInDegrees != sFovyInDegrees || aspect != sAspect || zNear != sZNear || zFar != sZNear)
+		if (mbUseOrtho || fovyInDegrees != mFovyInDegrees || aspect != mAspect || zNear != mZNear || zFar != mZFar)
 		{
 			mbIsProjDirty = true;
 			mbUseOrtho = false;
-			mProjectionMatrix = BuildPerspectiveMatrix(fovyInDegrees, aspect, zNear, zFar);
+			mProjectionMatrix = BuildPerspectiveMatrix(glm::radians(fovyInDegrees), aspect, zNear, zFar);
 			// inverse the proj matrix for vulkan's clip space coordinate
 			mProjectionMatrix[1][1] *= -1.0f;
 
-			sFovyInDegrees = fovyInDegrees;
-			sAspect        = aspect;
-			sZNear         = zNear;
-			sZFar          = zFar;
+			mFovyInDegrees = fovyInDegrees;
+			mAspect        = aspect;
+			mZNear         = zNear;
+			mZFar          = zFar;
 		}
 	}
 

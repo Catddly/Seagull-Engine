@@ -715,6 +715,42 @@ namespace SG
 		return ret;
 	}
 
+	VkVertexInputRate ToVkVertexInputRate(EVertexInputRate vertexip)
+	{
+		switch (vertexip)
+		{
+		case EVertexInputRate::ePerVertex: return VK_VERTEX_INPUT_RATE_VERTEX;
+		case EVertexInputRate::ePerInstance: return VK_VERTEX_INPUT_RATE_INSTANCE;
+		}
+		SG_LOG_ERROR("Invalid pipeline vertex input rate!");
+		return VK_VERTEX_INPUT_RATE_MAX_ENUM;
+	}
+
+	VkPolygonMode ToVkPolygonMode(EPolygonMode polymode)
+	{
+		switch (polymode)
+		{
+		case EPolygonMode::eFill: return VK_POLYGON_MODE_FILL;
+		case EPolygonMode::eLine: return VK_POLYGON_MODE_LINE;
+		case EPolygonMode::ePoint: return VK_POLYGON_MODE_POINT;
+		}
+		SG_LOG_ERROR("Invalid pipeline polygon mode!");
+		return VK_POLYGON_MODE_MAX_ENUM;
+	}
+
+	VkCullModeFlags ToVkCullMode(ECullMode cullmode)
+	{
+		switch (cullmode)
+		{
+		case ECullMode::eBack: return VK_CULL_MODE_BACK_BIT;
+		case ECullMode::eFront: return VK_CULL_MODE_FRONT_BIT;
+		case ECullMode::eFrontAndBack: return VK_CULL_MODE_FRONT_AND_BACK;
+		case ECullMode::eNone: return VK_CULL_MODE_NONE;
+		}
+		SG_LOG_ERROR("Invalid pipeline cull mode!");
+		return VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
+	}
+
 	VkImageLayout ToVkImageLayout(EResourceBarrier barrier)
 	{
 		if (SG_HAS_ENUM_FLAG(EResourceBarrier::efUndefined, barrier))

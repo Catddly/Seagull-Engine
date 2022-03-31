@@ -291,7 +291,7 @@ namespace SG
 		return LoadSPIRVShader(vertShaderName, fragShaderName, pShader);
 	}
 
-	void ShaderCompiler::ReadInShaderData(const string& name, UInt32 stage, Shader* pShader, UInt8& checkFlag)
+	bool ShaderCompiler::ReadInShaderData(const string& name, UInt32 stage, Shader* pShader, UInt8& checkFlag)
 	{
 		if (FileSystem::Open(EResourceDirectory::eShader_Binarires, name.c_str(), EFileMode::efRead_Binary))
 		{
@@ -304,7 +304,9 @@ namespace SG
 
 			checkFlag |= (1 << stage);
 			FileSystem::Close();
+			return true;
 		}
+		return false;
 	}
 
 	bool ShaderCompiler::CompileShaderVkSDK(const string& actualName, const string& compiledName, const string& pOut)
