@@ -80,7 +80,7 @@ namespace SG
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	VulkanPipeline::VulkanPipeline(VulkanDevice& d, const GraphicPipelineCreateInfo& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, VulkanShader* pShader)
-		:device(d)
+		:device(d), pipelineType(EPipelineType::eGraphic)
 	{
 		VkPipelineCacheCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
@@ -115,7 +115,7 @@ namespace SG
 	}
 
 	VulkanPipeline::VulkanPipeline(VulkanDevice& d, VulkanPipelineLayout* pLayout, VulkanShader* pShader)
-		:device(d)
+		:device(d), pipelineType(EPipelineType::eCompute)
 	{
 		VkPipelineCacheCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;

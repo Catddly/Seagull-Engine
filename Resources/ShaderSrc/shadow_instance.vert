@@ -7,6 +7,7 @@ layout (location = 2) in vec3  inInstancePos;
 layout (location = 3) in float inInstanceScale;
 layout (location = 4) in float inMetallic;
 layout (location = 5) in float inRoughness;
+layout (location = 6) in uint  inId;
 
 layout (set = 0, binding = 0) uniform UBO
 {

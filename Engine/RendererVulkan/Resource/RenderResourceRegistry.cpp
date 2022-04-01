@@ -73,6 +73,17 @@ namespace SG
 		auto& cameraUbo = GetCameraUBO();
 		auto* pCamera = pScene->GetMainCamera();
 		cameraUbo.proj = pCamera->GetProjMatrix();
+		auto& cullUbo = GetGPUCullUBO();
+		cullUbo.frontVec = pCamera->GetFrontVector();
+		cullUbo.upVec = pCamera->GetUpVector();
+		cullUbo.rightVec = pCamera->GetRightVector();
+		cullUbo.zNear = 0.01f;
+		cullUbo.zFar = 256.0f;
+		cullUbo.fovY = glm::radians(20.0f);
+		cullUbo.aspectRatio = OperatingSystem::GetMainWindow()->GetAspectRatio();
+		cullUbo.viewPos = pCamera->GetPosition();
+		cullUbo.numObjects = static_cast<UInt32>(pScene->GetNumMesh());
+		GetBuffer("cullUbo")->UploadData(&cullUbo);
 		auto& skyboxUbo = GetSkyboxUBO();
 		skyboxUbo.proj = cameraUbo.proj;
 
@@ -95,17 +106,6 @@ namespace SG
 				renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
 				renderData.MRXX = { mesh.GetMetallic(), mesh.GetRoughness(), 0.0f, 0.0f };
 				pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.GetObjectID());
-
-				auto* pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(mesh.GetMeshID())).c_str());
-				if (pInstanceBuffer)
-				{
-					PerInstanceData data = {};
-					data.instancePos = mesh.GetPosition();
-					data.instanceScale = mesh.GetScale().x;
-					data.instanceMetallic = mesh.GetMetallic();
-					data.instanceRoughness = mesh.GetRoughness();
-					pInstanceBuffer->UploadData(&data, sizeof(PerInstanceData), sizeof(PerInstanceData) * mesh.GetInstanceID());
-				}
 			});
 	}
 
@@ -154,6 +154,13 @@ namespace SG
 		auto* pCamera = pLScene->GetMainCamera();
 		if (pCamera->IsViewDirty())
 		{
+			auto& cullUbo = GetGPUCullUBO();
+			cullUbo.frontVec = pCamera->GetFrontVector();
+			cullUbo.upVec = pCamera->GetUpVector();
+			cullUbo.rightVec = pCamera->GetRightVector();
+			cullUbo.viewPos = pCamera->GetPosition();
+			UpdataBufferData("cullUbo", &cullUbo);
+
 			auto& skyboxUbo = GetSkyboxUBO();
 			auto& cameraUbo = GetCameraUBO();
 			cameraUbo.viewPos = pCamera->GetPosition();
@@ -189,13 +196,15 @@ namespace SG
 		auto pScene = SSystem()->GetMainScene();
 		auto* window = OperatingSystem::GetMainWindow();
 		const float  ASPECT = window->GetAspectRatio();
-		pScene->GetMainCamera()->SetPerspective(45.0f, ASPECT, 0.01f, 256.0f);
+		pScene->GetMainCamera()->SetPerspective(60.0f, ASPECT, 0.01f, 256.0f);
 
 		auto& skyboxUbo = GetSkyboxUBO();
 		auto& cameraUbo = GetCameraUBO();
 		cameraUbo.proj = pScene->GetMainCamera()->GetProjMatrix();
 		skyboxUbo.proj = cameraUbo.proj;
 		cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
+		auto& cullUbo = GetGPUCullUBO();
+		cullUbo.aspectRatio = ASPECT;
 		VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
 		VK_RESOURCE()->UpdataBufferData("skyboxUbo", &skyboxUbo);
 	}

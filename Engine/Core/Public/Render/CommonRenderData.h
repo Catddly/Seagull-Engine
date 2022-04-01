@@ -83,10 +83,11 @@ namespace SG
 		float    instanceScale = 1.0f;
 		float    instanceMetallic = 0.0f;
 		float    instanceRoughness = 0.0f;
+		UInt32   objectId;
 
 		PerInstanceData() = default;
-		PerInstanceData(const Vector3f& insPos, float insScale, float metallic, float roughness)
-			:instancePos(insPos), instanceScale(insScale), instanceMetallic(metallic), instanceRoughness(roughness)
+		PerInstanceData(const Vector3f& insPos, float insScale, float metallic, float roughness, UInt32 id)
+			:instancePos(insPos), instanceScale(insScale), instanceMetallic(metallic), instanceRoughness(roughness), objectId(id)
 		{}
 	};
 

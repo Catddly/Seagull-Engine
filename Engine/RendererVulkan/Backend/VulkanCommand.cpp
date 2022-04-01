@@ -46,6 +46,12 @@ namespace SG
 			SG_LOG_ERROR("Failed to allocate command buffer"); return false;);
 
 		buffer.queueFamilyIndex = this->queueFamilyIndex;
+		if (device.queueFamilyIndices.graphics == this->queueFamilyIndex)
+			buffer.type = EPipelineType::eGraphic;
+		else if (device.queueFamilyIndices.compute == this->queueFamilyIndex)
+			buffer.type = EPipelineType::eCompute;
+		else if (device.queueFamilyIndices.transfer == this->queueFamilyIndex)
+			buffer.type = EPipelineType::eTransfer;
 		return true;
 	}
 
@@ -92,6 +98,11 @@ namespace SG
 	/// VulkanCommandPool
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
+	// global static variable
+
+	static VulkanRenderPass* gpCurrRenderPass = nullptr; // used to judge whether this is a valid BeginRenderPass().
+	static EPipelineType gCurrCmdType = EPipelineType::MAX_COUNT;
+
 	void VulkanCommandBuffer::BeginRecord(bool bPermanent)
 	{
 		VkCommandBufferBeginInfo cmdBufInfo = {};
@@ -103,12 +114,14 @@ namespace SG
 			cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		VK_CHECK(vkBeginCommandBuffer(commandBuffer, &cmdBufInfo),
 			SG_LOG_ERROR("Failed to begin command buffer!"); SG_ASSERT(false););
+		gCurrCmdType = type;
 	}
 
 	void VulkanCommandBuffer::EndRecord()
 	{
 		VK_CHECK(vkEndCommandBuffer(commandBuffer),
 			SG_LOG_ERROR("Failed to end command buffer!"); SG_ASSERT(false););
+		gCurrCmdType = EPipelineType::MAX_COUNT;
 	}
 
 	void VulkanCommandBuffer::Reset(bool bReleaseResource)
@@ -133,12 +146,12 @@ namespace SG
 		renderPassBeginInfo.framebuffer = pFrameBuffer->frameBuffer;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-		pCurrFrameBuffer = pFrameBuffer;
+		gpCurrRenderPass = pFrameBuffer->currRenderPass;
 	}
 
 	void VulkanCommandBuffer::EndRenderPass()
 	{
-		for (auto& trans : pCurrFrameBuffer->currRenderPass->transitions)
+		for (auto& trans : gpCurrRenderPass->transitions)
 		{
 			if (trans.srcLayout != VK_IMAGE_LAYOUT_UNDEFINED && trans.pRenderTarget->currLayout != trans.srcLayout)
 			{
@@ -149,6 +162,7 @@ namespace SG
 				trans.pRenderTarget->currLayout = trans.dstLayout;
 		}
 		vkCmdEndRenderPass(commandBuffer);
+		gpCurrRenderPass = nullptr;
 	}
 
 	void VulkanCommandBuffer::SetViewport(float width, float height, float minDepth, float maxDepth)
@@ -200,13 +214,20 @@ namespace SG
 		vkCmdPushConstants(commandBuffer, pSignature->mpPipelineLayout->layout, ToVkShaderStageFlags(shaderStage), offset, size, pConstants);
 	}
 
-	void VulkanCommandBuffer::BindPipelineSignature(VulkanPipelineSignature* pSignature)
+	void VulkanCommandBuffer::BindPipelineSignature(VulkanPipelineSignature* pSignature, EPipelineType type)
 	{
 		if (!IsRenderPassValid())
 			return;
 		for (auto& set : pSignature->mDescriptorSetData)
 		{
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pSignature->mpPipelineLayout->layout,
+			VkPipelineBindPoint bp;
+			switch (type)
+			{
+			case EPipelineType::eGraphic:
+			case EPipelineType::eTransfer: bp = VK_PIPELINE_BIND_POINT_GRAPHICS; break;
+			case EPipelineType::eCompute: bp = VK_PIPELINE_BIND_POINT_COMPUTE; break;
+			}
+			vkCmdBindDescriptorSets(commandBuffer, bp, pSignature->mpPipelineLayout->layout,
 				set.first, 1, &set.second.descriptorSet.set, 0, nullptr);
 		}
 	}
@@ -215,7 +236,14 @@ namespace SG
 	{
 		if (!IsRenderPassValid())
 			return;
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
+		VkPipelineBindPoint bp;
+		switch (pipeline->pipelineType)
+		{
+		case EPipelineType::eGraphic: 
+		case EPipelineType::eTransfer: bp = VK_PIPELINE_BIND_POINT_GRAPHICS; break;
+		case EPipelineType::eCompute: bp = VK_PIPELINE_BIND_POINT_COMPUTE; break;
+		}
+		vkCmdBindPipeline(commandBuffer, bp, pipeline->pipeline);
 	}
 
 	void VulkanCommandBuffer::Draw(UInt32 vertexCount, UInt32 instanceCount, UInt32 firstVertex, UInt32 firstInstance)
@@ -452,9 +480,16 @@ namespace SG
 		vkCmdSetDepthBias(commandBuffer, biasConstant, clamp, slopeFactor);
 	}
 
+	void VulkanCommandBuffer::Dispatch(UInt32 groupX, UInt32 groupY, UInt32 groupZ)
+	{
+		if (!IsRenderPassValid())
+			return;
+		vkCmdDispatch(commandBuffer, groupX, groupY, groupZ);
+	}
+
 	bool VulkanCommandBuffer::IsRenderPassValid()
 	{
-		if (!pCurrFrameBuffer)
+		if (!gpCurrRenderPass && gCurrCmdType != EPipelineType::eCompute)
 		{
 			SG_LOG_WARN("Did you forget to call BeginRenderPass()?");
 			return false;

@@ -110,6 +110,7 @@ namespace SG
 		VulkanDevice&   device;
 		VkPipelineCache pipelineCache;
 		VkPipeline      pipeline;
+		EPipelineType   pipelineType;
 	};
 
 }

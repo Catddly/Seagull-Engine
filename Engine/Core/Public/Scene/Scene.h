@@ -33,6 +33,7 @@ namespace SG
 		SG_CORE_API void OnUpdate(float deltaTime);
 
 		SG_CORE_API RefPtr<Mesh> GetMesh(const char* name);
+		SG_CORE_API Size GetNumMesh() const { return mMeshes.size(); }
 		SG_CORE_API const RefPtr<Mesh> GetSkybox() const { return mpSkyboxMesh; }
 
 		DirectionalLight* GetDirectionalLight() { return mpDirectionalLight.get(); }

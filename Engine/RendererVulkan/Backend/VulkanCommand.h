@@ -26,7 +26,7 @@ namespace SG
 		void EndRecord();
 		void Reset(bool bReleaseResource = false);
 
-		void BeginRenderPass(VulkanFrameBuffer* pFrameBuffer); // TODO: change param
+		void BeginRenderPass(VulkanFrameBuffer* pFrameBuffer);
 		void EndRenderPass();
 
 		void SetViewport(float width, float height, float minDepth, float maxDepth);
@@ -36,7 +36,7 @@ namespace SG
 		void BindIndexBuffer(VulkanBuffer& buffer, UInt64 offset, VkIndexType type = VK_INDEX_TYPE_UINT32);
 
 		void PushConstants(VulkanPipelineSignature* pSignature, EShaderStage shaderStage, UInt32 size, UInt32 offset, const void* pConstants);
-		void BindPipelineSignature(VulkanPipelineSignature* pSignature);
+		void BindPipelineSignature(VulkanPipelineSignature* pSignature, EPipelineType type = EPipelineType::eGraphic);
 		void BindPipeline(VulkanPipeline* pPipeline);
 
 		void Draw(UInt32 vertexCount, UInt32 instanceCount, UInt32 firstVertex, UInt32 firstInstance);
@@ -51,18 +51,22 @@ namespace SG
 
 		//void BufferBarrier();
 		void ImageBarrier(VulkanTexture* pTex, EResourceBarrier oldBarrier, EResourceBarrier newBarrier);
+		//void BufferBarrier(VulkanBuffer* pBuf, EResourceBarrier oldBarrier, EResourceBarrier newBarrier);
 		//void MemoryBarrier();
 
 		void SetDepthBias(float biasConstant, float clamp, float slopeFactor);
+
+		// compute
+		void Dispatch(UInt32 groupX, UInt32 groupY, UInt32 groupZ);
 	private:
 		bool IsRenderPassValid();
 	private:
 		friend class VulkanCommandPool;
 		friend class VulkanQueue;
 
-		VulkanFrameBuffer* pCurrFrameBuffer = nullptr; // used to judge whether this is a valid BeginRenderPass().
 		VkCommandBuffer commandBuffer;
 		UInt32          queueFamilyIndex; // which queue this command buffer should submit to.
+		EPipelineType   type;
 	};
 
 	class VulkanCommandPool

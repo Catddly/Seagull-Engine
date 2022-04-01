@@ -187,12 +187,21 @@ namespace SG
 		frameBufferCreateInfo.attachmentCount = static_cast<UInt32>(renderTargets.size());
 		frameBufferCreateInfo.pAttachments = imageViews.data();
 
-		frameBufferCreateInfo.width  = renderTargets[0]->width;
-		frameBufferCreateInfo.height = renderTargets[0]->height;
-		frameBufferCreateInfo.layers = 1;
+		if (frameBufferCreateInfo.attachmentCount != 0)
+		{
+			frameBufferCreateInfo.width  = renderTargets[0]->width;
+			frameBufferCreateInfo.height = renderTargets[0]->height;
+			frameBufferCreateInfo.layers = 1;
 
-		this->width  = frameBufferCreateInfo.width;
-		this->height = frameBufferCreateInfo.height;
+			this->width  = frameBufferCreateInfo.width;
+			this->height = frameBufferCreateInfo.height;
+		}
+		else
+		{
+			this->width = frameBufferCreateInfo.width = 0;
+			this->height = frameBufferCreateInfo.height = 0;
+			frameBufferCreateInfo.layers = 1;
+		}
 		currRenderPass = pRenderPass;
 
 		VK_CHECK(vkCreateFramebuffer(device.logicalDevice, &frameBufferCreateInfo, nullptr, &frameBuffer),

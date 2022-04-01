@@ -7,6 +7,7 @@ layout (location = 2) in vec3  inInstancePos;
 layout (location = 3) in float inInstanceScale;
 layout (location = 4) in float inMetallic;
 layout (location = 5) in float inRoughness;
+layout (location = 6) in uint  inId;
 
 layout (location = 0) out vec3 outNormalWS;
 layout (location = 1) out vec3 outPosWS;
@@ -14,6 +15,7 @@ layout (location = 2) out vec3 outViewPosWS;
 layout (location = 3) out vec4 outShadowMapPos;
 layout (location = 4) out float outMetallic;
 layout (location = 5) out float outRoughness;
+layout (location = 6) out uint  outId;
 
 layout (set = 0, binding = 0) uniform CameraUBO
 {
@@ -63,6 +65,7 @@ void main()
 	outShadowMapPos = biasMat * lightUbo.lightSpaceVP * vec4(outPosWS, 1.0);
 	outMetallic = inMetallic;
 	outRoughness = inRoughness;
+	outId = inId;
 
     gl_Position = cameraUbo.viewProj * vec4(outPosWS, 1.0);
 }

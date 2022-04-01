@@ -4,6 +4,7 @@
 #include "Scene/Camera/ICamera.h"
 #include "Scene/Light/PointLight.h"
 
+#include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanShader.h"
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
@@ -44,6 +45,8 @@ namespace SG
 		VulkanContext&        mContext;
 		LoadStoreClearOp      mColorRtLoadStoreOp;
 		LoadStoreClearOp      mDepthRtLoadStoreOp;
+
+		VulkanCommandBuffer computeCmd;
 
 		RefPtr<VulkanPipelineSignature> mpGPUCullingPipelineSignature;
 		VulkanPipeline*                 mpGPUCullingPipeline;

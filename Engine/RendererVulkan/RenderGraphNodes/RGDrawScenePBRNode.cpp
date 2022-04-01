@@ -127,6 +127,8 @@ namespace SG
 			.AddCombindSamplerImage("prefilter_cubemap_sampler", "cubemap_prefilter")
 			.Build();
 
+		mContext.computeCommandPool->AllocateCommandBuffer(computeCmd);
+
 #ifdef SG_ENABLE_HDR
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
@@ -223,6 +225,17 @@ namespace SG
 	void RGDrawScenePBRNode::Draw(RGDrawInfo& context)
 	{
 		auto& pBuf = *context.pCmd;
+
+		mContext.computeCommandPool->Reset();
+		computeCmd.BeginRecord();
+		computeCmd.BindPipeline(mpGPUCullingPipeline);
+		computeCmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
+		UInt32 numGroup = (UInt32)(SSystem()->GetMainScene()->GetNumMesh() / 128) + 1; // 64 a group defined in shader.
+		computeCmd.Dispatch(numGroup, 1, 1);
+		computeCmd.EndRecord();
+
+		mContext.computeQueue.SubmitCommands(&computeCmd, nullptr, nullptr, nullptr);
+		mContext.computeQueue.WaitIdle();
 
 		// 1. Draw Skybox
 		{

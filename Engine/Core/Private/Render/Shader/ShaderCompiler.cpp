@@ -47,7 +47,7 @@ namespace SG
 		}
 		else if (type.basetype == spirv_cross::SPIRType::UInt)
 			if (type.vecsize == 1)
-				return EShaderDataType::eUnorm4;
+				return EShaderDataType::eUInt4;
 		else if (type.basetype == spirv_cross::SPIRType::Boolean)
 			return EShaderDataType::eBool;
 

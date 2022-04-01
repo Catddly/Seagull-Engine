@@ -522,6 +522,7 @@ namespace SG
 		case SG::EShaderDataType::eInt3:   return VK_FORMAT_R32G32B32_SINT; break;
 		case SG::EShaderDataType::eInt4:   return VK_FORMAT_R32G32B32A32_SINT; break;
 		case SG::EShaderDataType::eUnorm4: return VK_FORMAT_R8G8B8A8_UNORM; break;
+		case SG::EShaderDataType::eUInt4: return VK_FORMAT_R8G8B8A8_UINT; break;
 		case SG::EShaderDataType::eBool:   return VK_FORMAT_UNDEFINED; break;
 		case SG::EShaderDataType::eUndefined:
 		default:

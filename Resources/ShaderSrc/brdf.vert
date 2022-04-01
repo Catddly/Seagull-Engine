@@ -9,6 +9,7 @@ layout (location = 2) out vec3 outViewPosWS;
 layout (location = 3) out vec4 outShadowMapPos;
 layout (location = 4) out float outMetallic;
 layout (location = 5) out float outRoughness;
+layout (location = 6) out uint  outId;
 
 layout (set = 0, binding = 0) uniform CameraUBO
 {
@@ -56,6 +57,7 @@ void main()
 	outShadowMapPos = biasMat * lightUbo.lightSpaceVP * vec4(outPosWS, 1.0);
 	outMetallic = perObjectBuffer.objects[gl_BaseInstance].mrxx.x;
 	outRoughness = perObjectBuffer.objects[gl_BaseInstance].mrxx.y;
+	outId = gl_BaseInstance;
 
     gl_Position = cameraUbo.viewProj * vec4(outPosWS, 1.0);
 }

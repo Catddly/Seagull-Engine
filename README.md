@@ -23,6 +23,9 @@ Default Scene with phone shading.
 Defalut Scene with no skybox.
 ![](Screenshots/scene_no_skybox.png)
 
+GPU Culling (Red objects been culled out and white objects reserved)
+![](Screenshots/scene_gpu_culling.png)
+
 ## Building
 
 Open the Scripts folder, and run the GenerateProject-Win.bat.  

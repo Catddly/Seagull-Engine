@@ -3,7 +3,7 @@
 // defined work group size
 layout (local_size_x = 256) in; // 256 elements at a time
 
-layout (set = 0, binding = 0) uniform CullUBO
+layout (binding = 0) uniform CullUBO
 {
     vec3 viewPos;
     float zNear;
@@ -24,7 +24,7 @@ struct ObjectRenderData
 };
 
 // all object matrices
-layout(std140, set = 1, binding = 0) readonly buffer PerObjectBuffer
+layout(binding = 1, std430) readonly buffer PerObjectBuffer
 {
 	ObjectRenderData objects[];
 } perObjectBuffer;
@@ -35,7 +35,7 @@ struct CullingData
     float pad;
 };
 
-layout(std140, set = 1, binding = 1) buffer CullingOutputData
+layout(binding = 2, std430) buffer CullingOutputData
 {
     CullingData objects[];
 } cullingOutputData;
@@ -102,7 +102,7 @@ Sphere BuildBoundingSphereFromModel(mat4 model)
 
     Sphere bSphere;
     bSphere.center = globalCenter;
-    bSphere.radius = maxScale;
+    bSphere.radius = maxScale * 0.5f;
 
     return bSphere;
 }
@@ -137,10 +137,10 @@ bool IsOnOrInFrustum(Frustum frustum, Sphere sphere)
 void main()
 {
     // grab global ID
-	uint gID = gl_GlobalInvocationID.x;
+	uint gID = gl_GlobalInvocationID.x + 1; // skip the first one
 
     // make sure we don't access past the buffer size
-    if (gID < cullUbo.numObjects)
+    if (gID <= cullUbo.numObjects)
     {
         // calculate the frustum of the camera
         Frustum frustum = BuildFrustumFromCamera();
@@ -154,5 +154,6 @@ void main()
         {
             cullingOutputData.objects[gID].albedo = TEST_CULL_ALBEDO;
         }
+        cullingOutputData.objects[gID].pad = 0.0f;
     }
 }
