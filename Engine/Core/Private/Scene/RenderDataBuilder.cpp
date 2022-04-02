@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "Scene/RenderDataBuilder.h"
 
+#include "Scene/Mesh/MeshDataArchive.h"
+
 #include "System/Logger.h"
 
 namespace SG
@@ -40,13 +42,16 @@ namespace SG
 					node->second.instanceCount += 1;
 				}
 				auto& perInstanceData = mRenderMeshBuildDataMap[mesh.GetMeshID()].perInstanceData;
-				perInstanceData.emplace_back(mesh.GetPosition(), mesh.GetScale().x, mesh.GetMetallic(), mesh.GetRoughness(), mesh.GetObjectID());
+				perInstanceData.emplace_back(mesh.GetObjectID());
 			});
 
 		for (auto node : mRenderMeshBuildDataMap) // clear the memory that is not necessary
 		{
 			if (node.second.instanceCount == 1)
+			{
 				node.second.perInstanceData.set_capacity(0);
+				MeshDataArchive::GetInstance()->SetFlag(node.first, false);
+			}
 		}
 
 		mbIsRenderDataReady = true;

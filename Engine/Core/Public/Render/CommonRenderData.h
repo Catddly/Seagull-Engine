@@ -22,15 +22,11 @@ namespace SG
 
 	struct GPUCullUBO
 	{
+		Vector4f frustum[6];
 		Vector3f viewPos;
-		float    zNear;
-		Vector3f rightVec;
-		float    zFar;
-		Vector3f frontVec;
-		float    fovY;
-		Vector3f upVec;
-		float    aspectRatio;
+		float    pad;
 		UInt32   numObjects;
+		UInt32   numDrawCalls;
 	};
 
 	struct SkyboxUBO
@@ -68,7 +64,9 @@ namespace SG
 	{
 		Matrix4f model = Matrix4f(1.0f);
 		Matrix4f inverseTransposeModel = Matrix4f(1.0f);
-		Vector4f MRXX = { 0.2f, 0.85f, 0.0f, 0.0f }; // metallic, roughness, undefined, undefined
+		Vector2f MR = { 0.2f, 0.85f };
+		Int32    baseIndex = -1; // base index of the instance
+		UInt32   meshId;
 	};
 
 	struct CullingOutputData
@@ -79,15 +77,11 @@ namespace SG
 
 	struct PerInstanceData
 	{
-		Vector3f instancePos = Vector3f(0.0f, 0.0f, 0.0f);
-		float    instanceScale = 1.0f;
-		float    instanceMetallic = 0.0f;
-		float    instanceRoughness = 0.0f;
-		UInt32   objectId;
+		UInt32 objectId;
 
 		PerInstanceData() = default;
-		PerInstanceData(const Vector3f& insPos, float insScale, float metallic, float roughness, UInt32 id)
-			:instancePos(insPos), instanceScale(insScale), instanceMetallic(metallic), instanceRoughness(roughness), objectId(id)
+		PerInstanceData(UInt32 id)
+			:objectId(id)
 		{}
 	};
 

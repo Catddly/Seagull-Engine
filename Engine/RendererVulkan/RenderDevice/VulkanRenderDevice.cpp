@@ -7,6 +7,7 @@
 #include "Memory/Memory.h"
 
 #include "Math/MathBasic.h"
+#include "Math/Plane.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
@@ -56,7 +57,7 @@ namespace SG
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
 		// create all the mesh resource
-		IndirectRenderer::OnInit();
+		IndirectRenderer::OnInit(*mpContext);
 		IndirectRenderer::CollectRenderData(SSystem()->GetRenderDataBuilder());
 
 		BuildRenderGraph();

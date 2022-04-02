@@ -29,29 +29,24 @@ namespace SG
 		SG_CORE_API virtual bool IsViewDirty() const override { return mbIsViewDirty; }
 		SG_CORE_API virtual bool IsProjDirty() const override { return mbIsProjDirty; }
 
-		virtual Vector3f GetFrontVector() const override { return mFrontVec; }
-		virtual Vector3f GetUpVector() const { return mUpVec; }
-		virtual Vector3f GetRightVector() const { return mRightVec; }
+		SG_CORE_API virtual Frustum GetFrustum() const override;
 
 		SG_CORE_API virtual void ViewBeUpdated() override { mbIsViewDirty = false; }
 		SG_CORE_API virtual void ProjBeUpdated() override { mbIsProjDirty = false; }
 
 		SG_CORE_API virtual void OnUpdate(float deltaTime) { mDeltaTime = deltaTime; }
 	protected:
+		void CalcFrustum();
 		SG_CORE_API virtual void UpdateViewMatrix() {}
 	protected:
 		float    mDeltaTime = 0.0f;
 		Vector3f mPosition;
 		Vector3f mRotation;
 
-		Vector3f mUpVec = SG_ENGINE_UP_VEC();
-		Vector3f mFrontVec = SG_ENGINE_FRONT_VEC();
-		Vector3f mRightVec = SG_ENGINE_RIGHT_VEC();
-
 		Matrix4f mViewMatrix;
 		Matrix4f mProjectionMatrix;
 
-		float mFovyInDegrees = 0, mAspect = 0, mZNear = 0, mZFar = 0;
+		Frustum mFrustum;
 
 		mutable bool mbIsViewDirty = false;
 		mutable bool mbIsProjDirty = false;

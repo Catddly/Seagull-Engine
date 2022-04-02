@@ -80,6 +80,7 @@ namespace SG
 	void FirstPersonCamera::UpdateViewMatrix()
 	{
 		mViewMatrix = BuildViewMatrixCenter(mPosition, mPosition + mFrontVec, SG_ENGINE_UP_VEC());
+		CalcFrustum();
 	}
 
 }

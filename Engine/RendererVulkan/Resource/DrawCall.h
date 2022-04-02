@@ -5,6 +5,7 @@
 namespace SG
 {
 
+	// Same layout as VkDrawIndirectCommand
 	struct DrawIndirectCommand
 	{
 		UInt32 vertexCount;
@@ -13,6 +14,7 @@ namespace SG
 		UInt32 firstInstance;
 	};
 
+	// Same layout as VkDrawIndexedIndirectCommand
 	struct DrawIndexedIndirectCommand
 	{
 		UInt32 indexCount;
@@ -58,6 +60,7 @@ namespace SG
 
 		UInt32 first = 0;
 		UInt32 count = 0;
+		VulkanBuffer* pIndirectBuffer = nullptr;
 	};
 
 }

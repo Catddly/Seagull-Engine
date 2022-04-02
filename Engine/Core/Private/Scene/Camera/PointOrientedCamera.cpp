@@ -46,6 +46,7 @@ namespace SG
 	void PointOrientedCamera::UpdateViewMatrix()
 	{
 		mViewMatrix = BuildViewMatrixCenter(mPosition, mViewAtPoint, SG_ENGINE_UP_VEC());
+		CalcFrustum();
 	}
 
 }

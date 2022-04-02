@@ -4,6 +4,7 @@
 #include "Defs/Defs.h"
 
 #include "Math/MathBasic.h"
+#include "Math/Frustum.h"
 
 namespace SG
 {
@@ -23,9 +24,7 @@ namespace SG
 		virtual void     SetRotation(const Vector3f& rot) = 0;
 		virtual Vector3f GetRotation() const = 0;
 
-		virtual Vector3f GetFrontVector() const = 0;
-		virtual Vector3f GetUpVector() const = 0;
-		virtual Vector3f GetRightVector() const = 0;
+		virtual Frustum GetFrustum() const = 0;
 
 		virtual bool IsViewDirty() const = 0;
 		virtual bool IsProjDirty() const = 0;

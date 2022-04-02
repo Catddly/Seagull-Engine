@@ -3,6 +3,7 @@
 #include "VulkanDescriptor.h"
 
 #include "Stl/SmartPtr.h"
+#include "Stl/unordered_map.h"
 
 namespace SG
 {
@@ -18,7 +19,8 @@ namespace SG
 	class VulkanPipelineSignature
 	{
 	public:
-		VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages);
+		VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages,
+			unordered_map<string, string>& bufferAliasMap);
 		~VulkanPipelineSignature() = default;
 
 		class Builder
@@ -27,6 +29,7 @@ namespace SG
 			Builder(VulkanContext& context, RefPtr<VulkanShader> pShader) : mContext(context), mpShader(pShader) {}
 			~Builder() = default;
 
+			Builder& AddBufferAlias(const char* shaderBufferName, const char* actualBufferName);
 			//! You should add the combine image textures in the order written in the shader!
 			Builder& AddCombindSamplerImage(const char* samplerName, const char* textureName);
 			RefPtr<VulkanPipelineSignature> Build();
@@ -34,9 +37,11 @@ namespace SG
 			VulkanContext& mContext;
 			RefPtr<VulkanShader> mpShader;
 			vector<eastl::pair<const char*, const char*>> mCombineImages;
+			unordered_map<string, string> mBufferAliasMap;
 		};
 
-		static RefPtr<VulkanPipelineSignature> Create(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages);
+		static RefPtr<VulkanPipelineSignature> Create(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages,
+			unordered_map<string, string>& bufferAliasMap);
 	private:
 		friend class VulkanCommandBuffer;
 		friend class VulkanPipeline;

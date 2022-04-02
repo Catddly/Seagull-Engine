@@ -73,6 +73,7 @@ namespace SG
 	SG_INLINE float Log2(float v) { return ::log2f(v); }
 	SG_INLINE float Log10(float v) { return ::log10f(v); }
 	SG_INLINE float Log(float v) { return ::log(v); }
+	SG_INLINE float Sqrt(float v) { return ::sqrtf(v); }
 
 	SG_INLINE bool   IsPowerOfTwo(UInt32 v) { return !(v & (v - 1)); }
 	SG_INLINE UInt32 MinValueAlignTo(UInt32 v, UInt32 align) { return ((v + align - 1) / align) * align; }

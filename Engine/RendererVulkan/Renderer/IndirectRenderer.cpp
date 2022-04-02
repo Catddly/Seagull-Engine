@@ -2,34 +2,56 @@
 #include "IndirectRenderer.h"
 
 #include "Scene/Mesh/MeshDataArchive.h"
+#include "Render/Shader/ShaderComiler.h"
 
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
 namespace SG
 {
 
+	VulkanContext* IndirectRenderer::mpContext = nullptr;
 	VulkanCommandBuffer* IndirectRenderer::mpCmdBuf = nullptr;
 
 	eastl::fixed_map<EMeshPass, vector<IndirectDrawCall>, (UInt32)EMeshPass::NUM_MESH_PASS> IndirectRenderer::mDrawCallMap;
+	eastl::unordered_map<UInt32, UInt32> IndirectRenderer::mDrawCallIndexMap; // meshId -> drawCallIndex
 	UInt32 IndirectRenderer::mPackedVBCurrOffset = 0;
+	UInt32 IndirectRenderer::mPackedVIBCurrOffset = 0;
 	UInt32 IndirectRenderer::mPackedIBCurrOffset = 0;
+	UInt32 IndirectRenderer::mCurrDrawCallIndex = 0;
+
+	VulkanCommandBuffer IndirectRenderer::mComputeCmd;
+	RefPtr<VulkanPipelineSignature> IndirectRenderer::mpGPUCullingPipelineSignature = nullptr;
+	VulkanPipeline* IndirectRenderer::mpGPUCullingPipeline = nullptr;
+	RefPtr<VulkanShader> IndirectRenderer::mpGPUCullingShader = nullptr;
 
 	bool IndirectRenderer::mbRendererInit = false;
 	bool IndirectRenderer::mbBeginDraw = false;
 	bool IndirectRenderer::mbDrawCallReady = false;
 
-	void IndirectRenderer::OnInit()
+	void IndirectRenderer::OnInit(VulkanContext& context)
 	{
+		mpContext = &context;
+
 		BufferCreateDesc indirectCI = {};
 		indirectCI.name = "indirectBuffer";
 		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
 		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
 		if (VK_RESOURCE()->CreateBuffer(indirectCI))
 			mbRendererInit = true;
+
+		mpGPUCullingShader = VulkanShader::Create(mpContext->device);
+		ShaderCompiler compiler;
+		compiler.CompileGLSLShader("culling/culling", mpGPUCullingShader.get());
+
+		mpContext->computeCommandPool->AllocateCommandBuffer(mComputeCmd);
 	}
 
 	void IndirectRenderer::OnShutdown()
 	{
+		mpGPUCullingShader.reset();
+		mpGPUCullingPipelineSignature.reset();
+		Memory::Delete(mpGPUCullingPipeline);
+		mpContext->computeCommandPool->FreeCommandBuffer(mComputeCmd);
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer");
 		mbRendererInit = false;
 	}
@@ -43,17 +65,31 @@ namespace SG
 		}
 
 		vector<DrawIndexedIndirectCommand> indirectCommands;
+		indirectCommands.resize(4);
 		pRenderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RenderMeshBuildData& buildData)
 			{
+				// insert new drawcall index
+				mDrawCallIndexMap[meshId] = mCurrDrawCallIndex++;
+
 				if (buildData.instanceCount > 1) // move it to the Forward Instance Mesh Pass
 				{
-					BufferCreateDesc bufferCreateDesc = {};
-					bufferCreateDesc.name = (string("instance_vb_") + eastl::to_string(meshId)).c_str();
-					bufferCreateDesc.pInitData = buildData.perInstanceData.data();
-					bufferCreateDesc.bufferSize = sizeof(PerInstanceData) * buildData.instanceCount;
-					bufferCreateDesc.type = EBufferType::efVertex;
+					const UInt64 ivbSize = sizeof(PerInstanceData) * buildData.instanceCount;
+					if (mPackedVIBCurrOffset + ivbSize > SG_MAX_PACKED_INSTANCE_BUFFER_SIZE)
+					{
+						SG_LOG_ERROR("Instance buffer exceed boundary!");
+						SG_ASSERT(false);
+					}
 
-					VK_RESOURCE()->CreateBuffer(bufferCreateDesc, false);
+					// create one big vertex buffer
+					BufferCreateDesc vibCI = {};
+					vibCI.name = "instanceBuffer";
+					vibCI.bufferSize = SG_MAX_PACKED_INSTANCE_BUFFER_SIZE;
+					vibCI.type = EBufferType::efVertex | EBufferType::efStorage;
+					vibCI.pInitData = buildData.perInstanceData.data();
+					vibCI.dataSize = static_cast<UInt32>(ivbSize);
+					vibCI.dataOffset = static_cast<UInt32>(mPackedVIBCurrOffset);
+					vibCI.bSubBufer = true;
+					VK_RESOURCE()->CreateBuffer(vibCI, true);
 					SG_LOG_DEBUG("Have instance!");
 				}
 
@@ -106,7 +142,8 @@ namespace SG
 				indirectDc.drawMesh.instanceOffset = 0;
 
 				indirectDc.count = 1;
-				indirectDc.first = static_cast<UInt32>(indirectCommands.size());
+				indirectDc.first = meshId;
+				indirectDc.pIndirectBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer");
 
 				if (buildData.instanceCount == 1)
 				{
@@ -114,7 +151,9 @@ namespace SG
 				}
 				else
 				{
-					indirectDc.drawMesh.pInstanceBuffer = VK_RESOURCE()->GetBuffer((string("instance_vb_") + eastl::to_string(meshId)));
+					indirectDc.drawMesh.pInstanceBuffer = VK_RESOURCE()->GetBuffer("instanceBuffer");
+					indirectDc.drawMesh.instanceOffset = mPackedVIBCurrOffset;
+					mPackedVIBCurrOffset += static_cast<UInt32>(sizeof(PerInstanceData) * buildData.instanceCount);
 					mDrawCallMap[EMeshPass::eForwardInstanced].emplace_back(eastl::move(indirectDc));
 				}
 
@@ -127,11 +166,19 @@ namespace SG
 				indirect.vertexOffset = 0;
 				//indirect.vertexOffset = mPackedVBCurrOffset / (sizeof(float) * 6);
 
-				indirectCommands.emplace_back(eastl::move(indirect));
+				indirectCommands[meshId] = eastl::move(indirect);
 
 				mPackedVBCurrOffset += static_cast<UInt32>(vbSize);
 				mPackedIBCurrOffset += static_cast<UInt32>(ibSize);
 			});
+
+		mpGPUCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpGPUCullingShader)
+			.Build();
+
+		mpGPUCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
+			.BindSignature(mpGPUCullingPipelineSignature.get())
+			.BindShader(mpGPUCullingShader.get())
+			.Build();
 
 		UInt32 offset = 0;
 		auto* pIndirectBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer");
@@ -169,6 +216,22 @@ namespace SG
 		mpCmdBuf = nullptr;
 	}
 
+	void IndirectRenderer::DoCulling()
+	{
+		mpContext->computeCommandPool->Reset();
+		mComputeCmd.BeginRecord();
+		mComputeCmd.BindPipeline(mpGPUCullingPipeline);
+		mComputeCmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
+
+		mComputeCmd.Dispatch(1, 1, 1);
+
+		mComputeCmd.EndRecord();
+
+		// temporary: should use pipeline barrier
+		mpContext->computeQueue.SubmitCommands(&mComputeCmd, nullptr, nullptr, nullptr);
+		mpContext->computeQueue.WaitIdle();
+	}
+
 	void IndirectRenderer::Draw(EMeshPass meshPass)
 	{
 		for (auto& dc : mDrawCallMap[meshPass])
@@ -176,7 +239,7 @@ namespace SG
 			BindMesh(dc.drawMesh);
 			BindMaterial(dc.drawMaterial);
 
-			mpCmdBuf->DrawIndexedIndirect(VK_RESOURCE()->GetBuffer("indirectBuffer"), dc.first * sizeof(DrawIndexedIndirectCommand), dc.count, sizeof(DrawIndexedIndirectCommand));
+			mpCmdBuf->DrawIndexedIndirect(dc.pIndirectBuffer, dc.first * sizeof(DrawIndexedIndirectCommand), dc.count, sizeof(DrawIndexedIndirectCommand));
 		}
 	}
 

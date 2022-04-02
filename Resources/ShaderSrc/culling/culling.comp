@@ -1,30 +1,28 @@
 #version 460
 
 // defined work group size
-layout (local_size_x = 256) in; // 256 elements at a time
+layout (local_size_x = 128) in; // 128 elements at a time
 
 layout (binding = 0) uniform CullUBO
 {
-    vec3 viewPos;
-    float zNear;
-    vec3 rightVec;
-    float zFar;
-    vec3 frontVec;
-    float fovY;
-    vec3 upVec;
-    float aspectRatio;
-    uint numObjects;
+    vec4  frustum[6];
+    vec3  viewPos;
+    float pad;
+    uint  numObjects;
+    uint  numDrawCalls;
 } cullUbo;
 
 struct ObjectRenderData
 {
 	mat4 model;
 	mat4 inverseTransposeModel;
-	vec4 mrxx;
+	vec2 mrif;
+    int  baseIndex;
+    uint meshId;
 };
 
 // all object matrices
-layout(binding = 1, std430) readonly buffer PerObjectBuffer
+layout(binding = 1, std430) buffer PerObjectBuffer
 {
 	ObjectRenderData objects[];
 } perObjectBuffer;
@@ -35,16 +33,35 @@ struct CullingData
     float pad;
 };
 
-layout(binding = 2, std430) buffer CullingOutputData
+layout(binding = 2, std430) writeonly buffer CullingOutputData
 {
     CullingData objects[];
 } cullingOutputData;
 
-struct Plane
+// Same layout as VkDrawIndexedIndirectCommand
+struct IndexedIndirectCommand 
 {
-    vec3 normal;
-    vec3 center;
+	uint indexCount;
+	uint instanceCount;
+	uint firstIndex;
+	uint vertexOffset;
+	uint firstInstance;
 };
+
+layout(binding = 3, std430) buffer IndirectBuffer
+{
+    IndexedIndirectCommand drawcalls[];
+} indirectBuffer;
+
+struct InstanceData
+{
+    uint objectId;
+};
+
+layout(binding = 4, std430) buffer InstanceBuffer
+{
+    InstanceData objects[];
+} instanceBuffer;
 
 struct Sphere
 {
@@ -52,45 +69,7 @@ struct Sphere
     float radius;
 };
 
-struct Frustum
-{
-    Plane nearPlane;
-    Plane farPlane;
-    Plane rightPlane;
-    Plane leftPlane;
-    Plane topPlane;
-    Plane bottomPlane;
-};
-
-Frustum BuildFrustumFromCamera()
-{
-    Frustum frustum;
-    const float halfVLength = cullUbo.zFar * tan(cullUbo.fovY * 0.5f);
-    const float halfHLength = cullUbo.aspectRatio * halfVLength;
-    const vec3 frontMulFar = cullUbo.frontVec * cullUbo.zFar;
-
-    frustum.nearPlane.center = cullUbo.viewPos + cullUbo.zNear * cullUbo.frontVec;
-    frustum.nearPlane.normal = cullUbo.frontVec;
-
-    frustum.farPlane.center = cullUbo.viewPos + frontMulFar;
-    frustum.farPlane.normal = -cullUbo.frontVec;
-
-    frustum.rightPlane.center = cullUbo.viewPos;
-    frustum.rightPlane.normal = cross(cullUbo.upVec, frontMulFar + cullUbo.rightVec * halfHLength);
-
-    frustum.leftPlane.center = cullUbo.viewPos;
-    frustum.leftPlane.normal = cross(frontMulFar - cullUbo.rightVec * halfHLength, cullUbo.upVec);
-
-    frustum.topPlane.center = cullUbo.viewPos;
-    frustum.topPlane.normal = cross(cullUbo.rightVec, frontMulFar - cullUbo.upVec * halfVLength);
-
-    frustum.bottomPlane.center = cullUbo.viewPos;
-    frustum.bottomPlane.normal = cross(frontMulFar + cullUbo.upVec * halfVLength, cullUbo.rightVec);
-
-    return frustum;
-}
-
-Sphere BuildBoundingSphereFromModel(mat4 model)
+Sphere BuildBoundingSphereFromModelMat(mat4 model)
 {
     const vec3 xColumn = { model[0][0], model[1][0], model[2][0] };
     const vec3 yColumn = { model[0][1], model[1][1], model[2][1] };
@@ -102,33 +81,38 @@ Sphere BuildBoundingSphereFromModel(mat4 model)
 
     Sphere bSphere;
     bSphere.center = globalCenter;
-    bSphere.radius = maxScale * 0.5f;
+    bSphere.radius = maxScale;
 
     return bSphere;
 }
 
-// here we use bounding sphere
-bool IsOnOrForwardPlane(Plane plane, Sphere sphere)
+bool IsInFrustum(Sphere sphere)
 {
-    float signDistance = dot(plane.normal, sphere.center - plane.center);
-    return (signDistance > 0.0) && (signDistance > sphere.radius);
+    for (int i = 0; i < 6; i++)
+    {
+        // outside the frustum
+        if (dot(vec4(sphere.center, 1.0), cullUbo.frustum[i]) + sphere.radius < 0.0)
+			return false;
+    }
+    return true;
 }
 
-bool IsOnOrInFrustum(Frustum frustum, Sphere sphere)
+vec3 ExtractPostionFromMat(mat4 model)
 {
-    if (!IsOnOrForwardPlane(frustum.nearPlane, sphere))
-        return false;
-    if (!IsOnOrForwardPlane(frustum.farPlane, sphere))
-        return false;
-    if (!IsOnOrForwardPlane(frustum.rightPlane, sphere))
-        return false;
-    if (!IsOnOrForwardPlane(frustum.leftPlane, sphere))
-        return false;
-    if (!IsOnOrForwardPlane(frustum.topPlane, sphere))
-        return false;
-    if (!IsOnOrForwardPlane(frustum.bottomPlane, sphere))
-        return false;
-    return true;
+    vec3 pos;
+    pos.x = model[0][3];
+    pos.y = model[1][3];
+    pos.z = model[2][3];
+    return pos;
+}
+
+float ExtractScaleFromMat(mat4 model)
+{
+    vec3 col;
+    col.x = model[0][0];
+    col.y = model[0][1];
+    col.z = model[0][2];
+    return sqrt(dot(col, col));
 }
 
 #define TEST_NOT_CULL_ALBEDO vec3(1.0, 1.0, 1.0)
@@ -137,23 +121,42 @@ bool IsOnOrInFrustum(Frustum frustum, Sphere sphere)
 void main()
 {
     // grab global ID
-	uint gID = gl_GlobalInvocationID.x + 1; // skip the first one
+	uint gID = gl_GlobalInvocationID.x;
+
+    if (gID == 0) // skip the first one, and clear the status
+    {
+        //for (int i = 0; i < cullUbo.numDrawCalls; ++i)
+        //{
+        //    indirectBuffer.drawcalls[i].instanceCount = 0;
+        //}
+        return;
+    }
 
     // make sure we don't access past the buffer size
     if (gID <= cullUbo.numObjects)
     {
-        // calculate the frustum of the camera
-        Frustum frustum = BuildFrustumFromCamera();
-        Sphere sphere = BuildBoundingSphereFromModel(perObjectBuffer.objects[gID].model);
+        // calculate the bounding sphere from model matrix
+        mat4 model = perObjectBuffer.objects[gID].model;
+        Sphere sphere = BuildBoundingSphereFromModelMat(model);
 
-        if (IsOnOrInFrustum(frustum, sphere))
+        if (IsInFrustum(sphere)) // in the frustum, camera can see it, don't cull
         {
+            uint drawCallIndex = perObjectBuffer.objects[gID].meshId;
+
+            //if (perObjectBuffer.objects[gID].mrif.z > 0.0) // have instance
+            //{
+            //    // data race??
+            //    uint instanceId = indirectBuffer.drawcalls[drawCallIndex].instanceCount;
+            //    instanceBuffer.objects[instanceId].position = ExtractPostionFromMat(model);
+            //    instanceBuffer.objects[instanceId].scale = ExtractScaleFromMat(model);
+            //    instanceBuffer.objects[instanceId].metallic = 0.63333333333333;
+            //    atomicAdd(indirectBuffer.drawcalls[drawCallIndex].instanceCount, 1);
+            //}
             cullingOutputData.objects[gID].albedo = TEST_NOT_CULL_ALBEDO;
         }
-        else
+        else // camera can't see it, cull out.
         {
             cullingOutputData.objects[gID].albedo = TEST_CULL_ALBEDO;
         }
-        cullingOutputData.objects[gID].pad = 0.0f;
     }
 }

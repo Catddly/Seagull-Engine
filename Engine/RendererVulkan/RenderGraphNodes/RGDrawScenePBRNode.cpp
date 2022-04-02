@@ -35,8 +35,6 @@ namespace SG
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
 	{
-		PrepareGPUCulling();
-
 		// init render resource
 #ifdef SG_ENABLE_HDR
 		TextureCreateDesc rtCI;
@@ -127,8 +125,6 @@ namespace SG
 			.AddCombindSamplerImage("prefilter_cubemap_sampler", "cubemap_prefilter")
 			.Build();
 
-		mContext.computeCommandPool->AllocateCommandBuffer(computeCmd);
-
 #ifdef SG_ENABLE_HDR
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
@@ -148,7 +144,6 @@ namespace SG
 
 	RGDrawScenePBRNode::~RGDrawScenePBRNode()
 	{
-		Memory::Delete(mpGPUCullingPipeline);
 		Memory::Delete(mpSkyboxPipeline);
 		Memory::Delete(mpInstancePipeline);
 		Memory::Delete(mpPipeline);
@@ -226,16 +221,7 @@ namespace SG
 	{
 		auto& pBuf = *context.pCmd;
 
-		mContext.computeCommandPool->Reset();
-		computeCmd.BeginRecord();
-		computeCmd.BindPipeline(mpGPUCullingPipeline);
-		computeCmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
-		UInt32 numGroup = (UInt32)(SSystem()->GetMainScene()->GetNumMesh() / 128) + 1; // 64 a group defined in shader.
-		computeCmd.Dispatch(numGroup, 1, 1);
-		computeCmd.EndRecord();
-
-		mContext.computeQueue.SubmitCommands(&computeCmd, nullptr, nullptr, nullptr);
-		mContext.computeQueue.WaitIdle();
+		IndirectRenderer::DoCulling();
 
 		// 1. Draw Skybox
 		{
@@ -676,21 +662,6 @@ namespace SG
 		Memory::Delete(pTempFrameBuffer);
 		Memory::Delete(pTempVulkanRenderPass);
 		VK_RESOURCE()->DeleteRenderTarget("cubemap_prefilter_rt");
-	}
-
-	void RGDrawScenePBRNode::PrepareGPUCulling()
-	{
-		mpGPUCullingShader = VulkanShader::Create(mContext.device);
-		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("culling/culling", mpGPUCullingShader.get());
-
-		mpGPUCullingPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpGPUCullingShader)
-			.Build();
-
-		mpGPUCullingPipeline = VulkanPipeline::Builder(mContext.device, EPipelineType::eCompute)
-			.BindSignature(mpGPUCullingPipelineSignature.get())
-			.BindShader(mpGPUCullingShader.get())
-			.Build();
 	}
 
 }

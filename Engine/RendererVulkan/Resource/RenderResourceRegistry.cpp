@@ -73,16 +73,18 @@ namespace SG
 		auto& cameraUbo = GetCameraUBO();
 		auto* pCamera = pScene->GetMainCamera();
 		cameraUbo.proj = pCamera->GetProjMatrix();
+
+		Frustum cameraFrustum = pCamera->GetFrustum();
 		auto& cullUbo = GetGPUCullUBO();
-		cullUbo.frontVec = pCamera->GetFrontVector();
-		cullUbo.upVec = pCamera->GetUpVector();
-		cullUbo.rightVec = pCamera->GetRightVector();
-		cullUbo.zNear = 0.01f;
-		cullUbo.zFar = 256.0f;
-		cullUbo.fovY = glm::radians(20.0f);
-		cullUbo.aspectRatio = OperatingSystem::GetMainWindow()->GetAspectRatio();
+		cullUbo.frustum[0] = cameraFrustum.GetTopPlane();
+		cullUbo.frustum[1] = cameraFrustum.GetBottomPlane();
+		cullUbo.frustum[2] = cameraFrustum.GetLeftPlane();
+		cullUbo.frustum[3] = cameraFrustum.GetRightPlane();
+		cullUbo.frustum[4] = cameraFrustum.GetFrontPlane();
+		cullUbo.frustum[5] = cameraFrustum.GetBackPlane();
 		cullUbo.viewPos = pCamera->GetPosition();
 		cullUbo.numObjects = static_cast<UInt32>(pScene->GetNumMesh());
+		cullUbo.numDrawCalls = 4;
 		GetBuffer("cullUbo")->UploadData(&cullUbo);
 		auto& skyboxUbo = GetSkyboxUBO();
 		skyboxUbo.proj = cameraUbo.proj;
@@ -98,13 +100,17 @@ namespace SG
 		compositionUbo.exposure = 1.0f;
 
 		auto* pSSBOObject = GetBuffer("perObjectBuffer");
+		ObjcetRenderData rd;
+		rd.meshId = -1;
+		pSSBOObject->UploadData(&rd, sizeof(ObjcetRenderData), 0);
 		// update all the render data of the render mesh
 		pScene->TraverseMesh([&](const Mesh& mesh)
 			{
 				ObjcetRenderData renderData;
 				renderData.model = mesh.GetTransform();
 				renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
-				renderData.MRXX = { mesh.GetMetallic(), mesh.GetRoughness(), 0.0f, 0.0f };
+				renderData.meshId = mesh.GetMeshID();
+				renderData.MR = { mesh.GetMetallic(), mesh.GetRoughness() };
 				pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.GetObjectID());
 			});
 	}
@@ -154,10 +160,14 @@ namespace SG
 		auto* pCamera = pLScene->GetMainCamera();
 		if (pCamera->IsViewDirty())
 		{
+			Frustum cameraFrustum = pCamera->GetFrustum();
 			auto& cullUbo = GetGPUCullUBO();
-			cullUbo.frontVec = pCamera->GetFrontVector();
-			cullUbo.upVec = pCamera->GetUpVector();
-			cullUbo.rightVec = pCamera->GetRightVector();
+			cullUbo.frustum[0] = cameraFrustum.GetTopPlane();
+			cullUbo.frustum[1] = cameraFrustum.GetBottomPlane();
+			cullUbo.frustum[2] = cameraFrustum.GetLeftPlane();
+			cullUbo.frustum[3] = cameraFrustum.GetRightPlane();
+			cullUbo.frustum[4] = cameraFrustum.GetFrontPlane();
+			cullUbo.frustum[5] = cameraFrustum.GetBackPlane();
 			cullUbo.viewPos = pCamera->GetPosition();
 			UpdataBufferData("cullUbo", &cullUbo);
 
@@ -203,8 +213,17 @@ namespace SG
 		cameraUbo.proj = pScene->GetMainCamera()->GetProjMatrix();
 		skyboxUbo.proj = cameraUbo.proj;
 		cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
+
+		Frustum cameraFrustum = pScene->GetMainCamera()->GetFrustum();
 		auto& cullUbo = GetGPUCullUBO();
-		cullUbo.aspectRatio = ASPECT;
+		cullUbo.frustum[0] = cameraFrustum.GetTopPlane();
+		cullUbo.frustum[1] = cameraFrustum.GetBottomPlane();
+		cullUbo.frustum[2] = cameraFrustum.GetLeftPlane();
+		cullUbo.frustum[3] = cameraFrustum.GetRightPlane();
+		cullUbo.frustum[4] = cameraFrustum.GetFrontPlane();
+		cullUbo.frustum[5] = cameraFrustum.GetBackPlane();
+		UpdataBufferData("cullUbo", &cullUbo);
+
 		VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
 		VK_RESOURCE()->UpdataBufferData("skyboxUbo", &skyboxUbo);
 	}
