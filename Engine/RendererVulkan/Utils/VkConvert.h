@@ -14,6 +14,8 @@
 namespace SG
 {
 
+	VkAccessFlags ToVKAccessFlags(EPipelineStage stage);
+
 	VkVertexInputRate ToVkVertexInputRate(EVertexInputRate vertexip);
 	VkPolygonMode ToVkPolygonMode(EPolygonMode polymode);
 	VkCullModeFlags ToVkCullMode(ECullMode cullmode);

@@ -49,10 +49,13 @@ namespace SG
 		static UInt32 mCurrDrawCallIndex;
 
 		// resource to do gpu culling and record indirect draw commands.
-		static VulkanCommandBuffer mComputeCmd;
 		static RefPtr<VulkanPipelineSignature> mpGPUCullingPipelineSignature;
 		static VulkanPipeline*                 mpGPUCullingPipeline;
 		static RefPtr<VulkanShader>            mpGPUCullingShader;
+
+		static RefPtr<VulkanPipelineSignature> mpDrawCallCompactPipelineSignature;
+		static VulkanPipeline*                 mpDrawCallCompactPipeline;
+		static RefPtr<VulkanShader>            mpDrawCallCompactShader;
 
 		static bool mbRendererInit;
 		static bool mbBeginDraw;

@@ -114,6 +114,8 @@ namespace SG
 		VkPhysicalDeviceFeatures deviceFeatures = {};
 		if (physicalDeviceFeatures.samplerAnisotropy) // if device support anisotropy, enable it.
 			deviceFeatures.samplerAnisotropy = VK_TRUE;
+		if (physicalDeviceFeatures.multiDrawIndirect)
+			deviceFeatures.multiDrawIndirect = VK_TRUE;
 
 		// to support swapchain
 		vector<const char*> deviceExtensions = {};
@@ -315,18 +317,18 @@ namespace SG
 		VkPipelineStageFlags waitStageMask = {};
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		if (pSignalSemaphore && pWaitSemaphore)
+		if (pWaitSemaphore && pSignalSemaphore)
 		{
 			waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		}
 		submitInfo.pWaitDstStageMask = &waitStageMask;
 
-		if (pSignalSemaphore)
+		if (pWaitSemaphore)
 		{
 			submitInfo.pWaitSemaphores = &pWaitSemaphore->semaphore;
 			submitInfo.waitSemaphoreCount = 1;
 		}
-		if (pWaitSemaphore)
+		if (pSignalSemaphore)
 		{
 			submitInfo.pSignalSemaphores = &pSignalSemaphore->semaphore;
 			submitInfo.signalSemaphoreCount = 1;
@@ -334,9 +336,49 @@ namespace SG
 		submitInfo.pCommandBuffers = &pCmdBuf->commandBuffer;
 		submitInfo.commandBufferCount = 1;
 
-		VK_CHECK(vkQueueSubmit(handle, 1, &submitInfo, fence ? fence->fence : nullptr),
+		VK_CHECK(vkQueueSubmit(handle, 1, &submitInfo, fence ? fence->fence : VK_NULL_HANDLE),
 			SG_LOG_ERROR("Failed to submit render commands to queue!");
 			return false;);
+		return true;
+	}
+
+	bool VulkanQueue::SubmitCommands(VulkanCommandBuffer* pCmdBuf, VulkanSemaphore* pSignalSemaphore, VulkanSemaphore* pWaitSemaphore1, VulkanSemaphore* pWaitSemaphore2, VulkanFence* fence)
+	{
+		if (pCmdBuf->queueFamilyIndex != familyIndex) // check if the command is submitted to the right queue
+		{
+			SG_LOG_ERROR("Vulkan command buffer had been submit to the wrong queue! (Submit To: %s)",
+				(type == EQueueType::eGraphic) ? "Graphic" : (type == EQueueType::eCompute ? "Compute" : "Transfer"));
+			return false;
+		}
+
+		// pipeline stage at which the queue submission will wait (via pWaitSemaphores)
+		// the submit info structure specifies a command buffer queue submission batch
+		VkPipelineStageFlags waitStageMask[2] = {};
+		VkSubmitInfo submitInfo = {};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		waitStageMask[0] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		waitStageMask[1] = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		submitInfo.pWaitDstStageMask = waitStageMask;
+
+		VkSemaphore semaphores[2] = {};
+		semaphores[0] = pWaitSemaphore1->semaphore;
+		semaphores[1] = pWaitSemaphore2->semaphore;
+		if (pWaitSemaphore1 && pWaitSemaphore2)
+		{
+			submitInfo.pWaitSemaphores = semaphores;
+			submitInfo.waitSemaphoreCount = 2;
+		}
+		if (pSignalSemaphore)
+		{
+			submitInfo.pSignalSemaphores = &pSignalSemaphore->semaphore;
+			submitInfo.signalSemaphoreCount = 1;
+		}
+		submitInfo.pCommandBuffers = &pCmdBuf->commandBuffer;
+		submitInfo.commandBufferCount = 1;
+
+		VK_CHECK(vkQueueSubmit(handle, 1, &submitInfo, fence ? fence->fence : VK_NULL_HANDLE),
+			SG_LOG_ERROR("Failed to submit render commands to queue!");
+		return false;);
 		return true;
 	}
 

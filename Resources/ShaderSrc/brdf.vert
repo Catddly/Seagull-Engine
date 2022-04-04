@@ -34,9 +34,8 @@ struct ObjectRenderData
 {
 	mat4 model;
 	mat4 inverseTransposeModel;
-	vec2 mrif;
-    int  baseIndex;
-    uint meshId;
+	vec3 mrif;
+    int meshId;
 };
 
 // all object matrices

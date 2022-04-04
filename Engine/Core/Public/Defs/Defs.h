@@ -97,5 +97,7 @@
 #define interface  __STRUCT__
 #endif
 
+#define BIT(x) (1 << x)
+
 // render relative
 #define SG_ENABLE_HDR 1

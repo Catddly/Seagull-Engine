@@ -16,13 +16,12 @@ struct ObjectRenderData
 {
 	mat4 model;
 	mat4 inverseTransposeModel;
-	vec2 mrif;
-    int  baseIndex;
-    uint meshId;
+	vec3 mrif;
+    int meshId;
 };
 
 // all object matrices
-layout(binding = 1, std430) buffer PerObjectBuffer
+layout(binding = 1, std430) readonly buffer PerObjectBuffer
 {
 	ObjectRenderData objects[];
 } perObjectBuffer;
@@ -48,7 +47,7 @@ struct IndexedIndirectCommand
 	uint firstInstance;
 };
 
-layout(binding = 3, std430) buffer IndirectBuffer
+layout(binding = 3, std430) writeonly buffer IndirectBuffer
 {
     IndexedIndirectCommand drawcalls[];
 } indirectBuffer;
@@ -62,6 +61,17 @@ layout(binding = 4, std430) buffer InstanceBuffer
 {
     InstanceData objects[];
 } instanceBuffer;
+
+struct InstanceOutputData
+{
+    int testIndex;
+    uint baseOffset; // such a waste
+};
+
+layout(binding = 5, std430) writeonly buffer InstanceOutputBuffer
+{
+    InstanceOutputData datas[];
+} instanceOutput;
 
 struct Sphere
 {
@@ -97,24 +107,6 @@ bool IsInFrustum(Sphere sphere)
     return true;
 }
 
-vec3 ExtractPostionFromMat(mat4 model)
-{
-    vec3 pos;
-    pos.x = model[0][3];
-    pos.y = model[1][3];
-    pos.z = model[2][3];
-    return pos;
-}
-
-float ExtractScaleFromMat(mat4 model)
-{
-    vec3 col;
-    col.x = model[0][0];
-    col.y = model[0][1];
-    col.z = model[0][2];
-    return sqrt(dot(col, col));
-}
-
 #define TEST_NOT_CULL_ALBEDO vec3(1.0, 1.0, 1.0)
 #define TEST_CULL_ALBEDO     vec3(1.0, 0.0, 0.0)
 
@@ -125,10 +117,11 @@ void main()
 
     if (gID == 0) // skip the first one, and clear the status
     {
-        //for (int i = 0; i < cullUbo.numDrawCalls; ++i)
-        //{
-        //    indirectBuffer.drawcalls[i].instanceCount = 0;
-        //}
+        for (int i = 0; i < cullUbo.numDrawCalls; ++i) // clear the draw call status
+        {
+            atomicExchange(indirectBuffer.drawcalls[i].instanceCount, 0);
+        }
+        instanceOutput.datas[0].testIndex = -1;
         return;
     }
 
@@ -141,22 +134,18 @@ void main()
 
         if (IsInFrustum(sphere)) // in the frustum, camera can see it, don't cull
         {
-            uint drawCallIndex = perObjectBuffer.objects[gID].meshId;
-
-            //if (perObjectBuffer.objects[gID].mrif.z > 0.0) // have instance
-            //{
-            //    // data race??
-            //    uint instanceId = indirectBuffer.drawcalls[drawCallIndex].instanceCount;
-            //    instanceBuffer.objects[instanceId].position = ExtractPostionFromMat(model);
-            //    instanceBuffer.objects[instanceId].scale = ExtractScaleFromMat(model);
-            //    instanceBuffer.objects[instanceId].metallic = 0.63333333333333;
-            //    atomicAdd(indirectBuffer.drawcalls[drawCallIndex].instanceCount, 1);
-            //}
+            int drawCallIndex = perObjectBuffer.objects[gID].meshId;
+            if (perObjectBuffer.objects[gID].mrif.z > 0.0) // have instance
+            {
+                instanceOutput.datas[gID].testIndex = drawCallIndex;
+            }
+            atomicAdd(indirectBuffer.drawcalls[drawCallIndex].instanceCount, 1);
             cullingOutputData.objects[gID].albedo = TEST_NOT_CULL_ALBEDO;
         }
-        else // camera can't see it, cull out.
+        else // camera can't see it, cull out
         {
             cullingOutputData.objects[gID].albedo = TEST_CULL_ALBEDO;
+            instanceOutput.datas[gID].testIndex = -1;
         }
     }
 }

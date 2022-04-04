@@ -71,9 +71,10 @@ namespace SG
 	void BasicCamera::CalcFrustum()
 	{
 		// for test, force set the fovy to 20.f
-		Matrix4f proj = BuildPerspectiveMatrix(glm::radians(25.0f), gAspect, 0.01f, 256.0f);
+		//Matrix4f proj = BuildPerspectiveMatrix(glm::radians(25.0f), gAspect, 0.01f, 256.0f);
 		// fast way to build a frustum
-		Matrix4f viewProj = proj * mViewMatrix;
+		//Matrix4f viewProj = proj * mViewMatrix;
+		Matrix4f viewProj = mProjectionMatrix * mViewMatrix;
 
 		Plane topPlane({
 			viewProj[0].w - viewProj[0].y,

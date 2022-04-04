@@ -1,0 +1,75 @@
+#version 460
+
+// defined work group size
+layout (local_size_x = 16) in; // 16 elements at a time
+
+layout (binding = 0) uniform CullUBO
+{
+    vec4  frustum[6];
+    vec3  viewPos;
+    float pad;
+    uint  numObjects;
+    uint  numDrawCalls;
+} cullUbo;
+
+struct ObjectRenderData
+{
+	mat4 model;
+	mat4 inverseTransposeModel;
+	vec3 mrif;
+    int meshId;
+};
+
+// all object matrices
+layout(binding = 1, std430) readonly buffer PerObjectBuffer
+{
+	ObjectRenderData objects[];
+} perObjectBuffer;
+
+struct InstanceData
+{
+    uint objectId;
+};
+
+layout(binding = 2, std430) writeonly buffer InstanceBuffer
+{
+    InstanceData objects[];
+} instanceBuffer;
+
+struct InstanceOutputData
+{
+    int testIndex;
+    uint baseOffset; // such a waste
+};
+
+layout(binding = 3, std430) readonly buffer InstanceOutputBuffer
+{
+    InstanceOutputData datas[];
+} instanceOutput;
+
+void main()
+{
+    // grab global ID
+	uint gID = gl_GlobalInvocationID.x;
+
+    if (gID == 0) // do once
+    {
+        uint index = 0;
+        int prevTestIndex = -1;
+        for (int i = 1; i <= cullUbo.numObjects; ++i)
+        {
+            int testIndex = instanceOutput.datas[i].testIndex;
+            if (testIndex != -1) // it is not been cull out by the frustum
+            {
+                if (prevTestIndex != testIndex) // beacause meshId in perObjectBuffer is sequential, so we can do it this way.
+                {
+                    prevTestIndex = testIndex;
+                    index = 0;
+                }
+
+                instanceBuffer.objects[index + instanceOutput.datas[i].baseOffset].objectId = i; // set the correct objectId to instance buffer
+                ++index;
+            }
+        }
+    }
+}

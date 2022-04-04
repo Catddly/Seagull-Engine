@@ -716,6 +716,46 @@ namespace SG
 		return ret;
 	}
 
+	VkAccessFlags ToVKAccessFlags(EPipelineStage stage)
+	{
+		VkAccessFlags ret = 0;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efIndirect_Read, stage))
+			ret |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efIndex_Read, stage))
+			ret |= VK_ACCESS_INDEX_READ_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efVertex_Read, stage))
+			ret |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efUniforn_Read, stage))
+			ret |= VK_ACCESS_UNIFORM_READ_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efInput_Attachment_Read, stage))
+			ret |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efShader_Read, stage))
+			ret |= VK_ACCESS_SHADER_READ_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efShader_Write, stage))
+			ret |= VK_ACCESS_SHADER_WRITE_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efColor_Attachment_Read, stage))
+			ret |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efColor_Attachment_Write, stage))
+			ret |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efDepth_Stencil_Attachment_Read, stage))
+			ret |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efDepth_Stencil_Attachment_Write, stage))
+			ret |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efTransfer_Read, stage))
+			ret |= VK_ACCESS_TRANSFER_READ_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efTransfer_Write, stage))
+			ret |= VK_ACCESS_TRANSFER_WRITE_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efHost_Read, stage))
+			ret |= VK_ACCESS_HOST_READ_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efHost_Write, stage))
+			ret |= VK_ACCESS_HOST_WRITE_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efMemory_Read, stage))
+			ret |= VK_ACCESS_MEMORY_READ_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efMemory_Write, stage))
+			ret |= VK_ACCESS_MEMORY_WRITE_BIT;
+		return ret;
+	}
+
 	VkVertexInputRate ToVkVertexInputRate(EVertexInputRate vertexip)
 	{
 		switch (vertexip)

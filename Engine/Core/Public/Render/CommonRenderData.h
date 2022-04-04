@@ -64,15 +64,20 @@ namespace SG
 	{
 		Matrix4f model = Matrix4f(1.0f);
 		Matrix4f inverseTransposeModel = Matrix4f(1.0f);
-		Vector2f MR = { 0.2f, 0.85f };
-		Int32    baseIndex = -1; // base index of the instance
-		UInt32   meshId;
+		Vector3f MRIF = { 0.2f, 0.85f, 0.0f };
+		Int32    meshId;
 	};
 
 	struct CullingOutputData
 	{
 		Vector3f albedo;
 		float    pad;
+	};
+
+	struct InstanceOutputData
+	{
+		Int32  testIndex = -1;
+		UInt32 baseOffset = 0;
 	};
 
 	struct PerInstanceData

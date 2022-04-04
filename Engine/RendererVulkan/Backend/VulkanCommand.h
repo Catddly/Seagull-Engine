@@ -51,7 +51,7 @@ namespace SG
 
 		//void BufferBarrier();
 		void ImageBarrier(VulkanTexture* pTex, EResourceBarrier oldBarrier, EResourceBarrier newBarrier);
-		//void BufferBarrier(VulkanBuffer* pBuf, EResourceBarrier oldBarrier, EResourceBarrier newBarrier);
+		void BufferBarrier(VulkanBuffer* pBuf, EPipelineStage oldStage, EPipelineStage newStage, EPipelineType srcType = EPipelineType::eGraphic, EPipelineType dstType = EPipelineType::eGraphic);
 		//void MemoryBarrier();
 
 		void SetDepthBias(float biasConstant, float clamp, float slopeFactor);
@@ -63,6 +63,7 @@ namespace SG
 	private:
 		friend class VulkanCommandPool;
 		friend class VulkanQueue;
+		VulkanDevice* pDevice = nullptr;
 
 		VkCommandBuffer commandBuffer;
 		UInt32          queueFamilyIndex; // which queue this command buffer should submit to.

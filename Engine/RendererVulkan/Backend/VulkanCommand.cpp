@@ -52,6 +52,7 @@ namespace SG
 			buffer.type = EPipelineType::eCompute;
 		else if (device.queueFamilyIndices.transfer == this->queueFamilyIndex)
 			buffer.type = EPipelineType::eTransfer;
+		buffer.pDevice = &device;
 		return true;
 	}
 
@@ -64,6 +65,7 @@ namespace SG
 			SG_LOG_ERROR("Free wrong command buffer inside the wrong pool!");
 			return;
 		}
+		buffer.pDevice = nullptr;
 	}
 
 	bool VulkanCommandPool::Reset()
@@ -99,7 +101,6 @@ namespace SG
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// global static variable
-
 	static VulkanRenderPass* gpCurrRenderPass = nullptr; // used to judge whether this is a valid BeginRenderPass().
 	static EPipelineType gCurrCmdType = EPipelineType::MAX_COUNT;
 
@@ -340,7 +341,7 @@ namespace SG
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		barrier.oldLayout = ToVkImageLayout(oldBarrier);
 
-		if (pTex->currLayout != barrier.oldLayout) // layout transition checking
+		if (!pTex || pTex->currLayout != barrier.oldLayout) // layout transition checking
 		{
 			SG_LOG_ERROR("Unmatched image layout transition!");
 			return;
@@ -459,7 +460,7 @@ namespace SG
 			srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 			dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		}
-		else 
+		else
 		{
 			SG_LOG_ERROR("Unsupported resource transition!");
 			return;
@@ -472,6 +473,87 @@ namespace SG
 
 		pTex->currLayout = barrier.newLayout;
 	}
+
+	void VulkanCommandBuffer::BufferBarrier(VulkanBuffer* pBuf, EPipelineStage oldStage, EPipelineStage newStage,
+		EPipelineType srcType, EPipelineType dstType)
+	{
+		if (!pBuf)
+		{
+			SG_LOG_ERROR("Invalid buffer!");
+			return;
+		}
+
+		VkBufferMemoryBarrier barrier = {};
+		barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		barrier.buffer = pBuf->buffer;
+		barrier.size = pBuf->sizeInByteCPU;
+		barrier.offset = 0;
+
+		if (srcType != dstType)
+		{
+			if (srcType == EPipelineType::eGraphic)
+				barrier.srcQueueFamilyIndex = pDevice->queueFamilyIndices.graphics;
+			else if (srcType == EPipelineType::eCompute)
+				barrier.srcQueueFamilyIndex = pDevice->queueFamilyIndices.compute;
+			else if (srcType == EPipelineType::eTransfer)
+				barrier.srcQueueFamilyIndex = pDevice->queueFamilyIndices.transfer;
+
+			if (dstType == EPipelineType::eGraphic)
+				barrier.dstQueueFamilyIndex = pDevice->queueFamilyIndices.graphics;
+			else if (dstType == EPipelineType::eCompute)
+				barrier.dstQueueFamilyIndex = pDevice->queueFamilyIndices.compute;
+			else if (dstType == EPipelineType::eTransfer)
+				barrier.dstQueueFamilyIndex = pDevice->queueFamilyIndices.transfer;
+		}
+		else
+		{
+			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		}
+
+		barrier.srcAccessMask = ToVKAccessFlags(oldStage);
+		barrier.dstAccessMask = ToVKAccessFlags(newStage);
+
+		VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM,
+			dstStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;
+
+		if (oldStage == EPipelineStage::efIndirect_Read &&
+			newStage == EPipelineStage::efShader_Write)
+		{
+			srcStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+			dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		}
+		else if (oldStage == EPipelineStage::efShader_Write &&
+			newStage == EPipelineStage::efIndirect_Read)
+		{
+			srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			dstStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+		}
+		else if (oldStage == EPipelineStage::efShader_Read &&
+			newStage == EPipelineStage::efShader_Write)
+		{
+			// Temporary
+			srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		}
+		else if (oldStage == EPipelineStage::efShader_Write &&
+			newStage == EPipelineStage::efShader_Read)
+		{
+			srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		}
+		else
+		{
+			SG_LOG_ERROR("Unsupported pipeline stage transition!");
+			return;
+		}
+
+		vkCmdPipelineBarrier(commandBuffer,
+			srcStage, dstStage, 0,
+			0, nullptr,
+			1, &barrier,
+			0, nullptr);
+ 	}
 
 	void VulkanCommandBuffer::SetDepthBias(float biasConstant, float clamp, float slopeFactor)
 	{

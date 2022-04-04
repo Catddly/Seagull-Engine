@@ -8,7 +8,6 @@
 #include "Render/SwapChain.h"
 #include "Render/Buffer.h"
 
- 
 #include "volk.h"
 
 #include <Stl/vector.h>
@@ -26,6 +25,8 @@ namespace SG
 	{
 	public:
 		bool SubmitCommands(VulkanCommandBuffer* pCmdBuf, VulkanSemaphore* pSignalSemaphore, VulkanSemaphore* pWaitSemaphore, VulkanFence* fence);
+		bool SubmitCommands(VulkanCommandBuffer* pCmdBuf, VulkanSemaphore* pSignalSemaphore, VulkanSemaphore* pWaitSemaphore1, VulkanSemaphore* pWaitSemaphore2, 
+			VulkanFence* fence);
 		void WaitIdle() const;
 	private:
 		friend class VulkanSwapchain;

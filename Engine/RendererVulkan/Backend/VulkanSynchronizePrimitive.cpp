@@ -13,12 +13,21 @@ namespace SG
 	/// VulkanSemaphore
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanSemaphore::VulkanSemaphore(VulkanDevice& d)
+	VulkanSemaphore::VulkanSemaphore(VulkanDevice& d, bool bTimeLine)
 		:device(d)
 	{
 		VkSemaphoreCreateInfo semaphoreCI = {};
 		semaphoreCI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		semaphoreCI.pNext = nullptr;
+		VkSemaphoreTypeCreateInfo typeCI = {};
+		if (bTimeLine)
+		{
+			typeCI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+			typeCI.initialValue = 0;
+			typeCI.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
+			semaphoreCI.pNext = &typeCI;
+		}
+
 		VK_CHECK(vkCreateSemaphore(device.logicalDevice, &semaphoreCI, nullptr, &semaphore),
 			SG_LOG_ERROR("Failed to create vulkan semaphore!"););
 	}
@@ -28,9 +37,19 @@ namespace SG
 		vkDestroySemaphore(device.logicalDevice, semaphore, nullptr);
 	}
 
-	VulkanSemaphore* VulkanSemaphore::Create(VulkanDevice& d)
+	VulkanSemaphore* VulkanSemaphore::Create(VulkanDevice& d, bool bTimeLine)
 	{
-		return Memory::New<VulkanSemaphore>(d);
+		return Memory::New<VulkanSemaphore>(d, bTimeLine);
+	}
+
+	void VulkanSemaphore::Signal()
+	{
+		VkSemaphoreSignalInfo signalInfo = {};
+		signalInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SIGNAL_INFO;
+		signalInfo.value = 1;
+		signalInfo.semaphore = semaphore;
+
+		vkSignalSemaphore(device.logicalDevice, &signalInfo);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////

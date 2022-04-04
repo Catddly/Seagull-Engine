@@ -19,10 +19,13 @@ namespace SG
 	UInt32 IndirectRenderer::mPackedIBCurrOffset = 0;
 	UInt32 IndirectRenderer::mCurrDrawCallIndex = 0;
 
-	VulkanCommandBuffer IndirectRenderer::mComputeCmd;
 	RefPtr<VulkanPipelineSignature> IndirectRenderer::mpGPUCullingPipelineSignature = nullptr;
-	VulkanPipeline* IndirectRenderer::mpGPUCullingPipeline = nullptr;
-	RefPtr<VulkanShader> IndirectRenderer::mpGPUCullingShader = nullptr;
+	VulkanPipeline*                 IndirectRenderer::mpGPUCullingPipeline = nullptr;
+	RefPtr<VulkanShader>            IndirectRenderer::mpGPUCullingShader = nullptr;
+
+	RefPtr<VulkanPipelineSignature> IndirectRenderer::mpDrawCallCompactPipelineSignature = nullptr;
+	VulkanPipeline*                 IndirectRenderer::mpDrawCallCompactPipeline = nullptr;
+	RefPtr<VulkanShader>            IndirectRenderer::mpDrawCallCompactShader = nullptr;
 
 	bool IndirectRenderer::mbRendererInit = false;
 	bool IndirectRenderer::mbBeginDraw = false;
@@ -36,22 +39,34 @@ namespace SG
 		indirectCI.name = "indirectBuffer";
 		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
 		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
-		if (VK_RESOURCE()->CreateBuffer(indirectCI))
-			mbRendererInit = true;
+		if (!VK_RESOURCE()->CreateBuffer(indirectCI, true))
+			return;
+
+		BufferCreateDesc insOutCI = {};
+		insOutCI.name = "instanceOutput";
+		insOutCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
+		insOutCI.type = EBufferType::efStorage;
+		if (!VK_RESOURCE()->CreateBuffer(insOutCI))
+			return;
+		mbRendererInit = true;
 
 		mpGPUCullingShader = VulkanShader::Create(mpContext->device);
+		mpDrawCallCompactShader = VulkanShader::Create(mpContext->device);
 		ShaderCompiler compiler;
 		compiler.CompileGLSLShader("culling/culling", mpGPUCullingShader.get());
-
-		mpContext->computeCommandPool->AllocateCommandBuffer(mComputeCmd);
+		compiler.CompileGLSLShader("culling/drawcall_compact", mpDrawCallCompactShader.get());
 	}
 
 	void IndirectRenderer::OnShutdown()
 	{
+		mpDrawCallCompactShader.reset();
+		mpDrawCallCompactPipelineSignature.reset();
+		Memory::Delete(mpDrawCallCompactPipeline);
+
 		mpGPUCullingShader.reset();
 		mpGPUCullingPipelineSignature.reset();
 		Memory::Delete(mpGPUCullingPipeline);
-		mpContext->computeCommandPool->FreeCommandBuffer(mComputeCmd);
+
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer");
 		mbRendererInit = false;
 	}
@@ -66,6 +81,8 @@ namespace SG
 
 		vector<DrawIndexedIndirectCommand> indirectCommands;
 		indirectCommands.resize(4);
+		vector<InstanceOutputData> instanceOutputData;
+		instanceOutputData.emplace_back(InstanceOutputData());
 		pRenderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RenderMeshBuildData& buildData)
 			{
 				// insert new drawcall index
@@ -91,6 +108,15 @@ namespace SG
 					vibCI.bSubBufer = true;
 					VK_RESOURCE()->CreateBuffer(vibCI, true);
 					SG_LOG_DEBUG("Have instance!");
+
+					InstanceOutputData insOutputData = {};
+					insOutputData.baseOffset = mPackedVIBCurrOffset / sizeof(PerInstanceData);
+					for (UInt32 i = 0; i < buildData.instanceCount; ++i)
+						instanceOutputData.emplace_back(insOutputData);
+				}
+				else // every draw call is one instance
+				{
+					instanceOutputData.emplace_back(InstanceOutputData());
 				}
 
 				auto* pMeshData = MeshDataArchive::GetInstance()->GetData(meshId);
@@ -170,7 +196,21 @@ namespace SG
 
 				mPackedVBCurrOffset += static_cast<UInt32>(vbSize);
 				mPackedIBCurrOffset += static_cast<UInt32>(ibSize);
+
 			});
+
+		VK_RESOURCE()->GetBuffer("instanceOutput")->UploadData(instanceOutputData.data());
+
+		BufferCreateDesc indirectCI = {};
+		indirectCI.name = "indirectBuffer";
+		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
+		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
+		indirectCI.pInitData = indirectCommands.data();
+		indirectCI.dataSize = static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand) * indirectCommands.size());
+		indirectCI.dataOffset = 0;
+		indirectCI.bSubBufer = true;
+		VK_RESOURCE()->CreateBuffer(indirectCI, true);
+		VK_RESOURCE()->FlushBuffers();
 
 		mpGPUCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpGPUCullingShader)
 			.Build();
@@ -180,9 +220,13 @@ namespace SG
 			.BindShader(mpGPUCullingShader.get())
 			.Build();
 
-		UInt32 offset = 0;
-		auto* pIndirectBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer");
-		pIndirectBuffer->UploadData(indirectCommands.data(), static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand) * indirectCommands.size()), offset);
+		mpDrawCallCompactPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpDrawCallCompactShader)
+			.Build();
+
+		mpDrawCallCompactPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
+			.BindSignature(mpDrawCallCompactPipelineSignature.get())
+			.BindShader(mpDrawCallCompactShader.get())
+			.Build();
 
 		mbDrawCallReady = true;
 	}
@@ -218,18 +262,29 @@ namespace SG
 
 	void IndirectRenderer::DoCulling()
 	{
-		mpContext->computeCommandPool->Reset();
-		mComputeCmd.BeginRecord();
-		mComputeCmd.BindPipeline(mpGPUCullingPipeline);
-		mComputeCmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
+		auto& cmd = mpContext->computeCmdBuffer;
+		cmd.BeginRecord();
 
-		mComputeCmd.Dispatch(1, 1, 1);
+		//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efIndirect_Read, EPipelineStage::efShader_Write,
+		//	EPipelineType::eGraphic, EPipelineType::eCompute);
+		cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStage::efShader_Read, EPipelineStage::efShader_Write,
+			EPipelineType::eCompute, EPipelineType::eCompute);
 
-		mComputeCmd.EndRecord();
+		cmd.BindPipeline(mpGPUCullingPipeline);
+		cmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
+		cmd.Dispatch(1, 1, 1);
 
-		// temporary: should use pipeline barrier
-		mpContext->computeQueue.SubmitCommands(&mComputeCmd, nullptr, nullptr, nullptr);
-		mpContext->computeQueue.WaitIdle();
+		cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStage::efShader_Write, EPipelineStage::efShader_Read,
+			EPipelineType::eCompute, EPipelineType::eCompute);
+
+		cmd.BindPipeline(mpDrawCallCompactPipeline);
+		cmd.BindPipelineSignature(mpDrawCallCompactPipelineSignature.get(), EPipelineType::eCompute);
+		cmd.Dispatch(1, 1, 1);
+
+		//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efShader_Write, EPipelineStage::efIndirect_Read,
+		//	EPipelineType::eCompute, EPipelineType::eGraphic);
+
+		cmd.EndRecord();
 	}
 
 	void IndirectRenderer::Draw(EMeshPass meshPass)
@@ -239,7 +294,7 @@ namespace SG
 			BindMesh(dc.drawMesh);
 			BindMaterial(dc.drawMaterial);
 
-			mpCmdBuf->DrawIndexedIndirect(dc.pIndirectBuffer, dc.first * sizeof(DrawIndexedIndirectCommand), dc.count, sizeof(DrawIndexedIndirectCommand));
+			mpCmdBuf->DrawIndexedIndirect(dc.pIndirectBuffer, dc.first * sizeof(DrawIndexedIndirectCommand), 1, sizeof(DrawIndexedIndirectCommand));
 		}
 	}
 

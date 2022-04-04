@@ -12,10 +12,12 @@ namespace SG
 	class VulkanSemaphore
 	{
 	public:
-		VulkanSemaphore(VulkanDevice& d);
+		VulkanSemaphore(VulkanDevice& d, bool bTimeLine);
 		~VulkanSemaphore();
 
-		static VulkanSemaphore* Create(VulkanDevice& d);
+		static VulkanSemaphore* Create(VulkanDevice& d, bool bTimeLine = false);
+
+		void Signal();
 	private:
 		friend class VulkanQueue;
 		friend class VulkanSwapchain;

@@ -5,6 +5,7 @@
 #include "VulkanInstance.h"
 #include "VulkanDevice.h"
 #include "VulkanSwapchain.h"
+#include "VulkanCommand.h"
 
 #include "Stl/vector.h"
 
@@ -34,12 +35,14 @@ namespace SG
 		VulkanCommandPool* computeCommandPool;
 		VulkanCommandPool* transferCommandPool;
 
+		VulkanCommandBuffer computeCmdBuffer;
 		vector<VulkanCommandBuffer> commandBuffers;
 
 		VulkanQueue        graphicQueue;
 		VulkanQueue        computeQueue;
 		VulkanQueue        transferQueue;
 
+		VulkanSemaphore* pComputeCompleteSemaphore;
 		// [GPU To GPU Synchronization]
 		VulkanSemaphore* pRenderCompleteSemaphore;
 		VulkanSemaphore* pPresentCompleteSemaphore;

@@ -48,6 +48,8 @@ namespace SG
 		commandBuffers.resize(swapchain.imageCount);
 		for (auto& pCmdBuf : commandBuffers)
 			graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
+
+		computeCommandPool->AllocateCommandBuffer(computeCmdBuffer);
 	}
 
 	VulkanContext::~VulkanContext()
@@ -140,12 +142,14 @@ namespace SG
 			*ppFence = VulkanFence::Create(device, true);
 		}
 
+		pComputeCompleteSemaphore = VulkanSemaphore::Create(device);
 		pRenderCompleteSemaphore = VulkanSemaphore::Create(device);
 		pPresentCompleteSemaphore = VulkanSemaphore::Create(device);
 	}
 
 	void VulkanContext::DestroyDefaultResource()
 	{
+		Memory::Delete(pComputeCompleteSemaphore);
 		Memory::Delete(pRenderCompleteSemaphore);
 		Memory::Delete(pPresentCompleteSemaphore);
 		for (auto* pFence : pFences)

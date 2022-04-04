@@ -100,9 +100,6 @@ namespace SG
 		compositionUbo.exposure = 1.0f;
 
 		auto* pSSBOObject = GetBuffer("perObjectBuffer");
-		ObjcetRenderData rd;
-		rd.meshId = -1;
-		pSSBOObject->UploadData(&rd, sizeof(ObjcetRenderData), 0);
 		// update all the render data of the render mesh
 		pScene->TraverseMesh([&](const Mesh& mesh)
 			{
@@ -110,7 +107,7 @@ namespace SG
 				renderData.model = mesh.GetTransform();
 				renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
 				renderData.meshId = mesh.GetMeshID();
-				renderData.MR = { mesh.GetMetallic(), mesh.GetRoughness() };
+				renderData.MRIF = { mesh.GetMetallic(), mesh.GetRoughness(), MeshDataArchive::GetInstance()->HaveInstance(mesh.GetMeshID()) ? 1.0f : -1.0f };
 				pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.GetObjectID());
 			});
 	}
@@ -276,13 +273,11 @@ namespace SG
 
 		if (bLocal)
 		{
-			if (!bufferCI.pInitData)
+			if (bufferCI.pInitData)
 			{
-				SG_LOG_ERROR("Device local buffer must have initialize data!");
-				return false;
+				// make a copy of bufferCI
+				mWaitToSubmitBuffers.push_back({ bufferCI, pBuffer });
 			}
-			// make a copy of bufferCI
-			mWaitToSubmitBuffers.push_back({ bufferCI, pBuffer });
 		}
 		return true;
 	}

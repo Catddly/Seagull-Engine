@@ -93,16 +93,30 @@ namespace SG
 		mpContext->swapchain.AcquireNextImage(mpContext->pPresentCompleteSemaphore, mCurrentFrame); // check if next image is presented, and get it as the available image
 		mpContext->pFences[mCurrentFrame]->WaitAndReset(); // wait for the render commands running on the GPU side to finish
 
+		mpContext->computeCmdBuffer.Reset();
 		mpContext->commandBuffers[mCurrentFrame].Reset();
 		mpRenderGraph->Draw(mCurrentFrame);
 
+		// submit compute commands
+		mpContext->computeQueue.SubmitCommands(&mpContext->computeCmdBuffer, mpContext->pComputeCompleteSemaphore, nullptr, nullptr);
+		mpContext->computeQueue.WaitIdle();
+
+		//vector<VulkanSemaphore*> signalSemaphores;
+		//signalSemaphores.resize(1);
+		//signalSemaphores[0] = mpContext->pRenderCompleteSemaphore;
+		//vector<VulkanSemaphore*> waitSemaphores;
+		//waitSemaphores.resize(1);
+		//waitSemaphores[0] = mpContext->pPresentCompleteSemaphore; // wait for last present complete
+		//waitSemaphores[1] = mpContext->pComputeCompleteSemaphore; // wait for compute command complete
+
+		// submit graphic commands
 		mpContext->graphicQueue.SubmitCommands(&mpContext->commandBuffers[mCurrentFrame],
-			mpContext->pRenderCompleteSemaphore, mpContext->pPresentCompleteSemaphore, mpContext->pFences[mCurrentFrame]); // submit new render commands to the available image
+			mpContext->pRenderCompleteSemaphore, mpContext->pPresentCompleteSemaphore, mpContext->pComputeCompleteSemaphore, mpContext->pFences[mCurrentFrame]); // submit new render commands to the available image
 		// once submit the commands to GPU, pRenderCompleteSemaphore will be locked, and will be unlocked after the GPU finished the commands.
 		// we have to wait for the commands had been executed, then we present this image.
 		// we use semaphore to have GPU-GPU sync.
-		mpContext->swapchain.Present(&mpContext->graphicQueue, mCurrentFrame, mpContext->pRenderCompleteSemaphore); // present the available image
 
+		mpContext->swapchain.Present(&mpContext->graphicQueue, mCurrentFrame, mpContext->pRenderCompleteSemaphore); // present the available image
 		mbBlockEvent = false;
 	}
 
