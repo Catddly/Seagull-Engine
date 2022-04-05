@@ -230,8 +230,15 @@ namespace SG
 				const UInt32 vtxBufferSize = pCmdList->VtxBuffer.Size * sizeof(ImDrawVert);
 				const UInt32 itxBufferSize = pCmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-				pVertexBuffer->UploadData<ImDrawVert>(pCmdList->VtxBuffer.Data, vtxBufferSize, vtxOffest);
-				pIndexBuffer->UploadData<ImDrawIdx>(pCmdList->IdxBuffer.Data, itxBufferSize, idxOffest);
+				ImDrawVert* pVertData = pVertexBuffer->MapMemory<ImDrawVert>();
+				pVertData += vtxOffest;
+				memcpy(pVertData, pCmdList->VtxBuffer.Data, vtxBufferSize);
+				pVertexBuffer->UnmapMemory();
+
+				ImDrawIdx* pIdxData = pIndexBuffer->MapMemory<ImDrawIdx>();
+				pIdxData += idxOffest;
+				memcpy(pIdxData, pCmdList->IdxBuffer.Data, itxBufferSize);
+				pIndexBuffer->UnmapMemory();
 
 				vtxOffest += pCmdList->VtxBuffer.Size;
 				idxOffest += pCmdList->IdxBuffer.Size;

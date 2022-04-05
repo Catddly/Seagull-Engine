@@ -7,6 +7,8 @@
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
 
+#include "RendererVulkan/Resource/RenderResourceRegistry.h"
+
 #include "Stl/Hash.h"
 
 namespace SG
@@ -101,7 +103,7 @@ namespace SG
 
 	void RenderGraph::WindowResize()
 	{
-		mpContext->device.WaitIdle();
+		mpContext->graphicQueue.WaitIdle();
 
 		for (auto& beg = mFrameBuffersMap.begin(); beg != mFrameBuffersMap.end(); ++beg)
 			Memory::Delete(beg->second);
@@ -156,6 +158,9 @@ namespace SG
 
 			pCurrNode->Prepare(pRenderPass);
 		}
+
+		// wait for all the resource in the transfer queue.
+		VK_RESOURCE()->WaitBuffersUpdate();
 	}
 
 	VulkanRenderPass* RenderGraph::CompileRenderPasses(const RenderGraphNode* pCurrNode)

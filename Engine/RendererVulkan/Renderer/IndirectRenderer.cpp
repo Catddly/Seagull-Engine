@@ -13,7 +13,6 @@ namespace SG
 	VulkanCommandBuffer* IndirectRenderer::mpCmdBuf = nullptr;
 
 	eastl::fixed_map<EMeshPass, vector<IndirectDrawCall>, (UInt32)EMeshPass::NUM_MESH_PASS> IndirectRenderer::mDrawCallMap;
-	eastl::unordered_map<UInt32, UInt32> IndirectRenderer::mDrawCallIndexMap; // meshId -> drawCallIndex
 	UInt32 IndirectRenderer::mPackedVBCurrOffset = 0;
 	UInt32 IndirectRenderer::mPackedVIBCurrOffset = 0;
 	UInt32 IndirectRenderer::mPackedIBCurrOffset = 0;
@@ -39,14 +38,14 @@ namespace SG
 		indirectCI.name = "indirectBuffer";
 		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
 		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
-		if (!VK_RESOURCE()->CreateBuffer(indirectCI, true))
+		if (!VK_RESOURCE()->CreateBuffer(indirectCI))
 			return;
 
 		BufferCreateDesc insOutCI = {};
 		insOutCI.name = "instanceOutput";
 		insOutCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
 		insOutCI.type = EBufferType::efStorage;
-		if (!VK_RESOURCE()->CreateBuffer(insOutCI))
+		if (!VK_RESOURCE()->CreateBuffer(insOutCI, true))
 			return;
 		mbRendererInit = true;
 
@@ -80,14 +79,12 @@ namespace SG
 		}
 
 		vector<DrawIndexedIndirectCommand> indirectCommands;
-		indirectCommands.resize(4);
+		indirectCommands.resize(MeshDataArchive::GetInstance()->GetNumMeshData());
 		vector<InstanceOutputData> instanceOutputData;
-		instanceOutputData.emplace_back(InstanceOutputData());
+		instanceOutputData.emplace_back(InstanceOutputData()); // empty instance of the skybox
+
 		pRenderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RenderMeshBuildData& buildData)
 			{
-				// insert new drawcall index
-				mDrawCallIndexMap[meshId] = mCurrDrawCallIndex++;
-
 				if (buildData.instanceCount > 1) // move it to the Forward Instance Mesh Pass
 				{
 					const UInt64 ivbSize = sizeof(PerInstanceData) * buildData.instanceCount;
@@ -114,7 +111,7 @@ namespace SG
 					for (UInt32 i = 0; i < buildData.instanceCount; ++i)
 						instanceOutputData.emplace_back(insOutputData);
 				}
-				else // every draw call is one instance
+				else // see every draw call as one instance
 				{
 					instanceOutputData.emplace_back(InstanceOutputData());
 				}
@@ -196,21 +193,20 @@ namespace SG
 
 				mPackedVBCurrOffset += static_cast<UInt32>(vbSize);
 				mPackedIBCurrOffset += static_cast<UInt32>(ibSize);
-
 			});
 
-		VK_RESOURCE()->GetBuffer("instanceOutput")->UploadData(instanceOutputData.data());
-
-		BufferCreateDesc indirectCI = {};
-		indirectCI.name = "indirectBuffer";
-		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
-		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
-		indirectCI.pInitData = indirectCommands.data();
-		indirectCI.dataSize = static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand) * indirectCommands.size());
-		indirectCI.dataOffset = 0;
-		indirectCI.bSubBufer = true;
-		VK_RESOURCE()->CreateBuffer(indirectCI, true);
+		BufferCreateDesc insOutputCI = {};
+		insOutputCI.name = "instanceOutput";
+		insOutputCI.type = EBufferType::efStorage;
+		insOutputCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
+		insOutputCI.pInitData = instanceOutputData.data();
+		insOutputCI.dataSize = static_cast<UInt32>(sizeof(InstanceOutputData) * instanceOutputData.size());
+		insOutputCI.dataOffset = 0;
+		insOutputCI.bSubBufer = true;
+		VK_RESOURCE()->CreateBuffer(insOutputCI, true);
 		VK_RESOURCE()->FlushBuffers();
+
+		VK_RESOURCE()->GetBuffer("indirectBuffer")->UploadData(indirectCommands.data(), static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand)* indirectCommands.size()), 0);
 
 		mpGPUCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpGPUCullingShader)
 			.Build();
@@ -267,6 +263,8 @@ namespace SG
 
 		//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efIndirect_Read, EPipelineStage::efShader_Write,
 		//	EPipelineType::eGraphic, EPipelineType::eCompute);
+		
+		// [Data Hazard] barrier to prevent instanceOutput RAW(Read After Write) scenario
 		cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStage::efShader_Read, EPipelineStage::efShader_Write,
 			EPipelineType::eCompute, EPipelineType::eCompute);
 
@@ -281,10 +279,18 @@ namespace SG
 		cmd.BindPipelineSignature(mpDrawCallCompactPipelineSignature.get(), EPipelineType::eCompute);
 		cmd.Dispatch(1, 1, 1);
 
+		// We use semaphore to ensure that out compute command is finish before the graphic queue begin to draw,
+		// So i think we don't need the buffer barrier here!
+		 
 		//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efShader_Write, EPipelineStage::efIndirect_Read,
 		//	EPipelineType::eCompute, EPipelineType::eGraphic);
 
 		cmd.EndRecord();
+
+		// submit compute commands
+		// semaphore used to ensure the sequence of GPU-side execution
+		// fence used to ensure CPU is not write to a pending status command buffer. (because here we only have one compute command buffer)
+		mpContext->computeQueue.SubmitCommands(&cmd, mpContext->pComputeCompleteSemaphore, nullptr, mpContext->pComputeSyncFence);
 	}
 
 	void IndirectRenderer::Draw(EMeshPass meshPass)

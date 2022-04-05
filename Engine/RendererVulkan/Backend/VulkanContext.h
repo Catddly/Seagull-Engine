@@ -42,7 +42,10 @@ namespace SG
 		VulkanQueue        computeQueue;
 		VulkanQueue        transferQueue;
 
+		// Compute Sync
 		VulkanSemaphore* pComputeCompleteSemaphore;
+		VulkanFence*     pComputeSyncFence;
+
 		// [GPU To GPU Synchronization]
 		VulkanSemaphore* pRenderCompleteSemaphore;
 		VulkanSemaphore* pPresentCompleteSemaphore;

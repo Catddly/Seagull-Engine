@@ -3,6 +3,7 @@
 #include "Defs/Defs.h"
 #include "Render/Buffer.h"
 
+#include "VulkanConfig.h"
 #include "VulkanDevice.h"
 
 #include "volk.h"
@@ -23,8 +24,9 @@ namespace SG
 		UInt32 SizeInByteGPU() const { return sizeInByteGPU; }
 		static VulkanBuffer* Create(VulkanDevice& device, const BufferCreateDesc& CI, bool bLocal);
 
-		template <typename UploadType>
-		bool UploadData(const void* pData, UInt32 size, UInt32 offset);
+		template <typename DataType>
+		DataType* MapMemory();
+		void      UnmapMemory();
 	private:
 		friend class VulkanCommandBuffer;
 		friend class VulkanDescriptorDataBinder;
@@ -39,8 +41,8 @@ namespace SG
 		bool           bLocal;
 	};
 
-	template <typename UploadType>
-	bool VulkanBuffer::UploadData(const void* pData, UInt32 size, UInt32 offset)
+	template <typename DataType>
+	DataType* VulkanBuffer::MapMemory()
 	{
 		if (bLocal) // device local in GPU
 		{
@@ -48,13 +50,10 @@ namespace SG
 			return false;
 		}
 
-		UploadType* pMappedMemory = nullptr;
+		DataType* pMappedMemory = nullptr;
 		VK_CHECK(vkMapMemory(device.logicalDevice, memory, 0, sizeInByteCPU, 0, (void**)&pMappedMemory),
 			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
-		pMappedMemory += offset;
-		memcpy(pMappedMemory, pData, size);
-		vkUnmapMemory(device.logicalDevice, memory);
-		return true;
+		return pMappedMemory;
 	}
 
 }

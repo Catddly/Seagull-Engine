@@ -25,27 +25,16 @@ layout (set = 0, binding = 2) uniform CompositionUBO
     float exposure;
 } compositionUbo;
 
-struct CullingData
-{
-    vec3  albedo;
-    float pad;
-};
-
-layout(set = 0, binding = 3) readonly buffer CullingOutputData
-{
-    CullingData objects[];
-} cullingOutputData;
-
-layout(set = 0, binding = 4) uniform sampler2D sShadowMap;
-layout(set = 0, binding = 5) uniform sampler2D sBrdfLutMap;
-layout(set = 0, binding = 6) uniform samplerCube sIrradianceCubeMap;
-layout(set = 0, binding = 7) uniform samplerCube sPrefilterCubeMap;
+layout(set = 0, binding = 3) uniform sampler2D sShadowMap;
+layout(set = 0, binding = 4) uniform sampler2D sBrdfLutMap;
+layout(set = 0, binding = 5) uniform samplerCube sIrradianceCubeMap;
+layout(set = 0, binding = 6) uniform samplerCube sPrefilterCubeMap;
 
 layout (location = 0) out vec4 outColor;
 
 #define PI 3.1415926535897932384626433832795
-//#define ALBEDO vec3(1.0, 1.0, 1.0)
-#define ALBEDO cullingOutputData.objects[inId].albedo
+#define ALBEDO vec3(1.0, 1.0, 1.0)
+//#define ALBEDO cullingOutputData.objects[inId].albedo
 #define SHADOW_COLOR vec3(0.003, 0.003, 0.003)
 
 float SampleShadowMap(vec4 shadowMapPos)

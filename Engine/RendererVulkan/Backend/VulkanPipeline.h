@@ -108,7 +108,6 @@ namespace SG
 		friend class VulkanCommandBuffer;
 
 		VulkanDevice&   device;
-		VkPipelineCache pipelineCache;
 		VkPipeline      pipeline;
 		EPipelineType   pipelineType;
 	};

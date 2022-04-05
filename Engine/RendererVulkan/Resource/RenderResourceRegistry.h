@@ -7,6 +7,7 @@
 #include "Scene/RenderDataBuilder.h"
 
 #include "RendererVulkan/Resource/DrawCall.h"
+#include "RendererVulkan/Backend/VulkanCommand.h"
 
 #include "Stl/vector.h"
 #include <eastl/utility.h>
@@ -24,6 +25,7 @@ namespace SG
 
 	// TODO: resource object reference counting
 	class VulkanContext;
+	class VulkanFence;
 
 	class VulkanRenderTarget;
 	class VulkanTexture;
@@ -59,6 +61,8 @@ namespace SG
 		void WindowResize();
 
 		const DrawCall& GetSkyboxDrawCall() const { return mSkyboxDrawCall; }
+
+		void WaitBuffersUpdate() const;
 
 		/// Buffer Begin
 		// By default, create the buffer using HOST_VISIBLE bit.
@@ -97,6 +101,9 @@ namespace SG
 		mutable eastl::unordered_map<string, VulkanRenderTarget*> mRenderTargets;
 		mutable eastl::unordered_map<string, VulkanSampler*> mSamplers;
 
+		mutable vector<VulkanCommandBuffer> mSubmitedCommandBuffers; //! Cache all the transfer command buffer, clear it when do sync.
+		mutable vector<VulkanBuffer*> mpStagingBuffers; //! Cache all the transfer command buffer, clear it when do sync.
+		mutable vector<VulkanFence*>  mpBufferUploadFences; //! Used to sync all the resource update.
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanBuffer*>>  mWaitToSubmitBuffers;
 		mutable vector<eastl::pair<BufferCreateDesc, VulkanTexture*>> mWaitToSubmitTextures;
 

@@ -85,13 +85,11 @@ namespace SG
 		bool bIsExit = false;
 
 		//FpsTimer renderTimer("RenderDevice::OnDraw()", 1.0f, 60);
-		//FpsTimer gameloopTimer("Game Loop", 1.0f, 60);
-		Timer deltaTimer;
+		FpsTimer gameloopTimer("GameLoop", 0.5f);
 		while (!bIsExit)
 		{
-			//gameloopTimer.BeginProfile();
-			deltaTimer.Tick();
-			float deltaTime = deltaTimer.GetDurationSecond();
+			gameloopTimer.ProfileScope();
+			float deltaTime = gameloopTimer.GetDurationSecond();
 
 			// collect all the messages
 			EOsMessage msg = EOsMessage::eNull;
@@ -115,7 +113,6 @@ namespace SG
 				mModuleManager.Draw();
 				//renderTimer.EndProfile();
 			}
-			//gameloopTimer.EndProfile();
 		}
 		return bIsSafeQuit;
 	}

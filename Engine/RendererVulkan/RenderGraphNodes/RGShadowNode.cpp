@@ -130,6 +130,9 @@ namespace SG
 
 	void RGShadowNode::Draw(RGDrawInfo& context)
 	{
+		// This will cull out the shadow!
+		IndirectRenderer::DoCulling();
+
 		auto& pBuf = *context.pCmd;
 
 		pBuf.SetViewport(SG_SHADOW_MAP_SIZE, SG_SHADOW_MAP_SIZE, 0.0f, 1.0f);

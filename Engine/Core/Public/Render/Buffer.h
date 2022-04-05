@@ -26,7 +26,7 @@ namespace SG
 		EBufferType  type;
 		UInt32       bufferSize = 0;
 
-		const void*  pInitData;
+		const void*  pInitData = nullptr;
 		UInt32       dataSize = 0;
 		UInt32       dataOffset = 0;
 

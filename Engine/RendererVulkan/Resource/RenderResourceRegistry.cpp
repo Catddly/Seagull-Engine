@@ -11,7 +11,7 @@
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
 #include "RendererVulkan/Backend/VulkanSwapchain.h"
-#include "RendererVulkan/Backend/VulkanCommand.h"
+#include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
 #include "ktx/ktx.h"
 
@@ -28,11 +28,12 @@ namespace SG
 		ssboCI.type = EBufferType::efStorage;
 		CreateBuffer(ssboCI);
 
-		ssboCI = {};
-		ssboCI.name = "cullingOutputData";
-		ssboCI.bufferSize = sizeof(CullingOutputData) * SG_MAX_NUM_OBJECT;
-		ssboCI.type = EBufferType::efStorage;
-		CreateBuffer(ssboCI);
+		// This is only for debuging purpose
+		//ssboCI = {};
+		//ssboCI.name = "cullingOutputData";
+		//ssboCI.bufferSize = sizeof(CullingOutputData) * SG_MAX_NUM_OBJECT;
+		//ssboCI.type = EBufferType::efStorage;
+		//CreateBuffer(ssboCI);
 
 		BufferCreateDesc cullBufferCI = {};
 		cullBufferCI.name = "cullUbo";
@@ -84,7 +85,7 @@ namespace SG
 		cullUbo.frustum[5] = cameraFrustum.GetBackPlane();
 		cullUbo.viewPos = pCamera->GetPosition();
 		cullUbo.numObjects = static_cast<UInt32>(pScene->GetNumMesh());
-		cullUbo.numDrawCalls = 4;
+		cullUbo.numDrawCalls = MeshDataArchive::GetInstance()->GetNumMeshData();
 		GetBuffer("cullUbo")->UploadData(&cullUbo);
 		auto& skyboxUbo = GetSkyboxUBO();
 		skyboxUbo.proj = cameraUbo.proj;
@@ -231,6 +232,23 @@ namespace SG
 		return &instance;
 	}
 
+	void VulkanResourceRegistry::WaitBuffersUpdate() const
+	{
+		for (auto* pFence : mpBufferUploadFences)
+			pFence->WaitAndReset();
+
+		for (auto& buf : mSubmitedCommandBuffers)
+			mpContext->transferCommandPool->FreeCommandBuffer(buf);
+		for (auto* pStagingBuf : mpStagingBuffers)
+			Memory::Delete(pStagingBuf);
+		for (auto* pFence : mpBufferUploadFences)
+			Memory::Delete(pFence);
+
+		mpBufferUploadFences.clear();
+		mpStagingBuffers.clear();
+		mSubmitedCommandBuffers.clear();
+	}
+
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Buffers
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -287,11 +305,11 @@ namespace SG
 		if (mWaitToSubmitBuffers.empty())
 			return;
 
-		VulkanCommandBuffer pCmd;
-		mpContext->transferCommandPool->AllocateCommandBuffer(pCmd);
+		auto& cmd = mSubmitedCommandBuffers.push_back();
+		mpContext->transferCommandPool->AllocateCommandBuffer(cmd);
+		mpBufferUploadFences.push_back(VulkanFence::Create(mpContext->device));
 
-		pCmd.BeginRecord();
-		vector<VulkanBuffer*> stagingBuffers;
+		cmd.BeginRecord();
 		UInt32 index = 0;
 		for (auto& data : mWaitToSubmitBuffers) // copy all the buffers data using staging buffer
 		{
@@ -299,20 +317,16 @@ namespace SG
 			if (data.first.bSubBufer)
 				data.first.bufferSize = data.first.dataSize;
 
-			stagingBuffers.emplace_back(VulkanBuffer::Create(mpContext->device, data.first, false));
-			stagingBuffers[index]->UploadData(data.first.pInitData);
+			mpStagingBuffers.push_back(VulkanBuffer::Create(mpContext->device, data.first, false));
+			auto* pStagingBuf = mpStagingBuffers.back();
+			pStagingBuf->UploadData(data.first.pInitData);
 
-			pCmd.CopyBuffer(*stagingBuffers[index], *data.second, 0, data.first.bSubBufer ? data.first.dataOffset : 0);
+			cmd.CopyBuffer(*pStagingBuf, *data.second, 0, data.first.bSubBufer ? data.first.dataOffset : 0);
 			++index;
 		}
-		pCmd.EndRecord();
+		cmd.EndRecord();
 
-		mpContext->transferQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mpContext->transferQueue.WaitIdle();
-
-		mpContext->transferCommandPool->FreeCommandBuffer(pCmd);
-		for (auto* e : stagingBuffers)
-			Memory::Delete(e);
+		mpContext->transferQueue.SubmitCommands(&cmd, nullptr, nullptr, mpBufferUploadFences.back());
 		mWaitToSubmitBuffers.clear();
 	}
 

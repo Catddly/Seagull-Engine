@@ -17,9 +17,11 @@ namespace SG
 	{
 	public:
 		SG_CORE_API UInt32 SetData(const MeshData& meshData);
-		SG_CORE_API void SetFlag(UInt32 meshId, bool bHaveInstance);
+		SG_CORE_API void   SetFlag(UInt32 meshId, bool bHaveInstance);
 
 		SG_CORE_API const MeshData* GetData(UInt32 meshId) const;
+
+		SG_CORE_API UInt32 GetNumMeshData() const { return static_cast<UInt32>(mMeshDatas.size()); }
 
 		SG_CORE_API bool HaveInstance(UInt32 meshId) const;
 

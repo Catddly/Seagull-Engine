@@ -15,6 +15,11 @@ namespace SG
 
 		virtual void OnUpdate(float deltaTime);
 	private:
+		void DrawLightPanel();
+		void DrawStatistics(float deltaTime);
+	private:
+		UInt32 mLastFps = 0;
+		float mElapsedTime = 0.0;
 	};
 
 }

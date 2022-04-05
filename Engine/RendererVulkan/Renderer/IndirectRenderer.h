@@ -42,7 +42,6 @@ namespace SG
 		static VulkanCommandBuffer* mpCmdBuf;
 
 		static eastl::fixed_map<EMeshPass, vector<IndirectDrawCall>, (UInt32)EMeshPass::NUM_MESH_PASS> mDrawCallMap;
-		static eastl::unordered_map<UInt32, UInt32> mDrawCallIndexMap; // meshId -> drawCallIndex
 		static UInt32 mPackedVBCurrOffset;
 		static UInt32 mPackedVIBCurrOffset;
 		static UInt32 mPackedIBCurrOffset;

@@ -1,18 +1,38 @@
-# Seagull-Engine v0.2
+# Seagull Engine v0.2
 
 ## Brief Introduction
 
 **Seagull Engine is a real-time rendering game engine.**  
 
-Still rewriting!!!: A long long way to go./(ㄒoㄒ)/~~
+Still work in progress!!!: A long long way to go./(ㄒoㄒ)/~~
 
-This engine is now in beta version and it is under development.  
-If you are interesting in it, you can contact me with these email: 2565492401@qq.com or illmewds@gmail.com.
+This engine is for learning purpose, so some parts of the engine may be very coarse.  
+If you have any questions on this engine, you can contact me with these email: 2565492401@qq.com or illmewds@gmail.com.
 
-The graphic language: dx12 and vulkan. (now only has vulkan)  
-pc platform: Windows.  
+**Graphic api**: Vulkan. (may be intergrated dx12 later)  
+**Platform**: Windows.  
+
+## Features
+- GPU-Driven Rendering Pipeline  
+Most of the scene object(excluding skybox) are culled and drawn by GPU. (Using Draw Indirect and compute shader)
+
+- Auto Shader Recompilation (not the hot reload)  
+Automatically detect the modification of the shader and recompile it to SPIR-V shader.
+
+- Simple IBL And PBR Rendering  
+Now have brdf implemented. PBR Lighting and PBR camera need to be done later.
+
+- Frame Graph(Or Render Graph) Based Render System  
+RenderPasses are construct into node, easy to figure out the dependencies between renderpass and easy to do custom rendering.
 
 ## Developing Screenshots
+
+GPU Driven Rendering Pipeline  
+Inside the small statistics panel you can see the cull out object infos and drawcall infos.
+![](Screenshots/gpu_driven_pipeline.png)
+
+GPU Culling (Red objects been culled out and white objects reserved)
+![](Screenshots/scene_gpu_culling.png)
 
 Default Scene with IBL and BRDF.
 ![](Screenshots/scene_ibl_brdf.png)
@@ -22,9 +42,6 @@ Default Scene with phone shading.
 
 Defalut Scene with no skybox.
 ![](Screenshots/scene_no_skybox.png)
-
-GPU Culling (Red objects been culled out and white objects reserved)
-![](Screenshots/scene_gpu_culling.png)
 
 ## Building
 
@@ -38,20 +55,12 @@ Open the solution file, build the whole solution and you are ready to go!
 - ECS  
 - ImGui for Editor  
 - Little Particle System  
-- PBR Rendering  
+- PBR Rendering  (√)
 - Easy to use Editor  
-- 2D Renderer branch for 2D games
+- 2D Renderer branch for 2D branch
 
 Also see ISSUE.md to gain more details.
 
 ## Dependencies
 
 For now, no dependencies.
-
-## 简介
-
-目前引擎仍然属于最基础的beta阶段，正在努力开发中。  
-有兴趣的小伙伴可以用以下邮箱联系我: 2565492401@qq.com 或者 illmewds@gmail.com。
-
-图形编程语言: dx12 和 vulkan。(现在只有vulkan)  
-pc平台: Windows。

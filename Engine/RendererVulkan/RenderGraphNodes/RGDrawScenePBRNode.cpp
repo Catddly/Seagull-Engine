@@ -9,6 +9,7 @@
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
+#include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanSwapchain.h"
 #include "RendererVulkan/Backend/VulkanPipelineSignature.h"
@@ -221,8 +222,6 @@ namespace SG
 	{
 		auto& pBuf = *context.pCmd;
 
-		IndirectRenderer::DoCulling();
-
 		// 1. Draw Skybox
 		{
 			pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 1.0f, 1.0f); // set z to 1.0
@@ -318,6 +317,7 @@ namespace SG
 			.BindShader(pBrdfLutShader.get())
 			.Build();
 
+		VulkanFence* pFence = VulkanFence::Create(mContext.device);
 		VulkanCommandBuffer cmdBuf;
 		mContext.graphicCommandPool->AllocateCommandBuffer(cmdBuf);
 
@@ -334,13 +334,14 @@ namespace SG
 		cmdBuf.EndRenderPass();
 		cmdBuf.EndRecord();
 
-		mContext.graphicQueue.SubmitCommands(&cmdBuf, nullptr, nullptr, nullptr);
-		mContext.graphicQueue.WaitIdle();
-		mContext.graphicCommandPool->FreeCommandBuffer(cmdBuf);
+		mContext.graphicQueue.SubmitCommands(&cmdBuf, nullptr, nullptr, pFence);
 
+		pFence->Wait();
+		mContext.graphicCommandPool->FreeCommandBuffer(cmdBuf);
 		Memory::Delete(pBrdfLutPipeline);
 		Memory::Delete(pTempFrameBuffer);
 		Memory::Delete(pTempVulkanRenderPass);
+		Memory::Delete(pFence);
 	}
 
 	void RGDrawScenePBRNode::PreCalcIrradianceCubemap()
@@ -382,15 +383,16 @@ namespace SG
 		texCI.usage = EImageUsage::efColor | EImageUsage::efTransfer_Src;
 		VK_RESOURCE()->CreateRenderTarget(texCI);
 
-		VulkanCommandBuffer pCmd;
-		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
-		pCmd.BeginRecord();
-		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Source);
-		pCmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_irradiance"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
-		pCmd.EndRecord();
-		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mContext.graphicQueue.WaitIdle();
-		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+		VulkanFence* pFence = VulkanFence::Create(mContext.device);
+
+		VulkanCommandBuffer cmd;
+		mContext.graphicCommandPool->AllocateCommandBuffer(cmd);
+		cmd.BeginRecord();
+		cmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Source);
+		cmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_irradiance"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
+		cmd.EndRecord();
+		mContext.graphicQueue.SubmitCommands(&cmd, nullptr, nullptr, pFence);
+		pFence->WaitAndReset();
 
 		auto pIrradianceShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
@@ -423,9 +425,6 @@ namespace SG
 			.BindShader(pIrradianceShader.get())
 			.Build();
 
-		VulkanCommandBuffer cmdBuf;
-		mContext.graphicCommandPool->AllocateCommandBuffer(cmdBuf);
-
 		// matrixs to rotate the corresponding faces of the cube to the right place.
 		eastl::array<Matrix4f, 6> directionMats = {
 			// +X
@@ -449,33 +448,34 @@ namespace SG
 			float    deltaTheta;
 		};
 
-		cmdBuf.BeginRecord();
+		cmd.Reset();
+		cmd.BeginRecord();
 		{
 			for (UInt32 mip = 0; mip < numMip; ++mip)
 			{
 				for (UInt32 face = 0; face < 6; ++face)
 				{
-					cmdBuf.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"), EResourceBarrier::efCopy_Source, EResourceBarrier::efRenderTarget);
+					cmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"), EResourceBarrier::efCopy_Source, EResourceBarrier::efRenderTarget);
 
-					cmdBuf.BeginRenderPass(pTempFrameBuffer);
+					cmd.BeginRenderPass(pTempFrameBuffer);
 					{
-						cmdBuf.SetViewport((float)(texSize >> mip), (float)(texSize >> mip), 0.0f, 1.0f);
-						cmdBuf.SetScissor({ 0, 0, (int)(texSize >> mip), (int)(texSize >> mip) });
+						cmd.SetViewport((float)(texSize >> mip), (float)(texSize >> mip), 0.0f, 1.0f);
+						cmd.SetScissor({ 0, 0, (int)(texSize >> mip), (int)(texSize >> mip) });
 
-						cmdBuf.BindPipelineSignature(pIrradiancePipelineSignature.get());
-						cmdBuf.BindPipeline(pIrradiancePipeline);
+						cmd.BindPipelineSignature(pIrradiancePipelineSignature.get());
+						cmd.BindPipeline(pIrradiancePipeline);
 
 						PushConstant pushConstant;
 						pushConstant.mvp = BuildPerspectiveMatrix(glm::radians(90.0f), 1.0f, 0.1f, 256.0f) * directionMats[face];
 						pushConstant.deltaPhi = (2.0f * float(PI)) / 180.0f;
 						pushConstant.deltaTheta = (0.5f * float(PI)) / 64.0f;
-						cmdBuf.PushConstants(pIrradiancePipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &pushConstant);
+						cmd.PushConstants(pIrradiancePipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &pushConstant);
 
 						const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();
-						cmdBuf.BindVertexBuffer(0, 1, *skybox.drawMesh.pVertexBuffer, &skybox.drawMesh.vBOffset);
-						cmdBuf.Draw(36, 1, 0, 0);
+						cmd.BindVertexBuffer(0, 1, *skybox.drawMesh.pVertexBuffer, &skybox.drawMesh.vBOffset);
+						cmd.Draw(36, 1, 0, 0);
 					}
-					cmdBuf.EndRenderPass();
+					cmd.EndRenderPass();
 
 					TextureCopyRegion copyRegion = {};
 					copyRegion.baseArray = face;
@@ -485,21 +485,23 @@ namespace SG
 					copyRegion.layer = 1;
 					copyRegion.offset = 0;
 					copyRegion.mipLevel = mip;
-					cmdBuf.CopyImage(*VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"),
+					cmd.CopyImage(*VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"),
 						*VK_RESOURCE()->GetTexture("cubemap_irradiance"), copyRegion);
 				}
 			}
 		}
-		cmdBuf.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_irradiance"), EResourceBarrier::efCopy_Dest, EResourceBarrier::efShader_Resource);
-		cmdBuf.EndRecord();
+		cmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_irradiance"), EResourceBarrier::efCopy_Dest, EResourceBarrier::efShader_Resource);
+		cmd.EndRecord();
 
-		mContext.graphicQueue.SubmitCommands(&cmdBuf, nullptr, nullptr, nullptr);
-		mContext.graphicQueue.WaitIdle();
-		mContext.graphicCommandPool->FreeCommandBuffer(cmdBuf);
+		mContext.graphicQueue.SubmitCommands(&cmd, nullptr, nullptr, pFence);
 
+		pFence->Wait();
+
+		mContext.graphicCommandPool->FreeCommandBuffer(cmd);
 		Memory::Delete(pIrradiancePipeline);
 		Memory::Delete(pTempFrameBuffer);
 		Memory::Delete(pTempVulkanRenderPass);
+		Memory::Delete(pFence);
 		VK_RESOURCE()->DeleteRenderTarget("cubemap_irradiance_rt");
 	}
 
@@ -542,15 +544,16 @@ namespace SG
 		texCI.usage = EImageUsage::efColor | EImageUsage::efTransfer_Src;
 		VK_RESOURCE()->CreateRenderTarget(texCI);
 
-		VulkanCommandBuffer pCmd;
-		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
-		pCmd.BeginRecord();
-		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Source);
-		pCmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_prefilter"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
-		pCmd.EndRecord();
-		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mContext.graphicQueue.WaitIdle();
-		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+		VulkanFence* pFence = VulkanFence::Create(mContext.device);
+
+		VulkanCommandBuffer cmd;
+		mContext.graphicCommandPool->AllocateCommandBuffer(cmd);
+		cmd.BeginRecord();
+		cmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Source);
+		cmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_prefilter"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
+		cmd.EndRecord();
+		mContext.graphicQueue.SubmitCommands(&cmd, nullptr, nullptr, pFence);
+		pFence->WaitAndReset();
 
 		auto pPrefilterShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
@@ -583,9 +586,6 @@ namespace SG
 			.BindShader(pPrefilterShader.get())
 			.Build();
 
-		VulkanCommandBuffer cmdBuf;
-		mContext.graphicCommandPool->AllocateCommandBuffer(cmdBuf);
-
 		// matrixs to rotate the corresponding faces of the cube to the right place.
 		eastl::array<Matrix4f, 6> directionMats = {
 			// +X
@@ -609,7 +609,8 @@ namespace SG
 			UINT32   numSample;
 		};
 
-		cmdBuf.BeginRecord();
+		cmd.Reset();
+		cmd.BeginRecord();
 		{
 			PushConstant pushConstant;
 			pushConstant.numSample = 32; // due to the optimization, 32 is enough, no need 1024.
@@ -618,24 +619,24 @@ namespace SG
 				pushConstant.roughness = (float)mip / (float)numMip; // the lower the mipmap level is, the blurrier reflection is.
 				for (UInt32 face = 0; face < 6; ++face)
 				{
-					cmdBuf.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"), EResourceBarrier::efCopy_Source, EResourceBarrier::efRenderTarget);
+					cmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"), EResourceBarrier::efCopy_Source, EResourceBarrier::efRenderTarget);
 
-					cmdBuf.BeginRenderPass(pTempFrameBuffer);
+					cmd.BeginRenderPass(pTempFrameBuffer);
 					{
-						cmdBuf.SetViewport((float)(texSize >> mip), (float)(texSize >> mip), 0.0f, 1.0f);
-						cmdBuf.SetScissor({ 0, 0, (int)(texSize >> mip), (int)(texSize >> mip) });
+						cmd.SetViewport((float)(texSize >> mip), (float)(texSize >> mip), 0.0f, 1.0f);
+						cmd.SetScissor({ 0, 0, (int)(texSize >> mip), (int)(texSize >> mip) });
 
-						cmdBuf.BindPipelineSignature(pPrefilterPipelineSignature.get());
-						cmdBuf.BindPipeline(pPrefilterPipeline);
+						cmd.BindPipelineSignature(pPrefilterPipelineSignature.get());
+						cmd.BindPipeline(pPrefilterPipeline);
 
 						pushConstant.mvp = BuildPerspectiveMatrix(glm::radians(90.0f), 1.0f, 0.1f, 256.0f) * directionMats[face];
-						cmdBuf.PushConstants(pPrefilterPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &pushConstant);
+						cmd.PushConstants(pPrefilterPipelineSignature.get(), EShaderStage::efVert, sizeof(PushConstant), 0, &pushConstant);
 
 						const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();
-						cmdBuf.BindVertexBuffer(0, 1, *skybox.drawMesh.pVertexBuffer, &skybox.drawMesh.vBOffset);
-						cmdBuf.Draw(36, 1, 0, 0);
+						cmd.BindVertexBuffer(0, 1, *skybox.drawMesh.pVertexBuffer, &skybox.drawMesh.vBOffset);
+						cmd.Draw(36, 1, 0, 0);
 					}
-					cmdBuf.EndRenderPass();
+					cmd.EndRenderPass();
 
 					TextureCopyRegion copyRegion = {};
 					copyRegion.baseArray = face;
@@ -645,22 +646,23 @@ namespace SG
 					copyRegion.layer = 1;
 					copyRegion.offset = 0;
 					copyRegion.mipLevel = mip;
-					cmdBuf.CopyImage(*VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"),
+					cmd.CopyImage(*VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"),
 						*VK_RESOURCE()->GetTexture("cubemap_prefilter"), copyRegion);
 				}
 			}
 		}
 		// now the cubemap is ready to use by shader
-		cmdBuf.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_prefilter"), EResourceBarrier::efCopy_Dest, EResourceBarrier::efShader_Resource);
-		cmdBuf.EndRecord();
+		cmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_prefilter"), EResourceBarrier::efCopy_Dest, EResourceBarrier::efShader_Resource);
+		cmd.EndRecord();
 
-		mContext.graphicQueue.SubmitCommands(&cmdBuf, nullptr, nullptr, nullptr);
-		mContext.graphicQueue.WaitIdle();
-		mContext.graphicCommandPool->FreeCommandBuffer(cmdBuf);
+		mContext.graphicQueue.SubmitCommands(&cmd, nullptr, nullptr, pFence);
 
+		pFence->Wait();
+		mContext.graphicCommandPool->FreeCommandBuffer(cmd);
 		Memory::Delete(pPrefilterPipeline);
 		Memory::Delete(pTempFrameBuffer);
 		Memory::Delete(pTempVulkanRenderPass);
+		Memory::Delete(pFence);
 		VK_RESOURCE()->DeleteRenderTarget("cubemap_prefilter_rt");
 	}
 

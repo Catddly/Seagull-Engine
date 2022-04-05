@@ -26,17 +26,6 @@ layout(binding = 1, std430) readonly buffer PerObjectBuffer
 	ObjectRenderData objects[];
 } perObjectBuffer;
 
-struct CullingData
-{
-    vec3  albedo;
-    float pad;
-};
-
-layout(binding = 2, std430) writeonly buffer CullingOutputData
-{
-    CullingData objects[];
-} cullingOutputData;
-
 // Same layout as VkDrawIndexedIndirectCommand
 struct IndexedIndirectCommand 
 {
@@ -47,7 +36,7 @@ struct IndexedIndirectCommand
 	uint firstInstance;
 };
 
-layout(binding = 3, std430) writeonly buffer IndirectBuffer
+layout(binding = 2, std430) writeonly buffer IndirectBuffer
 {
     IndexedIndirectCommand drawcalls[];
 } indirectBuffer;
@@ -57,7 +46,7 @@ struct InstanceData
     uint objectId;
 };
 
-layout(binding = 4, std430) buffer InstanceBuffer
+layout(binding = 3, std430) buffer InstanceBuffer
 {
     InstanceData objects[];
 } instanceBuffer;
@@ -68,7 +57,7 @@ struct InstanceOutputData
     uint baseOffset; // such a waste
 };
 
-layout(binding = 5, std430) writeonly buffer InstanceOutputBuffer
+layout(binding = 4, std430) writeonly buffer InstanceOutputBuffer
 {
     InstanceOutputData datas[];
 } instanceOutput;
@@ -107,8 +96,9 @@ bool IsInFrustum(Sphere sphere)
     return true;
 }
 
-#define TEST_NOT_CULL_ALBEDO vec3(1.0, 1.0, 1.0)
-#define TEST_CULL_ALBEDO     vec3(1.0, 0.0, 0.0)
+// debug purpose
+// #define TEST_NOT_CULL_ALBEDO vec3(1.0, 1.0, 1.0)
+// #define TEST_CULL_ALBEDO     vec3(1.0, 0.0, 0.0)
 
 void main()
 {
@@ -140,11 +130,11 @@ void main()
                 instanceOutput.datas[gID].testIndex = drawCallIndex;
             }
             atomicAdd(indirectBuffer.drawcalls[drawCallIndex].instanceCount, 1);
-            cullingOutputData.objects[gID].albedo = TEST_NOT_CULL_ALBEDO;
+            //cullingOutputData.objects[gID].albedo = TEST_NOT_CULL_ALBEDO; // debug purpose
         }
         else // camera can't see it, cull out
         {
-            cullingOutputData.objects[gID].albedo = TEST_CULL_ALBEDO;
+            //cullingOutputData.objects[gID].albedo = TEST_CULL_ALBEDO; // debug purpose
             instanceOutput.datas[gID].testIndex = -1;
         }
     }

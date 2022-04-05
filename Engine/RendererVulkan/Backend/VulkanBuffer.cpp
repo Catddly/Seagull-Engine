@@ -87,9 +87,14 @@ namespace SG
 		return true;
 	}
 
-	SG::VulkanBuffer* VulkanBuffer::Create(VulkanDevice& device, const BufferCreateDesc& CI, bool bLocal)
+	VulkanBuffer* VulkanBuffer::Create(VulkanDevice& device, const BufferCreateDesc& CI, bool bLocal)
 	{
 		return Memory::New<VulkanBuffer>(device, CI, bLocal);
+	}
+
+	void VulkanBuffer::UnmapMemory()
+	{
+		vkUnmapMemory(device.logicalDevice, memory);
 	}
 
 }

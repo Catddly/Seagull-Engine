@@ -12,6 +12,8 @@
 namespace SG
 {
 
+	static VkPipelineCache gCommonPipelineCache = VK_NULL_HANDLE;
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// VulkanPipelineLayout
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,10 +84,13 @@ namespace SG
 	VulkanPipeline::VulkanPipeline(VulkanDevice& d, const GraphicPipelineCreateInfo& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, VulkanShader* pShader)
 		:device(d), pipelineType(EPipelineType::eGraphic)
 	{
-		VkPipelineCacheCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-		VK_CHECK(vkCreatePipelineCache(device.logicalDevice, &createInfo, nullptr, &pipelineCache),
-			SG_LOG_ERROR("Failed to create pipeline cache!"); pipelineCache = VK_NULL_HANDLE;);
+		if (gCommonPipelineCache == VK_NULL_HANDLE)
+		{
+			VkPipelineCacheCreateInfo createInfo = {};
+			createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+			VK_CHECK(vkCreatePipelineCache(device.logicalDevice, &createInfo, nullptr, &gCommonPipelineCache),
+				SG_LOG_ERROR("Failed to create pipeline cache!"); gCommonPipelineCache = VK_NULL_HANDLE;);
+		}
 
 		VkGraphicsPipelineCreateInfo graphicPipelineCreateInfo = {};
 
@@ -108,7 +113,7 @@ namespace SG
 		graphicPipelineCreateInfo.pDynamicState       = &CI.dynamicStateCI;
 		graphicPipelineCreateInfo.subpass = 0;
 
-		VK_CHECK(vkCreateGraphicsPipelines(device.logicalDevice, pipelineCache, 1, &graphicPipelineCreateInfo, nullptr, &pipeline),
+		VK_CHECK(vkCreateGraphicsPipelines(device.logicalDevice, gCommonPipelineCache, 1, &graphicPipelineCreateInfo, nullptr, &pipeline),
 			SG_LOG_ERROR("Failed to create graphics pipeline!"););
 
 		pShader->DestroyPipelineShader();
@@ -117,10 +122,13 @@ namespace SG
 	VulkanPipeline::VulkanPipeline(VulkanDevice& d, VulkanPipelineLayout* pLayout, VulkanShader* pShader)
 		:device(d), pipelineType(EPipelineType::eCompute)
 	{
-		VkPipelineCacheCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-		VK_CHECK(vkCreatePipelineCache(device.logicalDevice, &createInfo, nullptr, &pipelineCache),
-			SG_LOG_ERROR("Failed to create pipeline cache!"); pipelineCache = VK_NULL_HANDLE;);
+		if (gCommonPipelineCache == VK_NULL_HANDLE)
+		{
+			VkPipelineCacheCreateInfo createInfo = {};
+			createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+			VK_CHECK(vkCreatePipelineCache(device.logicalDevice, &createInfo, nullptr, &gCommonPipelineCache),
+				SG_LOG_ERROR("Failed to create pipeline cache!"); gCommonPipelineCache = VK_NULL_HANDLE;);
+		}
 
 		VkComputePipelineCreateInfo computePipelineCreateInfo = {};
 
@@ -130,7 +138,7 @@ namespace SG
 		pShader->CreatePipelineShader();
 
 		computePipelineCreateInfo.stage = pShader->GetShaderStagesCI()[0];
-		VK_CHECK(vkCreateComputePipelines(device.logicalDevice, pipelineCache, 1, &computePipelineCreateInfo, nullptr, &pipeline),
+		VK_CHECK(vkCreateComputePipelines(device.logicalDevice, gCommonPipelineCache, 1, &computePipelineCreateInfo, nullptr, &pipeline),
 			SG_LOG_ERROR("Failed to create compute pipeline!"););
 
 		pShader->DestroyPipelineShader();
@@ -138,7 +146,11 @@ namespace SG
 
 	VulkanPipeline::~VulkanPipeline()
 	{
-		vkDestroyPipelineCache(device.logicalDevice, pipelineCache, nullptr);
+		if (gCommonPipelineCache != VK_NULL_HANDLE)
+		{
+			vkDestroyPipelineCache(device.logicalDevice, gCommonPipelineCache, nullptr);
+			gCommonPipelineCache = VK_NULL_HANDLE;
+		}
 		vkDestroyPipeline(device.logicalDevice, pipeline, nullptr);
 	}
 

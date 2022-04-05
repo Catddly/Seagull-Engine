@@ -62,7 +62,7 @@ namespace SG
 
 	void VulkanContext::WindowResize()
 	{
-		device.WaitIdle();
+		graphicQueue.WaitIdle();
 
 		Memory::Delete(depthRt);
 
@@ -145,11 +145,15 @@ namespace SG
 		pComputeCompleteSemaphore = VulkanSemaphore::Create(device);
 		pRenderCompleteSemaphore = VulkanSemaphore::Create(device);
 		pPresentCompleteSemaphore = VulkanSemaphore::Create(device);
+
+		pComputeSyncFence = VulkanFence::Create(device, true);
 	}
 
 	void VulkanContext::DestroyDefaultResource()
 	{
+		Memory::Delete(pComputeSyncFence);
 		Memory::Delete(pComputeCompleteSemaphore);
+
 		Memory::Delete(pRenderCompleteSemaphore);
 		Memory::Delete(pPresentCompleteSemaphore);
 		for (auto* pFence : pFences)

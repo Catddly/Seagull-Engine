@@ -9,25 +9,20 @@
 namespace SG
 {
 
-	class FpsTimer final : protected Timer
+	class FpsTimer final : public Timer
 	{
 	public:
-		SG_CORE_API FpsTimer(const string& description, float displayInterval = 1.0f, UInt32 averageFrameCnt = 24);
+		SG_CORE_API FpsTimer(const string& description, float displayInterval = 1.0f);
 		SG_CORE_API ~FpsTimer() = default;
 
 		SG_CORE_API void SetDisplayInterval(float interval) { mDisplayInterval = interval; }
 
-		SG_CORE_API void BeginProfile();
-		SG_CORE_API void EndProfile();
+		SG_CORE_API void ProfileScope();
 	private:
-		void LogToConsole(const string& info) const;
+		void LogToConsole() const;
 	private:
 		string mDescription;
 		float  mDisplayInterval;
-		UInt32 mAverageFrameCnt;
-
-		vector<float> mFrameDurationCounter;
-		UInt32        mCurrIndex;
 	};
 
 }
