@@ -18,6 +18,7 @@ project "ktx"
     {
         "source/writer_v1.c",
         "source/glloader.c",
+        "source/vkloader.c",
     }
 
     defines

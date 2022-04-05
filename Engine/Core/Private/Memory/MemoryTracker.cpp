@@ -7,7 +7,9 @@ namespace SG
 {
 
 	MemoryScopeTracker::MemoryScopeTracker(const char* scopeName)
+#ifdef SG_DEBUG
 		:mName(scopeName)
+#endif
 	{
 		MemoryRecorder::OnEnterScope(scopeName);
 	}
