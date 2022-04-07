@@ -7,6 +7,7 @@
 #include "RendererVulkan/Backend/VulkanShader.h"
 #include "RendererVulkan/Backend/VulkanPipelineSignature.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
+#include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
 #include "RendererVulkan/Resource/DrawCall.h"
 #include "RendererVulkan/RenderDevice/MeshPass.h"
@@ -46,6 +47,13 @@ namespace SG
 		static UInt32 mPackedVIBCurrOffset;
 		static UInt32 mPackedIBCurrOffset;
 		static UInt32 mCurrDrawCallIndex;
+
+		static VulkanCommandBuffer mResetCommand;
+		static VulkanSemaphore* mpWaitResetSemaphore;
+
+		static RefPtr<VulkanPipelineSignature> mpResetCullingPipelineSignature;
+		static VulkanPipeline*                 mpResetCullingPipeline;
+		static RefPtr<VulkanShader>            mpResetCullingShader;
 
 		// resource to do gpu culling and record indirect draw commands.
 		static RefPtr<VulkanPipelineSignature> mpGPUCullingPipelineSignature;

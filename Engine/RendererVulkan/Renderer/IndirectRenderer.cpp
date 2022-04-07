@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "IndirectRenderer.h"
 
+#include "System/System.h"
 #include "Scene/Mesh/MeshDataArchive.h"
 #include "Render/Shader/ShaderComiler.h"
 
@@ -17,6 +18,13 @@ namespace SG
 	UInt32 IndirectRenderer::mPackedVIBCurrOffset = 0;
 	UInt32 IndirectRenderer::mPackedIBCurrOffset = 0;
 	UInt32 IndirectRenderer::mCurrDrawCallIndex = 0;
+
+	VulkanCommandBuffer IndirectRenderer::mResetCommand;
+	VulkanSemaphore* IndirectRenderer::mpWaitResetSemaphore = nullptr;
+
+	RefPtr<VulkanPipelineSignature> IndirectRenderer::mpResetCullingPipelineSignature = nullptr;
+	VulkanPipeline*                 IndirectRenderer::mpResetCullingPipeline = nullptr;
+	RefPtr<VulkanShader>            IndirectRenderer::mpResetCullingShader = nullptr;
 
 	RefPtr<VulkanPipelineSignature> IndirectRenderer::mpGPUCullingPipelineSignature = nullptr;
 	VulkanPipeline*                 IndirectRenderer::mpGPUCullingPipeline = nullptr;
@@ -51,13 +59,22 @@ namespace SG
 
 		mpGPUCullingShader = VulkanShader::Create(mpContext->device);
 		mpDrawCallCompactShader = VulkanShader::Create(mpContext->device);
+		mpResetCullingShader = VulkanShader::Create(mpContext->device);
 		ShaderCompiler compiler;
 		compiler.CompileGLSLShader("culling/culling", mpGPUCullingShader.get());
 		compiler.CompileGLSLShader("culling/drawcall_compact", mpDrawCallCompactShader.get());
+		compiler.CompileGLSLShader("culling/culling_reset", mpResetCullingShader.get());
+
+		mpWaitResetSemaphore = VulkanSemaphore::Create(mpContext->device);
+		mpContext->computeCommandPool->AllocateCommandBuffer(mResetCommand);
 	}
 
 	void IndirectRenderer::OnShutdown()
 	{
+		mpResetCullingShader.reset();
+		mpResetCullingPipelineSignature.reset();
+		Memory::Delete(mpResetCullingPipeline);
+
 		mpDrawCallCompactShader.reset();
 		mpDrawCallCompactPipelineSignature.reset();
 		Memory::Delete(mpDrawCallCompactPipeline);
@@ -66,6 +83,8 @@ namespace SG
 		mpGPUCullingPipelineSignature.reset();
 		Memory::Delete(mpGPUCullingPipeline);
 
+		mpContext->computeCommandPool->FreeCommandBuffer(mResetCommand);
+		Memory::Delete(mpWaitResetSemaphore);
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer");
 		mbRendererInit = false;
 	}
@@ -208,6 +227,14 @@ namespace SG
 
 		VK_RESOURCE()->GetBuffer("indirectBuffer")->UploadData(indirectCommands.data(), static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand)* indirectCommands.size()), 0);
 
+		mpResetCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpResetCullingShader)
+			.Build();
+
+		mpResetCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
+			.BindSignature(mpResetCullingPipelineSignature.get())
+			.BindShader(mpResetCullingShader.get())
+			.Build();
+
 		mpGPUCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpGPUCullingShader)
 			.Build();
 
@@ -258,19 +285,31 @@ namespace SG
 
 	void IndirectRenderer::DoCulling()
 	{
-		auto& cmd = mpContext->computeCmdBuffer;
-		cmd.BeginRecord();
+		mResetCommand.Reset();
+		mResetCommand.BeginRecord();
 
 		//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efIndirect_Read, EPipelineStage::efShader_Write,
 		//	EPipelineType::eGraphic, EPipelineType::eCompute);
-		
+
+		mResetCommand.BindPipeline(mpResetCullingPipeline);
+		mResetCommand.BindPipelineSignature(mpResetCullingPipelineSignature.get(), EPipelineType::eCompute);
+		UInt32 numGroup = (UInt32)(MeshDataArchive::GetInstance()->GetNumMeshData() / 16) + 1;
+		mResetCommand.Dispatch(numGroup, 1, 1);
+
+		mResetCommand.EndRecord();
+
+		mpContext->computeQueue.SubmitCommands(&mResetCommand, mpWaitResetSemaphore, nullptr, nullptr);
+
+		auto& cmd = mpContext->computeCmdBuffer;
+		cmd.BeginRecord();
 		// [Data Hazard] barrier to prevent instanceOutput RAW(Read After Write) scenario
 		cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStage::efShader_Read, EPipelineStage::efShader_Write,
 			EPipelineType::eCompute, EPipelineType::eCompute);
 
 		cmd.BindPipeline(mpGPUCullingPipeline);
 		cmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
-		cmd.Dispatch(1, 1, 1);
+		numGroup = (UInt32)(SSystem()->GetMainScene()->GetNumMesh() / 128) + 1;
+		cmd.Dispatch(numGroup, 1, 1);
 
 		cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStage::efShader_Write, EPipelineStage::efShader_Read,
 			EPipelineType::eCompute, EPipelineType::eCompute);
@@ -290,7 +329,7 @@ namespace SG
 		// submit compute commands
 		// semaphore used to ensure the sequence of GPU-side execution
 		// fence used to ensure CPU is not write to a pending status command buffer. (because here we only have one compute command buffer)
-		mpContext->computeQueue.SubmitCommands(&cmd, mpContext->pComputeCompleteSemaphore, nullptr, mpContext->pComputeSyncFence);
+		mpContext->computeQueue.SubmitCommands(&cmd, mpContext->pComputeCompleteSemaphore, mpWaitResetSemaphore, mpContext->pComputeSyncFence);
 	}
 
 	void IndirectRenderer::Draw(EMeshPass meshPass)

@@ -1,0 +1,52 @@
+#version 460
+
+// defined work group size
+layout (local_size_x = 16) in; // 16 elements at a time
+
+layout (binding = 0) uniform CullUBO
+{
+    vec4  frustum[6];
+    vec3  viewPos;
+    float pad;
+    uint  numObjects;
+    uint  numDrawCalls;
+} cullUbo;
+
+// Same layout as VkDrawIndexedIndirectCommand
+struct IndexedIndirectCommand 
+{
+	uint indexCount;
+	uint instanceCount;
+	uint firstIndex;
+	uint vertexOffset;
+	uint firstInstance;
+};
+
+layout(binding = 1, std430) writeonly buffer IndirectBuffer
+{
+    IndexedIndirectCommand drawcalls[];
+} indirectBuffer;
+
+struct InstanceOutputData
+{
+    int  testIndex;
+    uint baseOffset; // such a waste
+};
+
+layout(binding = 2, std430) writeonly buffer InstanceOutputBuffer
+{
+    InstanceOutputData datas[];
+} instanceOutput;
+
+void main()
+{
+    // grab global ID
+	uint gID = gl_GlobalInvocationID.x;
+
+    if (gID < cullUbo.numDrawCalls)
+    {
+        indirectBuffer.drawcalls[gID].instanceCount = 0;
+        instanceOutput.datas[0].testIndex = -1;
+        return;
+    }
+}

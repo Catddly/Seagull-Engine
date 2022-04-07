@@ -41,23 +41,13 @@ layout(binding = 2, std430) writeonly buffer IndirectBuffer
     IndexedIndirectCommand drawcalls[];
 } indirectBuffer;
 
-struct InstanceData
-{
-    uint objectId;
-};
-
-layout(binding = 3, std430) buffer InstanceBuffer
-{
-    InstanceData objects[];
-} instanceBuffer;
-
 struct InstanceOutputData
 {
-    int testIndex;
+    int  testIndex;
     uint baseOffset; // such a waste
 };
 
-layout(binding = 4, std430) writeonly buffer InstanceOutputBuffer
+layout(binding = 3, std430) writeonly buffer InstanceOutputBuffer
 {
     InstanceOutputData datas[];
 } instanceOutput;
@@ -107,11 +97,6 @@ void main()
 
     if (gID == 0) // skip the first one, and clear the status
     {
-        for (int i = 0; i < cullUbo.numDrawCalls; ++i) // clear the draw call status
-        {
-            atomicExchange(indirectBuffer.drawcalls[i].instanceCount, 0);
-        }
-        instanceOutput.datas[0].testIndex = -1;
         return;
     }
 
@@ -134,8 +119,8 @@ void main()
         }
         else // camera can't see it, cull out
         {
-            //cullingOutputData.objects[gID].albedo = TEST_CULL_ALBEDO; // debug purpose
             instanceOutput.datas[gID].testIndex = -1;
+            //cullingOutputData.objects[gID].albedo = TEST_CULL_ALBEDO; // debug purpose
         }
     }
 }

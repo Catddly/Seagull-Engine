@@ -12,26 +12,12 @@ layout (binding = 0) uniform CullUBO
     uint  numDrawCalls;
 } cullUbo;
 
-struct ObjectRenderData
-{
-	mat4 model;
-	mat4 inverseTransposeModel;
-	vec3 mrif;
-    int meshId;
-};
-
-// all object matrices
-layout(binding = 1, std430) readonly buffer PerObjectBuffer
-{
-	ObjectRenderData objects[];
-} perObjectBuffer;
-
 struct InstanceData
 {
     uint objectId;
 };
 
-layout(binding = 2, std430) writeonly buffer InstanceBuffer
+layout(binding = 1, std430) writeonly buffer InstanceBuffer
 {
     InstanceData objects[];
 } instanceBuffer;
@@ -42,7 +28,7 @@ struct InstanceOutputData
     uint baseOffset; // such a waste
 };
 
-layout(binding = 3, std430) readonly buffer InstanceOutputBuffer
+layout(binding = 2, std430) readonly buffer InstanceOutputBuffer
 {
     InstanceOutputData datas[];
 } instanceOutput;
