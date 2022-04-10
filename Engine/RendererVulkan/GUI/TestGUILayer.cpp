@@ -57,20 +57,14 @@ namespace SG
 
 		Size cullMeshCnt = SSystem()->GetMainScene()->GetNumMesh();
 		UInt32 drawCallCnt = MeshDataArchive::GetInstance()->GetNumMeshData();
+		auto& statisticData = GetStatisticData();
 
 		ImGui::Begin("Statistics");
 		ImGui::Text("Fps: %u", mLastFps);
 		ImGui::Separator();
 		ImGui::Text("DrawCall: %d", drawCallCnt);
 		ImGui::Text("Scene Objects: %d", cullMeshCnt);
-
-		auto* pIndirectBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer");
-		DrawIndexedIndirectCommand* pCommand = pIndirectBuffer->MapMemory<DrawIndexedIndirectCommand>();
-		for (UInt32 i = 0; i < drawCallCnt; ++i)
-			cullMeshCnt -= (pCommand + i)->instanceCount;
-		pIndirectBuffer->UnmapMemory();
-
-		ImGui::Text("Culled Objects: %d", cullMeshCnt);
+		ImGui::Text("Culled Objects: %d", cullMeshCnt - statisticData.cullSceneObjects);
 		ImGui::End();
 	}
 

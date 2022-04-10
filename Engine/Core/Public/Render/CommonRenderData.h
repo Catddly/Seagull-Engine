@@ -90,6 +90,11 @@ namespace SG
 		{}
 	};
 
+	struct StatisticData
+	{
+		UInt32 cullSceneObjects = 0;
+	};
+
 	// temporary
 	SG_RENDERER_VK_API SG_INLINE LightUBO&  GetLightUBO();
 	SG_RENDERER_VK_API SG_INLINE ShadowUBO& GetShadowUBO();
@@ -97,4 +102,7 @@ namespace SG
 	SG_RENDERER_VK_API SG_INLINE CameraUBO& GetCameraUBO();
 	SG_RENDERER_VK_API SG_INLINE CompositionUBO& GetCompositionUBO();
 	SG_RENDERER_VK_API SG_INLINE GPUCullUBO& GetGPUCullUBO();
+
+	SG_RENDERER_VK_API SG_INLINE StatisticData& GetStatisticData();
+
 }

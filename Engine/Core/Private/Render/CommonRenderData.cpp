@@ -10,6 +10,7 @@ namespace SG
 	static CameraUBO gCameraUbo = {};
 	static CompositionUBO gCompositionUbo = {};
 	static GPUCullUBO gGPUCullUbo = {};
+	static StatisticData gStatisticData = {};
 
 	LightUBO& GetLightUBO()
 	{
@@ -39,6 +40,11 @@ namespace SG
 	GPUCullUBO& GetGPUCullUBO()
 	{
 		return gGPUCullUbo;
+	}
+
+	StatisticData& GetStatisticData()
+	{
+		return gStatisticData;
 	}
 
 }

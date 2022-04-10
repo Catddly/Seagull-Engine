@@ -8,6 +8,7 @@
 
 #include "Math/MathBasic.h"
 #include "Math/Plane.h"
+#include "Scene/Mesh/MeshDataArchive.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
@@ -102,6 +103,15 @@ namespace SG
 		mpContext->graphicQueue.SubmitCommands(&mpContext->commandBuffers[mCurrentFrame],
 			mpContext->pRenderCompleteSemaphore, mpContext->pPresentCompleteSemaphore, mpContext->pComputeCompleteSemaphore,
 			mpContext->pFences[mCurrentFrame]); // submit new render commands to the available image
+
+		// copy statistic data
+		auto& statisticData = GetStatisticData();
+		statisticData.cullSceneObjects = 0;
+		auto* pIndirectBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer");
+		DrawIndexedIndirectCommand* pCommand = pIndirectBuffer->MapMemory<DrawIndexedIndirectCommand>();
+		for (UInt32 i = 0; i < MeshDataArchive::GetInstance()->GetNumMeshData(); ++i)
+			statisticData.cullSceneObjects += (pCommand + i)->instanceCount;
+		pIndirectBuffer->UnmapMemory();
 
 		// once submit the commands to GPU, pRenderCompleteSemaphore will be locked, and will be unlocked after the GPU finished the commands.
 		// we have to wait for the commands had been executed, then we present this image.
