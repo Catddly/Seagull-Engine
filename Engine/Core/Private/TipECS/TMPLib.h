@@ -2,10 +2,9 @@
 
 #include "TipECS/Config.h"
 
-#ifdef USE_STL
-#	include <tuple>
-#	include <array>
-#endif
+#include <tuple>
+#include <array>
+#include <type_traits>
 
 namespace TMP
 {
@@ -47,9 +46,7 @@ namespace TMP
 		struct HasType;
 
 		template <typename T, typename... Ts>
-#ifdef USE_STL
 		struct HasType<T, std::tuple<Ts...>> : std::disjunction<std::is_same<T, Ts>...> {}; // expand to if see each elements is T.
-#endif
 
 		template <size_t I, typename T, typename TTuple>
 		constexpr size_t IndexOf()
@@ -93,9 +90,7 @@ namespace TMP
 
 		static constexpr auto Size() -> size_t
 		{
-#ifdef USE_STL
 			return std::tuple_size_v<ThisType<Ts...>>;
-#endif
 		}
 	};
 
@@ -104,9 +99,7 @@ namespace TMP
 	struct ToTuple;
 
 	template <typename... Ts>
-#ifdef USE_STL
 	struct ToTuple<TypeList<Ts...>>
-#endif
 	{
 		using type = std::tuple<Ts...>;
 	};
@@ -116,9 +109,7 @@ namespace TMP
 	struct ToTypeList;
 
 	template <typename... Ts>
-#ifdef USE_STL
 	struct ToTypeList<std::tuple<Ts...>>
-#endif
 	{
 		using type = typename TypeList<Ts...>;
 	};
@@ -189,9 +180,7 @@ namespace TMP
 	/// begin namespace Impl
 	namespace Impl
 	{
-#ifdef USE_STL
 		template <typename Array, size_t... I>
-#endif
 		constexpr auto MakeTupleN_Impl(const Array& array, std::index_sequence<I...>)
 		{
 			return std::make_tuple<>(array[I]...);
@@ -199,9 +188,7 @@ namespace TMP
 	}
 	/// end   namespace Impl
 
-#ifdef USE_STL
 	template <size_t N, typename T, typename Indices = std::make_index_sequence<N>>
-#endif
 	constexpr auto MakeTupleN()
 	{
 		return Impl::MakeTupleN_Impl(std::array<T, N>{}, Indices{});
@@ -209,9 +196,7 @@ namespace TMP
 
 	namespace Impl
 	{
-#ifdef USE_STL
 		template <typename TTuple, typename TFunc, size_t... I>
-#endif
 		constexpr void ForTuple_ImplCall(TTuple& tuple, TFunc&& func, std::index_sequence<I...>)
 		{
 			// dirty way to expand the template parameters inside a function.
@@ -219,9 +204,7 @@ namespace TMP
 			(void)_dummy { 0, (func(std::get<I>(tuple)), 0)... };
 		}
 
-#ifdef USE_STL
 		template <size_t N, typename TTuple, typename TFunc, typename Indices = std::make_index_sequence<N>>
-#endif
 		constexpr void ForTuple_Impl(TTuple& tuple, TFunc&& func)
 		{
 			ForTuple_ImplCall(tuple, std::forward<TFunc>(func), Indices{});

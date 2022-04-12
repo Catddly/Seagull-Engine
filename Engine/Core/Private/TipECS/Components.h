@@ -2,11 +2,13 @@
 
 #include "TipECS/Config.h"
 #include "Core/Private/TipECS/Entity.h"
-#include "Core/Private/TipECS/Registry.h"
+#include "TipECS/Registry.h"
 
-#ifdef USE_STL
-#	include <tuple>
+#include <tuple>
+#if USE_STL
 #	include <vector>
+#else
+#	include "eastl/vector.h"
 #endif
 
 namespace TipECS
@@ -23,17 +25,20 @@ namespace TipECS
 		template <typename TComponent>
 		struct ComponentData
 		{
-#ifdef USE_STL
+#if USE_STL
 			std::vector<size_t>     dataIndices;    //! Array contain the index of the compData array.
 			std::vector<TComponent> compData;       //! Array which stores all the component data.
 			std::vector<size_t>     validCompIndex; //! Stack which contain the free index of the compData array.
+#else
+			eastl::vector<size_t>     dataIndices;    //! Array contain the index of the compData array.
+			eastl::vector<TComponent> compData;       //! Array which stores all the component data.
+			eastl::vector<size_t>     validCompIndex; //! Stack which contain the free index of the compData array.
 #endif
 		};
 
 		template <typename... Ts>
-#ifdef USE_STL
 		using TupleOfVectors = std::tuple<ComponentData<Ts>...>;
-#endif
+
 		// this is a std::tuple<std::vector<size_t>>, each vector refers to a component type.
 		// it is used for indexing the data to the packed data array.
 		using ComponentsType = typename TMP::Unpack<TupleOfVectors, ComponentList>::type;
@@ -85,10 +90,9 @@ namespace TipECS
 		auto& GetComponent(DataIndex idx) noexcept
 		{
 			static_assert(Setting::template IsComponent<TComponent>(), "TComponent is not registered!");
-#ifdef USE_STL
+		
 			auto& component = std::get<ComponentData<TComponent>>(mComponentsData);
 			return component.compData[component.dataIndices[idx]];
-#endif
 		}
 
 		void Reserve(size_t n)

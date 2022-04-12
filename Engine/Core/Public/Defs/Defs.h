@@ -9,6 +9,8 @@
 #	define SG_RELEASE
 #endif
 
+#define SG_SEAGULL_ENGINE 1
+
 #define SG_ENGINE_WNAME L"Seagull Engine"
 #define SG_ENGINE_NAME   "Seagull Engine"
 

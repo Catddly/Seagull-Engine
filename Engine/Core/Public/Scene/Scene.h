@@ -5,6 +5,8 @@
 #include "Scene/Light/PointLight.h"
 #include "Scene/Light/DirectionalLight.h"
 
+#include "TipECS/EntityManager.h"
+
 #include "Stl/string.h"
 #include "Stl/vector.h"
 #include "Stl/unordered_map.h"
@@ -57,6 +59,8 @@ namespace SG
 		void MaterialTestScene();
 	private:
 		string mName;
+
+		TipECS::EntityManager<SGECSSetting> mEntityManager;
 
 		// seperate from scene mesh
 		RefPtr<Mesh> mpSkyboxMesh;

@@ -1,40 +1,29 @@
 #pragma once
 
-#include "TipECS/Config.h"
+#include "Config.h"
 #include "Core/Private/TipECS/TMPLib.h"
 
-#ifdef USE_STL
-#	include <tuple>
-#endif
+#include <tuple>
 #include <bitset>
-#include <iostream>
 
 namespace TipECS
 {
 
 	// Collection of components
 	template <typename... TComponents>
-#ifdef USE_STL
-	using CompoentList = TMP::TypeList<TComponents...>;
-#endif
+	using ComponentList = TMP::TypeList<TComponents...>;
 
 	// Collection of tags
 	template <typename... TTags>
-#ifdef USE_STL
 	using TagList = TMP::TypeList<TTags...>;
-#endif
 
 	// Collection of signatures
 	template <typename... Ts>
-#ifdef USE_STL
 	using Signature = TMP::TypeList<Ts...>;
-#endif
 
 	// Collection of signatures
 	template <typename... TSignatures>
-#ifdef USE_STL
 	using SignatureList = TMP::TypeList<TSignatures...>;
-#endif
 
 	// forward decoration
 	namespace Impl
@@ -192,9 +181,7 @@ namespace TipECS
 			auto& GetSignatureBitSet() noexcept
 			{
 				static_assert(Setting::template IsSignature<TSignature>(), "TSignature is not a signature!");
-#ifdef USE_STL
 				return std::get<Setting::template SignatureID<TSignature>()>(mSignatureBitSets);
-#endif
 			}
 
 			//! Return the bitset of a given signature
@@ -202,9 +189,7 @@ namespace TipECS
 			const auto& GetSignatureBitSet() const noexcept
 			{
 				static_assert(Setting::template IsSignature<TSignature>(), "TSignature is not a signature!");
-#ifdef USE_STL
 				return std::get<Setting::template SignatureID<TSignature>()>(mSignatureBitSets);
-#endif
 			}
 		private:
 			//! Initialize the bitset for each signature at run-time.

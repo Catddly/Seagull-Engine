@@ -2,6 +2,8 @@
 
 #include "Math/MathBasic.h"
 
+#include "TipECS/Registry.h"
+
 namespace SG
 {
 
@@ -55,5 +57,12 @@ namespace SG
 		float    mRoughness = 0.35f;
 	};
 
+	using SGComponentList = TipECS::ComponentList<TransformComponent, MaterialComponent>;
+	using SGTagList = TipECS::TagList<>;
+
+	using TMSignature = TipECS::Signature<TransformComponent, MaterialComponent>;
+	using SGSignatureList = TipECS::SignatureList<TMSignature>;
+
+	using SGECSSetting = TipECS::Setting<SGComponentList, SGTagList, SGSignatureList>;
 
 }

@@ -1,14 +1,15 @@
 #pragma once
 
 #include "TipECS/Config.h"
+#include "TipECS/Registry.h"
 #include "Core/Private/TipECS/Entity.h"
-#include "Core/Private/TipECS/Registry.h"
 #include "Core/Private/TipECS/Components.h"
 
-#ifdef USE_STL
+#if USE_STL
 #	include <vector>
+#else
+#	include "eastl/vector.h"
 #endif
-#include <iostream>
 #include <assert.h>
 
 namespace TipECS
@@ -131,14 +132,6 @@ namespace TipECS
 		}
 
 		template <typename TFunc>
-		void TraverseEntityID(TFunc&& func)
-		{
-			// don't traverse the newly created entity.
-			for (EntityID i{ 0 }; i < mSize; ++i)
-				func(i);
-		}
-
-		template <typename TFunc>
 		void TraverseEntity(TFunc&& func)
 		{
 			// don't traverse the newly created entity.
@@ -152,18 +145,6 @@ namespace TipECS
 					func(entity);
 				}
 			}
-		}
-
-		template <typename TSignature, typename TFunc>
-		void TraverseEntityIDMatchSignature(TFunc&& func)
-		{
-			static_assert(Setting::template IsSignature<TSignature>(), "It is a not registered signature!");
-
-			TraverseEntityID([this, &func](EntityID id)
-				{
-					if (MatchSignature<TSignature>(id))
-						ExpandSignatureCall<TSignature>(id, std::forward<TFunc>(func));
-				});
 		}
 
 		template <typename TSignature, typename TFunc>
@@ -216,9 +197,7 @@ namespace TipECS
 			{
 				// we can use structure binding here!
 				auto entityID = GetEntityID(entity);
-#ifdef USE_STL
 				return std::tuple<decltype(GetComponent<Ts>(entityID))...>(GetComponent<Ts>(entityID)...);
-#endif
 			}
 		}
 
@@ -289,41 +268,27 @@ namespace TipECS
 			// here we return the mSize, so the newly created entities will not be able to know until user call the Refreseh().
 			return mSize;
 		}
-
-#ifdef _DEBUG
-		void PrintStatus()
-		{
-			std::cout << "Current Status: \n";
-			std::cout << "DataIndex:         ";
-			for (size_t i = 0; i < mSizeNext; ++i)
-			{
-				std::cout << GetEntityHandle(EntityID(i)).dataIndex;
-			}
-			std::cout << "\n";
-			std::cout << "HandleDataIndex:   ";
-			for (size_t i = 0; i < mSizeNext; ++i)
-			{
-				std::cout << GetEntityHandle(EntityID(i)).handleDataIndex;
-			}
-			std::cout << "\n";
-			std::cout << "HandleDataCounter: ";
-			for (size_t i = 0; i < mSizeNext; ++i)
-			{
-				std::cout << GetHandleData(GetEntityHandle(EntityID(i)).handleDataIndex).counter;
-			}
-			std::cout << "\n";
-			std::cout << "Alive:             ";
-			for (size_t i = 0; i < mSizeNext; ++i)
-			{
-				if (GetEntityHandle(EntityID(i)).bAlive)
-					std::cout << "A";
-				else
-					std::cout << "D";
-			}
-			std::cout << "\n\n";
-		}
-#endif
 	private:
+		template <typename TFunc>
+		void TraverseEntityID(TFunc&& func)
+		{
+			// don't traverse the newly created entity.
+			for (EntityID i{ 0 }; i < mSize; ++i)
+				func(i);
+		}
+
+		template <typename TSignature, typename TFunc>
+		void TraverseEntityIDMatchSignature(TFunc&& func)
+		{
+			static_assert(Setting::template IsSignature<TSignature>(), "It is a not registered signature!");
+
+			TraverseEntityID([this, &func](EntityID id)
+				{
+					if (MatchSignature<TSignature>(id))
+						ExpandSignatureCall<TSignature>(id, std::forward<TFunc>(func));
+				});
+		}
+
 		template <typename... Ts>
 		struct UnpackedSignatureComponents;
 
@@ -658,9 +623,17 @@ private:
 		//! Current new size of the entity, after the refresh is called, mSizeNext will equal to mSize.
 		size_t mSizeNext = 0;
 		//! Container of the entity handles.
+#if USE_STL
 		std::vector<EntityHandle> mEntityHandles;
+#else
+		eastl::vector<EntityHandle> mEntityHandles;
+#endif
 		//! Container of the entity.
+#if USE_STL
 		std::vector<HandleData> mHandleDatas;
+#else
+		eastl::vector<HandleData> mHandleDatas;
+#endif
 		//! Bitsets of the required signatures.
 		SignatureBitSetsStorage mSignatureBitSets;
 		//! Container of all the components data.

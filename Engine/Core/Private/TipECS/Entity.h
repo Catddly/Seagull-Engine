@@ -3,10 +3,6 @@
 #include "TipECS/Config.h"
 #include "Core/Private/TipECS/TMPLib.h"
 
-#ifdef USE_STL
-#	include <type_traits>
-#endif
-
 namespace TipECS
 {
 
