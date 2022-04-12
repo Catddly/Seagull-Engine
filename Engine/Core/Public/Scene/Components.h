@@ -7,9 +7,6 @@
 namespace SG
 {
 
-	// temporary component
-	// should be replaced by ECS
-
 	//! Pure data + function class.
 	class TransformComponent
 	{
@@ -57,7 +54,21 @@ namespace SG
 		float    mRoughness = 0.35f;
 	};
 
-	using SGComponentList = TipECS::ComponentList<TransformComponent, MaterialComponent>;
+	struct TagComponent
+	{
+		string name;
+	};
+
+#define COMPONENTS(F, END) \
+F(TagComponent) \
+F(TransformComponent) \
+END(MaterialComponent)
+
+#define MACRO_EXPAND(NAME) NAME,
+#define MACRO_EXPAND_END(NAME) NAME
+	using SGComponentList = TipECS::ComponentList<COMPONENTS(MACRO_EXPAND, MACRO_EXPAND_END)>;
+#undef MACRO_EXPAND
+#undef MACRO_EXPAND_END
 	using SGTagList = TipECS::TagList<>;
 
 	using TMSignature = TipECS::Signature<TransformComponent, MaterialComponent>;

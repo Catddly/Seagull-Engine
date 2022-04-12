@@ -62,7 +62,7 @@ namespace SG
 
 		TipECS::EntityManager<SGECSSetting> mEntityManager;
 
-		// seperate from scene mesh
+		// separate from scene mesh
 		RefPtr<Mesh> mpSkyboxMesh;
 		RefPtr<DirectionalLight> mpDirectionalLight;
 		vector<PointLight>  mPointLights;
