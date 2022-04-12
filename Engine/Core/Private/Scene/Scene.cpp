@@ -22,7 +22,7 @@ namespace SG
 		mpDirectionalLight = MakeRef<DirectionalLight>(Vector3f{ -7.0f, 8.0f, 3.0f }, Vector3f{ 7.0f, -8.0f, -3.0f }, Vector3f{ 1.0f, 1.0f, 1.0f });
 		mPointLights.emplace_back(Vector3f{ 1.25f, 0.75f, -0.3f }, 3.0f, Vector3f{ 0.0f, 1.0f, 0.705f });
 
-		DefaultScene();
+		//DefaultScene();
 		MaterialTestScene();
 	}
 
@@ -55,21 +55,35 @@ namespace SG
 
 	void Scene::DefaultScene()
 	{
-		auto model = mMeshes.emplace("model", MakeRef<Mesh>("model", "model", EMeshType::eOBJ)).first->second;
-		model->SetMetallic(0.2f);
-		model->SetRoughness(0.8f);
+		//auto entity = mEntityManager.CreateEntity();
+		//mEntityManager.AddComponent<TagComponent>(entity, "model");
+		//mEntityManager.AddComponent<TransformComponent>(entity);
+		//auto& mat = mEntityManager.AddComponent<MaterialComponent>(entity);
+		//mat.metallic = 0.2f;
+		//mat.roughness = 0.8f;
+		//auto& mesh = mEntityManager.AddComponent<MeshComponent>(entity);
+		//LoadMesh("model", EMeshType::eOBJ, mesh);
 
-		auto model_1 = mMeshes.emplace("model_1", MakeRef<Mesh>("model_1")).first->second;
-		model_1->Copy(*model);
-		model_1->SetPosition({ 0.0f, 0.0f, -1.5f });
-		model_1->SetScale({ 0.6f, 0.6f, 0.6f });
-		model_1->SetMetallic(0.8f);
-		model_1->SetRoughness(0.35f);
+		//auto entity1 = mEntityManager.CreateEntity();
+		//mEntityManager.AddComponent<TagComponent>(entity1, "model_1");
+		//auto& trans1 = mEntityManager.AddComponent<TransformComponent>(entity1);
+		//trans1.position = { 0.0f, 0.0f, -1.5f };
+		//trans1.scale = { 0.6f, 0.6f, 0.6f };
+		//auto& mat1 = mEntityManager.AddComponent<MaterialComponent>(entity1);
+		//mat1.metallic = 0.8f;
+		//mat1.roughness = 0.35f;
+		//auto& mesh1 = mEntityManager.AddComponent<MeshComponent>(entity1);
+		//CopyMesh(mesh, mesh1);
 
-		auto grid = mMeshes.emplace("grid", MakeRef<Mesh>("grid", EGennerateMeshType::eGrid)).first->second;
-		grid->SetScale({ 8.0f, 1.0f, 8.0f });
-		grid->SetMetallic(0.0f);
-		grid->SetRoughness(0.76f);
+		//auto entity2 = mEntityManager.CreateEntity();
+		//mEntityManager.AddComponent<TagComponent>(entity2, "grid");
+		//auto& trans2 = mEntityManager.AddComponent<TransformComponent>(entity2);
+		//trans2.scale = { 8.0f, 1.0f, 8.0f };
+		//auto& mat2 = mEntityManager.AddComponent<MaterialComponent>(entity2);
+		//mat2.metallic = 0.05f;
+		//mat2.roughness = 0.76f;
+		//auto& mesh2 = mEntityManager.AddComponent<MeshComponent>(entity2);
+		//LoadMesh(EGennerateMeshType::eGrid, mesh2);
 	}
 
 	void Scene::MaterialTestScene()

@@ -23,8 +23,8 @@ namespace SG
 	class Scene
 	{
 	public:
-		Scene(const char* name)
-			:mName(name), mpMainCamera(nullptr)
+		Scene()
+			:mpMainCamera(nullptr)
 		{
 		}
 
@@ -49,6 +49,12 @@ namespace SG
 		}
 
 		template <typename Func>
+		SG_INLINE void TraverseEntity(Func&& func)
+		{
+			mEntityManager.TraverseEntity(eastl::forward<Func>(func));
+		}
+
+		template <typename Func>
 		SG_INLINE void TraversePointLight(Func&& func)
 		{
 			for (auto& pointLight : mPointLights)
@@ -58,8 +64,6 @@ namespace SG
 		void DefaultScene();
 		void MaterialTestScene();
 	private:
-		string mName;
-
 		TipECS::EntityManager<SGECSSetting> mEntityManager;
 
 		// separate from scene mesh

@@ -47,7 +47,7 @@ namespace SG
 		if (mpCurrActiveProcess)
 			mpCurrActiveProcess->OnInit();
 
-		mp3DScene = MakeRef<Scene>("Main Scene");
+		mp3DScene = MakeRef<Scene>();
 		mp3DScene->OnSceneLoad();
 
 		mpRenderDataBuilder = MakeRef<RenderDataBuilder>();

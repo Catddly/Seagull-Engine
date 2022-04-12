@@ -288,9 +288,6 @@ namespace SG
 		mResetCommand.Reset();
 		mResetCommand.BeginRecord();
 
-		//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efIndirect_Read, EPipelineStage::efShader_Write,
-		//	EPipelineType::eGraphic, EPipelineType::eCompute);
-
 		mResetCommand.BindPipeline(mpResetCullingPipeline);
 		mResetCommand.BindPipelineSignature(mpResetCullingPipelineSignature.get(), EPipelineType::eCompute);
 		UInt32 numGroup = (UInt32)(MeshDataArchive::GetInstance()->GetNumMeshData() / 16) + 1;
@@ -302,6 +299,10 @@ namespace SG
 
 		auto& cmd = mpContext->computeCmdBuffer;
 		cmd.BeginRecord();
+
+		//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efIndirect_Read, EPipelineStage::efShader_Write,
+		//	EPipelineType::eGraphic, EPipelineType::eCompute);
+
 		// [Data Hazard] barrier to prevent instanceOutput RAW(Read After Write) scenario
 		cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStage::efShader_Read, EPipelineStage::efShader_Write,
 			EPipelineType::eCompute, EPipelineType::eCompute);

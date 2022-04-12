@@ -37,26 +37,39 @@ namespace TipECS
 		};
 
 		// forward decoration
+		template <typename TSetting>
 		struct EntityPrivateAccessor;
 	}
 
+	template <typename TSetting>
+	class EntityManager;
+
+	template <typename TSetting>
 	class Entity
 	{
 	private:
-		friend struct TipECS::Impl::EntityPrivateAccessor;
+		using Setting = TSetting;
+	private:
+		friend struct TipECS::Impl::EntityPrivateAccessor<Setting>;
+		EntityManager<Setting>* pManager = nullptr;
 		HandleDataIndex handleDataIndex;
 		CounterIndex counter; //! Used to check if the handle is invalid as a version number.
 	};
 
 	namespace Impl
 	{
+		template <typename TSetting>
 		struct EntityPrivateAccessor
 		{
+			using Entity = Entity<TSetting>;
+
 			auto& GetHandleDataIndex(Entity& entity) { return entity.handleDataIndex; }
 			auto& GetCounterIndex(Entity& entity) { return entity.counter; }
 
 			const auto& GetHandleDataIndex(const Entity& entity) const { return entity.handleDataIndex; }
 			const auto& GetCounterIndex(const Entity& entity) const { return entity.counter; }
+
+			auto* GetManager(const Entity& entity) { return entity.pManager; }
 		};
 	}
 

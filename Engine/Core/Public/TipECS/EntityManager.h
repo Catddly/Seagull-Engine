@@ -22,12 +22,12 @@ namespace TipECS
 		using Setting = TSetting;
 		using EntityHandle = Impl::EntityHandle<Setting>;
 		using HandleData = Impl::HandleData;
-		using EntityPrivateAccessor = Impl::EntityPrivateAccessor;
+		using EntityPrivateAccessor = Impl::EntityPrivateAccessor<Setting>;
 		using SignatureBitSetsStorage = typename Setting::SignatureBitSetsStorage;
 		using ComponentsStorage = typename ComponentsStorage<Setting>;
 		using ThisType = EntityManager<Setting>;
 	public:
-		using Entity = Entity;
+		using Entity = Entity<Setting>;
 
 		template <typename TSetting, typename TSignature>
 		class SignatureIterator
