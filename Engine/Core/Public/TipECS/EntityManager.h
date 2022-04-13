@@ -2,7 +2,7 @@
 
 #include "TipECS/Config.h"
 #include "TipECS/Registry.h"
-#include "Core/Private/TipECS/Entity.h"
+#include "TipECS/Entity.h"
 #include "Core/Private/TipECS/Components.h"
 
 #if USE_STL
@@ -60,6 +60,7 @@ namespace TipECS
 				Entity entity = {};
 				mEntityManager.mEntityPrivateAccessor.GetHandleDataIndex(entity) = mEntityManager.GetEntityHandle(mCurrEntityID).handleDataIndex;
 				mEntityManager.mEntityPrivateAccessor.GetCounterIndex(entity) = mEntityManager.GetHandleData(mCurrEntityID).counter;
+				mEntityManager.mEntityPrivateAccessor.SetManagerPtr(entity, &mEntityManager);
 				return entity;
 			}
 
@@ -106,6 +107,7 @@ namespace TipECS
 		};
 	public:
 		EntityManager()
+			:mbCurrentFrameModified(true)
 		{
 			Reserve(100);
 		}
@@ -123,12 +125,15 @@ namespace TipECS
 
 		Entity CreateEntity() noexcept
 		{
+			mbCurrentFrameModified = true;
 			return CreateEntityImpl();
 		}
 
-		void DestroyEntity(const Entity& entity) noexcept
+		void DestroyEntity(Entity& entity) noexcept
 		{
+			mbCurrentFrameModified = true;
 			DestroyEntity(GetEntityID(entity));
+			mEntityPrivateAccessor.SetManagerPtr(entity, nullptr);
 		}
 
 		template <typename TFunc>
@@ -142,6 +147,7 @@ namespace TipECS
 					Entity entity = {};
 					mEntityPrivateAccessor.GetHandleDataIndex(entity) = GetEntityHandle(i).handleDataIndex;
 					mEntityPrivateAccessor.GetCounterIndex(entity) = GetHandleData(i).counter;
+					mEntityPrivateAccessor.SetManagerPtr(entity, this);
 					func(entity);
 				}
 			}
@@ -159,18 +165,18 @@ namespace TipECS
 				});
 		}
 
-		template <typename TComponent>
-		bool HasComponent(const Entity& entity) const noexcept
-		{
-			return HasComponent<TComponent>(GetEntityID(entity));
-		}
-
-		template <typename... Ts> 
+		template <typename... Ts>
 		auto View() noexcept
 		{
 			using signature_t = typename TipECS::Signature<Ts...>;
 			SignatureIterator<Setting, signature_t> iterator(*this);
 			return iterator;
+		}
+
+		template <typename TComponent>
+		bool HasComponent(const Entity& entity) const noexcept
+		{
+			return HasComponent<TComponent>(GetEntityID(entity));
 		}
 
 		template <typename TComponent>
@@ -253,7 +259,13 @@ namespace TipECS
 				return;
 			}
 
-			mSize = mSizeNext = ReFreshImpl();
+			// if current frame had created or deleted entity, we have to do the refresh.
+			// otherwise, save you some effort.
+			if (mbCurrentFrameModified)
+			{
+				mSize = mSizeNext = ReFreshImpl();
+				mbCurrentFrameModified = false;
+			}
 		}
 
 		//! Get current capacity.
@@ -505,6 +517,7 @@ namespace TipECS
 			Entity entity = {};
 			mEntityPrivateAccessor.GetHandleDataIndex(entity) = entityHandle.handleDataIndex;
 			mEntityPrivateAccessor.GetCounterIndex(entity) = handleData.counter;
+			mEntityPrivateAccessor.SetManagerPtr(entity, this);
 
 			assert(IsEntityValid(entity));
 			return entity;
@@ -640,6 +653,8 @@ private:
 		ComponentsStorage mComponentsStorage;
 		//! Used to access entity private member data.
 		EntityPrivateAccessor mEntityPrivateAccessor;
+		//! Used to do some optimization.
+		bool mbCurrentFrameModified;
 	};
 
 }

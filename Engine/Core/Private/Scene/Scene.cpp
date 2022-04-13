@@ -8,22 +8,42 @@
 namespace SG
 {
 
+	UInt32 Scene::gCurrObjectID = 0;
+
 	void Scene::OnSceneLoad()
 	{
 		// camera initialize
 		auto* window = OperatingSystem::GetMainWindow();
 		const float ASPECT = window->GetAspectRatio();
 
-		mpSkyboxMesh = MakeRef<Mesh>("skybox", EGennerateMeshType::eSkybox);
+		mSkyboxEntity = mEntityManager.CreateEntity();
+		mSkyboxEntity.AddComponent<TagComponent>("skybox");
+		auto& mesh = mSkyboxEntity.AddComponent<MeshComponent>();
+		LoadMesh(EGennerateMeshType::eSkybox, mesh);
+		mesh.objectId = NewObjectID();
 
 		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 0.5f, 7.0f));
 		mpMainCamera->SetPerspective(60.0f, ASPECT, 0.01f, 256.0f);
 
 		mpDirectionalLight = MakeRef<DirectionalLight>(Vector3f{ -7.0f, 8.0f, 3.0f }, Vector3f{ 7.0f, -8.0f, -3.0f }, Vector3f{ 1.0f, 1.0f, 1.0f });
-		mPointLights.emplace_back(Vector3f{ 1.25f, 0.75f, -0.3f }, 3.0f, Vector3f{ 0.0f, 1.0f, 0.705f });
 
-		//DefaultScene();
+		auto* pEntity = CreateEntity("point_light_0", { 1.25f, 0.75f, -0.3f }, Vector3f(1.0f), Vector3f(0.0f));
+		auto& pointLight = pEntity->AddComponent<PointLightComponent>();
+		pointLight.radius = 3.0f;
+		pointLight.color = { 0.0f, 1.0f, 0.705f };
+		pEntity->GetComponent<TagComponent>().bDirty = true;
+
+		DefaultScene();
 		MaterialTestScene();
+
+		mEntityManager.ReFresh();
+
+		for (auto node : mEntities)
+		{
+			auto& entity = node.second;
+			if (entity.HasComponent<MeshComponent>())
+				++mMeshEntityCount;
+		}
 	}
 
 	void Scene::OnSceneUnLoad()
@@ -42,48 +62,91 @@ namespace SG
 		//pModel->SetPosition({ Sin(totalTime) * 0.5f, 0.0f, 0.0f });
 
 		//totalTime += deltaTime * speed;
+		mEntityManager.ReFresh();
 	}
 
-	RefPtr<Mesh> Scene::GetMesh(const char* name)
+	Scene::Entity* Scene::CreateEntity(const string& name)
 	{
-		auto pNode = mMeshes.find(name);
-		if (pNode != mMeshes.end())
-			return pNode->second;
-		SG_LOG_WARN("Try to get non-exist mesh: %s", name);
-		return nullptr;
+		if (mEntities.find(name) != mEntities.end())
+		{
+			SG_LOG_WARN("Already have an entity named: %s", name.c_str());
+			return nullptr;
+		}
+		auto entity = mEntityManager.CreateEntity();
+		// an entity must have a TagComponent and a TransformComponent
+		entity.AddComponent<TagComponent>(name);
+		entity.AddComponent<TransformComponent>();
+
+		mEntities[name] = entity;
+		return &mEntities[name];
+	}
+
+	Scene::Entity* Scene::CreateEntity(const string& name, const Vector3f& pos, const Vector3f& scale, const Vector3f& rot)
+	{
+		if (mEntities.find(name) != mEntities.end())
+		{
+			SG_LOG_WARN("Already have an entity named: %s", name.c_str());
+			return nullptr;
+		}
+		auto entity = mEntityManager.CreateEntity();
+		// an entity must have a TagComponent and a TransformComponent
+		entity.AddComponent<TagComponent>(name);
+		entity.AddComponent<TransformComponent>(pos, scale, rot);
+
+		mEntities[name] = entity;
+		return &mEntities[name];
+	}
+
+	void Scene::DestroyEntity(Entity& entity)
+	{
+		auto& tag = entity.GetComponent<TagComponent>();
+		mEntities.erase(tag.name);
+		mEntityManager.DestroyEntity(entity);
+	}
+
+	void Scene::DestroyEntityByName(const string& name)
+	{
+		auto* pEntity = GetEntityByName(name);
+		mEntityManager.DestroyEntity(*pEntity);
+		mEntities.erase(name);
+	}
+
+	Scene::Entity* Scene::GetEntityByName(const string& name)
+	{
+		auto node = mEntities.find(name);
+		if (node == mEntities.end())
+		{
+			SG_LOG_WARN("No entity named: %s", name.c_str());
+			return nullptr;
+		}
+		return &node->second;
 	}
 
 	void Scene::DefaultScene()
 	{
-		//auto entity = mEntityManager.CreateEntity();
-		//mEntityManager.AddComponent<TagComponent>(entity, "model");
-		//mEntityManager.AddComponent<TransformComponent>(entity);
-		//auto& mat = mEntityManager.AddComponent<MaterialComponent>(entity);
-		//mat.metallic = 0.2f;
-		//mat.roughness = 0.8f;
-		//auto& mesh = mEntityManager.AddComponent<MeshComponent>(entity);
-		//LoadMesh("model", EMeshType::eOBJ, mesh);
+		auto* pEntity = CreateEntity("model");
+		auto& mat = pEntity->AddComponent<MaterialComponent>();
+		mat.metallic = 0.2f;
+		mat.roughness = 0.8f;
+		auto& mesh = pEntity->AddComponent<MeshComponent>();
+		mesh.objectId = NewObjectID();
+		LoadMesh("model", EMeshType::eOBJ, mesh);
 
-		//auto entity1 = mEntityManager.CreateEntity();
-		//mEntityManager.AddComponent<TagComponent>(entity1, "model_1");
-		//auto& trans1 = mEntityManager.AddComponent<TransformComponent>(entity1);
-		//trans1.position = { 0.0f, 0.0f, -1.5f };
-		//trans1.scale = { 0.6f, 0.6f, 0.6f };
-		//auto& mat1 = mEntityManager.AddComponent<MaterialComponent>(entity1);
-		//mat1.metallic = 0.8f;
-		//mat1.roughness = 0.35f;
-		//auto& mesh1 = mEntityManager.AddComponent<MeshComponent>(entity1);
-		//CopyMesh(mesh, mesh1);
+		pEntity = CreateEntity("model_1", { 0.0f, 0.0f, -1.5f }, { 0.6f, 0.6f, 0.6f }, Vector3f(0.0f));
+		auto& mat1 = pEntity->AddComponent<MaterialComponent>();
+		mat1.metallic = 0.8f;
+		mat1.roughness = 0.35f;
+		auto& mesh1 = pEntity->AddComponent<MeshComponent>();
+		mesh1.objectId = NewObjectID();
+		CopyMesh(GetEntityByName("model")->GetComponent<MeshComponent>(), mesh1);
 
-		//auto entity2 = mEntityManager.CreateEntity();
-		//mEntityManager.AddComponent<TagComponent>(entity2, "grid");
-		//auto& trans2 = mEntityManager.AddComponent<TransformComponent>(entity2);
-		//trans2.scale = { 8.0f, 1.0f, 8.0f };
-		//auto& mat2 = mEntityManager.AddComponent<MaterialComponent>(entity2);
-		//mat2.metallic = 0.05f;
-		//mat2.roughness = 0.76f;
-		//auto& mesh2 = mEntityManager.AddComponent<MeshComponent>(entity2);
-		//LoadMesh(EGennerateMeshType::eGrid, mesh2);
+		pEntity = CreateEntity("grid", Vector3f(0.0f), { 8.0f, 1.0f, 8.0f }, Vector3f(0.0f));
+		auto& mat2 = pEntity->AddComponent<MaterialComponent>();
+		mat2.metallic = 0.05f;
+		mat2.roughness = 0.76f;
+		auto& mesh2 = pEntity->AddComponent<MeshComponent>();
+		mesh2.objectId = NewObjectID();
+		LoadMesh(EGennerateMeshType::eGrid, mesh2);
 	}
 
 	void Scene::MaterialTestScene()
@@ -97,20 +160,28 @@ namespace SG
 				string name = "sphere" + eastl::to_string(i) + "_" + eastl::to_string(j);
 				if (i == 0 && j == 0)
 				{
-					auto& mesh = mMeshes.emplace(name.c_str(), MakeRef<Mesh>(name.c_str(), "sphere", EMeshType::eOBJ)).first->second;
-					mesh->SetPosition({ -7.0f + i * INTERVAL, -7.0f + j * INTERVAL, zPos });
-					mesh->SetScale({ 0.7f, 0.7f, 0.7f });
-					mesh->SetMetallic((i + 1) * 0.1f);
-					mesh->SetRoughness((10 - j) * 0.1f);
+					auto* pEntity = CreateEntity(name, { -7.0f + i * INTERVAL, -7.0f + j * INTERVAL, zPos }, { 0.7f, 0.7f, 0.7f }, Vector3f(0.0f));
+					auto& mesh = pEntity->AddComponent<MeshComponent>();
+					mesh.objectId = NewObjectID();
+					LoadMesh("sphere", EMeshType::eOBJ, mesh);
+
+					auto& mat = pEntity->AddComponent<MaterialComponent>();
+					mat.metallic = (i + 1) * 0.1f;
+					mat.roughness = (10 - j) * 0.1f;
 				}
 				else
 				{
-					auto& mesh = mMeshes.emplace(name.c_str(), MakeRef<Mesh>(name.c_str())).first->second;
-					mesh->Copy(*GetMesh("sphere0_0"));
-					mesh->SetPosition({ -7.0f + i * INTERVAL, -7.0f + j * INTERVAL, zPos });
-					mesh->SetScale({ 0.7f, 0.7f, 0.7f });
-					mesh->SetMetallic((i + 1) * 0.1f);
-					mesh->SetRoughness((10 - j) * 0.1f);
+					auto* pEntity = CreateEntity(name, { -7.0f + i * INTERVAL, -7.0f + j * INTERVAL, zPos }, { 0.7f, 0.7f, 0.7f }, Vector3f(0.0f));
+					auto& mesh = pEntity->AddComponent<MeshComponent>();
+					mesh.objectId = NewObjectID();
+
+					auto* pCopyEntity = GetEntityByName("sphere0_0");
+					auto& srcMesh = pCopyEntity->GetComponent<MeshComponent>();
+					CopyMesh(srcMesh, mesh);
+
+					auto& mat = pEntity->AddComponent<MaterialComponent>();
+					mat.metallic = (i + 1) * 0.1f;
+					mat.roughness = (10 - j) * 0.1f;
 				}
 			}
 		}

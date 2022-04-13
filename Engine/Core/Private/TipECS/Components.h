@@ -1,7 +1,7 @@
 #pragma once
 
 #include "TipECS/Config.h"
-#include "Core/Private/TipECS/Entity.h"
+#include "TipECS/Entity.h"
 #include "TipECS/Registry.h"
 
 #include <tuple>

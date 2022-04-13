@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Scene/Mesh/Mesh.h"
 #include "Scene/Camera/ICamera.h"
-#include "Scene/Light/PointLight.h"
 #include "Scene/Light/DirectionalLight.h"
+#include "Scene/Components.h"
 
 #include "TipECS/EntityManager.h"
 
@@ -23,6 +22,9 @@ namespace SG
 	class Scene
 	{
 	public:
+		using EntityManager = typename TipECS::EntityManager<SGECSSetting>;
+		using Entity = typename TipECS::Entity<SGECSSetting>;
+	public:
 		Scene()
 			:mpMainCamera(nullptr)
 		{
@@ -34,12 +36,21 @@ namespace SG
 
 		SG_CORE_API void OnUpdate(float deltaTime);
 
-		SG_CORE_API RefPtr<Mesh> GetMesh(const char* name);
-		SG_CORE_API Size GetNumMesh() const { return mMeshes.size(); }
-		SG_CORE_API const RefPtr<Mesh> GetSkybox() const { return mpSkyboxMesh; }
+		SG_CORE_API Entity* CreateEntity(const string& name);
+		SG_CORE_API Entity* CreateEntity(const string& name, const Vector3f& pos, const Vector3f& scale, const Vector3f& rot);
+
+		SG_CORE_API void    DestroyEntity(Entity& entity);
+		SG_CORE_API void    DestroyEntityByName(const string& name);
+
+		SG_CORE_API Entity* GetEntityByName(const string& name);
+
+		SG_CORE_API Entity GetSkyboxEntity() { return mSkyboxEntity; }
 
 		DirectionalLight* GetDirectionalLight() { return mpDirectionalLight.get(); }
 		ICamera* GetMainCamera() { return mpMainCamera.get(); }
+
+		SG_CORE_API Size GetMeshEntityCount() const { return mMeshEntityCount; }
+		SG_CORE_API Size GetEntityCount()     const { return mEntities.size(); }
 
 		template <typename Func>
 		SG_INLINE void TraverseMesh(Func&& func)
@@ -48,32 +59,39 @@ namespace SG
 				func(*pNode.second);
 		}
 
+		template <typename... Ts>
+		SG_INLINE auto View()
+		{
+			return mEntityManager.View<Ts...>();
+		}
+
 		template <typename Func>
 		SG_INLINE void TraverseEntity(Func&& func)
 		{
-			mEntityManager.TraverseEntity(eastl::forward<Func>(func));
-		}
-
-		template <typename Func>
-		SG_INLINE void TraversePointLight(Func&& func)
-		{
-			for (auto& pointLight : mPointLights)
-				func(pointLight);
+			for (auto node : mEntities)
+				func(node.second);
 		}
 	private:
+		static UInt32 NewObjectID() noexcept
+		{
+			return gCurrObjectID++;
+		}
+
 		void DefaultScene();
 		void MaterialTestScene();
 	private:
-		TipECS::EntityManager<SGECSSetting> mEntityManager;
+		EntityManager mEntityManager;
 
-		// separate from scene mesh
-		RefPtr<Mesh> mpSkyboxMesh;
+		// separate the skybox from scene
+		Entity mSkyboxEntity;
 		RefPtr<DirectionalLight> mpDirectionalLight;
-		vector<PointLight>  mPointLights;
-		// WHY it will fail to update mesh using TraverseMesh() when the type is unordered_map<string, Mesh>?
-		unordered_map<string, RefPtr<Mesh>> mMeshes; // TODO: use tree structure to store the meshes (for now there are no many meshes in the scene, map is ok)
 
-		RefPtr<ICamera>     mpMainCamera; // TODO: support multiply switchable camera
+		Size mMeshEntityCount = 0;
+		unordered_map<string, Entity> mEntities; // TODO: use tree structure to store the meshes (for now there are no many meshes in the scene, map is ok)
+
+		RefPtr<ICamera> mpMainCamera; // TODO: support multiply switchable camera
+
+		static UInt32 gCurrObjectID;
 	};
 
 }

@@ -2,6 +2,7 @@
 #include "Scene/RenderDataBuilder.h"
 
 #include "Scene/Mesh/MeshDataArchive.h"
+#include "TipECS/Entity.h"
 
 #include "System/Logger.h"
 
@@ -26,23 +27,30 @@ namespace SG
 			SG_LOG_ERROR("No scene is set to build the render data!");
 
 		// collect instance info and set instance id.
-		pScene->TraverseMesh([&](Mesh& mesh)
+		pScene->TraverseEntity([this](auto& entity)
 			{
-				auto node = mRenderMeshBuildDataMap.find(mesh.GetMeshID());
-				if (node == mRenderMeshBuildDataMap.end())
+				if (entity.HasComponent<MeshComponent>())
 				{
-					auto node = mRenderMeshBuildDataMap.insert(mesh.GetMeshID());
-					node.first->second.objectId = mesh.GetObjectID();
-					node.first->second.instanceCount = 1;
-					mesh.mInstanceId = 0;
+					auto& meshComp = entity.GetComponent<MeshComponent>();
+					auto meshId = meshComp.meshId;
+					auto objectId = meshComp.objectId;
+
+					auto node = mRenderMeshBuildDataMap.find(meshId);
+					if (node == mRenderMeshBuildDataMap.end())
+					{
+						auto node = mRenderMeshBuildDataMap.insert(meshId);
+						node.first->second.objectId = objectId;
+						node.first->second.instanceCount = 1;
+						meshComp.instanceId = 0;
+					}
+					else // have instance
+					{
+						meshComp.instanceId = node->second.instanceCount;
+						node->second.instanceCount += 1;
+					}
+					auto& perInstanceData = mRenderMeshBuildDataMap[meshId].perInstanceData;
+					perInstanceData.emplace_back(objectId);
 				}
-				else // have instance
-				{
-					mesh.mInstanceId = node->second.instanceCount;
-					node->second.instanceCount += 1;
-				}
-				auto& perInstanceData = mRenderMeshBuildDataMap[mesh.GetMeshID()].perInstanceData;
-				perInstanceData.emplace_back(mesh.GetObjectID());
 			});
 
 		for (auto node : mRenderMeshBuildDataMap) // clear the memory that is not necessary

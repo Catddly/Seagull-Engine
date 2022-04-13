@@ -37,6 +37,8 @@ namespace TMP
 	friend bool operator>=(const TYPE& x, const NAME& y) { return !static_cast<bool>(y > x); } \
 	}
 
+#define FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
+
 	/// begin namespace Impl
 	namespace Impl
 	{

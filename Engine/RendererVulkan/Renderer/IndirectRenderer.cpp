@@ -309,7 +309,7 @@ namespace SG
 
 		cmd.BindPipeline(mpGPUCullingPipeline);
 		cmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
-		numGroup = (UInt32)(SSystem()->GetMainScene()->GetNumMesh() / 128) + 1;
+		numGroup = (UInt32)(SSystem()->GetMainScene()->GetMeshEntityCount() / 128) + 1;
 		cmd.Dispatch(numGroup, 1, 1);
 
 		cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStage::efShader_Write, EPipelineStage::efShader_Read,

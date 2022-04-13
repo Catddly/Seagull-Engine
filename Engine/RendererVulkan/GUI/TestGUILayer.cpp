@@ -24,19 +24,16 @@ namespace SG
 	void TestGUILayer::DrawLightPanel()
 	{
 		ImGui::Begin("Light");
-		SSystem()->GetMainScene()->TraversePointLight([](PointLight& pointLight)
-			{
-				Vector3f position = pointLight.GetPosition();
-				float radius = pointLight.GetRadius();
-				Vector3f color = pointLight.GetColor();
-				ImGui::DragFloat3("Position", glm::value_ptr(position), 0.05f);
-				ImGui::DragFloat("Radius", &radius, 0.1f, 0.0f);
-				ImGui::ColorEdit3("Color", glm::value_ptr(color));
 
-				pointLight.SetPosition(position);
-				pointLight.SetRadius(radius);
-				pointLight.SetColor(color);
-			});
+		auto pointLights = SSystem()->GetMainScene()->View<TagComponent, PointLightComponent>();
+		for (auto& entity : pointLights)
+		{
+			auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, PointLightComponent>();
+
+			tag.bDirty |= ImGui::DragFloat3("Position", glm::value_ptr(trans.position), 0.05f);
+			tag.bDirty |= ImGui::DragFloat("Radius", &light.radius, 0.1f, 0.0f);
+			tag.bDirty |= ImGui::ColorEdit3("Color", glm::value_ptr(light.color));
+		}
 
 		// TODO: ui should not directly modify the value of ubo. User can modify it via global settings.
 		auto& compositionUbo = GetCompositionUBO();
@@ -55,7 +52,7 @@ namespace SG
 			mElapsedTime -= 0.5f;
 		}
 
-		Size cullMeshCnt = SSystem()->GetMainScene()->GetNumMesh();
+		Size cullMeshCnt = SSystem()->GetMainScene()->GetMeshEntityCount();
 		UInt32 drawCallCnt = MeshDataArchive::GetInstance()->GetNumMeshData();
 		auto& statisticData = GetStatisticData();
 

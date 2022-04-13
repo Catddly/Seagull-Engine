@@ -5,8 +5,8 @@
 #include "System/Logger.h"
 #include "Memory/Memory.h"
 #include "Render/SwapChain.h"
-#include "Scene/Mesh/Mesh.h"
 #include "Scene/Mesh/MeshDataArchive.h"
+#include "TipECS/Entity.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
@@ -41,8 +41,9 @@ namespace SG
 		cullBufferCI.type = EBufferType::efUniform;
 		CreateBuffer(cullBufferCI);
 
-		const auto pSkybox = SSystem()->GetMainScene()->GetSkybox();
-		auto& skyboxVertices = MeshDataArchive::GetInstance()->GetData(pSkybox->GetMeshID())->vertices;
+		auto pSkybox = SSystem()->GetMainScene()->GetSkyboxEntity();
+		auto& mesh = pSkybox.GetComponent<MeshComponent>();
+		auto& skyboxVertices = MeshDataArchive::GetInstance()->GetData(mesh.meshId)->vertices;
 		const UInt64 vbSize = skyboxVertices.size() * sizeof(float);
 
 		BufferCreateDesc bufferCI = {};
@@ -84,7 +85,7 @@ namespace SG
 		cullUbo.frustum[4] = cameraFrustum.GetFrontPlane();
 		cullUbo.frustum[5] = cameraFrustum.GetBackPlane();
 		cullUbo.viewPos = pCamera->GetPosition();
-		cullUbo.numObjects = static_cast<UInt32>(pScene->GetNumMesh());
+		cullUbo.numObjects = static_cast<UInt32>(pScene->GetMeshEntityCount());
 		cullUbo.numDrawCalls = MeshDataArchive::GetInstance()->GetNumMeshData();
 		GetBuffer("cullUbo")->UploadData(&cullUbo);
 		auto& skyboxUbo = GetSkyboxUBO();
@@ -102,15 +103,18 @@ namespace SG
 
 		auto* pSSBOObject = GetBuffer("perObjectBuffer");
 		// update all the render data of the render mesh
-		pScene->TraverseMesh([&](const Mesh& mesh)
-			{
-				ObjcetRenderData renderData;
-				renderData.model = mesh.GetTransform();
-				renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
-				renderData.meshId = mesh.GetMeshID();
-				renderData.MRIF = { mesh.GetMetallic(), mesh.GetRoughness(), MeshDataArchive::GetInstance()->HaveInstance(mesh.GetMeshID()) ? 1.0f : -1.0f };
-				pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.GetObjectID());
-			});
+		auto iterator = pScene->View<TransformComponent, MeshComponent, MaterialComponent>();
+		for (auto& entity : iterator)
+		{
+			auto [trans, mesh, mat] = entity.GetComponent<TransformComponent, MeshComponent, MaterialComponent>();
+
+			ObjcetRenderData renderData;
+			renderData.model = GetTransform(trans);
+			renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
+			renderData.meshId = mesh.meshId;
+			renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
+			pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
+		}
 	}
 
 	void VulkanResourceRegistry::Shutdown()
@@ -130,30 +134,6 @@ namespace SG
 	{
 		auto pLScene = pScene.lock();
 		auto* pSSBOObject = GetBuffer("perObjectBuffer");
-
-		// update all the render data of the render mesh
-		//pLScene->TraverseMesh([&](const Mesh& mesh)
-		//	{
-		//		if (mesh.GetInstanceID() == 0)
-		//		{
-		//			ObjcetRenderData renderData;
-		//			renderData.model = mesh.GetTransform();
-		//			renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
-		//			renderData.MRXX = { mesh.GetMetallic(), mesh.GetRoughness(), 0.0f, 0.0f };
-		//			pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.GetObjectID());
-		//		}
-
-		//		auto* pInstanceBuffer = GetBuffer((string("instance_vb_") + eastl::to_string(mesh.GetMeshID())).c_str());
-		//		if (pInstanceBuffer)
-		//		{
-		//			PerInstanceData data = {};
-		//			data.instancePos = mesh.GetPosition();
-		//			data.instanceScale = mesh.GetScale().x;
-		//			data.instanceMetallic = mesh.GetMetallic();
-		//			data.instanceRoughness = mesh.GetRoughness();
-		//			pInstanceBuffer->UploadData(&data, sizeof(PerInstanceData), sizeof(PerInstanceData) * mesh.GetInstanceID());
-		//		}
-		//	});
 
 		auto* pCamera = pLScene->GetMainCamera();
 		if (pCamera->IsViewDirty())
@@ -180,18 +160,20 @@ namespace SG
 			pCamera->ViewBeUpdated();
 		}
 
-		pLScene->TraversePointLight([=](const PointLight& light) 
+		auto pointLights = pLScene->View<TagComponent, PointLightComponent>();
+		for (auto entity : pointLights)
+		{
+			auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, PointLightComponent>();
+			if (tag.bDirty)
 			{
-				if (light.IsDirty())
-				{
-					auto& lightUbo = GetLightUBO();
-					lightUbo.pointLightColor = light.GetColor();
-					lightUbo.pointLightRadius = light.GetRadius();
-					lightUbo.pointLightPos = light.GetPosition();
-					light.BeUpdated();
-					UpdataBufferData("lightUbo", &lightUbo);
-				}
-			});
+				auto& lightUbo = GetLightUBO();
+				lightUbo.pointLightColor = light.color;
+				lightUbo.pointLightRadius = light.radius;
+				lightUbo.pointLightPos = trans.position;
+				UpdataBufferData("lightUbo", &lightUbo);
+				tag.bDirty = false;
+			}
+		}
 
 		auto& compositionUbo = GetCompositionUBO();
 		UpdataBufferData("compositionUbo", &compositionUbo);

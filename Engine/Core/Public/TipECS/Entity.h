@@ -49,6 +49,54 @@ namespace TipECS
 	{
 	private:
 		using Setting = TSetting;
+	public:
+		template <typename TComponent>
+		inline bool HasComponent() const noexcept
+		{
+			return pManager->HasComponent<TComponent>(*this);
+		}
+
+		template <typename TComponent>
+		inline auto& AddComponent() noexcept
+		{
+			return pManager->AddComponent<TComponent>(*this);
+		}
+
+		template <typename TComponent, typename... Args>
+		inline auto& AddComponent(Args&&... args) noexcept
+		{
+			return pManager->AddComponent<TComponent>(*this, FWD(args)...);
+		}
+
+		template <typename TComponent>
+		inline void RemoveComponent() noexcept
+		{
+			pManager->RemoveComponent<TComponent>(*this);
+		}
+
+		template <typename... Ts>
+		inline decltype(auto) GetComponent() noexcept
+		{
+			return pManager->GetComponent<Ts...>(*this);
+		}
+
+		template <typename TTag>
+		bool HasTag() const noexcept
+		{
+			return pManager->HasTag<TTag>(*this);
+		}
+
+		template <typename TTag>
+		void AddTag() noexcept
+		{
+			pManager->AddTag<TTag>(*this);
+		}
+
+		template <typename TTag>
+		void RemoveTag() noexcept
+		{
+			pManager->RemoveTag<TTag>(*this);
+		}
 	private:
 		friend struct TipECS::Impl::EntityPrivateAccessor<Setting>;
 		EntityManager<Setting>* pManager = nullptr;
@@ -61,7 +109,8 @@ namespace TipECS
 		template <typename TSetting>
 		struct EntityPrivateAccessor
 		{
-			using Entity = Entity<TSetting>;
+			using Setting = TSetting;
+			using Entity = Entity<Setting>;
 
 			auto& GetHandleDataIndex(Entity& entity) { return entity.handleDataIndex; }
 			auto& GetCounterIndex(Entity& entity) { return entity.counter; }
@@ -69,7 +118,8 @@ namespace TipECS
 			const auto& GetHandleDataIndex(const Entity& entity) const { return entity.handleDataIndex; }
 			const auto& GetCounterIndex(const Entity& entity) const { return entity.counter; }
 
-			auto* GetManager(const Entity& entity) { return entity.pManager; }
+			void              SetManagerPtr(Entity& entity, EntityManager<Setting>* pManager) { entity.pManager = pManager; }
+			const auto* const GetManagerPtr(const Entity& entity) const { return entity.pManager; }
 		};
 	}
 

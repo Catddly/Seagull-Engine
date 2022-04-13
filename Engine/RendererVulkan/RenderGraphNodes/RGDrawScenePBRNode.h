@@ -2,7 +2,6 @@
 
 #include "Render/FrameBuffer.h"
 #include "Scene/Camera/ICamera.h"
-#include "Scene/Light/PointLight.h"
 
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanShader.h"
