@@ -216,4 +216,5 @@ SG::Mutex  MyApp::sMutex;
 SG::IApp* SG::GetAppInstance()
 {
 	return Memory::New<MyApp>();
+	//return nullptr;
 }

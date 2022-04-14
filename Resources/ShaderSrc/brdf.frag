@@ -41,7 +41,8 @@ float SampleShadowMap(vec4 shadowMapPos)
 {
     // for perspective projection, we need to normalized the position
     vec3 shadowCoord = shadowMapPos.xyz / shadowMapPos.w;
-    if (shadowCoord.z > 1.0) // exceed the depth texture
+    if (shadowCoord.x > 1.0 || shadowCoord.x < 0.0 ||
+		shadowCoord.y > 1.0 || shadowCoord.y < 0.0) // exceed the depth texture
         return 0.0;
 
     float closestDepth = texture(sShadowMap, shadowCoord.xy).r; // closest depth to the light
@@ -56,6 +57,10 @@ float SampleShadowMapPCF(vec4 shadowMapPos)
 {
     float shadow = 0.0;
     vec3 shadowCoord = shadowMapPos.xyz / shadowMapPos.w;
+    if (shadowCoord.x > 1.0 || shadowCoord.x < 0.0 ||
+		shadowCoord.y > 1.0 || shadowCoord.y < 0.0) // exceed the depth texture
+        return 0.0;
+
     vec2 texelSize = 1.0 / textureSize(sShadowMap, 0);
     // 3x3 kernel
     for(int dx = -1; dx <= 1; ++dx)

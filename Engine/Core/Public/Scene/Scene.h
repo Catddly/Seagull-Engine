@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Scene/Camera/ICamera.h"
-#include "Scene/Light/DirectionalLight.h"
 #include "Scene/Components.h"
 
 #include "TipECS/EntityManager.h"
@@ -44,20 +43,12 @@ namespace SG
 
 		SG_CORE_API Entity* GetEntityByName(const string& name);
 
-		SG_CORE_API Entity GetSkyboxEntity() { return mSkyboxEntity; }
+		SG_CORE_API Entity  GetSkyboxEntity() { return mSkyboxEntity; }
 
-		DirectionalLight* GetDirectionalLight() { return mpDirectionalLight.get(); }
 		ICamera* GetMainCamera() { return mpMainCamera.get(); }
 
 		SG_CORE_API Size GetMeshEntityCount() const { return mMeshEntityCount; }
 		SG_CORE_API Size GetEntityCount()     const { return mEntities.size(); }
-
-		template <typename Func>
-		SG_INLINE void TraverseMesh(Func&& func)
-		{
-			for (auto pNode : mMeshes)
-				func(*pNode.second);
-		}
 
 		template <typename... Ts>
 		SG_INLINE auto View()
@@ -80,17 +71,14 @@ namespace SG
 		void DefaultScene();
 		void MaterialTestScene();
 	private:
-		EntityManager mEntityManager;
-
-		// separate the skybox from scene
 		Entity mSkyboxEntity;
-		RefPtr<DirectionalLight> mpDirectionalLight;
-
-		Size mMeshEntityCount = 0;
-		unordered_map<string, Entity> mEntities; // TODO: use tree structure to store the meshes (for now there are no many meshes in the scene, map is ok)
-
 		RefPtr<ICamera> mpMainCamera; // TODO: support multiply switchable camera
 
+		// TODO: use tree structure to store the meshes (for now there are no many meshes in the scene, map is ok)
+		Size mMeshEntityCount = 0;
+		unordered_map<string, Entity> mEntities;
+
+		EntityManager mEntityManager;
 		static UInt32 gCurrObjectID;
 	};
 

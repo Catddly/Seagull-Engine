@@ -70,8 +70,6 @@ namespace SG
 		// init uniform buffers
 		auto pScene = SSystem()->GetMainScene();
 
-		auto& shadowUbo = GetShadowUBO();
-		shadowUbo.lightSpaceVP = pScene->GetDirectionalLight()->GetViewProj();
 		auto& cameraUbo = GetCameraUBO();
 		auto* pCamera = pScene->GetMainCamera();
 		cameraUbo.proj = pCamera->GetProjMatrix();
@@ -91,20 +89,14 @@ namespace SG
 		auto& skyboxUbo = GetSkyboxUBO();
 		skyboxUbo.proj = cameraUbo.proj;
 
-		auto& lightUbo = GetLightUBO();
-		auto* pDirectionalLight = SSystem()->GetMainScene()->GetDirectionalLight();
-		lightUbo.lightSpaceVP = pDirectionalLight->GetViewProj();
-		lightUbo.directionalColor = { pDirectionalLight->GetColor(), 1.0f };
-		lightUbo.viewDirection = glm::normalize(pDirectionalLight->GetDirection());
-
 		auto& compositionUbo = GetCompositionUBO();
 		compositionUbo.gamma = 2.2f;
 		compositionUbo.exposure = 1.0f;
 
 		auto* pSSBOObject = GetBuffer("perObjectBuffer");
 		// update all the render data of the render mesh
-		auto iterator = pScene->View<TransformComponent, MeshComponent, MaterialComponent>();
-		for (auto& entity : iterator)
+		auto meshes = pScene->View<TransformComponent, MeshComponent, MaterialComponent>();
+		for (auto& entity : meshes)
 		{
 			auto [trans, mesh, mat] = entity.GetComponent<TransformComponent, MeshComponent, MaterialComponent>();
 
@@ -115,6 +107,22 @@ namespace SG
 			renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
 			pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
 		}
+
+		// update all the lights
+		//auto lights = pScene->View<LightTag>();
+		//for (auto& entity : lights)
+		//{
+		//	if (entity.HasComponent<DirectionalLightComponent>())
+		//	{
+		//		auto& lightUbo = GetLightUBO();
+		//		auto& shadowUbo = GetShadowUBO();
+		//		auto [trans, dl] = entity.GetComponent<TransformComponent, DirectionalLightComponent>();
+		//		shadowUbo.lightSpaceVP = CalcDirectionalLightViewProj(trans);
+		//		lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
+		//		lightUbo.directionalColor = { dl.color, 1.0f };
+		//		lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
+		//	}
+		//}
 	}
 
 	void VulkanResourceRegistry::Shutdown()
@@ -135,6 +143,7 @@ namespace SG
 		auto pLScene = pScene.lock();
 		auto* pSSBOObject = GetBuffer("perObjectBuffer");
 
+		// update camera data
 		auto* pCamera = pLScene->GetMainCamera();
 		if (pCamera->IsViewDirty())
 		{
@@ -160,25 +169,44 @@ namespace SG
 			pCamera->ViewBeUpdated();
 		}
 
-		auto pointLights = pLScene->View<TagComponent, PointLightComponent>();
-		for (auto entity : pointLights)
+		// update light data
+		auto lights = pLScene->View<LightTag>();
+		for (auto entity : lights)
 		{
-			auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, PointLightComponent>();
-			if (tag.bDirty)
+			if (entity.HasComponent<PointLightComponent>())
 			{
-				auto& lightUbo = GetLightUBO();
-				lightUbo.pointLightColor = light.color;
-				lightUbo.pointLightRadius = light.radius;
-				lightUbo.pointLightPos = trans.position;
-				UpdataBufferData("lightUbo", &lightUbo);
-				tag.bDirty = false;
+				auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, PointLightComponent>();
+				if (tag.bDirty)
+				{
+					auto& lightUbo = GetLightUBO();
+					lightUbo.pointLightColor = light.color;
+					lightUbo.pointLightRadius = light.radius;
+					lightUbo.pointLightPos = trans.position;
+					UpdataBufferData("lightUbo", &lightUbo);
+					tag.bDirty = false;
+				}
 			}
+			else if (entity.HasComponent<DirectionalLightComponent>())
+			{
+				auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, DirectionalLightComponent>();
+				if (tag.bDirty)
+				{
+					auto& shadowUbo = GetShadowUBO();
+					auto& lightUbo = GetLightUBO();
+					shadowUbo.lightSpaceVP = CalcDirectionalLightViewProj(trans);
+					lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
+					lightUbo.directionalColor = { light.color, 1.0f };
+					lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
+					UpdataBufferData("shadowUbo", &shadowUbo);
+					UpdataBufferData("lightUbo", &lightUbo);
+					tag.bDirty = false;
+				}
+			}
+
 		}
 
 		auto& compositionUbo = GetCompositionUBO();
 		UpdataBufferData("compositionUbo", &compositionUbo);
-		auto& shadowUbo = GetShadowUBO();
-		UpdataBufferData("shadowUbo", &shadowUbo);
 	}
 
 	void VulkanResourceRegistry::WindowResize()

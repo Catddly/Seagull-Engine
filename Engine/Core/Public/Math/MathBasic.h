@@ -81,26 +81,6 @@ namespace SG
 	SG_INLINE float Clamp(float& v, float min, float max) { return v < min ? min : (v > max ? max : v); }
 
 #ifdef SG_GRAPHICS_API_VULKAN
-	//! Build a view matrix based on a view direction vector.
-	//! @param [view] Point where the eyes on.
-	//! @param [direction] Direction where the eyes look at.
-	//! @param [up] Up vector of the world.
-	//! @return a 4x4 matrix represent the view matrix.
-	
-	//SG_INLINE Matrix4f BuildViewMatrixDirection(const Vector3f& view, const Vector3f& direction, const Vector3f& up)
-	//{
-	//	const Vector3f z(direction.normalized());
-	//	const Vector3f x(z.cross(up).normalized());
-	//	const Vector3f y(x.cross(z));
-
-	//	Matrix4f result = Matrix4f::Identity();
-	//	result.col(0) << x(0), x(1), x(2), 0.0f;
-	//	result.col(1) << y(0), y(1), y(2), 0.0f;
-	//	result.col(2) << z(0), z(1), z(2), 0.0f;
-	//	result.col(3) << -x.dot(view), -y.dot(view), -z.dot(view), 1.0f;
-
-	//	return eastl::move(result);
-	//}
 
 	//! Build a view matrix based on a position vector.
 	//! @param [view] Point where the eyes on.
@@ -111,6 +91,18 @@ namespace SG
 	SG_INLINE Matrix4f BuildViewMatrixCenter(const Vector3f& view, const Vector3f& center, const Vector3f& up)
 	{
 		return glm::lookAt(view, center, up);
+	}
+
+	//! Build a view matrix based on a view direction vector.
+	//! @param [view] Point where the eyes on.
+	//! @param [direction] Direction where the eyes look at.
+	//! @param [up] Up vector of the world.
+	//! @return a 4x4 matrix represent the view matrix.
+	
+	SG_INLINE Matrix4f BuildViewMatrixDirection(const Vector3f& view, const Vector3f& direction, const Vector3f& up)
+	{
+		Vector3f center = view + direction;
+		return BuildViewMatrixCenter(view, center, up);
 	}
 
 	//! Build a perspective matrix.
@@ -124,6 +116,12 @@ namespace SG
 		return glm::perspective(fovYInRadians, aspect, zNear, zFar);
 	}
 
+	//! Build a orthographic matrix.
+	//! @param [fovInRadians] Field of view in radians, an angle present the view cone.
+	//! @param [aspect] Aspect describe the camera's view in 2D. To be width / height.
+	//! @param [zNear] near z plane value.
+	//! @param [zFar] far z plane value.
+	//! @return a 4x4 matrix represent the perspective matrix.
 	SG_INLINE Matrix4f BuildOrthographicMatrix(float left, float right, float bottom, float top, float zNear, float zFar)
 	{
 		return glm::ortho(left, right, bottom, top, zNear, zFar);

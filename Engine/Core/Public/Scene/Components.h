@@ -108,6 +108,11 @@ namespace SG
 		Vector3f color = { 1.0f, 1.0f, 1.0f };
 		float    metallic = 0.7f;
 		float    roughness = 0.35f;
+
+		MaterialComponent() = default;
+		MaterialComponent(const Vector3f& c, float m, float r)
+			:color(c), metallic(m), roughness(r)
+		{}
 	};
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,28 +130,66 @@ namespace SG
 		{}
 	};
 
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// DirectionalLightComponent
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	struct DirectionalLightComponent
+	{
+		Vector3f color = Vector3f(1.0f);
+
+		DirectionalLightComponent() = default;
+		DirectionalLightComponent(const Vector3f& c)
+			:color(c)
+		{}
+	};
+
+	SG_INLINE Vector3f CalcViewDirectionNormalized(const TransformComponent& trans)
+	{
+		Vector3f rotatedVec = Vector4f(SG_ENGINE_FRONT_VEC(), 0.0f) * glm::toMat4(Quternion(glm::radians(trans.rotation)));
+		return glm::normalize(rotatedVec);
+	}
+
+	SG_INLINE Matrix4f CalcDirectionalLightViewProj(const TransformComponent& trans)
+	{
+		return BuildOrthographicMatrix(-10.0f, 10.0f, -10.0f, 10.0f, 0.0001f, 200.0f) *
+			BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
+	}
+
 #define COMPONENTS(F, END) \
 F(TagComponent) \
 F(MeshComponent) \
 F(PointLightComponent) \
+F(DirectionalLightComponent) \
 F(MaterialComponent) \
 END(TransformComponent)
 
+	struct LightTag {};
+
+#define TAGS(F, END) \
+END(LightTag)
+
 	using Signature1 = TipECS::Signature<TransformComponent, MeshComponent, MaterialComponent>;
 	using Signature2 = TipECS::Signature<TagComponent, PointLightComponent>;
+	using Signature3 = TipECS::Signature<LightTag>;
 
 #define SIGNATURES(F, END) \
 F(Signature1) \
+F(Signature3) \
 END(Signature2)
 
 #define MACRO_EXPAND(NAME) NAME,
 #define MACRO_EXPAND_END(NAME) NAME
 	using SGComponentList = TipECS::ComponentList<COMPONENTS(MACRO_EXPAND, MACRO_EXPAND_END)>;
-	using SGTagList = TipECS::TagList<>;
+	using SGTagList = TipECS::TagList<TAGS(MACRO_EXPAND, MACRO_EXPAND_END)>;
 	using SGSignatureList = TipECS::SignatureList<SIGNATURES(MACRO_EXPAND, MACRO_EXPAND_END)>;
 #undef MACRO_EXPAND
 #undef MACRO_EXPAND_END
 
 	using SGECSSetting = TipECS::Setting<SGComponentList, SGTagList, SGSignatureList>;
+
+#undef COMPONENTS
+#undef TAGS
+#undef SIGNATURES
 
 }

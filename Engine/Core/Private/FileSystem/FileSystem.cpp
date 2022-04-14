@@ -27,56 +27,58 @@ namespace SG
 		""
 	};
 
-	IStreamOps* FileSystem::mStreamOp = nullptr;
+	IStreamOps* FileSystem::mpStreamOp = nullptr;
+	FileStream* FileSystem::mpCurrentStream = nullptr;
 	FileStream  FileSystem::mStream;
 
 	void FileSystem::OnInit()
 	{
 #ifdef SG_PLATFORM_WINDOWS
-		mStreamOp = Memory::New<WindowsStreamOp>();
+		mpStreamOp = Memory::New<WindowsStreamOp>();
 #endif
-		if (!mStreamOp)
+		if (!mpStreamOp)
 			SG_ASSERT(false);
+		SetToDefaultFileStream();
 	}
 
 	void FileSystem::OnShutdown()
 	{
-		Memory::Delete(mStreamOp);
+		Memory::Delete(mpStreamOp);
 	}
 
 	bool FileSystem::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, Size rootFolderOffset)
 	{
-		return mStreamOp->Open(directory, filename, filemode, &mStream, rootFolderOffset);
+		return mpStreamOp->Open(directory, filename, filemode, mpCurrentStream, rootFolderOffset);
 	}
 
 	bool FileSystem::Close()
 	{
-		return mStreamOp->Close(&mStream);
+		return mpStreamOp->Close(mpCurrentStream);
 	}
 
 	Size FileSystem::Read(void* pInBuf, Size bufSizeInByte)
 	{
-		return mStreamOp->Read(&mStream, pInBuf, bufSizeInByte);
+		return mpStreamOp->Read(mpCurrentStream, pInBuf, bufSizeInByte);
 	}
 
 	Size FileSystem::Write(const void* const pOutBuf, Size bufSizeInByte)
 	{
-		return mStreamOp->Write(&mStream, pOutBuf, bufSizeInByte);
+		return mpStreamOp->Write(mpCurrentStream, pOutBuf, bufSizeInByte);
 	}
 
 	bool FileSystem::Seek(EFileBaseOffset baseOffset, Size offset)
 	{
-		return mStreamOp->Seek(&mStream, baseOffset, offset);
+		return mpStreamOp->Seek(mpCurrentStream, baseOffset, offset);
 	}
 
 	Size FileSystem::Tell()
 	{
-		return mStreamOp->Tell(&mStream);
+		return mpStreamOp->Tell(mpCurrentStream);
 	}
 
 	Size FileSystem::FileSize()
 	{
-		return mStreamOp->FileSize(&mStream);
+		return mpStreamOp->FileSize(mpCurrentStream);
 	}
 
 	Size FileSystem::FileSize(const EResourceDirectory directory, const string& filename)
@@ -95,12 +97,12 @@ namespace SG
 
 	bool FileSystem::Flush()
 	{
-		return mStreamOp->Flush(&mStream);
+		return mpStreamOp->Flush(&mStream);
 	}
 
 	bool FileSystem::IsEndOfFile()
 	{
-		return mStreamOp->IsEndOfFile(&mStream);
+		return mpStreamOp->IsEndOfFile(&mStream);
 	}
 
 	string FileSystem::GetResourceFolderPath(EResourceDirectory directory, UInt32 baseOffset)
@@ -182,7 +184,17 @@ namespace SG
 	void FileSystem::SetIStreamOp(IStreamOps* pStreamOp)
 	{
 		if (pStreamOp != nullptr)
-			mStreamOp = pStreamOp;
+			mpStreamOp = pStreamOp;
+	}
+
+	void FileSystem::SetFileStream(FileStream* pFileStream)
+	{
+		mpCurrentStream = pFileStream;
+	}
+
+	void FileSystem::SetToDefaultFileStream()
+	{
+		mpCurrentStream = &mStream;
 	}
 
 	bool FileSystem::Exist(const EResourceDirectory directory, const char* filename, UInt32 baseOffset)

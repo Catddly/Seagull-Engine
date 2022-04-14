@@ -2,11 +2,12 @@
 
 #include "Core/Config.h"
 #include "Base/BasicTypes.h"
+#include "System/FileSystem.h"
 
 #include "Core/Private/Logger/Formatter.h"
 
-#include <EASTL/string.h>
-#include <EASTL/string_view.h>
+#include "eastl/string.h"
+#include "eastl/string_view.h"
 
 namespace SG
 {
@@ -15,7 +16,7 @@ namespace SG
 	{
 		eLog_Mode_Default = 0,   //! Log all messages and log to file.
 		eLog_Mode_No_File,       //! Do not log out as file.
-		eLog_Mode_Quite,         //! Only log out the warn, error and criticle message.
+		eLog_Mode_Quite,         //! Only log out the warn, error and critical message.
 		eLog_Mode_Quite_No_File,
 	};
 
@@ -40,6 +41,8 @@ namespace SG
 		SG_CORE_API static void LogToConsole(const char* file, int line, ELogLevel logLevel, const char* format, ...);
 		SG_CORE_API static void LogToFile();
 
+		SG_CORE_API static void FlushToDisk();
+
 		static void SetLogMode(ELogMode logMode) { mLogMode = logMode; }
 	private:
 		friend class System;
@@ -47,21 +50,27 @@ namespace SG
 		static void OnInit();
 		static void OnShutdown();
 	private:
+		static bool NeedLogToConsole(ELogLevel logLevel);
+		static void ClearTempBuffer();
 		//! Add log information prefix to buffer.
 		//! @param  (pBuf) buffer to add to.
 		//! @return offset of the buffer.
 		static int  AddPrefix(char* pBuf);
 		static int  AddPrefix(char* pBuf, const char* file, int line);
-		static void Flush();
-		static void LogOut(ELogLevel logLevel, char* pBuffer);
+		static void LogToConsole(ELogLevel logLevel, char* pBuffer);
 	private:
-		enum { SG_MAX_LOG_BUFFER_SIZE = 4096, SG_MAX_TEMP_BUFFER_SIZE = SG_MAX_LOG_BUFFER_SIZE / 2, SG_MAX_SINGLE_LOG_SIZE = 1024 };
+		enum { SG_MAX_LOG_BUFFER_SIZE = 1024 * 8, SG_MAX_TEMP_BUFFER_SIZE = SG_MAX_LOG_BUFFER_SIZE / 2, SG_MAX_SINGLE_LOG_SIZE = 2048 };
+
+		//typedef eastl::array<eastl::array<char, SG_MAX_TEMP_BUFFER_SIZE>, 2> DoubleCache;
+		//static DoubleCache mLogCaches;
 
 		static char sTempBuffer[SG_MAX_TEMP_BUFFER_SIZE];
 		static int  sTempBufferSize;
-		static string sBuffer;
 
-		static ELogMode mLogMode;
+		static string sFileLogOutCache;
+
+		static ELogMode   mLogMode;
+		static FileStream mFileStream;
 	};
 
 namespace impl

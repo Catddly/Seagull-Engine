@@ -5,6 +5,7 @@
 #include "Base/TimePoint.h"
 
 #include "stl/string.h"
+#include "eastl/variant.h"
 
 namespace SG
 {
@@ -62,21 +63,10 @@ namespace SG
 	};
 	SG_ENUM_CLASS_FLAG(UInt32, EFileMode);
 
-	//! Memory stream for binary
-	struct MemoryBlock
-	{
-		UInt8* pBuffer;
-		Size   cursor;
-	};
-
 	struct FileStream
 	{
-		union
-		{
-			MemoryBlock memory;
-			void*       file;
-		};
-		EFileMode  filemode;
+		void*     pFile = nullptr;
+		EFileMode filemode;
 	};
 
 	//! Stream operations to manipulate the files in the disk
@@ -100,6 +90,8 @@ namespace SG
 	public:
 		//! Change file stream operations during runtime, can be modified by user.
 		SG_CORE_API static void SetIStreamOp(IStreamOps* pStreamOp);
+		SG_CORE_API static void SetFileStream(FileStream* pFileStream);
+		SG_CORE_API static void SetToDefaultFileStream();
 
 		//! If this file is exist.
 		SG_CORE_API static bool Exist(const EResourceDirectory directory, const char* filename, UInt32 baseOffset = 0);
@@ -147,7 +139,8 @@ namespace SG
 		friend struct WindowsStreamOp;
 #endif
 		// implementation of stream operations
-		static IStreamOps* mStreamOp;
+		static IStreamOps* mpStreamOp;
+		static FileStream* mpCurrentStream;
 		static FileStream  mStream;
 
 		static const char* sResourceDirectory[(UInt32)EResourceDirectory::Num_Directory + 1];

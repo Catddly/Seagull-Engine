@@ -216,19 +216,19 @@ namespace TipECS
 		template <typename TTag>
 		bool HasTag(const Entity& entity) const noexcept
 		{
-			return HasTag(GetEntityID(entity));
+			return HasTag<TTag>(GetEntityID(entity));
 		}
 
 		template <typename TTag>
 		void AddTag(const Entity& entity) noexcept
 		{
-			AddTag(GetEntityID(entity));
+			AddTag<TTag>(GetEntityID(entity));
 		}
 
 		template <typename TTag>
 		void RemoveTag(const Entity& entity) noexcept
 		{
-			RemoveTag(GetEntityID(entity));
+			RemoveTag<TTag>(GetEntityID(entity));
 		}
 
 		//! Clear all the entities and reset the status.

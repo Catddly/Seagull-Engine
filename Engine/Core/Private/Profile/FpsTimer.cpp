@@ -21,13 +21,6 @@ namespace SG
 	void FpsTimer::ProfileScope()
 	{
 		Tick();
-		//static Timer loggerTimer;
-		//if (loggerTimer.GetLifeDurationMs() >= mDisplayInterval * 1000.0f)
-		//{
-		//	LogToConsole();
-		//	loggerTimer.Reset();
-		//}
-		//loggerTimer.Tick();
 	}
 
 }

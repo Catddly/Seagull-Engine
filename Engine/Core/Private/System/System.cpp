@@ -22,11 +22,6 @@ namespace SG
 
 	void System::Initialize()
 	{
-		FileSystem::OnInit();
-		Logger::OnInit();
-		Input::OnInit();
-		OperatingSystem::OnInit();
-
 #ifdef SG_PLATFORM_WINDOWS
 		char abPath[SG_MAX_FILE_PATH] = { 0 };
 		::GetModuleFileNameA(NULL, abPath, sizeof(abPath));
@@ -37,6 +32,11 @@ namespace SG
 		Size slashPos = myProcessPath.find_last_of('\\');
 		myProcessPath = myProcessPath.substr(0, slashPos);
 		SetRootPath(myProcessPath);
+
+		FileSystem::OnInit();
+		Logger::OnInit();
+		Input::OnInit();
+		OperatingSystem::OnInit();
 
 		// set current thread to main thread
 		SetCurrThreadName("Main Thread");
@@ -62,8 +62,11 @@ namespace SG
 		ShaderLibrary::GetInstance()->OnShutdown();
 		mp3DScene->OnSceneUnLoad();
 
-		if (mpCurrActiveProcess) mpCurrActiveProcess->OnShutdown();
-		Memory::Delete(mpCurrActiveProcess);
+		if (mpCurrActiveProcess)
+		{
+			mpCurrActiveProcess->OnShutdown();
+			Memory::Delete(mpCurrActiveProcess);
+		}
 
 		OperatingSystem::OnShutdown();
 		Input::OnShutdown();
@@ -74,9 +77,7 @@ namespace SG
 	void System::AddIProcess(IProcess* pProcess)
 	{
 		if (pProcess)
-		{
 			mpCurrActiveProcess = pProcess;
-		}
 	}
 
 	bool System::SystemMainLoop()
@@ -84,7 +85,6 @@ namespace SG
 		bool bIsSafeQuit = true;
 		bool bIsExit = false;
 
-		//FpsTimer renderTimer("RenderDevice::OnDraw()", 1.0f, 60);
 		FpsTimer gameloopTimer("GameLoop", 0.5f);
 		while (!bIsExit)
 		{
@@ -96,6 +96,7 @@ namespace SG
 			msg = PeekOSMessage();
 			if (msg == EOsMessage::eQuit)
 				bIsExit = true;
+
 			// dispatch all the system messages
 			mMessageBus.Update();
 			
@@ -108,11 +109,7 @@ namespace SG
 				mpCurrActiveProcess->OnUpdate(deltaTime);
 
 			// modules OnDraw()
-			{
-				//renderTimer.BeginProfile();
-				mModuleManager.Draw();
-				//renderTimer.EndProfile();
-			}
+			mModuleManager.Draw();
 		}
 		return bIsSafeQuit;
 	}

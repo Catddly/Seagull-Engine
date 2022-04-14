@@ -25,9 +25,12 @@ namespace SG
 		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 0.5f, 7.0f));
 		mpMainCamera->SetPerspective(60.0f, ASPECT, 0.01f, 256.0f);
 
-		mpDirectionalLight = MakeRef<DirectionalLight>(Vector3f{ -7.0f, 8.0f, 3.0f }, Vector3f{ 7.0f, -8.0f, -3.0f }, Vector3f{ 1.0f, 1.0f, 1.0f });
+		auto* pEntity = CreateEntity("directional_light_0", Vector3f{ .0f, 12.0f, 0.0f }, Vector3f(1.0f), Vector3f(40.0f, -40.0f, 0.0f));
+		pEntity->AddTag<LightTag>();
+		pEntity->AddComponent<DirectionalLightComponent>();
 
-		auto* pEntity = CreateEntity("point_light_0", { 1.25f, 0.75f, -0.3f }, Vector3f(1.0f), Vector3f(0.0f));
+		pEntity = CreateEntity("point_light_0", { 1.25f, 0.75f, -0.3f }, Vector3f(1.0f), Vector3f(0.0f));
+		pEntity->AddTag<LightTag>();
 		auto& pointLight = pEntity->AddComponent<PointLightComponent>();
 		pointLight.radius = 3.0f;
 		pointLight.color = { 0.0f, 1.0f, 0.705f };
@@ -125,25 +128,19 @@ namespace SG
 	void Scene::DefaultScene()
 	{
 		auto* pEntity = CreateEntity("model");
-		auto& mat = pEntity->AddComponent<MaterialComponent>();
-		mat.metallic = 0.2f;
-		mat.roughness = 0.8f;
+		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.2f, 0.8f);
 		auto& mesh = pEntity->AddComponent<MeshComponent>();
 		mesh.objectId = NewObjectID();
 		LoadMesh("model", EMeshType::eOBJ, mesh);
 
 		pEntity = CreateEntity("model_1", { 0.0f, 0.0f, -1.5f }, { 0.6f, 0.6f, 0.6f }, Vector3f(0.0f));
-		auto& mat1 = pEntity->AddComponent<MaterialComponent>();
-		mat1.metallic = 0.8f;
-		mat1.roughness = 0.35f;
+		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.8f, 0.35f);
 		auto& mesh1 = pEntity->AddComponent<MeshComponent>();
 		mesh1.objectId = NewObjectID();
 		CopyMesh(GetEntityByName("model")->GetComponent<MeshComponent>(), mesh1);
 
 		pEntity = CreateEntity("grid", Vector3f(0.0f), { 8.0f, 1.0f, 8.0f }, Vector3f(0.0f));
-		auto& mat2 = pEntity->AddComponent<MaterialComponent>();
-		mat2.metallic = 0.05f;
-		mat2.roughness = 0.76f;
+		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.05f, 0.76f);
 		auto& mesh2 = pEntity->AddComponent<MeshComponent>();
 		mesh2.objectId = NewObjectID();
 		LoadMesh(EGennerateMeshType::eGrid, mesh2);
@@ -165,9 +162,7 @@ namespace SG
 					mesh.objectId = NewObjectID();
 					LoadMesh("sphere", EMeshType::eOBJ, mesh);
 
-					auto& mat = pEntity->AddComponent<MaterialComponent>();
-					mat.metallic = (i + 1) * 0.1f;
-					mat.roughness = (10 - j) * 0.1f;
+					pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), (i + 1) * 0.1f, (10 - j) * 0.1f);
 				}
 				else
 				{
@@ -179,9 +174,7 @@ namespace SG
 					auto& srcMesh = pCopyEntity->GetComponent<MeshComponent>();
 					CopyMesh(srcMesh, mesh);
 
-					auto& mat = pEntity->AddComponent<MaterialComponent>();
-					mat.metallic = (i + 1) * 0.1f;
-					mat.roughness = (10 - j) * 0.1f;
+					pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), (i + 1) * 0.1f, (10 - j) * 0.1f);
 				}
 			}
 		}

@@ -17,20 +17,23 @@ namespace SG
 		{
 			static string GetDescription() { return ""; }
 		};
+
 		//! Time format
 		struct STimeFormat : public SBaseFormat
 		{
 			static string GetDescription() { return ""; }
 		};
+
 		//! Year of the system (%y)
 		struct STimeYearFormat : public STimeFormat
 		{
 			static string GetDescription()
 			{
 				auto str = eastl::to_string(GetSystemTimeYear());
-				return move(str);
+				return eastl::move(str);
 			}
 		};
+
 		//! Month of the system (%o)
 		struct STimeMonthFormat : public STimeFormat
 		{
@@ -38,9 +41,10 @@ namespace SG
 			{
 				auto str = eastl::to_string(GetSystemTimeMonth());
 				str = str.size() == 1 ? '0' + str : str;
-				return move(str);
+				return eastl::move(str);
 			}
 		};
+
 		//! Day of the system (%d)
 		struct STimeDayFormat : public STimeFormat
 		{
@@ -48,9 +52,10 @@ namespace SG
 			{
 				auto str = eastl::to_string(GetSystemTimeDay());
 				str = str.size() == 1 ? '0' + str : str;
-				return move(str);
+				return eastl::move(str);
 			}
 		};
+
 		//! Hour in 24-hour system (%h)
 		struct STimeHourFormat : public STimeFormat
 		{
@@ -58,9 +63,10 @@ namespace SG
 			{
 				auto str = eastl::to_string(GetSystemTimeHour());
 				str = str.size() == 1 ? '0' + str : str;
-				return move(str);
+				return eastl::move(str);
 			}
 		};
+
 		//! Minute in 60-minute system (%m)
 		struct STimeMinuteFormat : public STimeFormat
 		{
@@ -69,9 +75,10 @@ namespace SG
 				auto str = eastl::to_string(GetSystemTimeMinute());
 				if (str.size() == 1)
 					str = str.size() == 1 ? '0' + str : str;
-				return move(str);
+				return eastl::move(str);
 			}
 		};
+
 		//! Second in 60-second system (%s)
 		struct STimeSecondFormat : public STimeFormat
 		{
@@ -79,7 +86,7 @@ namespace SG
 			{
 				auto str = eastl::to_string(GetSystemTimeSecond());
 				str = str.size() == 1 ? '0' + str : str;
-				return move(str);
+				return eastl::move(str);
 			}
 		};
 
@@ -89,15 +96,15 @@ namespace SG
 			Size   threadId;
 			static string GetDescription()
 			{
-				return GetCurrThreadName();
+				return eastl::move(GetCurrThreadName());
 			}
 		};
 
 		template <typename T>
-		string format_type()
+		string FormatString()
 		{
 			SG_COMPILE_ASSERT((eastl::is_base_of<SBaseFormat, T>::value), "Format type is not base of SBaseForamt");
-			return move(T::GetDescription());
+			return eastl::move(T::GetDescription());
 		}
 	}
 }

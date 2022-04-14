@@ -35,13 +35,13 @@ namespace fmt
 
 			switch (mark)
 			{
-			case 'h': resStr += format_type<STimeHourFormat>(); break;
-			case 'm': resStr += format_type<STimeMinuteFormat>(); break;
-			case 's': resStr += format_type<STimeSecondFormat>(); break;
-			case 'y': resStr += format_type<STimeYearFormat>(); break;
-			case 'o': resStr += format_type<STimeMonthFormat>(); break;
-			case 'd': resStr += format_type<STimeDayFormat>(); break;
-			case 't': resStr += format_type<SThreadFormat>(); break;
+			case 'h': resStr += FormatString<STimeHourFormat>(); break;
+			case 'm': resStr += FormatString<STimeMinuteFormat>(); break;
+			case 's': resStr += FormatString<STimeSecondFormat>(); break;
+			case 'y': resStr += FormatString<STimeYearFormat>(); break;
+			case 'o': resStr += FormatString<STimeMonthFormat>(); break;
+			case 'd': resStr += FormatString<STimeDayFormat>(); break;
+			case 't': resStr += FormatString<SThreadFormat>(); break;
 			default: SG_ASSERT(false && "Invalid format type found!"); break;
 			}
 			currPos = markPos + 2;
@@ -50,7 +50,7 @@ namespace fmt
 		Size end = mCurrFormat.size();
 		resStr += mCurrFormat.substr(currPos, end - currPos);
 
-		return move(resStr);
+		return eastl::move(resStr);
 	}
 
 }

@@ -25,16 +25,30 @@ namespace SG
 	{
 		ImGui::Begin("Light");
 
-		auto pointLights = SSystem()->GetMainScene()->View<TagComponent, PointLightComponent>();
-		for (auto& entity : pointLights)
+		auto lights = SSystem()->GetMainScene()->View<LightTag>();
+		for (auto& entity : lights)
 		{
-			auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, PointLightComponent>();
+			if (entity.HasComponent<PointLightComponent>())
+			{
+				ImGui::Separator();
+				auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, PointLightComponent>();
 
-			tag.bDirty |= ImGui::DragFloat3("Position", glm::value_ptr(trans.position), 0.05f);
-			tag.bDirty |= ImGui::DragFloat("Radius", &light.radius, 0.1f, 0.0f);
-			tag.bDirty |= ImGui::ColorEdit3("Color", glm::value_ptr(light.color));
+				tag.bDirty |= ImGui::DragFloat3("Point Light Position", glm::value_ptr(trans.position), 0.05f);
+				tag.bDirty |= ImGui::DragFloat("Point Light Radius", &light.radius, 0.1f, 0.0f);
+				tag.bDirty |= ImGui::ColorEdit3("Point Light Color", glm::value_ptr(light.color));
+			}
+			else if (entity.HasComponent<DirectionalLightComponent>())
+			{
+				ImGui::Separator();
+				auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, DirectionalLightComponent>();
+
+				tag.bDirty |= ImGui::DragFloat3("Directional Light Position", glm::value_ptr(trans.position), 0.05f);
+				tag.bDirty |= ImGui::DragFloat3("Directional Light Rotation", glm::value_ptr(trans.rotation), 0.05f);
+				tag.bDirty |= ImGui::ColorEdit3("Directional Light Color", glm::value_ptr(light.color));
+			}
 		}
 
+		ImGui::Separator();
 		// TODO: ui should not directly modify the value of ubo. User can modify it via global settings.
 		auto& compositionUbo = GetCompositionUBO();
 		ImGui::DragFloat("Gamma", &compositionUbo.gamma, 0.05f, 1.0f, 10.0f);
