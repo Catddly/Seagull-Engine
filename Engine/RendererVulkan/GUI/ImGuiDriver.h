@@ -19,6 +19,7 @@ namespace SG
 
 		virtual void OnUpdate(float deltaTime) override;
 	private:
+		void LoadFonts();
 		void UpdateFrameData(float deltaTime);
 
 		void UpdateMouseData();

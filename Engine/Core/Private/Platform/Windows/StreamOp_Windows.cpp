@@ -17,6 +17,8 @@ namespace SG
 		string outDirectory;
 		for (Size i = 0; i < rootFolderOffset; ++i)
 			outDirectory += "../";
+		if (rootFolderOffset != 0)
+			outDirectory += "Resources/";
 
 		if (directory == EResourceDirectory::eRoot)
 			outDirectory += filename;

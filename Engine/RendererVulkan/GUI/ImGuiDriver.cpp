@@ -10,6 +10,8 @@
 
 #include "imgui/imgui.h"
 
+#include "Stl/vector.h"
+
 namespace SG
 {
 
@@ -290,6 +292,8 @@ namespace SG
 		io.GetClipboardTextFn = _ImGui_Platform_GetClipboardText_Impl;
 		io.ClipboardUserData = OperatingSystem::GetMainWindow();
 
+		// load default fonts
+		LoadFonts();
 		ImGui::StyleColorsDark();
 
 		// when viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
@@ -338,6 +342,67 @@ namespace SG
 		{
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
+		}
+	}
+
+	void ImGuiDriver::LoadFonts()
+	{
+		const float FONT_SIZE_PIXEL = 16.0f;
+		auto& io = ImGui::GetIO();
+
+		if (FileSystem::Open(EResourceDirectory::eFonts, "Source_Sans_Pro/SourceSansPro-Regular.ttf",
+			EFileMode::efRead_Binary, SG_ENGINE_DEBUG_BASE_OFFSET))
+		{
+			void* pFontData = nullptr;
+			Size filesize = FileSystem::FileSize();
+			pFontData = Memory::Malloc(filesize);
+
+			if (!pFontData)
+			{
+				FileSystem::Close();
+				SG_ASSERT(false);
+			}
+
+			FileSystem::Read(pFontData, filesize);
+			ImFont* pRegularFont = io.Fonts->AddFontFromMemoryTTF(pFontData, static_cast<int>(filesize), FONT_SIZE_PIXEL);
+			io.FontDefault = pRegularFont;
+			FileSystem::Close();
+		}
+
+		if (FileSystem::Open(EResourceDirectory::eFonts, "Source_Sans_Pro/SourceSansPro-Bold.ttf",
+			EFileMode::efRead_Binary, SG_ENGINE_DEBUG_BASE_OFFSET))
+		{
+			void* pFontData = nullptr;
+			Size filesize = FileSystem::FileSize();
+			pFontData = Memory::Malloc(filesize);
+
+			if (!pFontData)
+			{
+				FileSystem::Close();
+				SG_ASSERT(false);
+			}
+
+			FileSystem::Read(pFontData, filesize);
+			io.Fonts->AddFontFromMemoryTTF(pFontData, static_cast<int>(filesize), FONT_SIZE_PIXEL);
+			FileSystem::Close();
+		}
+
+		if (FileSystem::Open(EResourceDirectory::eFonts, "Source_Sans_Pro/SourceSansPro-Light.ttf",
+			EFileMode::efRead_Binary, SG_ENGINE_DEBUG_BASE_OFFSET))
+		{
+			void* pFontData = nullptr;
+			Size filesize = FileSystem::FileSize();
+			pFontData = Memory::Malloc(filesize);
+
+			if (!pFontData)
+			{
+				FileSystem::Close();
+				SG_ASSERT(false);
+			}
+
+			FileSystem::Read(pFontData, filesize);
+			io.Fonts->AddFontFromMemoryTTF(pFontData, static_cast<int>(filesize), FONT_SIZE_PIXEL);
+			FileSystem::Close();
 		}
 	}
 
