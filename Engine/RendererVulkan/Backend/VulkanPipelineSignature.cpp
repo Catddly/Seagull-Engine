@@ -12,12 +12,6 @@
 namespace SG
 {
 
-	VulkanPipelineSignature::Builder& VulkanPipelineSignature::Builder::AddBufferAlias(const char* shaderBufferName, const char* actualBufferName)
-	{
-		mBufferAliasMap[shaderBufferName] = actualBufferName;
-		return *this;
-	}
-
 	VulkanPipelineSignature::Builder& VulkanPipelineSignature::Builder::AddCombindSamplerImage(const char* samplerName, const char* textureName)
 	{
 		mCombineImages.emplace_back(samplerName, textureName);
@@ -26,17 +20,16 @@ namespace SG
 
 	RefPtr<VulkanPipelineSignature> VulkanPipelineSignature::Builder::Build()
 	{
-		return VulkanPipelineSignature::Create(mContext, mpShader, mCombineImages, mBufferAliasMap);
+		return VulkanPipelineSignature::Create(mContext, mpShader, mCombineImages);
 	}
 
 	RefPtr<VulkanPipelineSignature> VulkanPipelineSignature::Create(VulkanContext& context, RefPtr<VulkanShader> pShader, 
-		const vector<eastl::pair<const char*, const char*>>& combineImages, unordered_map<string, string>& bufferAliasMap)
+		const vector<eastl::pair<const char*, const char*>>& combineImages)
 	{
-		return MakeRef<VulkanPipelineSignature>(context, pShader, combineImages, bufferAliasMap);
+		return MakeRef<VulkanPipelineSignature>(context, pShader, combineImages);
 	}
 
-	VulkanPipelineSignature::VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages,
-		unordered_map<string, string>& bufferAliasMap)
+	VulkanPipelineSignature::VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages)
 		:mContext(context), mpShader(pShader)
 	{
 		for (auto setIndex : pShader->GetSetIndices())
@@ -77,9 +70,6 @@ namespace SG
 				bufferCI.bufferSize = ssboData.second.layout.GetTotalSizeInByte();
 				bufferCI.type = EBufferType::efStorage;
 
-				//if (bufferAliasMap.count(bufferCI.name) != 0)
-				//	bufferCI.name = bufferAliasMap[ssboData.first].c_str();
-				
 				if (!VK_RESOURCE()->GetBuffer(bufferCI.name))
 					VK_RESOURCE()->CreateBuffer(bufferCI);
 
@@ -125,8 +115,6 @@ namespace SG
 				if (GetSet(ssboData.second.setbinding) != setIndex)
 					continue;
 				string bufferName = ssboData.first;
-				//if (bufferAliasMap.count(ssboData.first) != 0)
-				//	bufferName = bufferAliasMap[ssboData.first];
 				setDataBinder.BindBuffer(GetBinding(ssboData.second.setbinding), VK_RESOURCE()->GetBuffer(bufferName));
 			}
 			// bind combine image
@@ -176,6 +164,31 @@ namespace SG
 		{
 			SG_LOG_WARN("The number of textures pass in the shader do not match the number of the bindings!");
 		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// DataBinder
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	VulkanPipelineSignature::DataBinder::DataBinder(RefPtr<VulkanPipelineSignature> pipelineSignature, UInt32 set)
+		:mContext(pipelineSignature->mContext), mPipelineSignature(*pipelineSignature),
+		mSet(set), mDataBinder(*mContext.pDefaultDescriptorPool, *pipelineSignature->mDescriptorSetData[set].descriptorSetLayout)
+	{
+	}
+
+	VulkanPipelineSignature::DataBinder& VulkanPipelineSignature::DataBinder::AddCombindSamplerImage(UInt32 binding, const char* samplerName, const char* textureName)
+	{
+		VulkanTexture* pTex = VK_RESOURCE()->GetTexture(textureName);
+		if (pTex)
+			mDataBinder.BindImage(binding, VK_RESOURCE()->GetSampler(samplerName), pTex);
+		else
+			mDataBinder.BindImage(binding, VK_RESOURCE()->GetSampler(samplerName), VK_RESOURCE()->GetRenderTarget(textureName));
+		return *this;
+	}
+
+	void VulkanPipelineSignature::DataBinder::Bind(VulkanDescriptorSet& set)
+	{
+		mDataBinder.Bind(set);
 	}
 
 }

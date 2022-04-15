@@ -19,9 +19,31 @@ namespace SG
 	class VulkanPipelineSignature
 	{
 	public:
-		VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages,
-			unordered_map<string, string>& bufferAliasMap);
+		VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages);
 		~VulkanPipelineSignature() = default;
+
+		//! One descriptor set layout can contain different descriptor set.
+		struct SetLayoutAndHandle
+		{
+			RefPtr<VulkanDescriptorSetLayout> descriptorSetLayout;
+			VulkanDescriptorSet descriptorSet;
+		};
+
+		const SetLayoutAndHandle& GetSetLayoutAndHandle(UInt32 set) { return mDescriptorSetData[set]; }
+		
+		class DataBinder
+		{
+		public:
+			DataBinder(RefPtr<VulkanPipelineSignature> pipelineSignature, UInt32 set);
+
+			DataBinder& AddCombindSamplerImage(UInt32 binding, const char* samplerName, const char* textureName);
+			void Bind(VulkanDescriptorSet& set);
+		private:
+			VulkanContext& mContext;
+			VulkanPipelineSignature& mPipelineSignature;
+			UInt32 mSet;
+			VulkanDescriptorDataBinder mDataBinder;
+		};
 
 		class Builder
 		{
@@ -29,7 +51,6 @@ namespace SG
 			Builder(VulkanContext& context, RefPtr<VulkanShader> pShader) : mContext(context), mpShader(pShader) {}
 			~Builder() = default;
 
-			Builder& AddBufferAlias(const char* shaderBufferName, const char* actualBufferName);
 			//! You should add the combine image textures in the order written in the shader!
 			Builder& AddCombindSamplerImage(const char* samplerName, const char* textureName);
 			RefPtr<VulkanPipelineSignature> Build();
@@ -37,21 +58,13 @@ namespace SG
 			VulkanContext& mContext;
 			RefPtr<VulkanShader> mpShader;
 			vector<eastl::pair<const char*, const char*>> mCombineImages;
-			unordered_map<string, string> mBufferAliasMap;
 		};
 
-		static RefPtr<VulkanPipelineSignature> Create(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages,
-			unordered_map<string, string>& bufferAliasMap);
+		static RefPtr<VulkanPipelineSignature> Create(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages);
 	private:
 		friend class VulkanCommandBuffer;
 		friend class VulkanPipeline;
 		VulkanContext& mContext;
-
-		struct SetLayoutAndHandle
-		{
-			RefPtr<VulkanDescriptorSetLayout> descriptorSetLayout;
-			VulkanDescriptorSet descriptorSet;
-		};
 
 		RefPtr<VulkanShader>&        mpShader;
 		RefPtr<VulkanPipelineLayout> mpPipelineLayout;

@@ -347,7 +347,7 @@ namespace SG
 
 	void ImGuiDriver::LoadFonts()
 	{
-		const float FONT_SIZE_PIXEL = 16.0f;
+		const float FONT_SIZE_PIXEL = 20.0f;
 		auto& io = ImGui::GetIO();
 
 		if (FileSystem::Open(EResourceDirectory::eFonts, "Source_Sans_Pro/SourceSansPro-Regular.ttf",

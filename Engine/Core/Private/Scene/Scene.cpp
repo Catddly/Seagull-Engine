@@ -37,7 +37,7 @@ namespace SG
 		pEntity->GetComponent<TagComponent>().bDirty = true;
 
 		DefaultScene();
-		//MaterialTestScene();
+		MaterialTestScene();
 
 		mEntityManager.ReFresh();
 

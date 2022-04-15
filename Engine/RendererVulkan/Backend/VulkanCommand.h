@@ -17,6 +17,7 @@ namespace SG
 	class VulkanFrameBuffer;
 	class VulkanRenderTarget;
 	class VulkanPipelineSignature;
+	class VulkanDescriptorSet;
 	class VulkanTexture;
 
 	class VulkanCommandBuffer
@@ -36,6 +37,7 @@ namespace SG
 		void BindIndexBuffer(VulkanBuffer& buffer, UInt64 offset, VkIndexType type = VK_INDEX_TYPE_UINT32);
 
 		void PushConstants(VulkanPipelineSignature* pSignature, EShaderStage shaderStage, UInt32 size, UInt32 offset, const void* pConstants);
+		void BindDescriptorSet(VulkanPipelineSignature* pSignature, UInt32 firstSet, VulkanDescriptorSet* set, EPipelineType type = EPipelineType::eGraphic);
 		void BindPipelineSignature(VulkanPipelineSignature* pSignature, EPipelineType type = EPipelineType::eGraphic);
 		void BindPipeline(VulkanPipeline* pPipeline);
 

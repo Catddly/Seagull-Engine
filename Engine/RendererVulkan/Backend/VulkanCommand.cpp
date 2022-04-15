@@ -215,6 +215,18 @@ namespace SG
 		vkCmdPushConstants(commandBuffer, pSignature->mpPipelineLayout->layout, ToVkShaderStageFlags(shaderStage), offset, size, pConstants);
 	}
 
+	void VulkanCommandBuffer::BindDescriptorSet(VulkanPipelineSignature* pSignature, UInt32 firstSet, VulkanDescriptorSet* set, EPipelineType type)
+	{
+		VkPipelineBindPoint bp;
+		switch (type)
+		{
+		case EPipelineType::eGraphic:
+		case EPipelineType::eTransfer: bp = VK_PIPELINE_BIND_POINT_GRAPHICS; break;
+		case EPipelineType::eCompute: bp = VK_PIPELINE_BIND_POINT_COMPUTE; break;
+		}
+		vkCmdBindDescriptorSets(commandBuffer, bp, pSignature->mpPipelineLayout->layout, firstSet, 1, &set->set, 0, nullptr);
+	}
+
 	void VulkanCommandBuffer::BindPipelineSignature(VulkanPipelineSignature* pSignature, EPipelineType type)
 	{
 		if (!IsRenderPassValid())

@@ -32,6 +32,7 @@
 
 #include "RendererVulkan/GUI/ImGuiDriver.h"
 #include "RendererVulkan/GUI/TestGUILayer.h"
+#include "RendererVulkan/GUI/DockSpaceLayer.h"
 
 namespace SG
 {
@@ -51,17 +52,41 @@ namespace SG
 	{
 		mpGUIDriver = MakeUnique<ImGuiDriver>();
 		mpGUIDriver->OnInit();
-		mpGUIDriver->PushUserLayer(MakeRef<TestGUILayer>());
 
 		mpContext = Memory::New<VulkanContext>();
 		VK_RESOURCE()->Initialize(mpContext);
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
+
+		TextureResourceLoader loader;
+		Raw2DTexture texture = {};
+		loader.LoadFromFile("logo.png", texture, true);
+		TextureCreateDesc textureCI = {};
+		textureCI.name = "logo";
+		textureCI.width = texture.width;
+		textureCI.height = texture.height;
+		textureCI.depth = 1;
+		textureCI.array = texture.array;
+		textureCI.mipLevel = 1;
+
+		textureCI.sample = ESampleCount::eSample_1;
+		textureCI.usage = EImageUsage::efSample;
+		textureCI.type = EImageType::e2D;
+		textureCI.format = EImageFormat::eUnorm_R8G8B8A8;
+		textureCI.initLayout = EImageLayout::eUndefined;
+		textureCI.pInitData = texture.pData;
+		textureCI.sizeInByte = texture.sizeInByte;
+		VK_RESOURCE()->CreateTexture(textureCI, true);
+		VK_RESOURCE()->FlushTextures();
 
 		// create all the mesh resource
 		IndirectRenderer::OnInit(*mpContext);
 		IndirectRenderer::CollectRenderData(SSystem()->GetRenderDataBuilder());
 
 		BuildRenderGraph();
+
+		//mpGUIDriver->PushUserLayer(MakeRef<TestGUILayer>());
+		mpGUIDriver->PushUserLayer(MakeRef<DockSpaceLayer>());
+
 		// update one frame here to avoid imgui do not draw the first frame.
 		mpGUIDriver->OnUpdate(0.00000001f);
 	}

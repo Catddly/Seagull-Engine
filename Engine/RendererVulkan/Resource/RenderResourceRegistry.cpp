@@ -132,6 +132,8 @@ namespace SG
 			Memory::Delete(beg->second);
 		for (auto beg = mTextures.begin(); beg != mTextures.end(); ++beg)
 			Memory::Delete(beg->second);
+		for (auto beg = mDescriptorSets.begin(); beg != mDescriptorSets.end(); ++beg)
+			Memory::Delete(beg->second);
 		for (auto beg = mRenderTargets.begin(); beg != mRenderTargets.end(); ++beg)
 			Memory::Delete(beg->second);
 		for (auto beg = mSamplers.begin(); beg != mSamplers.end(); ++beg)
@@ -489,6 +491,32 @@ namespace SG
 		for (auto* e : stagingBuffers)
 			Memory::Delete(e);
 		mWaitToSubmitTextures.clear();
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// DescriptorSet	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	void VulkanResourceRegistry::AddDescriptorSet(const string& name, VulkanDescriptorSet* pSet)
+	{
+		auto node = mDescriptorSets.find(name);
+		if (node != mDescriptorSets.end())
+		{
+			SG_LOG_ERROR("Already have a descriptor set named: %s", name.c_str());
+			return;
+		}
+		mDescriptorSets[name] = pSet;
+	}
+
+	VulkanDescriptorSet* VulkanResourceRegistry::GetDescriptorSet(const string& name) const
+	{
+		auto node = mDescriptorSets.find(name);
+		if (node == mDescriptorSets.end())
+		{
+			SG_LOG_ERROR("No descritor set named: %s", name.c_str());
+			return nullptr;
+		}
+		return node->second;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////

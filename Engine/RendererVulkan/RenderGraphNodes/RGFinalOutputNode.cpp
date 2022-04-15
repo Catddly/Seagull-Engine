@@ -99,11 +99,25 @@ namespace SG
 			mpGUIPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpGUIShader)
 				.AddCombindSamplerImage("_imgui_sampler", "_imgui_font")
 				.Build();
+			io.Fonts->SetTexID((ImTextureID)&mpGUIPipelineSignature->GetSetLayoutAndHandle(0).descriptorSet);
+
+			VulkanDescriptorSet* pViewportSet = Memory::New<VulkanDescriptorSet>();
+			VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
+				.AddCombindSamplerImage(0, "comp_sampler", "HDRColor")
+				.Bind(*pViewportSet);
+
+			VulkanDescriptorSet* pLogoSet = Memory::New<VulkanDescriptorSet>();
+			VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
+				.AddCombindSamplerImage(0, "comp_sampler", "logo")
+				.Bind(*pLogoSet);
+
+			VK_RESOURCE()->AddDescriptorSet("HDRColor", pViewportSet);
+			VK_RESOURCE()->AddDescriptorSet("logo", pLogoSet);
 		}
 
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
-		AttachResource(0, { mContext.colorRts.data(), static_cast<UInt32>(mContext.colorRts.size()), mColorRtLoadStoreOp, cv,
+		AttachResource(0, { mContext.colorRts.data(), static_cast<UInt32>(mContext.colorRts.size()), mColorRtLoadStoreOp, cv, 
 			EResourceBarrier::efUndefined, EResourceBarrier::efPresent });
 	}
 
@@ -149,17 +163,17 @@ namespace SG
 	void RGFinalOutputNode::Draw(RGDrawInfo& context)
 	{
 		// 1. Draw the color rt (just a simple quad on the screen)
-		{
-			auto& pBuf = *context.pCmd;
-
-			pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
-			pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
-
-			pBuf.BindPipeline(mpCompPipeline);
-			pBuf.BindPipelineSignature(mpCompPipelineSignature.get());
-
-			pBuf.Draw(3, 1, 0, 0);
-		}
+		//{
+		//	auto& pBuf = *context.pCmd;
+		//
+		//	pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
+		//	pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
+		//
+		//	pBuf.BindPipeline(mpCompPipeline);
+		//	pBuf.BindPipelineSignature(mpCompPipelineSignature.get());
+		//
+		//	pBuf.Draw(3, 1, 0, 0);
+		//}
 
 		// 2. Draw GUI on top of the color rt
 		GUIDraw(*context.pCmd, context.frameIndex);
@@ -224,25 +238,22 @@ namespace SG
 
 			UInt32 vtxOffest = 0;
 			UInt32 idxOffest = 0;
+			ImDrawVert* pVertData = pVertexBuffer->MapMemory<ImDrawVert>();
+			ImDrawIdx* pIdxData = pIndexBuffer->MapMemory<ImDrawIdx>();
 			for (int n = 0; n < drawData->CmdListsCount; n++)
 			{
 				const ImDrawList* pCmdList = drawData->CmdLists[n];
 				const UInt32 vtxBufferSize = pCmdList->VtxBuffer.Size * sizeof(ImDrawVert);
 				const UInt32 itxBufferSize = pCmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-				ImDrawVert* pVertData = pVertexBuffer->MapMemory<ImDrawVert>();
-				pVertData += vtxOffest;
-				memcpy(pVertData, pCmdList->VtxBuffer.Data, vtxBufferSize);
-				pVertexBuffer->UnmapMemory();
-
-				ImDrawIdx* pIdxData = pIndexBuffer->MapMemory<ImDrawIdx>();
-				pIdxData += idxOffest;
-				memcpy(pIdxData, pCmdList->IdxBuffer.Data, itxBufferSize);
-				pIndexBuffer->UnmapMemory();
+				memcpy(pVertData + vtxOffest, pCmdList->VtxBuffer.Data, vtxBufferSize);
+				memcpy(pIdxData + idxOffest, pCmdList->IdxBuffer.Data, itxBufferSize);
 
 				vtxOffest += pCmdList->VtxBuffer.Size;
 				idxOffest += pCmdList->IdxBuffer.Size;
 			}
+			pVertexBuffer->UnmapMemory();
+			pIndexBuffer->UnmapMemory();
 		}
 
 		// Do Drawing
@@ -277,10 +288,10 @@ namespace SG
 				const ImDrawList* pCmdList = drawData->CmdLists[n];
 				for (int i = 0; i < pCmdList->CmdBuffer.Size; i++)
 				{
-					const ImDrawCmd* pcmd = &pCmdList->CmdBuffer[i];
+					const ImDrawCmd* pCmd = &pCmdList->CmdBuffer[i];
 					// Project scissor/clipping rectangles into framebuffer space
-					ImVec2 clipMin((pcmd->ClipRect.x - clipOff.x) * clipScale.x, (pcmd->ClipRect.y - clipOff.y) * clipScale.y);
-					ImVec2 clipMax((pcmd->ClipRect.z - clipOff.x) * clipScale.x, (pcmd->ClipRect.w - clipOff.y) * clipScale.y);
+					ImVec2 clipMin((pCmd->ClipRect.x - clipOff.x) * clipScale.x, (pCmd->ClipRect.y - clipOff.y) * clipScale.y);
+					ImVec2 clipMax((pCmd->ClipRect.z - clipOff.x) * clipScale.x, (pCmd->ClipRect.w - clipOff.y) * clipScale.y);
 
 					// Clamp to viewport as vkCmdSetScissor() won't accept values that are off bounds
 					if (clipMin.x < 0.0f) { clipMin.x = 0.0f; }
@@ -298,9 +309,9 @@ namespace SG
 					scissor.bottom = (Int32)(clipMax.y);
 					pBuf.SetScissor(scissor);
 
-					pBuf.BindPipelineSignature(mpGUIPipelineSignature.get());
+					pBuf.BindDescriptorSet(mpGUIPipelineSignature.get(), 0, (VulkanDescriptorSet*)pCmd->TextureId);
 
-					pBuf.DrawIndexed(pcmd->ElemCount, 1, pcmd->IdxOffset + idxOffest, pcmd->VtxOffset + vtxOffest, 0);
+					pBuf.DrawIndexed(pCmd->ElemCount, 1, pCmd->IdxOffset + idxOffest, pCmd->VtxOffset + vtxOffest, 0);
 				}
 				idxOffest += pCmdList->IdxBuffer.Size;
 				vtxOffest += pCmdList->VtxBuffer.Size;

@@ -74,6 +74,7 @@ namespace SG
 	class VulkanDescriptorSet
 	{
 	public:
+		void* GetHandle() const { return set; }
 		UInt32 GetSetIndex() const { return belongingSet; }
 	private:
 		friend class VulkanPipelineSignature;

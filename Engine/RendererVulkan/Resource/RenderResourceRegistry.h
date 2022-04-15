@@ -8,6 +8,7 @@
 
 #include "RendererVulkan/Resource/DrawCall.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
+#include "RendererVulkan/Backend/VulkanDescriptor.h"
 
 #include "Stl/vector.h"
 #include <eastl/utility.h>
@@ -32,22 +33,16 @@ namespace SG
 	class VulkanSampler;
 	class VulkanBuffer;
 
-	class VulkanPipeline;
-	class VulkanPipelineSetLayout;
-
 	class Shader;
-	class Mesh;
 
-	class VulkanDescriptorSet;
+	//struct VulkanPipelineDataSet
+	//{
+	//	VulkanPipeline*          pipeline;
+	//	VulkanPipelineSetLayout* pipelineLayout;
+	//	Shader*                  shader;
 
-	struct VulkanPipelineDataSet
-	{
-		VulkanPipeline*          pipeline;
-		VulkanPipelineSetLayout* pipelineLayout;
-		Shader*                  shader;
-
-		eastl::unordered_map<UInt32, VulkanDescriptorSet*> descriptorSetsMap;
-	};
+	//	eastl::unordered_map<UInt32, VulkanDescriptorSet*> descriptorSetsMap;
+	//};
 
 	class VulkanResourceRegistry
 	{
@@ -72,13 +67,18 @@ namespace SG
 		void DeleteBuffer(const string& name);
 		bool UpdataBufferData(const char* name, const void* pData);
 		void FlushBuffers() const;
-		/// Buffer Begin
+		/// Buffer End
 
 		/// Texture Begin
 		bool CreateTexture(const TextureCreateDesc& textureCI, bool bLocal = false);
 		VulkanTexture* GetTexture(const string& name) const;
 		void FlushTextures() const;
-		/// Texture Begin
+		/// Texture End
+
+		/// DescriptorSet Begin
+		void AddDescriptorSet(const string& name, VulkanDescriptorSet* pSet);
+		VulkanDescriptorSet* GetDescriptorSet(const string& name) const;
+		/// DescriptorSet End
 
 		/// RenderTarget Begin
 		bool CreateRenderTarget(const TextureCreateDesc& textureCI, bool isDepth = false);
@@ -98,6 +98,7 @@ namespace SG
 		VulkanContext* mpContext;
 		mutable eastl::unordered_map<string, VulkanBuffer*>  mBuffers;
 		mutable eastl::unordered_map<string, VulkanTexture*> mTextures;
+		mutable eastl::unordered_map<string, VulkanDescriptorSet*> mDescriptorSets;
 		mutable eastl::unordered_map<string, VulkanRenderTarget*> mRenderTargets;
 		mutable eastl::unordered_map<string, VulkanSampler*> mSamplers;
 
