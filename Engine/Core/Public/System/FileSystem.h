@@ -94,9 +94,9 @@ namespace SG
 		SG_CORE_API static void SetToDefaultFileStream();
 
 		//! If this file is exist.
-		SG_CORE_API static bool Exist(const EResourceDirectory directory, const char* filename, UInt32 baseOffset = 0);
+		SG_CORE_API static bool Exist(const EResourceDirectory directory, const char* filename, Size rootFolderOffset = 0);
 		//! If this file is exist. If it doesn't, create it.
-		SG_CORE_API static bool ExistOrCreate(const EResourceDirectory directory, const string& filename);
+		SG_CORE_API static bool ExistOrCreate(const EResourceDirectory directory, const string& filename, Size rootFolderOffset = 0);
 
 		SG_CORE_API static bool Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, Size rootFolderOffset = 0);
 		SG_CORE_API static bool Close();
@@ -112,7 +112,7 @@ namespace SG
 
 		SG_CORE_API static bool RemoveFile(const EResourceDirectory directory, const string& filename);
 
-		SG_CORE_API static string GetResourceFolderPath(EResourceDirectory directory, UInt32 baseOffset = 0);
+		SG_CORE_API static string GetResourceFolderPath(EResourceDirectory directory, Size rootFolderOffset = 0);
 		SG_CORE_API static string GetResourceFolderName(EResourceDirectory directory);
 
 		SG_CORE_API static string ToAbsolutePath(const string& path);

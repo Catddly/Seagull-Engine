@@ -35,15 +35,6 @@ namespace SG
 
 	class Shader;
 
-	//struct VulkanPipelineDataSet
-	//{
-	//	VulkanPipeline*          pipeline;
-	//	VulkanPipelineSetLayout* pipelineLayout;
-	//	Shader*                  shader;
-
-	//	eastl::unordered_map<UInt32, VulkanDescriptorSet*> descriptorSetsMap;
-	//};
-
 	class VulkanResourceRegistry
 	{
 	public:
@@ -77,6 +68,8 @@ namespace SG
 
 		/// DescriptorSet Begin
 		void AddDescriptorSet(const string& name, VulkanDescriptorSet* pSet);
+		void RemoveDescriptorSet(const string& name);
+		void RemoveDescriptorSet(VulkanDescriptorSet* pSet);
 		VulkanDescriptorSet* GetDescriptorSet(const string& name) const;
 		/// DescriptorSet End
 

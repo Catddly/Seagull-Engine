@@ -7,6 +7,8 @@
 #include "Render/CommonRenderData.h"
 #include "Archive/ResourceLoader/RenderResourceLoader.h"
 
+#include "Stl/Utility.h"
+
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
@@ -186,6 +188,11 @@ namespace SG
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
 		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil });
+	}
+
+	void RGDrawScenePBRNode::Update()
+	{
+		mMessageBusMember.ListenFor<Vector2f>("ViewportResizeEvent", SG_BIND_MEMBER_FUNC(OnEditorViewportResize));
 	}
 
 	void RGDrawScenePBRNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -664,6 +671,11 @@ namespace SG
 		Memory::Delete(pTempVulkanRenderPass);
 		Memory::Delete(pFence);
 		VK_RESOURCE()->DeleteRenderTarget("cubemap_prefilter_rt");
+	}
+
+	void RGDrawScenePBRNode::OnEditorViewportResize(Vector2f& data)
+	{
+		SG_LOG_DEBUG("viewport resized: (%.2f, %.2f)", data.x, data.y);
 	}
 
 }

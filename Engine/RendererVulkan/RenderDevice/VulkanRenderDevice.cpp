@@ -109,6 +109,7 @@ namespace SG
 	{
 		VK_RESOURCE()->OnUpdate(SSystem()->GetMainScene());
 		mpGUIDriver->OnUpdate(deltaTime);
+		mpRenderGraph->Update();
 	}
 
 	void VulkanRenderDevice::OnDraw()

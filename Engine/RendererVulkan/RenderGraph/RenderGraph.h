@@ -34,6 +34,7 @@ namespace SG
 		explicit RenderGraph(const char* name, VulkanContext* pContext);
 		~RenderGraph();
 
+		void Update();
 		void Draw(UInt32 frameIndex) const;
 		void WindowResize();
 

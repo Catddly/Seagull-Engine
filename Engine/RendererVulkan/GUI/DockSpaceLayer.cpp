@@ -3,6 +3,8 @@
 
 #include "System/System.h"
 #include "System/Logger.h"
+#include "Math/MathBasic.h"
+#include "Stl/Utility.h"
 
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
@@ -88,7 +90,16 @@ namespace SG
 		static ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse;
 
 		ImGui::Begin("MainViewport", &sbOpen, windowFlags);
+
 		auto viewportSize = ImGui::GetContentRegionAvail();
+		if (viewportSize.x != mLastViewportSize.x || viewportSize.y != mLastViewportSize.y) // resize the viewport render target
+		{
+			mLastViewportSize.x = viewportSize.x;
+			mLastViewportSize.y = viewportSize.y;
+
+			mMessageBusMember.PushEvent<Vector2f>("ViewportResizeEvent", mLastViewportSize);
+		}
+
 		ImGui::Image(mpViewportTex, viewportSize);
 		ImGui::End();
 

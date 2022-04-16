@@ -48,6 +48,7 @@ namespace SG
 
 	bool FileSystem::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, Size rootFolderOffset)
 	{
+		ExistOrCreate(directory, "", rootFolderOffset);
 		return mpStreamOp->Open(directory, filename, filemode, mpCurrentStream, rootFolderOffset);
 	}
 
@@ -105,12 +106,12 @@ namespace SG
 		return mpStreamOp->IsEndOfFile(&mStream);
 	}
 
-	string FileSystem::GetResourceFolderPath(EResourceDirectory directory, UInt32 baseOffset)
+	string FileSystem::GetResourceFolderPath(EResourceDirectory directory, Size rootFolderOffset)
 	{
 		string path = "";
-		if (baseOffset != 0)
+		if (rootFolderOffset != 0)
 		{
-			for (UInt32 i = 0; i < baseOffset; ++i)
+			for (UInt32 i = 0; i < rootFolderOffset; ++i)
 				path += "../";
 			path += "Resources/";
 		}
@@ -197,9 +198,9 @@ namespace SG
 		mpCurrentStream = &mStream;
 	}
 
-	bool FileSystem::Exist(const EResourceDirectory directory, const char* filename, UInt32 baseOffset)
+	bool FileSystem::Exist(const EResourceDirectory directory, const char* filename, Size rootFolderOffset)
 	{
-		string filepath = GetResourceFolderPath(directory, baseOffset);
+		string filepath = GetResourceFolderPath(directory, rootFolderOffset);
 		filepath += filename;
 		return std::filesystem::exists(filepath.c_str());
 	}
@@ -211,7 +212,7 @@ namespace SG
 		return std::filesystem::create_directory(path.c_str());
 	}
 
-	bool FileSystem::ExistOrCreate(const EResourceDirectory directory, const string& filename)
+	bool FileSystem::ExistOrCreate(const EResourceDirectory directory, const string& filename, Size rootFolderOffset)
 	{
 		bool bSuccess = true;
 		string folder = "";
@@ -224,7 +225,7 @@ namespace SG
 				if (path.size() != 0) // path still have a folder to create
 					folder += path;
 
-				if (!Exist(directory, folder.c_str()))
+				if (!Exist(directory, folder.c_str(), rootFolderOffset))
 					bSuccess &= CreateFolder(directory, folder.c_str());
 				break;
 			}
@@ -235,7 +236,7 @@ namespace SG
 				++nextFolderPos;
 				folder += path.substr(0, nextFolderPos);
 				path = path.substr(nextFolderPos, path.size() - nextFolderPos);
-				if (!Exist(directory, folder.c_str()))
+				if (!Exist(directory, folder.c_str(), rootFolderOffset))
 					bSuccess &= CreateFolder(directory, folder.c_str());
 			}
 		}

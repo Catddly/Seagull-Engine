@@ -2,6 +2,7 @@
 
 #include "Render/FrameBuffer.h"
 #include "Scene/Camera/ICamera.h"
+#include "Event/MessageBus/MessageBus.h"
 
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanShader.h"
@@ -29,6 +30,7 @@ namespace SG
 		~RGDrawScenePBRNode();
 	private:
 		virtual void Reset() override;
+		virtual void Update() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
 		virtual void Draw(RGDrawInfo& context) override;
 	private:
@@ -38,8 +40,12 @@ namespace SG
 		void PreCalcIrradianceCubemap();
 		void PrefilterCubemap();
 		void DrawScene(VulkanCommandBuffer& pBuf);
+
+		void OnEditorViewportResize(Vector2f& event);
 	private:
 		VulkanContext&        mContext;
+		MessageBusMember      mMessageBusMember;
+
 		LoadStoreClearOp      mColorRtLoadStoreOp;
 		LoadStoreClearOp      mDepthRtLoadStoreOp;
 

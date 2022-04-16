@@ -5,6 +5,7 @@
 #include "System/Logger.h"
 #include "System/Input.h"
 #include "User/IApp.h"
+#include "Event/MessageBus/MessageBus.h"
 
 #include "Render/Shader/ShaderLibrary.h"
 
@@ -98,9 +99,9 @@ namespace SG
 				bIsExit = true;
 
 			// dispatch all the system messages
-			mMessageBus.Update();
-			
+			mSystemMessageManager.Update();
 			Input::OnUpdate(deltaTime);
+
 			mp3DScene->OnUpdate(deltaTime);
 
 			// modules OnUpdate()
@@ -110,6 +111,8 @@ namespace SG
 
 			// modules OnDraw()
 			mModuleManager.Draw();
+
+			MessageBus::GetInstance()->ClearEvents();
 		}
 		return bIsSafeQuit;
 	}
@@ -190,15 +193,15 @@ namespace SG
 
 	void System::RegisterSystemMessageListener(ISystemMessageListener* pListener)
 	{
-		mMessageBus.RegisterListener(pListener);
+		mSystemMessageManager.RegisterListener(pListener);
 	}
 
 	void System::RemoveSystemMessageListener(ISystemMessageListener* pListener)
 	{
-		mMessageBus.RemoveListener(pListener);
+		mSystemMessageManager.RemoveListener(pListener);
 	}
 
-	System* const System::Instance()
+	System* const System::GetInstance()
 	{
 		static System instance;
 		return &instance;

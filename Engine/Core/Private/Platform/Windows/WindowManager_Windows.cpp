@@ -117,7 +117,7 @@ namespace SG
 		// on window move and resize
 		case WM_MOVE:
 		{
-			SSystem()->mMessageBus.PushEvent(ESystemMessage::eWindowMove);
+			SSystem()->mSystemMessageManager.PushEvent(ESystemMessage::eWindowMove);
 			break;
 		}
 		case WM_CHAR: // input acsii
@@ -152,12 +152,12 @@ namespace SG
 			{
 				if (bWindowSizeChanging || ((wParam == SIZE_MAXIMIZED) || (wParam == SIZE_RESTORED)))
 				{
-					SSystem()->mMessageBus.PushEvent(ESystemMessage::eWindowResize);
+					SSystem()->mSystemMessageManager.PushEvent(ESystemMessage::eWindowResize);
 				}
 			}
 			else
 			{
-				SSystem()->mMessageBus.PushEvent(ESystemMessage::eWindowMinimal);
+				SSystem()->mSystemMessageManager.PushEvent(ESystemMessage::eWindowMinimal);
 			}
 			break;
 		}

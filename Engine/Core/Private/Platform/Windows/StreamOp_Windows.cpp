@@ -9,11 +9,6 @@ namespace SG
 
 	bool WindowsStreamOp::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, FileStream* pOut, Size rootFolderOffset)
 	{
-		// if the EResourceDirectory folder is exist
-		auto rd = (LPCSTR)FileSystem::sResourceDirectory[(UInt32)directory];
-		if (!::PathIsDirectoryA(rd))
-			::CreateDirectoryA(rd, NULL);
-
 		string outDirectory;
 		for (Size i = 0; i < rootFolderOffset; ++i)
 			outDirectory += "../";

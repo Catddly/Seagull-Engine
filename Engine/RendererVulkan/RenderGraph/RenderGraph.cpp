@@ -64,6 +64,12 @@ namespace SG
 			Memory::Delete(beg->second);
 	}
 
+	void RenderGraph::Update()
+	{
+		for (auto* pCurrNode : mpNodes)
+			pCurrNode->Update();
+	}
+
 	void RenderGraph::Draw(UInt32 frameIndex) const
 	{
 		SG_ASSERT(!mFrameBuffersMap.empty() && "RenderGraphBuilder should call Build() or RenderGraph should call Compile() after the node insertion!");

@@ -508,6 +508,30 @@ namespace SG
 		mDescriptorSets[name] = pSet;
 	}
 
+	void VulkanResourceRegistry::RemoveDescriptorSet(const string& name)
+	{
+		auto node = mDescriptorSets.find(name);
+		if (node == mDescriptorSets.end())
+		{
+			SG_LOG_ERROR("No descriptor set named: %s", name.c_str());
+			return;
+		}
+		mDescriptorSets.erase(node);
+	}
+
+	void VulkanResourceRegistry::RemoveDescriptorSet(VulkanDescriptorSet* pSet)
+	{
+		for (auto node : mDescriptorSets)
+		{
+			if (node.second == pSet)
+			{
+				mDescriptorSets.erase(node.first);
+				return;
+			}
+		}
+		SG_LOG_ERROR("No descriptor set: 0x%p", pSet);
+	}
+
 	VulkanDescriptorSet* VulkanResourceRegistry::GetDescriptorSet(const string& name) const
 	{
 		auto node = mDescriptorSets.find(name);

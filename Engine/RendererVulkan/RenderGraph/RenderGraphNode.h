@@ -34,6 +34,8 @@ namespace SG
 
 		void ClearResources();
 	protected:
+		//! Be called when node need to update its resources. (optional)
+		virtual void Update() {};
 		//! Be called when receive window resize event or other reset status.
 		virtual void Reset() = 0;
 		//! Be called when the render graph finish compiling, user can use renderpass to create pipeline.

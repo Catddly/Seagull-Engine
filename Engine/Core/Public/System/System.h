@@ -40,7 +40,7 @@ namespace SG
 		virtual bool OnSystemMessage(ESystemMessage msg) = 0;
 	};
 
-	class SystemMessageBus
+	class SystemMessageManager
 	{
 	public:
 		void Update();
@@ -85,7 +85,7 @@ namespace SG
 		T GetModule() const;
 
 		//! Force to use ISystemManager as the interface of system manager.
-		SG_CORE_API static System* const Instance();
+		SG_CORE_API static System* const GetInstance();
 	private:
 		friend class Main;
 
@@ -111,13 +111,12 @@ namespace SG
 			SG_MAX_DIREC_PATH = SG_MAX_FILE_PATH - SG_MAX_DRIVE_PATH - SG_MAX_FILE_NAME - SG_MAX_EXT_PATH,
 		};
 
-		ModuleManager    mModuleManager;
-		SystemMessageBus mMessageBus;
+		ModuleManager mModuleManager;
+		SystemMessageManager mSystemMessageManager;
 
 		IProcess*     mpCurrActiveProcess;
 		Thread        mMainThread;
 
-		// TODO: add a 3DWorld can contain a lot of scenes.
 		RefPtr<Scene> mp3DScene = nullptr;
 		RefPtr<RenderDataBuilder> mpRenderDataBuilder = nullptr;
 	};
@@ -125,7 +124,7 @@ namespace SG
 	template <class T>
 	void System::UnResgisterModule()
 	{
-		IModule* pModule = mModuleManager.UnRegisterUserModule(Refl::CT_TypeName<T>());
+		IModule* pModule = mModuleManager.UnRegisterUserModule(Refl::CT_TypeName<T>().c_str());
 		Memory::Delete(pModule);
 	}
 
@@ -135,7 +134,7 @@ namespace SG
 		T* pModule = Memory::New<T>();
 		if (pModule)
 		{
-			mModuleManager.RegisterUserModule(Refl::CT_TypeName<T>(), pModule);
+			mModuleManager.RegisterUserModule(Refl::CT_TypeName<T>().c_str(), pModule);
 			return true;
 		}
 		return false;
@@ -147,6 +146,6 @@ namespace SG
 		return mModuleManager.GetModule<T>();
 	}
 
-#define SSystem() System::Instance()
+#define SSystem() System::GetInstance()
 
 }

@@ -6,7 +6,7 @@
 namespace SG
 {
 
-	void SystemMessageBus::Update()
+	void SystemMessageManager::Update()
 	{
 		for (auto beg = mMessages.begin(); beg != mMessages.end(); beg++)
 		{
@@ -19,12 +19,12 @@ namespace SG
 		mMessages.clear();
 	}
 
-	void SystemMessageBus::RegisterListener(ISystemMessageListener* pListener)
+	void SystemMessageManager::RegisterListener(ISystemMessageListener* pListener)
 	{
 		mpListeners.emplace(pListener);
 	}
 
-	void SystemMessageBus::RemoveListener(ISystemMessageListener* pListener)
+	void SystemMessageManager::RemoveListener(ISystemMessageListener* pListener)
 	{
 		auto pRemove = mpListeners.begin();
 		for (auto beg = mpListeners.begin(); beg != mpListeners.end(); ++beg)
@@ -38,7 +38,7 @@ namespace SG
 		mpListeners.erase(pRemove);
 	}
 
-	void SystemMessageBus::PushEvent(ESystemMessage msg)
+	void SystemMessageManager::PushEvent(ESystemMessage msg)
 	{
 		mMessages.emplace(msg);
 	}
