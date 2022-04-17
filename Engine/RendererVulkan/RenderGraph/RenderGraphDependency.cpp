@@ -8,15 +8,27 @@ namespace SG
 
 	void RGResourceStatusKeeper::AddResourceDenpendency(VulkanRenderTarget* pRenderTarget, EResourceBarrier srcStatus, EResourceBarrier dstStatus)
 	{
-		if (mDenpendencies.find(pRenderTarget) != mDenpendencies.end())
-		{
-			SG_LOG_WARN("Already add dependency to this resource!");
-			return;
-		}
-		mDenpendencies[pRenderTarget] = { srcStatus, dstStatus };
+		//if (mDenpendencies.find(pRenderTarget) != mDenpendencies.end())
+		//{
+		//	SG_LOG_WARN("Already add dependency to this resource!");
+		//	return;
+		//}
 
+		mDenpendencies[pRenderTarget] = { srcStatus, dstStatus };
 		// init current resource status
 		mCurrResourcesStaus[pRenderTarget] = srcStatus;
+	}
+
+	void RGResourceStatusKeeper::RemoveResourceDenpendency(VulkanRenderTarget* pRenderTarget)
+	{
+		if (mDenpendencies.find(pRenderTarget) != mDenpendencies.end() &&
+			mCurrResourcesStaus.find(pRenderTarget) != mCurrResourcesStaus.end())
+		{
+			mDenpendencies.erase(pRenderTarget);
+			mCurrResourcesStaus.erase(pRenderTarget);
+			return;
+		}
+		//SG_LOG_WARN("No dependency had been added to this resource!");
 	}
 
 	RGResourceDenpendency RGResourceStatusKeeper::GetResourceNextStatus(VulkanRenderTarget* pRenderTarget)

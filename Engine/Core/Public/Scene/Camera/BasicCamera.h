@@ -41,6 +41,7 @@ namespace SG
 	protected:
 		float    mDeltaTime = 0.0f;
 		Vector3f mPosition;
+		float    mAspectRatio;
 		Vector3f mRotation;
 
 		Matrix4f mViewMatrix;

@@ -3,6 +3,7 @@
 //----------------------------------------------------------
 #include "Defs/Defs.h"
 #include "Base/BasicTypes.h"
+#include "Base/Handle.h"
 
 //----------------------------------------------------------
 // System Modules

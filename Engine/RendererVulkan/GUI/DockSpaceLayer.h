@@ -1,23 +1,28 @@
 #pragma once
 
+#include "Base/Handle.h"
+#include "System/Input.h"
 #include "System/LayerSystem/LayerSystem.h"
 #include "Event/MessageBus/MessageBus.h"
+
+#include "RendererVulkan/Backend/VulkanDescriptor.h"
 
 #include "Math/MathBasic.h"
 
 namespace SG
 {
 
-	class DockSpaceLayer : public ILayer
+	class DockSpaceLayer : public ILayer, private IInputListener
 	{
 	public:
-		DockSpaceLayer()
-			:ILayer("Dockspace")
-		{}
+		DockSpaceLayer();
+		~DockSpaceLayer();
 
 		virtual void OnAttach();
 
 		virtual void OnUpdate(float deltaTime);
+	private:
+		virtual bool OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos) override;
 	private:
 		void DrawDockSpaceBackground();
 		void DrawMainViewport();
@@ -31,8 +36,9 @@ namespace SG
 
 		Vector2f mLastViewportSize = { 0.0f, 0.0f };
 
-		void* mpViewportTex = nullptr;
-		void* mpLogoTex = nullptr;
+		Handle<VulkanDescriptorSet>* mpViewportTexHandle;
+
+		bool mbViewportCanUpdateMouse = false;
 	};
 
 }

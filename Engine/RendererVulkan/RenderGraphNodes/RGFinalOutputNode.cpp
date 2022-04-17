@@ -20,8 +20,8 @@
 namespace SG
 {
 
-	RGFinalOutputNode::RGFinalOutputNode(VulkanContext& context)
-		:mContext(context), mCurrVertexCount(0), mCurrIndexCount(0),
+	RGFinalOutputNode::RGFinalOutputNode(VulkanContext& context, RenderGraph* pRenderGraph)
+		:RenderGraphNode(pRenderGraph), mContext(context), mCurrVertexCount(0), mCurrIndexCount(0),
 		mColorRtLoadStoreOp({ ELoadOp::eDont_Care, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
 		// bottom color render target present
@@ -99,7 +99,9 @@ namespace SG
 			mpGUIPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpGUIShader)
 				.AddCombindSamplerImage("_imgui_sampler", "_imgui_font")
 				.Build();
-			io.Fonts->SetTexID((ImTextureID)&mpGUIPipelineSignature->GetSetLayoutAndHandle(0).descriptorSet);
+
+			VK_RESOURCE()->AddDescriptorSetHandle("_imgui_font_tex", &mpGUIPipelineSignature->GetSetLayoutAndHandle(0).descriptorSet);
+			io.Fonts->SetTexID((ImTextureID)VK_RESOURCE()->GetDescriptorSetHandle("_imgui_font_tex"));
 
 			VulkanDescriptorSet* pViewportSet = Memory::New<VulkanDescriptorSet>();
 			VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
@@ -111,8 +113,10 @@ namespace SG
 				.AddCombindSamplerImage(0, "comp_sampler", "logo")
 				.Bind(*pLogoSet);
 
-			VK_RESOURCE()->AddDescriptorSet("HDRColor", pViewportSet);
+			VK_RESOURCE()->AddDescriptorSet("ViewportTex", pViewportSet, true);
 			VK_RESOURCE()->AddDescriptorSet("logo", pLogoSet);
+
+			VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetFallBackData(pLogoSet);
 		}
 
 		ClearValue cv = {};
@@ -137,6 +141,11 @@ namespace SG
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
 		AttachResource(0, { mContext.colorRts.data(), static_cast<UInt32>(mContext.colorRts.size()), mColorRtLoadStoreOp, cv,
 			EResourceBarrier::efUndefined, EResourceBarrier::efPresent });
+	}
+
+	void RGFinalOutputNode::Update()
+	{
+		mMessageBusMember.ListenFor<Vector2f>("ViewportResizeEvent", SG_BIND_MEMBER_FUNC(OnEditorViewportResize));
 	}
 
 	void RGFinalOutputNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -309,7 +318,8 @@ namespace SG
 					scissor.bottom = (Int32)(clipMax.y);
 					pBuf.SetScissor(scissor);
 
-					pBuf.BindDescriptorSet(mpGUIPipelineSignature.get(), 0, (VulkanDescriptorSet*)pCmd->TextureId);
+					auto pDescriptor = reinterpret_cast<Handle<VulkanDescriptorSet>*>(pCmd->TextureId);
+					pBuf.BindDescriptorSet(mpGUIPipelineSignature.get(), 0, pDescriptor->GetData());
 
 					pBuf.DrawIndexed(pCmd->ElemCount, 1, pCmd->IdxOffset + idxOffest, pCmd->VtxOffset + vtxOffest, 0);
 				}
@@ -331,6 +341,22 @@ namespace SG
 			scissor.bottom = (Int32)(height);
 			pBuf.SetScissor(scissor);
 		}
+	}
+
+	void RGFinalOutputNode::OnEditorViewportResize(Vector2f& data)
+	{
+		mContext.graphicQueue.WaitIdle();
+
+		VK_RESOURCE()->RemoveDescriptorSet("ViewportTex");
+
+		VulkanDescriptorSet* pViewportSet = Memory::New<VulkanDescriptorSet>();
+		VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
+			.AddCombindSamplerImage(0, "comp_sampler", "HDRColor")
+			.Bind(*pViewportSet);
+
+		VK_RESOURCE()->AddDescriptorSet("ViewportTex", pViewportSet);
+		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetData(VK_RESOURCE()->GetDescriptorSet("ViewportTex"));
+		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetFallBackData(VK_RESOURCE()->GetDescriptorSet("logo"));
 	}
 
 }

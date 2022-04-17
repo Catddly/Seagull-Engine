@@ -19,6 +19,7 @@ namespace SG
 	{
 	public:
 		void AddResourceDenpendency(VulkanRenderTarget* pRenderTarget, EResourceBarrier srcStatus, EResourceBarrier dstStatus);
+		void RemoveResourceDenpendency(VulkanRenderTarget* pRenderTarget);
 
 		RGResourceDenpendency GetResourceNextStatus(VulkanRenderTarget* pRenderTarget);
 		void Reset();

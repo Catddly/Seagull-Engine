@@ -32,8 +32,8 @@ namespace SG
 #define PREFILTER_CUBEMAP_TEX_SIZE  512
 #define BRDF_LUT_TEX_SIZE 512
 
-	RGDrawScenePBRNode::RGDrawScenePBRNode(VulkanContext& context)
-		: mContext(context), mpPipeline(nullptr),
+	RGDrawScenePBRNode::RGDrawScenePBRNode(VulkanContext& context, RenderGraph* pRenderGraph)
+		:RenderGraphNode(pRenderGraph), mContext(context), mpPipeline(nullptr),
 		// Set to default clear ops
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
@@ -675,7 +675,42 @@ namespace SG
 
 	void RGDrawScenePBRNode::OnEditorViewportResize(Vector2f& data)
 	{
-		SG_LOG_DEBUG("viewport resized: (%.2f, %.2f)", data.x, data.y);
+		mContext.graphicQueue.WaitIdle();
+
+		Size fbHash = GetResource(0)->GetFrameBufferHash();
+
+#ifdef SG_ENABLE_HDR
+		VK_RESOURCE()->DeleteRenderTarget("HDRColor");
+		TextureCreateDesc rtCI;
+		rtCI.name = "HDRColor";
+		rtCI.width = static_cast<UInt32>(data.x);
+		rtCI.height = static_cast<UInt32>(data.y);
+		rtCI.depth = 1;
+		rtCI.array = 1;
+		rtCI.mipLevel = 1;
+		rtCI.format = EImageFormat::eSfloat_R32G32B32A32;
+		rtCI.sample = ESampleCount::eSample_1;
+		rtCI.type = EImageType::e2D;
+		rtCI.usage = EImageUsage::efColor | EImageUsage::efSample;
+		rtCI.initLayout = EImageLayout::eUndefined;
+		VK_RESOURCE()->CreateRenderTarget(rtCI);
+
+		// translate color rt from undefined to shader read
+		VulkanCommandBuffer pCmd;
+		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
+		pCmd.BeginRecord();
+		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("HDRColor"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
+		pCmd.EndRecord();
+		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+		mContext.graphicQueue.WaitIdle();
+		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+
+		ClearValue cv = {};
+		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
+		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("HDRColor"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+#endif
+
+		ResetFrameBuffer(fbHash);
 	}
 
 }

@@ -10,12 +10,10 @@ namespace SG
 		:BasicCamera(position, Vector3f(0.0f))
 	{
 		UpdateViewMatrix();
-		SSystem()->RegisterSystemMessageListener(this);
 	}
 
 	FirstPersonCamera::~FirstPersonCamera()
 	{
-		SSystem()->RemoveSystemMessageListener(this);
 	}
 
 	bool FirstPersonCamera::OnKeyInputUpdate(EKeyCode keycode, EKeyState keyState)
@@ -62,17 +60,6 @@ namespace SG
 				UpdateViewMatrix();
 				mbIsViewDirty = true;
 			}
-		}
-		return true;
-	}
-
-	bool FirstPersonCamera::OnSystemMessage(ESystemMessage msg)
-	{
-		switch (msg)
-		{
-		case ESystemMessage::eWindowResize:
-			mAspectRatio = OperatingSystem::GetMainWindow()->GetAspectRatio();
-			break;
 		}
 		return true;
 	}

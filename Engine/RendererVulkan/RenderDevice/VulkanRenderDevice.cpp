@@ -162,9 +162,9 @@ namespace SG
 	void VulkanRenderDevice::BuildRenderGraph()
 	{
 		mpRenderGraph = RenderGraphBuilder("Default", mpContext)
-			.NewRenderPass(Memory::New<RGShadowNode>(*mpContext))
-			.NewRenderPass(Memory::New<RGDrawScenePBRNode>(*mpContext))
-			.NewRenderPass(Memory::New<RGFinalOutputNode>(*mpContext))
+			.NewRenderPass<RGShadowNode>()
+			.NewRenderPass<RGDrawScenePBRNode>()
+			.NewRenderPass<RGFinalOutputNode>()
 			.Build();
 	}
 

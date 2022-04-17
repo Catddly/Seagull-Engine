@@ -38,7 +38,7 @@ namespace SG
 
 	using Byte = std::byte;
 
-	typedef void* Handle;
+	//typedef void* Handle;
 
 #define SG_FLOAT_EPSILON  std::numeric_limits<float>::epsilon()
 #define SG_DOUBLE_EPSILON std::numeric_limits<double>::epsilon()

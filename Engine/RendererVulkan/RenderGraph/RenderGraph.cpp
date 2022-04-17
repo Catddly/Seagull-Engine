@@ -19,6 +19,7 @@ namespace SG
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	RenderGraphBuilder::RenderGraphBuilder(const char* name, VulkanContext* pContext)
+		:mpContext(pContext)
 	{
 		mpRenderGraph = MakeUnique<RenderGraph>(name, pContext);
 	}
@@ -26,13 +27,12 @@ namespace SG
 	RenderGraphBuilder::~RenderGraphBuilder()
 	{
 		if (!mbInitSuccess)
+		{
+			for (auto* pNode : mpRenderGraph->mpNodes)
+				Memory::Delete(pNode);
+			mpRenderGraph->mpNodes.clear();
 			mpRenderGraph.reset(nullptr);
-	}
-
-	RenderGraphBuilder& RenderGraphBuilder::NewRenderPass(RenderGraphNode* pNode)
-	{
-		mpRenderGraph->mpNodes.push_back(pNode);
-		return *this;
+		}
 	}
 
 	UniquePtr<RenderGraph> RenderGraphBuilder::Build()
@@ -115,21 +115,11 @@ namespace SG
 			Memory::Delete(beg->second);
 		mFrameBuffersMap.clear();
 
-		// re-assign rts' dependencies
-		mResourceStatusKeeper.Clear();
-
 		// after the resizing, all the render targets had been recreated,
 		// reset the node to update the resources which is using.
 		for (auto* pCurrNode : mpNodes)
 		{
 			pCurrNode->Reset();
-			for (auto& resource : pCurrNode->mInResources)
-			{
-				if (resource.has_value())
-				{
-					mResourceStatusKeeper.AddResourceDenpendency(resource->GetRenderTarget(), resource->GetSrcStatus(), resource->GetDstStatus());
-				}
-			}
 
 			if (!pCurrNode->HaveValidResource())
 			{
@@ -145,14 +135,6 @@ namespace SG
 	{
 		for (auto* pCurrNode : mpNodes) // iterate all nodes
 		{
-			for (auto& resource : pCurrNode->mInResources)
-			{
-				if (resource.has_value())
-				{
-					mResourceStatusKeeper.AddResourceDenpendency(resource->GetRenderTarget(), resource->GetSrcStatus(), resource->GetDstStatus());
-				}
-			}
-
 			if (!pCurrNode->HaveValidResource())
 			{
 				SG_LOG_ERROR("No resource bound to this RenderGraphNode!");
@@ -252,6 +234,27 @@ namespace SG
 			}
 			++currIndex;
 		}
+	}
+
+	void RenderGraph::ResetFrameBuffer(RenderGraphNode* pNode, Size frameBufferHash) noexcept
+	{
+		auto node = mFrameBuffersMap.find(frameBufferHash);
+		if (node != mFrameBuffersMap.end())
+		{
+			Memory::Delete(node->second);
+			mFrameBuffersMap.erase(node);
+		}
+		CompileFrameBuffers(pNode);
+	}
+
+	void RenderGraph::AddResourceDenpendency(VulkanRenderTarget* pRenderTarget, EResourceBarrier srcStatus, EResourceBarrier dstStatus)
+	{
+		mResourceStatusKeeper.AddResourceDenpendency(pRenderTarget, srcStatus, dstStatus);
+	}
+
+	void RenderGraph::RemoveResourceDenpendency(VulkanRenderTarget* pRenderTarget)
+	{
+		mResourceStatusKeeper.RemoveResourceDenpendency(pRenderTarget);
 	}
 
 }

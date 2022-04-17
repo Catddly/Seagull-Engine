@@ -215,14 +215,14 @@ namespace SG
 
 	VulkanFrameBuffer::Builder& VulkanFrameBuffer::Builder::AddRenderTarget(VulkanRenderTarget* pRenderTarget, const ClearValue& clearValue)
 	{
-		if (!renderTargets.empty())
-		{
-			if (renderTargets[0]->width != pRenderTarget->width || renderTargets[0]->height != pRenderTarget->height)
-			{
-				SG_LOG_WARN("Inconsistent render targets!");
-				return *this;
-			}
-		}
+		//if (!renderTargets.empty())
+		//{
+		//	if (renderTargets[0]->width != pRenderTarget->width || renderTargets[0]->height != pRenderTarget->height)
+		//	{
+		//		SG_LOG_WARN("Inconsistent render targets!");
+		//		return *this;
+		//	}
+		//}
 
 		renderTargets.emplace_back(pRenderTarget);
 		clearValues.push_back(clearValue);

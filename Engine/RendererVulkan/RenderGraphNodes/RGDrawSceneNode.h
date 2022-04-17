@@ -24,7 +24,7 @@ namespace SG
 	class RGDrawSceneNode final : public RenderGraphNode
 	{
 	public:
-		RGDrawSceneNode(VulkanContext& context);
+		RGDrawSceneNode(VulkanContext& context, RenderGraph* pRenderGraph);
 		~RGDrawSceneNode();
 	private:
 		virtual void Reset() override;

@@ -7,12 +7,16 @@
 Still work in progress!!!: A long long way to go./(ㄒoㄒ)/~~
 
 This engine is for learning purpose, so some parts of the engine may be very coarse.  
+This engine is unstable and have many api changing at this stage.  
 If you have any questions on this engine, you can contact me with these email: 2565492401@qq.com or illmewds@gmail.com.
 
 **Graphic api**: Vulkan. (may be intergrated dx12 later)  
 **Platform**: Windows.  
 
 ## Features
+- Tiny Self-Implemented ECS  
+It is called TipECS and it have the basic subset of a ECS.
+
 - GPU-Driven Rendering Pipeline  
 Most of the scene object(excluding skybox) are culled and drawn by GPU. (Using Draw Indirect and compute shader)
 
@@ -26,6 +30,9 @@ Now have brdf implemented. PBR Lighting and PBR camera need to be done later.
 RenderPasses are construct into node, easy to figure out the dependencies between renderpass and easy to do custom rendering.
 
 ## Developing Screenshots
+
+Basic editor
+![](Screenshots/editor.gif)
 
 GPU Driven Rendering Pipeline  
 Inside the small statistics panel you can see the cull out object infos and drawcall infos.

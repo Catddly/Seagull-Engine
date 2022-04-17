@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Base/Handle.h"
 #include "RendererVulkan/Config.h"
 #include "Render/Buffer.h"
 #include "Render/SwapChain.h"
@@ -67,10 +68,13 @@ namespace SG
 		/// Texture End
 
 		/// DescriptorSet Begin
-		void AddDescriptorSet(const string& name, VulkanDescriptorSet* pSet);
+		void AddDescriptorSet(const string& name, VulkanDescriptorSet* pSet, bool bCreateHandle = false);
+		void AddDescriptorSetHandle(const string& name, VulkanDescriptorSet* pSet);
 		void RemoveDescriptorSet(const string& name);
 		void RemoveDescriptorSet(VulkanDescriptorSet* pSet);
 		VulkanDescriptorSet* GetDescriptorSet(const string& name) const;
+		Handle<VulkanDescriptorSet>* GetDescriptorSetHandle(const string& name);
+		ReadOnlyHandle<VulkanDescriptorSet> GetDescriptorSetReadOnlyHandle(const string& name);
 		/// DescriptorSet End
 
 		/// RenderTarget Begin
@@ -92,6 +96,7 @@ namespace SG
 		mutable eastl::unordered_map<string, VulkanBuffer*>  mBuffers;
 		mutable eastl::unordered_map<string, VulkanTexture*> mTextures;
 		mutable eastl::unordered_map<string, VulkanDescriptorSet*> mDescriptorSets;
+		mutable eastl::unordered_map<string, Handle<VulkanDescriptorSet>> mDescriptorSetHandles;
 		mutable eastl::unordered_map<string, VulkanRenderTarget*> mRenderTargets;
 		mutable eastl::unordered_map<string, VulkanSampler*> mSamplers;
 

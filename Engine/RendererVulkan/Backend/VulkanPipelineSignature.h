@@ -29,7 +29,7 @@ namespace SG
 			VulkanDescriptorSet descriptorSet;
 		};
 
-		const SetLayoutAndHandle& GetSetLayoutAndHandle(UInt32 set) { return mDescriptorSetData[set]; }
+		SetLayoutAndHandle& GetSetLayoutAndHandle(UInt32 set) { return mDescriptorSetData[set]; }
 		
 		class DataBinder
 		{

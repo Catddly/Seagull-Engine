@@ -15,11 +15,14 @@ namespace SG
 
 	class VulkanCommandBuffer;
 	class VulkanRenderPass;
+	class RenderGraph;
 
 	class RenderGraphNode
 	{
 	public:
-		RenderGraphNode();
+		typedef eastl::optional<RenderGraphInReousrce> InResourceType;
+
+		RenderGraphNode(RenderGraph* pRenderGraph);
 		virtual ~RenderGraphNode() = default;
 
 		struct RGDrawInfo
@@ -28,11 +31,15 @@ namespace SG
 			UInt32               frameIndex;
 		};
 	protected:
+		const InResourceType& GetResource(UInt32 slot);
 		void AttachResource(UInt32 slot, const RenderGraphInReousrce& resource);
 		void DetachResource(UInt32 slot);
 		void DetachResource(const RenderGraphInReousrce& resource);
 
 		void ClearResources();
+
+		//! Callback function to notify the render graph this node had changed the frame buffer.
+		void ResetFrameBuffer(Size frameBufferHash);
 	protected:
 		//! Be called when node need to update its resources. (optional)
 		virtual void Update() {};
@@ -45,11 +52,10 @@ namespace SG
 	private:
 		bool HaveValidResource() const;
 	private:
-		typedef eastl::optional<RenderGraphInReousrce> InResourceType;
-
 		friend class RenderGraph;
 		friend class RenderGraphBuilder;
 
+		RenderGraph* mpRenderGraph = nullptr;
 		eastl::array<InResourceType, SG_MAX_RENDER_GRAPH_NODE_RESOURCE> mInResources;
 		UInt32 mResourceValidFlag;
 	};

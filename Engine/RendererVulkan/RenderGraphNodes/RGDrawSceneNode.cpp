@@ -22,8 +22,8 @@
 namespace SG
 {
 
-	RGDrawSceneNode::RGDrawSceneNode(VulkanContext& context)
-		: mContext(context), mpPipeline(nullptr),
+	RGDrawSceneNode::RGDrawSceneNode(VulkanContext& context, RenderGraph* pRenderGraph)
+		:RenderGraphNode(pRenderGraph), mContext(context), mpPipeline(nullptr),
 		// Set to default clear ops
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })

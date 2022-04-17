@@ -19,7 +19,7 @@ namespace SG
 	class RGShadowNode final : public RenderGraphNode
 	{
 	public:
-		RGShadowNode(VulkanContext& context);
+		RGShadowNode(VulkanContext& context, RenderGraph* pRenderGraph);
 		~RGShadowNode();
 	private:
 		virtual void Reset() override;

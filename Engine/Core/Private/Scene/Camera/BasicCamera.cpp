@@ -4,8 +4,6 @@
 namespace SG
 {
 
-	static float gAspect;
-
 	BasicCamera::BasicCamera(const Vector3f& position, const Vector3f& rotation)
 		:mPosition(position), mRotation(rotation), mbIsViewDirty(true), mbIsProjDirty(true)
 	{
@@ -19,12 +17,10 @@ namespace SG
 
 	void BasicCamera::SetPerspective(float fovyInDegrees, float aspect, float zNear, float zFar)
 	{
-		static float sFovyInDegrees = 0, sAspect = 0, sZNear = 0, sZFar = 0;
+		static float sFovyInDegrees = 0, sZNear = 0, sZFar = 0;
 
-		if (mbUseOrtho || fovyInDegrees != sFovyInDegrees || aspect != sAspect || zNear != sZNear || zFar != sZFar)
+		if (mbUseOrtho || fovyInDegrees != sFovyInDegrees || aspect != mAspectRatio || zNear != sZNear || zFar != sZFar)
 		{
-			gAspect = aspect;
-
 			mbIsProjDirty = true;
 			mbUseOrtho = false;
 			mProjectionMatrix = BuildPerspectiveMatrix(glm::radians(fovyInDegrees), aspect, zNear, zFar);
@@ -32,7 +28,7 @@ namespace SG
 			mProjectionMatrix[1][1] *= -1.0f;
 
 			sFovyInDegrees = fovyInDegrees;
-			sAspect        = aspect;
+			mAspectRatio   = aspect;
 			sZNear         = zNear;
 			sZFar          = zFar;
 

@@ -64,8 +64,8 @@ group "Runtime"
         -- include files
         files
         {
-            "User/%{prj.name}/**.h",
-            "User/%{prj.name}/**.cpp"
+            "User/Sandbox/**.h",
+            "User/Sandbox/**.cpp"
         }
 
         includedirs

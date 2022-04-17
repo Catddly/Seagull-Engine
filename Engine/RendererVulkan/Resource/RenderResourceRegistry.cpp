@@ -170,6 +170,32 @@ namespace SG
 			UpdataBufferData("skyboxUbo", &skyboxUbo);
 			pCamera->ViewBeUpdated();
 		}
+		//if (pCamera->IsViewDirty() || pCamera->IsProjDirty())
+		//{
+		//	Frustum cameraFrustum = pCamera->GetFrustum();
+		//	auto& cullUbo = GetGPUCullUBO();
+		//	cullUbo.frustum[0] = cameraFrustum.GetTopPlane();
+		//	cullUbo.frustum[1] = cameraFrustum.GetBottomPlane();
+		//	cullUbo.frustum[2] = cameraFrustum.GetLeftPlane();
+		//	cullUbo.frustum[3] = cameraFrustum.GetRightPlane();
+		//	cullUbo.frustum[4] = cameraFrustum.GetFrontPlane();
+		//	cullUbo.frustum[5] = cameraFrustum.GetBackPlane();
+		//	cullUbo.viewPos = pCamera->GetPosition();
+		//	UpdataBufferData("cullUbo", &cullUbo);
+
+		//	auto& skyboxUbo = GetSkyboxUBO();
+		//	auto& cameraUbo = GetCameraUBO();
+		//	cameraUbo.viewPos = pCamera->GetPosition();
+		//	cameraUbo.view = pCamera->GetViewMatrix();
+		//	cameraUbo.proj = pCamera->GetProjMatrix();
+		//	skyboxUbo.model = Matrix4f(Matrix3f(cameraUbo.view)); // eliminate the translation part of the matrix
+		//	skyboxUbo.proj = cameraUbo.proj;
+		//	cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
+		//	UpdataBufferData("cameraUbo", &cameraUbo);
+		//	UpdataBufferData("skyboxUbo", &skyboxUbo);
+		//	pCamera->ViewBeUpdated();
+		//	pCamera->ProjBeUpdated();
+		//}
 
 		// update light data
 		auto lights = pLScene->View<LightTag>();
@@ -204,7 +230,6 @@ namespace SG
 					tag.bDirty = false;
 				}
 			}
-
 		}
 
 		auto& compositionUbo = GetCompositionUBO();
@@ -215,7 +240,7 @@ namespace SG
 	{
 		auto pScene = SSystem()->GetMainScene();
 		auto* window = OperatingSystem::GetMainWindow();
-		const float  ASPECT = window->GetAspectRatio();
+		const float ASPECT = window->GetAspectRatio();
 		pScene->GetMainCamera()->SetPerspective(60.0f, ASPECT, 0.01f, 256.0f);
 
 		auto& skyboxUbo = GetSkyboxUBO();
@@ -497,7 +522,7 @@ namespace SG
 	/// DescriptorSet	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void VulkanResourceRegistry::AddDescriptorSet(const string& name, VulkanDescriptorSet* pSet)
+	void VulkanResourceRegistry::AddDescriptorSet(const string& name, VulkanDescriptorSet* pSet, bool bCreateHandle)
 	{
 		auto node = mDescriptorSets.find(name);
 		if (node != mDescriptorSets.end())
@@ -506,6 +531,19 @@ namespace SG
 			return;
 		}
 		mDescriptorSets[name] = pSet;
+		if (bCreateHandle)
+			mDescriptorSetHandles[name] = Handle<VulkanDescriptorSet>(pSet, nullptr);
+	}
+
+	void VulkanResourceRegistry::AddDescriptorSetHandle(const string& name, VulkanDescriptorSet* pSet)
+	{
+		auto node = mDescriptorSets.find(name);
+		if (node != mDescriptorSets.end())
+		{
+			SG_LOG_ERROR("Already have a descriptor set handle named: %s", name.c_str());
+			return;
+		}
+		mDescriptorSetHandles[name] = Handle<VulkanDescriptorSet>(pSet, nullptr);
 	}
 
 	void VulkanResourceRegistry::RemoveDescriptorSet(const string& name)
@@ -516,7 +554,15 @@ namespace SG
 			SG_LOG_ERROR("No descriptor set named: %s", name.c_str());
 			return;
 		}
+		Memory::Delete(node->second);
 		mDescriptorSets.erase(node);
+
+		//auto nodeHandle = mDescriptorSetHandles.find(name);
+		//if (nodeHandle != mDescriptorSetHandles.end())
+		//{
+		//	nodeHandle->second.Invalidate();
+		//	mDescriptorSetHandles.erase(nodeHandle);
+		//}
 	}
 
 	void VulkanResourceRegistry::RemoveDescriptorSet(VulkanDescriptorSet* pSet)
@@ -526,6 +572,15 @@ namespace SG
 			if (node.second == pSet)
 			{
 				mDescriptorSets.erase(node.first);
+				//for (auto nodeHandle : mDescriptorSetHandles)
+				//{
+				//	if (nodeHandle.second.GetData() == pSet)
+				//	{
+				//		nodeHandle.second.Invalidate();
+				//		mDescriptorSetHandles.erase(nodeHandle.first);
+				//	}
+				//	return;
+				//}
 				return;
 			}
 		}
@@ -541,6 +596,22 @@ namespace SG
 			return nullptr;
 		}
 		return node->second;
+	}
+
+	Handle<VulkanDescriptorSet>* VulkanResourceRegistry::GetDescriptorSetHandle(const string& name)
+	{
+		auto node = mDescriptorSetHandles.find(name);
+		if (node == mDescriptorSetHandles.end())
+		{
+			SG_LOG_ERROR("No descritor set handle named: %s", name.c_str());
+			return nullptr;
+		}
+		return &node->second;
+	}
+
+	ReadOnlyHandle<VulkanDescriptorSet> VulkanResourceRegistry::GetDescriptorSetReadOnlyHandle(const string& name)
+	{
+		return GetDescriptorSetHandle(name)->ReadOnly();
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////

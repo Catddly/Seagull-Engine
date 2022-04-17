@@ -26,8 +26,8 @@ namespace SG
 
 #define SG_SHADOW_MAP_SIZE 2048
 
-	RGShadowNode::RGShadowNode(VulkanContext& context)
-		:mContext(context),
+	RGShadowNode::RGShadowNode(VulkanContext& context, RenderGraph* pRenderGraph)
+		:RenderGraphNode(pRenderGraph), mContext(context),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
 		mbDrawShadow = true;

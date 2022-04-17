@@ -28,23 +28,24 @@ public:
 		//auto* pInputSystem = SG::System::GetInstance()->GetIInputSystem();
 		//pInputSystem->RegisterListener(this);
 
-		struct MyJob : public SG::IJob<int, double>
-		{
-			virtual void Execute(const int& inData, double& outData) override
-			{
-				outData = (double)inData + 5.99;
-			}
-		};
+		//struct MyJob : public SG::IJob<int, double>
+		//{
+		//	virtual void Execute(const int& inData, double& outData) override
+		//	{
+		//		outData = (double)inData + 5.99;
+		//	}
+		//};
 
-		MyJob job;
-		int a = 54;
-		double b;
-		job.Execute(a, b);
-		SG_LOG_INFO("b is %.2llf", b);
+		//MyJob job;
+		//int a = 54;
+		//double b;
+		//job.Execute(a, b);
+		//SG_LOG_INFO("b is %.2llf", b);
 
 		//MemoryLeakTest();
 		//MathTest();
 		//ThreadTest();
+		//HandleTest();
 	}
 
 	virtual void OnUpdate(float deltaTime) override
@@ -90,6 +91,37 @@ private:
 		}
 	}
 private:
+	void HandleTest()
+	{
+		using namespace SG;
+		int data = 5;
+		int d = 1;
+		int fallback = 12223;
+
+		Handle<int> myHandle(&data, &fallback);
+		SG_LOG_DEBUG("Handle value: %d", *myHandle.GetData());
+
+		auto readonlyHandle = myHandle.ReadOnly();
+
+		Handle<int> cpy(&d, &fallback);
+
+		auto readonlyCpy = cpy.ReadOnly();
+		SG_LOG_DEBUG("CPY Handle value: %d", *readonlyCpy.GetData());
+		cpy.Invalidate();
+		SG_LOG_DEBUG("CPY Handle value: %d", *readonlyCpy.GetData());
+
+		cpy = myHandle;
+		SG_LOG_DEBUG("CPY Handle value: %d", *readonlyCpy.GetData());
+
+		cpy.Invalidate();
+		auto null = myHandle.ReadOnly(); // this ReadOnlyHandle is copied from the invalid state of the Handle, so the invalid state become its valid state.
+		SG_LOG_DEBUG("null Handle value: %d", *null.GetData());
+		SG_LOG_DEBUG("Handle value: %d", *readonlyHandle.GetData());
+		cpy.Validate();
+		SG_LOG_DEBUG("null Handle value: %d", *null.GetData());
+		SG_LOG_DEBUG("Handle value: %d", *readonlyHandle.GetData());
+	}
+
 	void MathTest()
 	{
 		using namespace SG;

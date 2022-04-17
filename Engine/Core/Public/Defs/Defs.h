@@ -90,9 +90,17 @@
 #	define SG_RESTORE_MSVC_WARNING()
 #endif
 
-// maybe move to another file 
-#define SG_CLASS_NO_COPY_ASSIGNABLE(CLASS) CLASS(const CLASS&) = delete; \
-	CLASS operator=(const CLASS&) = delete
+#define SG_CLASS_NO_COPY_ASSIGNABLE(CLASS) \
+	CLASS(const CLASS&) = delete; \
+	CLASS& operator=(const CLASS&) = delete
+
+#define SG_CLASS_NO_MOVE_ASSIGNABLE(CLASS) \
+	CLASS(CLASS&&) = delete; \
+	CLASS& operator=(CLASS&&) = delete
+
+#define SG_CLASS_NO_COPY_MOVE_ASSIGNABLE(CLASS) \
+	SG_CLASS_NO_COPY_ASSIGNABLE(CLASS); \
+	SG_CLASS_NO_MOVE_ASSIGNABLE(CLASS)
 
 #ifndef interface
 #define __STRUCT__ struct 

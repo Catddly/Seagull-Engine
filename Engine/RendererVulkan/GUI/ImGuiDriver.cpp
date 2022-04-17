@@ -549,10 +549,10 @@ namespace SG
 		io.AddMousePosEvent((float)xPos, (float)yPos);
 		mLastValidMousePos = { xPos, yPos };
 
-		if (io.WantCaptureMouse) // block other event
-			return false;
-		else
-			return true;
+		//if (io.WantCaptureMouse) // block other event
+		//	return false;
+		//else
+		return true;
 	}
 
 	bool ImGuiDriver::OnMouseWheelInputUpdate(int direction)

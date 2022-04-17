@@ -15,10 +15,20 @@
 namespace SG
 {
 
+	DockSpaceLayer::DockSpaceLayer()
+		:ILayer("Dockspace")
+	{
+		Input::RegisterListener(EListenerPriority::eLevel0, this);
+	}
+
+	DockSpaceLayer::~DockSpaceLayer()
+	{
+		Input::RemoveListener(this);
+	}
+
 	void DockSpaceLayer::OnAttach()
 	{
-		mpViewportTex = VK_RESOURCE()->GetDescriptorSet("HDRColor");
-		mpLogoTex = VK_RESOURCE()->GetDescriptorSet("logo");
+		mpViewportTexHandle = VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex");
 	}
 
 	void DockSpaceLayer::OnUpdate(float deltaTime)
@@ -27,6 +37,15 @@ namespace SG
 		DrawMainViewport();
 		DrawLightPanel();
 		DrawStatistics(deltaTime);
+	}
+
+	bool DockSpaceLayer::OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos)
+	{
+		// just block other events, so that the camera do not get the input update message.
+		if (mbViewportCanUpdateMouse)
+			return true;
+		else
+			return false;
 	}
 
 	void DockSpaceLayer::DrawDockSpaceBackground()
@@ -91,6 +110,8 @@ namespace SG
 
 		ImGui::Begin("MainViewport", &sbOpen, windowFlags);
 
+		mbViewportCanUpdateMouse = ImGui::IsWindowFocused() && ImGui::IsWindowHovered();
+
 		auto viewportSize = ImGui::GetContentRegionAvail();
 		if (viewportSize.x != mLastViewportSize.x || viewportSize.y != mLastViewportSize.y) // resize the viewport render target
 		{
@@ -100,7 +121,7 @@ namespace SG
 			mMessageBusMember.PushEvent<Vector2f>("ViewportResizeEvent", mLastViewportSize);
 		}
 
-		ImGui::Image(mpViewportTex, viewportSize);
+		ImGui::Image(mpViewportTexHandle, viewportSize);
 		ImGui::End();
 
 		ImGui::PopStyleVar();

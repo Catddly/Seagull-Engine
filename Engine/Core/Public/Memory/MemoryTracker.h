@@ -3,6 +3,8 @@
 #include "Core/Config.h"
 #include "Base/BasicTypes.h"
 
+#include "eastl/utility.h"
+
 namespace SG
 {
 
