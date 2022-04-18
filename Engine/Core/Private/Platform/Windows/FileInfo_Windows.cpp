@@ -12,7 +12,8 @@ namespace SG
 	TimePoint GetFileCreateTime(const char* filename)
 	{
 		WIN32_FIND_DATAA fd = {};
-		if (::FindFirstFileA(filename, &fd) == INVALID_HANDLE_VALUE) // failed to find this file
+		HANDLE hFind = ::FindFirstFileA(filename, &fd);
+		if (hFind == INVALID_HANDLE_VALUE) // failed to find this file
 		{
 			SG_LOG_ERROR("There is no file named: %s", filename);
 			return TimePoint();
@@ -30,13 +31,16 @@ namespace SG
 		tp.hour = time.wHour;
 		tp.minute = time.wMinute;
 		tp.second = time.wSecond;
+
+		::FindClose(hFind);
 		return eastl::move(tp);
 	}
 
 	TimePoint GetFileLastWriteTime(const char* filename)
 	{
 		WIN32_FIND_DATAA fd = {};
-		if (::FindFirstFileA(filename, &fd) == INVALID_HANDLE_VALUE) // failed to find this file
+		HANDLE hFind = ::FindFirstFileA(filename, &fd);
+		if (hFind == INVALID_HANDLE_VALUE) // failed to find this file
 		{
 			SG_LOG_ERROR("There is no file named: %s", filename);
 			return TimePoint();
@@ -54,13 +58,16 @@ namespace SG
 		tp.hour = time.wHour;
 		tp.minute = time.wMinute;
 		tp.second = time.wSecond;
+
+		::FindClose(hFind);
 		return eastl::move(tp);
 	}
 
 	TimePoint GetFileLastReadTime(const char* filename)
 	{
 		WIN32_FIND_DATAA fd = {};
-		if (::FindFirstFileA(filename, &fd) == INVALID_HANDLE_VALUE) // failed to find this file
+		HANDLE hFind = ::FindFirstFileA(filename, &fd);
+		if (hFind == INVALID_HANDLE_VALUE) // failed to find this file
 		{
 			SG_LOG_ERROR("There is no file named: %s", filename);
 			return TimePoint();
@@ -78,6 +85,8 @@ namespace SG
 		tp.hour = time.wHour;
 		tp.minute = time.wMinute;
 		tp.second = time.wSecond;
+
+		::FindClose(hFind);
 		return eastl::move(tp);
 	}
 

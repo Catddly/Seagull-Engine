@@ -78,15 +78,15 @@ namespace SG
 		case KeyCode_Subtract: return ImGuiKey_KeypadSubtract;
 		case KeyCode_Add: return ImGuiKey_KeypadAdd;
 		case KeyCode_NumpadEnter: return ImGuiKey_KeypadEnter;
-		//case KeyCode_: return ImGuiKey_KeypadEqual;
+			//case KeyCode_: return ImGuiKey_KeypadEqual;
 		case KeyCode_LeftShift: return ImGuiKey_LeftShift;
 		case KeyCode_LeftControl: return ImGuiKey_LeftCtrl;
 		case KeyCode_LeftAlt: return ImGuiKey_LeftAlt;
-		//case KeyCode_LeftSup: return ImGuiKey_LeftSuper;
+			//case KeyCode_LeftSup: return ImGuiKey_LeftSuper;
 		case KeyCode_RightShift: return ImGuiKey_RightShift;
 		case KeyCode_RightControl: return ImGuiKey_RightCtrl;
 		case KeyCode_RightAlt: return ImGuiKey_RightAlt;
-		//case GLFW_KEY_RIGHT_SUPER: return ImGuiKey_RightSuper;
+			//case GLFW_KEY_RIGHT_SUPER: return ImGuiKey_RightSuper;
 		case KeyCode_Alt: return ImGuiKey_Menu;
 		case KeyCode_0: return ImGuiKey_0;
 		case KeyCode_1: return ImGuiKey_1;
@@ -139,7 +139,7 @@ namespace SG
 		default: return ImGuiKey_None;
 		}
 	}
-	
+
 	static ImGuiMouseButton ToImGuiMouseButton(EKeyCode keycode)
 	{
 		if (keycode == KeyCode_MouseLeft)
@@ -566,7 +566,7 @@ namespace SG
 			return true;
 	}
 
-	bool ImGuiDriver::OnCharInput(Char c) 
+	bool ImGuiDriver::OnCharInput(Char c)
 	{
 		auto& io = ImGui::GetIO();
 		io.AddInputCharacter(c);

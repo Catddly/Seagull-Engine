@@ -28,6 +28,7 @@ namespace SG
 		void DrawMainViewport();
 		void DrawLightPanel();
 		void DrawStatistics(float deltaTime);
+		void DrawSceneHirerchy();
 	private:
 		MessageBusMember mMessageBusMember;
 

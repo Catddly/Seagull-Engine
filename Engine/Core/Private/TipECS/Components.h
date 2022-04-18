@@ -39,7 +39,7 @@ namespace TipECS
 		template <typename... Ts>
 		using TupleOfVectors = std::tuple<ComponentData<Ts>...>;
 
-		// this is a std::tuple<std::vector<size_t>>, each vector refers to a component type.
+		// this is a std::tuple<ComponentData<Ts>...>, each component data refers to a component type.
 		// it is used for indexing the data to the packed data array.
 		using ComponentsType = typename TMP::Unpack<TupleOfVectors, ComponentList>::type;
 	public:
@@ -90,7 +90,7 @@ namespace TipECS
 		auto& GetComponent(DataIndex idx) noexcept
 		{
 			static_assert(Setting::template IsComponent<TComponent>(), "TComponent is not registered!");
-		
+
 			auto& component = std::get<ComponentData<TComponent>>(mComponentsData);
 			return component.compData[component.dataIndices[idx]];
 		}
@@ -100,7 +100,9 @@ namespace TipECS
 			std::apply([this, n](auto&... v)
 				{
 					using _dummy = int[];
-					(void)_dummy { 0, (v.dataIndices.resize(n), 0)... };
+					(void)_dummy {
+						0, (v.dataIndices.resize(n), 0)...
+					};
 				}, mComponentsData);
 		}
 	private:

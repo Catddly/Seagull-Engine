@@ -11,7 +11,7 @@ namespace SG
 {
 
 	//! Transient raw 2D texture data, will automatically free its memory when unused.
-	class Raw2DTexture
+	class SG_CORE_API Raw2DTexture
 	{
 	public:
 		UInt32         width;
@@ -22,19 +22,12 @@ namespace SG
 
 		ETextureType   type;
 		unsigned char* pData;
-		void*          pUserData;
+		void* pUserData;
 
 		Raw2DTexture() = default;
-		Raw2DTexture(UInt32 w, UInt32 h, UInt32 arr, UInt32 mip)
-			: width(w), height(h), array(arr), mipLevel(mip), type(ETextureType::eUnknown), pData(nullptr)
-		{}
+		Raw2DTexture(UInt32 w, UInt32 h, UInt32 arr, UInt32 mip);
 
-		~Raw2DTexture()
-		{
-			//! Warning!! this is dangerous. Figure out a better way to do this.
-			if (!pUserData)
-				Memory::Free(pData);
-		}
+		~Raw2DTexture();
 	};
 
 	template <EResourceTypeCategory type>

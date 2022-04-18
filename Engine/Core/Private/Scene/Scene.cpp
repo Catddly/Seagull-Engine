@@ -22,7 +22,7 @@ namespace SG
 		LoadMesh(EGennerateMeshType::eSkybox, mesh);
 		mesh.objectId = NewObjectID();
 
-		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 0.5f, 7.0f));
+		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 3.0f, 7.0f));
 		mpMainCamera->SetPerspective(60.0f, ASPECT, 0.01f, 256.0f);
 
 		auto* pEntity = CreateEntity("directional_light_0", Vector3f{ .0f, 12.0f, 0.0f }, Vector3f(1.0f), Vector3f(40.0f, -40.0f, 0.0f));

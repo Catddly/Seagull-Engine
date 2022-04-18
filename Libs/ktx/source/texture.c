@@ -384,6 +384,11 @@ ktxTextureInt_constructFromStream(ktxTextureInt* This,
                 super->kvDataLen = kvdLen;
                 super->kvData = pKvd;
             }
+
+			/// Seagull engine modification begin
+            // memory leak detected here?
+			free(pKvd);
+			/// Seagull engine modification end
         } else {
             stream->skip(stream, header.bytesOfKeyValueData);
         }

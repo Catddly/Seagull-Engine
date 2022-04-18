@@ -8,6 +8,13 @@
 namespace SG
 {
 
+	enum class EGUIFontWeight : UInt32
+	{
+		eRegular = 0,
+		eBold,
+		eLight
+	};
+
 	class ImGuiDriver final : public IGUIDriver, protected IInputListener
 	{
 	public:

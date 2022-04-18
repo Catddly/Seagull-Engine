@@ -86,9 +86,7 @@ namespace SG
 			{
 				if (resource.has_value())
 				{
-					bool bHaveMultiResource = false;
-					if (resource->GetNumRenderTarget() != 1)
-						bHaveMultiResource = true;
+					bool bHaveMultiResource = resource->GetNumRenderTarget() != 1 ? true : false;
 
 					UInt32 address[3] = {
 						resource->GetRenderTarget(bHaveMultiResource ? frameIndex : 0)->GetID(),

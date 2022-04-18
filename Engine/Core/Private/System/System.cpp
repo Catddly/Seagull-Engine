@@ -201,6 +201,13 @@ namespace SG
 		mSystemMessageManager.RemoveListener(pListener);
 	}
 
+	void System::Terminate()
+	{
+#ifdef SG_PLATFORM_WINDOWS
+		::PostQuitMessage(0);
+#endif
+	}
+
 	System* const System::GetInstance()
 	{
 		static System instance;

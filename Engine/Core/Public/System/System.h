@@ -75,6 +75,8 @@ namespace SG
 		SG_CORE_API void RegisterSystemMessageListener(ISystemMessageListener* pListener);
 		SG_CORE_API void RemoveSystemMessageListener(ISystemMessageListener* pListener);
 
+		SG_CORE_API void Terminate();
+
 		template <class T>
 		bool RegisterModule();
 

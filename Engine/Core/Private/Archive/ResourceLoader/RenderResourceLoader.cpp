@@ -33,6 +33,18 @@
 namespace SG
 {
 
+	Raw2DTexture::Raw2DTexture(UInt32 w, UInt32 h, UInt32 arr, UInt32 mip)
+		: width(w), height(h), array(arr), mipLevel(mip), type(ETextureType::eUnknown), pData(nullptr)
+	{
+	}
+
+	Raw2DTexture::~Raw2DTexture()
+	{
+		//! Warning!! this is dangerous. Figure out a better way to do this.
+		if (!pUserData)
+			Memory::Free(pData);
+	}
+
 	bool TextureResourceLoader::LoadFromFile(const char* name, Raw2DTexture& outRaw, bool bNeedMipMap, bool bIsCubeMap)
 	{
 		auto type = GetResourceType(name);
@@ -68,11 +80,11 @@ namespace SG
 			outRaw.array = bIsCubeMap ? 6 : 1;
 			outRaw.mipLevel = CalcMipmapLevel(outRaw.width, outRaw.height);
 			outRaw.sizeInByte = width * height * numChannels;
-		
+
 			if (type == ETextureType::eUnknown)
 				return false;
 
-			outRaw.type  = type;
+			outRaw.type = type;
 			outRaw.pData = pData;
 		}
 		return true;
@@ -82,11 +94,11 @@ namespace SG
 	{
 		string path = FileSystem::GetResourceFolderPath(EResourceDirectory::eMeshes, SG_ENGINE_DEBUG_BASE_OFFSET);
 		path += name;
-		
+
 		Assimp::Importer importer;
 		auto* scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate);
 
-		if (!scene)
+		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
 		{
 			SG_LOG_ERROR(importer.GetErrorString());
 			return false;
