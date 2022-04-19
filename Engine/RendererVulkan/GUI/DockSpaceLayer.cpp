@@ -5,6 +5,7 @@
 #include "System/Logger.h"
 #include "Math/MathBasic.h"
 #include "Stl/Utility.h"
+#include "Scene/Components.h"
 
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 #include "RendererVulkan/GUI/Utility.h"
@@ -35,10 +36,11 @@ namespace SG
 	void DockSpaceLayer::OnUpdate(float deltaTime)
 	{
 		DrawDockSpaceBackground();
+		DrawSceneHirerchy();
 		DrawMainViewport();
-		//DrawSceneHirerchy();
+		DrawSelectedEntityProperty();
 		DrawStatistics(deltaTime);
-		DrawLightPanel();
+		DrawSettingPanel();
 	}
 
 	bool DockSpaceLayer::OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos)
@@ -123,6 +125,7 @@ namespace SG
 			mLastViewportSize.y = viewportSize.y;
 
 			mMessageBusMember.PushEvent<Vector2f>("ViewportResizeEvent", mLastViewportSize);
+			SSystem()->GetMainScene()->GetMainCamera()->SetPerspective(60.0f, mLastViewportSize.x / mLastViewportSize.y);
 		}
 
 		ImGui::Image(mpViewportTexHandle, viewportSize);
@@ -131,40 +134,9 @@ namespace SG
 		ImGui::PopStyleVar();
 	}
 
-	void DockSpaceLayer::DrawLightPanel()
+	void DockSpaceLayer::DrawSettingPanel()
 	{
-		ImGui::Begin("Light");
-
-		auto lights = SSystem()->GetMainScene()->View<LightTag>();
-		for (auto& entity : lights)
-		{
-			if (entity.HasComponent<PointLightComponent>())
-			{
-				ImGui::Separator();
-				auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, PointLightComponent>();
-
-				ImGui::PushID(tag.name.c_str());
-
-				tag.bDirty |= DrawGUIDragFloat3("Position", trans.position);
-				tag.bDirty |= DrawGUIColorEdit3("Color", light.color);
-				tag.bDirty |= DrawGUIDragFloat("Radius", light.radius);
-
-				ImGui::PopID();
-			}
-			else if (entity.HasComponent<DirectionalLightComponent>())
-			{
-				ImGui::Separator();
-				auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, DirectionalLightComponent>();
-
-				ImGui::PushID(tag.name.c_str());
-
-				tag.bDirty |= DrawGUIDragFloat3("Position", trans.position);
-				tag.bDirty |= DrawGUIColorEdit3("Color", light.color);
-				tag.bDirty |= DrawGUIDragFloat3("Rotation", trans.rotation);
-
-				ImGui::PopID();
-			}
-		}
+		ImGui::Begin("Global Settings");
 
 		ImGui::Separator();
 
@@ -201,6 +173,30 @@ namespace SG
 	void DockSpaceLayer::DrawSceneHirerchy()
 	{
 		ImGui::Begin("Scene");
+
+		auto pScene = SSystem()->GetMainScene();
+		// draw entity tree
+		pScene->TraverseEntity([this](auto& entity) 
+			{
+				auto& tag = entity.GetComponent<TagComponent>();
+				bool bOpened = ImGui::TreeNodeEx(tag.name.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
+
+				if (ImGui::IsItemClicked())
+					mSelectedEntity = entity;
+
+				if (bOpened)
+					ImGui::TreePop();
+			});
+
+		ImGui::End();
+	}
+
+	void DockSpaceLayer::DrawSelectedEntityProperty()
+	{
+		ImGui::Begin("Property");
+
+		if (mSelectedEntity.IsValid())
+			DrawEntityProperty(mSelectedEntity);
 
 		ImGui::End();
 	}

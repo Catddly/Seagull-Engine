@@ -28,6 +28,7 @@ namespace SG
 		eLog,
 		eScripts,
 		eVendor,
+		eTemplate,
 		Num_Directory,
 	};
 

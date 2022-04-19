@@ -117,10 +117,11 @@ namespace TipECS
 			return IsAlive(GetEntityID(entity));
 		}
 
-		bool IsEntityValid(const Entity& entity) const noexcept
+		bool IsValid(const Entity& entity) const noexcept
 		{
 			// compare its counter with the handle data counter.
-			return mEntityPrivateAccessor.GetCounterIndex(entity) == GetHandleData(entity).counter;
+			return mEntityPrivateAccessor.GetHandleDataIndex(entity) != HandleDataIndex{ Impl::INVALID_INDEX } &&
+				mEntityPrivateAccessor.GetCounterIndex(entity) == GetHandleData(entity).counter;
 		}
 
 		Entity CreateEntity() noexcept
@@ -519,7 +520,7 @@ namespace TipECS
 			mEntityPrivateAccessor.GetCounterIndex(entity) = handleData.counter;
 			mEntityPrivateAccessor.SetManagerPtr(entity, this);
 
-			assert(IsEntityValid(entity));
+			assert(IsValid(entity));
 			return entity;
 		}
 
@@ -536,13 +537,13 @@ private:
 		// EntityID relative functions
 		EntityID GetEntityID(const Entity& entity) noexcept
 		{
-			assert(IsEntityValid(entity));
+			assert(IsValid(entity));
 			return GetHandleData(entity).id;
 		}
 
 		const EntityID GetEntityID(const Entity& entity) const noexcept
 		{
-			assert(IsEntityValid(entity));
+			assert(IsValid(entity));
 			return GetHandleData(entity).id;
 		}
 

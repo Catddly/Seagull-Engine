@@ -2,7 +2,6 @@
 
 #include "Render/FrameBuffer.h"
 #include "Render/GUI/IGUIDriver.h"
-#include "Event/MessageBus/MessageBus.h"
 
 // should we include this here??
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
@@ -28,16 +27,12 @@ namespace SG
 		~RGFinalOutputNode();
 	private:
 		virtual void Reset() override;
-		virtual void Update() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
 		virtual void Draw(RGDrawInfo& context) override;
 	private:
 		void GUIDraw(VulkanCommandBuffer& pBuf, UInt32 frameIndex);
-
-		void OnEditorViewportResize(Vector2f& data);
 	private:
 		VulkanContext&    mContext;
-		MessageBusMember  mMessageBusMember;
 
 		LoadStoreClearOp  mColorRtLoadStoreOp;
 

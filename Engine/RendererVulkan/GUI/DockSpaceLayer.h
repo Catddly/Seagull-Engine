@@ -3,6 +3,7 @@
 #include "Base/Handle.h"
 #include "System/Input.h"
 #include "System/LayerSystem/LayerSystem.h"
+#include "Scene/Scene.h"
 #include "Event/MessageBus/MessageBus.h"
 
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
@@ -26,9 +27,10 @@ namespace SG
 	private:
 		void DrawDockSpaceBackground();
 		void DrawMainViewport();
-		void DrawLightPanel();
+		void DrawSettingPanel();
 		void DrawStatistics(float deltaTime);
 		void DrawSceneHirerchy();
+		void DrawSelectedEntityProperty();
 	private:
 		MessageBusMember mMessageBusMember;
 
@@ -38,6 +40,7 @@ namespace SG
 		Vector2f mLastViewportSize = { 0.0f, 0.0f };
 
 		Handle<VulkanDescriptorSet>* mpViewportTexHandle;
+		Scene::Entity mSelectedEntity;
 
 		bool mbViewportCanUpdateMouse = false;
 	};

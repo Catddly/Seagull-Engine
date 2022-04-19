@@ -137,15 +137,19 @@ namespace SG
 			.AddCombindSamplerImage("comp_sampler", "HDRColor")
 			.Build();
 
+		VK_RESOURCE()->RemoveDescriptorSet("ViewportTex");
+		VulkanDescriptorSet* pViewportSet = Memory::New<VulkanDescriptorSet>();
+		VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
+			.AddCombindSamplerImage(0, "comp_sampler", "HDRColor")
+			.Bind(*pViewportSet);
+		VK_RESOURCE()->AddDescriptorSet("ViewportTex", pViewportSet);
+		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetData(VK_RESOURCE()->GetDescriptorSet("ViewportTex"));
+		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetFallBackData(VK_RESOURCE()->GetDescriptorSet("logo"));
+
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
 		AttachResource(0, { mContext.colorRts.data(), static_cast<UInt32>(mContext.colorRts.size()), mColorRtLoadStoreOp, cv,
 			EResourceBarrier::efUndefined, EResourceBarrier::efPresent });
-	}
-
-	void RGFinalOutputNode::Update()
-	{
-		mMessageBusMember.ListenFor<Vector2f>("ViewportResizeEvent", SG_BIND_MEMBER_FUNC(OnEditorViewportResize));
 	}
 
 	void RGFinalOutputNode::Prepare(VulkanRenderPass* pRenderpass)
@@ -341,22 +345,6 @@ namespace SG
 			scissor.bottom = (Int32)(height);
 			pBuf.SetScissor(scissor);
 		}
-	}
-
-	void RGFinalOutputNode::OnEditorViewportResize(Vector2f& data)
-	{
-		mContext.graphicQueue.WaitIdle();
-
-		VK_RESOURCE()->RemoveDescriptorSet("ViewportTex");
-
-		VulkanDescriptorSet* pViewportSet = Memory::New<VulkanDescriptorSet>();
-		VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
-			.AddCombindSamplerImage(0, "comp_sampler", "HDRColor")
-			.Bind(*pViewportSet);
-
-		VK_RESOURCE()->AddDescriptorSet("ViewportTex", pViewportSet);
-		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetData(VK_RESOURCE()->GetDescriptorSet("ViewportTex"));
-		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetFallBackData(VK_RESOURCE()->GetDescriptorSet("logo"));
 	}
 
 }

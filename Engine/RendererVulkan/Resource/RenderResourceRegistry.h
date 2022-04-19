@@ -44,7 +44,7 @@ namespace SG
 		void Initialize(const VulkanContext* pContext);
 		void Shutdown();
 
-		void OnUpdate(WeakRefPtr<Scene> pScene);
+		void OnUpdate();
 		void WindowResize();
 
 		const DrawCall& GetSkyboxDrawCall() const { return mSkyboxDrawCall; }

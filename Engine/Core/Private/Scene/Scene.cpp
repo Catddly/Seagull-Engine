@@ -12,9 +12,8 @@ namespace SG
 
 	void Scene::OnSceneLoad()
 	{
-		// camera initialize
-		auto* window = OperatingSystem::GetMainWindow();
-		const float ASPECT = window->GetAspectRatio();
+		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 3.0f, 7.0f));
+		mpMainCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
 
 		mSkyboxEntity = mEntityManager.CreateEntity();
 		mSkyboxEntity.AddComponent<TagComponent>("skybox");
@@ -22,10 +21,7 @@ namespace SG
 		LoadMesh(EGennerateMeshType::eSkybox, mesh);
 		mesh.objectId = NewObjectID();
 
-		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 3.0f, 7.0f));
-		mpMainCamera->SetPerspective(60.0f, ASPECT, 0.01f, 256.0f);
-
-		auto* pEntity = CreateEntity("directional_light_0", Vector3f{ .0f, 12.0f, 0.0f }, Vector3f(1.0f), Vector3f(40.0f, -40.0f, 0.0f));
+		auto* pEntity = CreateEntity("directional_light_0", Vector3f{ 8.0f, 12.0f, 0.0f }, Vector3f(1.0f), Vector3f(40.0f, -40.0f, 0.0f));
 		pEntity->AddTag<LightTag>();
 		pEntity->AddComponent<DirectionalLightComponent>();
 
@@ -57,14 +53,17 @@ namespace SG
 	{
 		mpMainCamera->OnUpdate(deltaTime);
 
-		//static float totalTime = 0.0f;
-		//static float speed = 2.5f;
+		static float totalTime = 0.0f;
+		static float speed = 2.5f;
 
-		//// Do animation
-		//auto pModel = GetMesh("model");
-		//pModel->SetPosition({ Sin(totalTime) * 0.5f, 0.0f, 0.0f });
+		// Do animation
+		auto* pModel = GetEntityByName("model");
+		auto [tag, trans] = pModel->GetComponent<TagComponent, TransformComponent>();
+		tag.bDirty = true;
+		trans.position = { Sin(totalTime) * 0.5f, 0.0f, 0.0f };
 
-		//totalTime += deltaTime * speed;
+		totalTime += deltaTime * speed;
+
 		mEntityManager.ReFresh();
 	}
 

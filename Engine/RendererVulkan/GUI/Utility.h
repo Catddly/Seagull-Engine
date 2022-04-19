@@ -1,11 +1,14 @@
 #pragma once
 
 #include "Math/MathBasic.h"
+#include "Scene/Scene.h"
 
 #include "Stl/string.h"
 
 namespace SG
 {
+
+	bool DrawEntityProperty(Scene::Entity& entity);
 
 	bool DrawGUIDragFloat(const string& label, float& values, float defaultValue = 0.0f, float speed = 0.05f,
 		float minValue = 0.0f, float maxValue = 0.0f, float columnWidth = 100.0f);

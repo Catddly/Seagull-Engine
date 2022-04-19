@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "RendererVulkan/GUI/Utility.h"
 
+#include "Reflection/Name.h"
+
 #include "RendererVulkan/GUI/ImGuiDriver.h"
 
 #include "glm/gtc/type_ptr.hpp"
@@ -44,7 +46,104 @@ namespace SG
 	}
 #undef RGB255
 
-	bool DrawGUIDragFloat(const eastl::string& label, float& values, float defaultValue, float speed, 
+	template <typename TComponent, typename TFunc>
+	static void DrawComponent(Scene::Entity& entity, TFunc&& uiFunc)
+	{
+		if (entity.HasComponent<TComponent>())
+		{
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+			flags |= ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Framed;
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 2, 2 });
+			ImGui::Separator();
+			const eastl::string componentFullName = Refl::CT_TypeName<TComponent>();
+			const Size colonPos = componentFullName.find_last_of(':') + 1;
+			const eastl::string componentName = componentFullName.substr(colonPos, componentFullName.size() - colonPos);
+			bool bOpened = ImGui::TreeNodeEx(componentName.c_str(), flags);
+			ImGui::PopStyleVar();
+
+			auto regionAvailX = ImGui::GetContentRegionAvail().x;
+			float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+
+			//ImGui::SameLine(regionAvailX - lineHeight * 0.5f);
+			//if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
+			//{
+			//	ImGui::OpenPopup("ComponentSetting");
+			//}
+
+			//bool bRemoveComponent = false;
+			//if (ImGui::BeginPopup("ComponentSetting"))
+			//{
+			//	if (ImGui::MenuItem("Remove Component"))
+			//		bRemoveComponent = true;
+			//	ImGui::EndPopup();
+			//}
+
+			auto& component = entity.GetComponent<TComponent>();
+			if (bOpened)
+			{
+				uiFunc(component);
+				ImGui::TreePop();
+			}
+
+			//if (bRemoveComponent)
+			//	entity.RemoveComponent<TComponent>();
+		}
+	}
+
+	bool DrawEntityProperty(Scene::Entity& entity)
+	{
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+
+		auto& tag = entity.GetComponent<TagComponent>();
+
+		char buffer[256];
+		memset(buffer, 0, sizeof(buffer));
+		strcpy_s(buffer, tag.name.c_str());
+		if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
+			tag = buffer;
+
+		ImGui::PushID(tag.name.c_str());
+		DrawComponent<TransformComponent>(entity, [&tag](TransformComponent& comp)
+			{
+				tag.bDirty |= DrawGUIDragFloat3("Position", comp.position);
+				tag.bDirty |= DrawGUIDragFloat3("Rotation", comp.rotation, Vector3f(0.0f), 2.0f);
+				tag.bDirty |= DrawGUIDragFloat3("Scale", comp.scale, Vector3f(1.0f));
+			});
+		DrawComponent<MaterialComponent>(entity, [&tag](MaterialComponent& comp)
+			{
+				tag.bDirty |= DrawGUIColorEdit3("Color", comp.color);
+				tag.bDirty |= DrawGUIDragFloat("Metallic", comp.metallic, 0.35f, 0.05f, 0.0f, 1.0f);
+				tag.bDirty |= DrawGUIDragFloat("Roughness", comp.roughness, 0.75f, 0.05f, 0.0f, 1.0f);
+			});
+		DrawComponent<MeshComponent>(entity, [&tag](MeshComponent& comp)
+			{
+				ImGui::Text("MeshType:   %s", comp.meshType == EMeshType::eOBJ ? ".obj" : "Unknown");
+				ImGui::Text("ObjectId:   %d", comp.objectId);
+				ImGui::Text("MeshId:     %d", comp.meshId);
+				ImGui::Text("InstanceId: %d", comp.instanceId);
+			});
+		DrawComponent<PointLightComponent>(entity, [&entity, &tag](PointLightComponent& comp)
+			{
+				auto& trans = entity.GetComponent<TransformComponent>();
+				tag.bDirty |= DrawGUIDragFloat3("Position", trans.position);
+				tag.bDirty |= DrawGUIColorEdit3("Color", comp.color);
+				tag.bDirty |= DrawGUIDragFloat("Radius", comp.radius);
+			});
+		DrawComponent<DirectionalLightComponent>(entity, [&entity, &tag](DirectionalLightComponent& comp)
+			{
+				auto& trans = entity.GetComponent<TransformComponent>();
+				tag.bDirty |= DrawGUIDragFloat3("Position", trans.position);
+				tag.bDirty |= DrawGUIColorEdit3("Color", comp.color);
+				tag.bDirty |= DrawGUIDragFloat3("Rotation", trans.rotation);
+			});
+		ImGui::PopID();
+
+		return false;
+	}
+
+	bool DrawGUIDragFloat(const eastl::string& label, float& values, float defaultValue, float speed,
 		float minValue, float maxValue, float columnWidth)
 	{
 		ImGuiIO io = ImGui::GetIO();

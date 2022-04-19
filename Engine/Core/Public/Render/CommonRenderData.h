@@ -62,10 +62,14 @@ namespace SG
 
 	struct ObjcetRenderData
 	{
+		// transform
 		Matrix4f model = Matrix4f(1.0f);
 		Matrix4f inverseTransposeModel = Matrix4f(1.0f);
+		// material
 		Vector3f MRIF = { 0.2f, 0.85f, 0.0f };
 		Int32    meshId;
+		Vector3f albedo;
+		float    pad;
 	};
 
 	struct CullingOutputData

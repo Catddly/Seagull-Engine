@@ -28,7 +28,7 @@ namespace SG
 		ssboCI.type = EBufferType::efStorage;
 		CreateBuffer(ssboCI);
 
-		// This is only for debuging purpose
+		// This is only for debugging purpose
 		//ssboCI = {};
 		//ssboCI.name = "cullingOutputData";
 		//ssboCI.bufferSize = sizeof(CullingOutputData) * SG_MAX_NUM_OBJECT;
@@ -105,24 +105,9 @@ namespace SG
 			renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
 			renderData.meshId = mesh.meshId;
 			renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
+			renderData.albedo = mat.color;
 			pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
 		}
-
-		// update all the lights
-		//auto lights = pScene->View<LightTag>();
-		//for (auto& entity : lights)
-		//{
-		//	if (entity.HasComponent<DirectionalLightComponent>())
-		//	{
-		//		auto& lightUbo = GetLightUBO();
-		//		auto& shadowUbo = GetShadowUBO();
-		//		auto [trans, dl] = entity.GetComponent<TransformComponent, DirectionalLightComponent>();
-		//		shadowUbo.lightSpaceVP = CalcDirectionalLightViewProj(trans);
-		//		lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
-		//		lightUbo.directionalColor = { dl.color, 1.0f };
-		//		lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
-		//	}
-		//}
 	}
 
 	void VulkanResourceRegistry::Shutdown()
@@ -140,13 +125,12 @@ namespace SG
 			Memory::Delete(beg->second);
 	}
 
-	void VulkanResourceRegistry::OnUpdate(WeakRefPtr<Scene> pScene)
+	void VulkanResourceRegistry::OnUpdate()
 	{
-		auto pLScene = pScene.lock();
-		auto* pSSBOObject = GetBuffer("perObjectBuffer");
+		auto pScene = SSystem()->GetMainScene();
 
 		// update camera data
-		auto* pCamera = pLScene->GetMainCamera();
+		auto* pCamera = pScene->GetMainCamera();
 		if (pCamera->IsViewDirty())
 		{
 			Frustum cameraFrustum = pCamera->GetFrustum();
@@ -162,6 +146,12 @@ namespace SG
 
 			auto& skyboxUbo = GetSkyboxUBO();
 			auto& cameraUbo = GetCameraUBO();
+			if (pCamera->IsProjDirty())
+			{
+				cameraUbo.proj = pCamera->GetProjMatrix();
+				skyboxUbo.proj = cameraUbo.proj;
+				pCamera->ProjBeUpdated();
+			}
 			cameraUbo.viewPos = pCamera->GetPosition();
 			cameraUbo.view = pCamera->GetViewMatrix();
 			skyboxUbo.model = Matrix4f(Matrix3f(cameraUbo.view)); // eliminate the translation part of the matrix
@@ -170,67 +160,52 @@ namespace SG
 			UpdataBufferData("skyboxUbo", &skyboxUbo);
 			pCamera->ViewBeUpdated();
 		}
-		//if (pCamera->IsViewDirty() || pCamera->IsProjDirty())
-		//{
-		//	Frustum cameraFrustum = pCamera->GetFrustum();
-		//	auto& cullUbo = GetGPUCullUBO();
-		//	cullUbo.frustum[0] = cameraFrustum.GetTopPlane();
-		//	cullUbo.frustum[1] = cameraFrustum.GetBottomPlane();
-		//	cullUbo.frustum[2] = cameraFrustum.GetLeftPlane();
-		//	cullUbo.frustum[3] = cameraFrustum.GetRightPlane();
-		//	cullUbo.frustum[4] = cameraFrustum.GetFrontPlane();
-		//	cullUbo.frustum[5] = cameraFrustum.GetBackPlane();
-		//	cullUbo.viewPos = pCamera->GetPosition();
-		//	UpdataBufferData("cullUbo", &cullUbo);
 
-		//	auto& skyboxUbo = GetSkyboxUBO();
-		//	auto& cameraUbo = GetCameraUBO();
-		//	cameraUbo.viewPos = pCamera->GetPosition();
-		//	cameraUbo.view = pCamera->GetViewMatrix();
-		//	cameraUbo.proj = pCamera->GetProjMatrix();
-		//	skyboxUbo.model = Matrix4f(Matrix3f(cameraUbo.view)); // eliminate the translation part of the matrix
-		//	skyboxUbo.proj = cameraUbo.proj;
-		//	cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
-		//	UpdataBufferData("cameraUbo", &cameraUbo);
-		//	UpdataBufferData("skyboxUbo", &skyboxUbo);
-		//	pCamera->ViewBeUpdated();
-		//	pCamera->ProjBeUpdated();
-		//}
-
-		// update light data
-		auto lights = pLScene->View<LightTag>();
-		for (auto entity : lights)
-		{
-			if (entity.HasComponent<PointLightComponent>())
+		auto* pSSBOObject = GetBuffer("perObjectBuffer");
+		pScene->TraverseEntity([this, pSSBOObject](auto& entity)
 			{
-				auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, PointLightComponent>();
+				auto& tag = entity.GetComponent<TagComponent>();
 				if (tag.bDirty)
 				{
-					auto& lightUbo = GetLightUBO();
-					lightUbo.pointLightColor = light.color;
-					lightUbo.pointLightRadius = light.radius;
-					lightUbo.pointLightPos = trans.position;
-					UpdataBufferData("lightUbo", &lightUbo);
+					if (entity.HasComponent<PointLightComponent>())
+					{
+						auto [trans, light] = entity.GetComponent<TransformComponent, PointLightComponent>();
+
+						auto& lightUbo = GetLightUBO();
+						lightUbo.pointLightColor = light.color;
+						lightUbo.pointLightRadius = light.radius;
+						lightUbo.pointLightPos = trans.position;
+						UpdataBufferData("lightUbo", &lightUbo);
+					}
+					else if (entity.HasComponent<DirectionalLightComponent>())
+					{
+						auto [trans, light] = entity.GetComponent<TransformComponent, DirectionalLightComponent>();
+
+						auto& shadowUbo = GetShadowUBO();
+						auto& lightUbo = GetLightUBO();
+						shadowUbo.lightSpaceVP = CalcDirectionalLightViewProj(trans);
+						lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
+						lightUbo.directionalColor = { light.color, 1.0f };
+						lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
+						UpdataBufferData("shadowUbo", &shadowUbo);
+						UpdataBufferData("lightUbo", &lightUbo);
+					}
+					else if (entity.HasComponent<MeshComponent>() && entity.HasComponent<MaterialComponent>())
+					{
+						auto [trans, mesh, mat] = entity.GetComponent<TransformComponent, MeshComponent, MaterialComponent>();
+
+						ObjcetRenderData renderData = {};
+						renderData.model = GetTransform(trans);
+						renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
+						renderData.meshId = mesh.meshId;
+						renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
+						renderData.albedo = mat.color;
+						// here we map and unmap memory for event dirty object, this is not good.
+						pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
+					}
 					tag.bDirty = false;
 				}
-			}
-			else if (entity.HasComponent<DirectionalLightComponent>())
-			{
-				auto [tag, trans, light] = entity.GetComponent<TagComponent, TransformComponent, DirectionalLightComponent>();
-				if (tag.bDirty)
-				{
-					auto& shadowUbo = GetShadowUBO();
-					auto& lightUbo = GetLightUBO();
-					shadowUbo.lightSpaceVP = CalcDirectionalLightViewProj(trans);
-					lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
-					lightUbo.directionalColor = { light.color, 1.0f };
-					lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
-					UpdataBufferData("shadowUbo", &shadowUbo);
-					UpdataBufferData("lightUbo", &lightUbo);
-					tag.bDirty = false;
-				}
-			}
-		}
+			});
 
 		auto& compositionUbo = GetCompositionUBO();
 		UpdataBufferData("compositionUbo", &compositionUbo);
@@ -238,29 +213,28 @@ namespace SG
 
 	void VulkanResourceRegistry::WindowResize()
 	{
-		auto pScene = SSystem()->GetMainScene();
-		auto* window = OperatingSystem::GetMainWindow();
-		const float ASPECT = window->GetAspectRatio();
-		pScene->GetMainCamera()->SetPerspective(60.0f, ASPECT, 0.01f, 256.0f);
+		//auto pScene = SSystem()->GetMainScene();
+		//auto* pCamera = pScene->GetMainCamera();
+		//auto& skyboxUbo = GetSkyboxUBO();
+		//auto& cameraUbo = GetCameraUBO();
+		//cameraUbo.proj = pCamera->GetProjMatrix();
+		//skyboxUbo.proj = cameraUbo.proj;
+		//cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
 
-		auto& skyboxUbo = GetSkyboxUBO();
-		auto& cameraUbo = GetCameraUBO();
-		cameraUbo.proj = pScene->GetMainCamera()->GetProjMatrix();
-		skyboxUbo.proj = cameraUbo.proj;
-		cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
+		//Frustum cameraFrustum = pCamera->GetFrustum();
+		//auto& cullUbo = GetGPUCullUBO();
+		//cullUbo.frustum[0] = cameraFrustum.GetTopPlane();
+		//cullUbo.frustum[1] = cameraFrustum.GetBottomPlane();
+		//cullUbo.frustum[2] = cameraFrustum.GetLeftPlane();
+		//cullUbo.frustum[3] = cameraFrustum.GetRightPlane();
+		//cullUbo.frustum[4] = cameraFrustum.GetFrontPlane();
+		//cullUbo.frustum[5] = cameraFrustum.GetBackPlane();
+		//UpdataBufferData("cullUbo", &cullUbo);
 
-		Frustum cameraFrustum = pScene->GetMainCamera()->GetFrustum();
-		auto& cullUbo = GetGPUCullUBO();
-		cullUbo.frustum[0] = cameraFrustum.GetTopPlane();
-		cullUbo.frustum[1] = cameraFrustum.GetBottomPlane();
-		cullUbo.frustum[2] = cameraFrustum.GetLeftPlane();
-		cullUbo.frustum[3] = cameraFrustum.GetRightPlane();
-		cullUbo.frustum[4] = cameraFrustum.GetFrontPlane();
-		cullUbo.frustum[5] = cameraFrustum.GetBackPlane();
-		UpdataBufferData("cullUbo", &cullUbo);
+		//VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
+		//VK_RESOURCE()->UpdataBufferData("skyboxUbo", &skyboxUbo);
 
-		VK_RESOURCE()->UpdataBufferData("cameraUbo", &cameraUbo);
-		VK_RESOURCE()->UpdataBufferData("skyboxUbo", &skyboxUbo);
+		//pCamera->ProjBeUpdated();
 	}
 
 	VulkanResourceRegistry* VulkanResourceRegistry::GetInstance()

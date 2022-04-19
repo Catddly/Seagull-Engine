@@ -24,6 +24,7 @@ namespace SG
 		"Log",
 		"Script",
 		"Vendor",
+		"Template",
 		""
 	};
 

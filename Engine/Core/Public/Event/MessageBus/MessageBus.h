@@ -21,106 +21,107 @@ namespace SG
 
 	typedef eastl::function<void(MessageBusMember* pMember)> TReceivedCallBackFunc;
 
-	class EventBase
+	namespace Impl
 	{
-	public:
-		explicit EventBase(const eastl::string& name)
-			:mEventName(name)
-		{}
-		virtual ~EventBase() = default;
-
-		SG_INLINE const char* GetEventName() const
+		class EventBase
 		{
-			return mEventName.c_str();
+		public:
+			explicit EventBase(const eastl::string& name)
+				:mEventName(name)
+			{}
+			virtual ~EventBase() = default;
+
+			SG_INLINE const char* GetEventName() const
+			{
+				return mEventName.c_str();
+			}
+		private:
+			string mEventName;
+		};
+
+		template <typename TData>
+		class Event : public EventBase
+		{
+		public:
+			explicit Event(const eastl::string& name, const TData& event);
+			explicit Event(const eastl::string& name, TData&& event);
+
+			void AddEventCallBackFunc(TReceivedCallBackFunc&& func);
+
+			TData& ReceiveEvent(MessageBusMember* pMember);
+		private:
+			TData mEventData;
+			TReceivedCallBackFunc mCallBackFunc = nullptr;
+		};
+
+		template <typename TData>
+		Event<TData>::Event(const eastl::string& name, TData&& event)
+			:EventBase(name), mEventData(eastl::move(event))
+		{
 		}
-	private:
-		string mEventName;
-	};
 
-	template <typename TData>
-	class Event : public EventBase
-	{
-	public:
-		explicit Event(const eastl::string& name, const TData& event);
-		explicit Event(const eastl::string& name, TData&& event);
+		template <typename TData>
+		Event<TData>::Event(const eastl::string& name, const TData& event)
+			: EventBase(name), mEventData(event)
+		{
+		}
 
-		void AddEventCallBackFunc(TReceivedCallBackFunc&& func);
+		template <typename TData>
+		TData& Event<TData>::ReceiveEvent(MessageBusMember* pMember)
+		{
+			if (mCallBackFunc)
+				mCallBackFunc(pMember);
+			return mEventData;
+		}
 
-		TData& ReceiveEvent(MessageBusMember* pMember);
-	private:
-		TData mEventData;
-		TReceivedCallBackFunc mCallBackFunc = nullptr;
-	};
+		template <typename TData>
+		void Event<TData>::AddEventCallBackFunc(TReceivedCallBackFunc&& func)
+		{
+			mCallBackFunc = SG_FWD(func);
+		}
 
-	template <typename TData>
-	Event<TData>::Event(const eastl::string& name, TData&& event)
-		:EventBase(name), mEventData(eastl::move(event))
-	{
-	}
+		//! Singleton class.
+		class MessageBus
+		{
+		private:
+			template <typename T>
+			using TListenCallBackFunc = eastl::function<void(T&)>;
+		public:
+			~MessageBus() = default;
 
-	template <typename TData>
-	Event<TData>::Event(const eastl::string& name, const TData& event)
-		:EventBase(name), mEventData(event)
-	{
-	}
+			SG_CORE_API void Join(MessageBusMember* pMember);
+			SG_CORE_API void Leave(MessageBusMember* pMember);
 
-	template <typename TData>
-	TData& Event<TData>::ReceiveEvent(MessageBusMember* pMember)
-	{
-		if (mCallBackFunc)
-			mCallBackFunc(pMember);
-		return mEventData;
-	}
+			SG_CORE_API void PushEvent(MessageBusMember* pMember, EventBase* pEvent);
 
-	template <typename TData>
-	void Event<TData>::AddEventCallBackFunc(TReceivedCallBackFunc&& func)
-	{
-		mCallBackFunc = SG_FWD(func);
-	}
+			template <typename T>
+			T* Listening(const string& eventName, MessageBusMember* pMember);
 
-	class MessageBusMember;
+			SG_CORE_API static MessageBus* GetInstance();
+		private:
+			friend class System;
+			MessageBus() = default;
 
-	//! Singleton class.
-	class MessageBus
-	{
-	private:
-		template <typename T>
-		using TListenCallBackFunc = eastl::function<void(T&)>;
-	public:
-		~MessageBus() = default;
-
-		SG_CORE_API void Join(MessageBusMember* pMember);
-		SG_CORE_API void Leave(MessageBusMember* pMember);
-
-		SG_CORE_API void PushEvent(MessageBusMember* pMember, EventBase* pEvent);
+			void ClearEvents();
+		private:
+			eastl::vector<MessageBusMember*> mMembers;
+			eastl::unordered_map<string, EventBase*> mpEventsMap;
+		};
 
 		template <typename T>
-		T* Listening(const string& eventName, MessageBusMember* pMember);
+		T* MessageBus::Listening(const string& eventName, MessageBusMember* pMember)
+		{
+			if (mpEventsMap.empty())
+				return nullptr;
 
-		SG_CORE_API static MessageBus* GetInstance();
-	private:
-		friend class System;
-		MessageBus() = default;
-
-		void ClearEvents();
-	private:
-		eastl::vector<MessageBusMember*> mMembers;
-		eastl::unordered_map<string, EventBase*> mpEventsMap;
-	};
-
-	template <typename T>
-	T* MessageBus::Listening(const string& eventName, MessageBusMember* pMember)
-	{
-		if (mpEventsMap.empty())
+			auto node = mpEventsMap.find(eventName);
+			if (node != mpEventsMap.end())
+			{
+				auto* pEvent = static_cast<Event<T>*>(node->second);
+				return &pEvent->ReceiveEvent(pMember);
+			}
 			return nullptr;
-
-		auto node = mpEventsMap.find(eventName);
-		if (node != mpEventsMap.end())
-		{
-			auto* pEvent = static_cast<Event<T>*>(node->second);
-			return &pEvent->ReceiveEvent(pMember);
 		}
-		return nullptr;
 	}
 
 	class SG_CORE_API MessageBusMember
@@ -136,7 +137,7 @@ namespace SG
 		void PushEvent(const string& name, const T& data);
 
 		template <typename T>
-		void PushEvent(const string& name, const T& data, TReceivedCallBackFunc&& func);
+		void PushEvent(const string& name, const T& data, TReceivedCallBackFunc && func);
 
 		template <typename T>
 		void ListenFor(const string& eventName, TListenCallBackFunc<T>&& func);
@@ -145,26 +146,26 @@ namespace SG
 	template <typename T>
 	void MessageBusMember::PushEvent(const string& name, const T& data)
 	{
-		auto* pEvent = Memory::New<Event<T>>(name, data);
+		auto* pEvent = Memory::New<Impl::Event<T>>(name, data);
 
-		MessageBus::GetInstance()->PushEvent(this, pEvent);
+		Impl::MessageBus::GetInstance()->PushEvent(this, pEvent);
 		//SG_LOG_DEBUG("Event pushed! %s", pEvent->GetEventName());
 	}
 
 	template <typename T>
 	void MessageBusMember::PushEvent(const string& name, const T& data, TReceivedCallBackFunc&& func)
 	{
-		auto* pEvent = Memory::New<Event<T>>(name, data);
+		auto* pEvent = Memory::New<Impl::Event<T>>(name, data);
 		pEvent->AddEventCallBackFunc(SG_FWD(func));
 
-		MessageBus::GetInstance()->PushEvent(this, pEvent);
+		Impl::MessageBus::GetInstance()->PushEvent(this, pEvent);
 		//SG_LOG_DEBUG("Event pushed! %s", pEvent->GetEventName());
 	}
 
 	template <typename T>
 	void MessageBusMember::ListenFor(const string& eventName, TListenCallBackFunc<T>&& func)
 	{
-		T* pData = MessageBus::GetInstance()->Listening<T>(eventName, this);
+		T* pData = Impl::MessageBus::GetInstance()->Listening<T>(eventName, this);
 		if (pData)
 			func(*pData);
 	}

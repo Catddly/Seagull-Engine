@@ -112,7 +112,7 @@ namespace SG
 			// modules OnDraw()
 			mModuleManager.Draw();
 
-			MessageBus::GetInstance()->ClearEvents();
+			Impl::MessageBus::GetInstance()->ClearEvents();
 		}
 		return bIsSafeQuit;
 	}

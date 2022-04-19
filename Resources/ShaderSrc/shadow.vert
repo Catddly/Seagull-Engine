@@ -14,6 +14,8 @@ struct ObjectRenderData
 	mat4 inverseTransposeModel;
 	vec3 mrif;
     int meshId;
+	vec3 albedo;
+	float pad;
 };
 
 // all object matrices
