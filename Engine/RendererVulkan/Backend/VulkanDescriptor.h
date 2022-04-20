@@ -84,6 +84,7 @@ namespace SG
 		UInt32          belongingSet = 0;
 	};
 
+	class VulkanBuffer;
 	class VulkanSampler;
 	class VulkanTexture;
 

@@ -11,4 +11,6 @@ namespace SG
 #	define SG_ENABLE_VK_VALIDATION_LAYER 0
 #endif
 
+#define SG_USE_VULKAN_MEMORY_ALLOCATOR 1
+
 }

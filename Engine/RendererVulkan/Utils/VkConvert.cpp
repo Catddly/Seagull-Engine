@@ -716,6 +716,28 @@ namespace SG
 		return ret;
 	}
 
+
+	VmaMemoryUsage ToVmaMemoryUsage(EGPUMemoryUsage usage)
+	{
+		switch (usage)
+		{
+		case EGPUMemoryUsage::eUnknown: return VMA_MEMORY_USAGE_UNKNOWN;
+		case EGPUMemoryUsage::eGPU_Only: return VMA_MEMORY_USAGE_GPU_ONLY;
+		case EGPUMemoryUsage::eCPU_Only: return VMA_MEMORY_USAGE_CPU_ONLY;
+		case EGPUMemoryUsage::eCPU_To_GPU: return VMA_MEMORY_USAGE_CPU_TO_GPU;
+		case EGPUMemoryUsage::eGPU_To_CPU: return VMA_MEMORY_USAGE_GPU_TO_CPU;
+		case EGPUMemoryUsage::eCPU_Copy: return VMA_MEMORY_USAGE_CPU_COPY;
+		case EGPUMemoryUsage::eGPU_Lazily: return VMA_MEMORY_USAGE_GPU_LAZILY_ALLOCATED;
+		case EGPUMemoryUsage::eAuto: return VMA_MEMORY_USAGE_AUTO;
+		case EGPUMemoryUsage::eAuto_Prefer_Device: return VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		case EGPUMemoryUsage::eAuto_Prefer_Host: return VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		default:
+			SG_LOG_ERROR("Invalid GPU memory usage.");
+			break;
+		}
+		return VMA_MEMORY_USAGE_MAX_ENUM;
+	}
+
 	VkAccessFlags ToVKAccessFlags(EPipelineStage stage)
 	{
 		VkAccessFlags ret = 0;

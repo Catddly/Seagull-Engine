@@ -1,112 +1,15 @@
 #include "StdAfx.h"
 #include "VulkanTexture.h"
 
+#include "Memory/Memory.h"
+
+#include "VulkanConfig.h"
+#include "VulkanContext.h"
+#include "VulkanDevice.h"
+#include "RendererVulkan/Utils/VkConvert.h"
+
 namespace SG
 {
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// VulkanRenderTarget
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	VulkanRenderTarget* VulkanRenderTarget::Create(VulkanContext& c, const TextureCreateDesc& CI, bool isDepth)
-	{
-		return Memory::New<VulkanRenderTarget>(c, CI, isDepth);
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// VulkanTexture
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	VulkanTexture::VulkanTexture(VulkanContext& c, const TextureCreateDesc& CI)
-		:context(c)
-	{
-		if (!IsValidImageFormat(CI.format))
-			SG_ASSERT(false);
-
-		pUserData = CI.pUserData;
-		currLayout = ToVkImageLayout(CI.initLayout);
-
-		width = CI.width;
-		height = CI.height;
-		depth = CI.depth;
-		mipLevel = CI.mipLevel;
-		array = CI.array;
-
-		format = CI.format;
-		type = CI.type;
-		sample = CI.sample;
-		usage = CI.usage;
-
-		VkImageCreateInfo imageCI = {};
-		imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageCI.imageType = ToVkImageType(type);
-		imageCI.format = ToVkImageFormat(format);
-		imageCI.extent = { width, height, depth };
-		imageCI.mipLevels = mipLevel;
-		imageCI.arrayLayers = array;
-		imageCI.samples = ToVkSampleCount(sample);
-		imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageCI.usage = ToVkImageUsage(usage);
-		imageCI.initialLayout = ToVkImageLayout(CI.initLayout);
-		imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		if (array == 6)
-			imageCI.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-
-		VmaAllocationCreateInfo vmaAllocationCI = {};
-		vmaAllocationCI.flags = 0;
-		if (SG_HAS_ENUM_FLAG(CI.memoryFlag, EGPUMemoryFlag::efDedicated_Memory))
-			vmaAllocationCI.flags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
-		// for now, all textures are host invisible.
-		vmaAllocationCI.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-
-		VmaAllocationInfo allocInfo = {};
-		VK_CHECK(vmaCreateImage(context.vmaAllocator, &imageCI, &vmaAllocationCI, &image, &vmaAllocation, &allocInfo),
-			SG_LOG_ERROR("Failed to create vulkan texture!"););
-
-		// image view creation
-		VkImageViewCreateInfo imageViewCI = {};
-		imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCI.viewType = ToVkImageViewType(imageCI.imageType, array);
-		imageViewCI.image = image;
-		imageViewCI.format = imageCI.format;
-		imageViewCI.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-
-		imageViewCI.subresourceRange.baseMipLevel = 0;
-		imageViewCI.subresourceRange.baseArrayLayer = 0;
-		imageViewCI.subresourceRange.levelCount = mipLevel;
-		imageViewCI.subresourceRange.layerCount = array;
-		imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-
-		if (format == EImageFormat::eUnorm_D24_uint_S8 || format == EImageFormat::eSfloat_D32_uint_S8)
-			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-		else if (format == EImageFormat::eSfloat_D32 || format == EImageFormat::eUnorm_D16)
-			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-
-		VK_CHECK(vkCreateImageView(context.device.logicalDevice, &imageViewCI, nullptr, &imageView),
-			SG_LOG_ERROR("Failed to create vulkan texture image view!"););
-
-		id = TextureIDAllocator::NewID();
-	}
-
-	VulkanTexture::~VulkanTexture()
-	{
-		if (vmaAllocation)
-		{
-			vkDestroyImageView(context.device.logicalDevice, imageView, nullptr);
-			vmaDestroyImage(context.vmaAllocator, image, vmaAllocation);
-		}
-	}
-
-	VulkanTexture* VulkanTexture::Create(VulkanContext& c, const TextureCreateDesc& CI)
-	{
-		if (!IsPowerOfTwo(CI.width) || !IsPowerOfTwo(CI.height))
-		{
-			SG_LOG_ERROR("width(height) of texture must be the power of 2!");
-			return nullptr;
-		}
-
-		return Memory::New<VulkanTexture>(c, CI);
-	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// VulkanSampler
@@ -154,6 +57,135 @@ namespace SG
 	VulkanSampler* VulkanSampler::Create(VulkanDevice& d, const SamplerCreateDesc& CI)
 	{
 		return Memory::New<VulkanSampler>(d, CI);
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// VulkanTexture
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	VulkanTexture::VulkanTexture(VulkanContext& c, const TextureCreateDesc& CI, bool bLocal)
+		:context(c)
+	{
+		if (!IsValidImageFormat(CI.format))
+			SG_ASSERT(false);
+
+		pUserData = CI.pUserData;
+		currLayout = ToVkImageLayout(CI.initLayout);
+
+		width = CI.width;
+		height = CI.height;
+		depth = CI.depth;
+		mipLevel = CI.mipLevel;
+		array = CI.array;
+
+		format = CI.format;
+		type = CI.type;
+		sample = CI.sample;
+		usage = CI.usage;
+
+		VkImageCreateInfo imageCI = {};
+		imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageCI.imageType = ToVkImageType(type);
+		imageCI.format = ToVkImageFormat(format);
+		imageCI.extent = { width, height, depth };
+		imageCI.mipLevels = mipLevel;
+		imageCI.arrayLayers = array;
+		imageCI.samples = ToVkSampleCount(sample);
+		imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageCI.usage = ToVkImageUsage(usage);
+		imageCI.initialLayout = ToVkImageLayout(CI.initLayout);
+		imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		if (array == 6)
+			imageCI.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
+		VmaAllocationCreateInfo vmaAllocationCI = {};
+		vmaAllocationCI.flags = 0;
+		if (SG_HAS_ENUM_FLAG(CI.memoryFlag, EGPUMemoryFlag::efDedicated_Memory))
+			vmaAllocationCI.flags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+		 
+		// for now, all textures are host invisible.
+		vmaAllocationCI.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+		VmaAllocationInfo allocInfo = {};
+		VK_CHECK(vmaCreateImage(context.vmaAllocator, &imageCI, &vmaAllocationCI, &image, &vmaAllocation, &allocInfo),
+			SG_LOG_ERROR("Failed to create vulkan texture!"););
+#else
+		VK_CHECK(vkCreateImage(context.device.logicalDevice, &imageCI, nullptr, &image),
+			SG_LOG_ERROR("Failed to create vulkan texture!"););
+
+		VkMemoryRequirements memReqs = {};
+		vkGetImageMemoryRequirements(context.device.logicalDevice, image, &memReqs);
+
+		VkMemoryAllocateInfo memAllloc = {};
+		memAllloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		memAllloc.allocationSize = memReqs.size;
+		memAllloc.memoryTypeIndex = context.device.GetMemoryType(memReqs.memoryTypeBits, bLocal ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
+			(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
+		vkAllocateMemory(context.device.logicalDevice, &memAllloc, nullptr, &memory);
+		vkBindImageMemory(context.device.logicalDevice, image, memory, 0);
+#endif
+
+		VkImageViewCreateInfo imageViewCI = {};
+		imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewCI.viewType = ToVkImageViewType(imageCI.imageType, array);
+		imageViewCI.image = image;
+		imageViewCI.format = imageCI.format;
+		imageViewCI.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+
+		imageViewCI.subresourceRange.baseMipLevel = 0;
+		imageViewCI.subresourceRange.baseArrayLayer = 0;
+		imageViewCI.subresourceRange.levelCount = mipLevel;
+		imageViewCI.subresourceRange.layerCount = array;
+		imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+		if (format == EImageFormat::eUnorm_D24_uint_S8 || format == EImageFormat::eSfloat_D32_uint_S8)
+			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		else if (format == EImageFormat::eSfloat_D32 || format == EImageFormat::eUnorm_D16)
+			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+		VK_CHECK(vkCreateImageView(context.device.logicalDevice, &imageViewCI, nullptr, &imageView),
+			SG_LOG_ERROR("Failed to create vulkan texture image view!"););
+
+		id = TextureIDAllocator::NewID();
+	}
+
+	VulkanTexture::~VulkanTexture()
+	{
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
+		if (vmaAllocation)
+		{
+			vkDestroyImageView(context.device.logicalDevice, imageView, nullptr);
+			vmaDestroyImage(context.vmaAllocator, image, vmaAllocation);
+		}
+#else
+		if (memory != 0)
+		{
+			vkDestroyImageView(context.device.logicalDevice, imageView, nullptr);
+			vkDestroyImage(context.device.logicalDevice, image, nullptr);
+			vkFreeMemory(context.device.logicalDevice, memory, nullptr);
+		}
+#endif
+	}
+
+	VulkanTexture* VulkanTexture::Create(VulkanContext& c, const TextureCreateDesc& CI, bool bLocal)
+	{
+		if (!IsPowerOfTwo(CI.width) || !IsPowerOfTwo(CI.height))
+		{
+			SG_LOG_ERROR("width(height) of texture must be the power of 2!");
+			return nullptr;
+		}
+
+		return Memory::New<VulkanTexture>(c, CI, bLocal);
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// VulkanRenderTarget
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	VulkanRenderTarget* VulkanRenderTarget::Create(VulkanContext& c, const TextureCreateDesc& CI, bool isDepth)
+	{
+		return Memory::New<VulkanRenderTarget>(c, CI, isDepth);
 	}
 
 }

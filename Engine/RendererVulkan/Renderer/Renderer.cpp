@@ -55,11 +55,11 @@ namespace SG
 				vbCI.name = "packed_vertex_buffer_0";
 				vbCI.bufferSize = SG_MAX_PACKED_VERTEX_BUFFER_SIZE;
 				vbCI.type = EBufferType::efVertex;
-				vbCI.pInitData = pMeshData->vertices.data();
 				vbCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
-				vbCI.bSubBufer = true;
+				vbCI.pInitData = pMeshData->vertices.data();
 				vbCI.subBufferSize = static_cast<UInt32>(vbSize);
 				vbCI.subBufferOffset = static_cast<UInt32>(mPackedVBCurrOffset);
+				vbCI.bSubBuffer = true;
 				VK_RESOURCE()->CreateBuffer(vbCI);
 
 				// create one big index buffer
@@ -67,11 +67,11 @@ namespace SG
 				ibCI.name = "packed_index_buffer_0";
 				ibCI.bufferSize = SG_MAX_PACKED_INDEX_BUFFER_SIZE;
 				ibCI.type = EBufferType::efIndex;
-				ibCI.pInitData = pMeshData->indices.data();
 				ibCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
-				ibCI.bSubBufer = true;
+				ibCI.pInitData = pMeshData->indices.data();
 				ibCI.subBufferSize = static_cast<UInt32>(ibSize);
 				ibCI.subBufferOffset = static_cast<UInt32>(mPackedIBCurrOffset);
+				ibCI.bSubBuffer = true;
 				VK_RESOURCE()->CreateBuffer(ibCI);
 				VK_RESOURCE()->FlushBuffers();
 

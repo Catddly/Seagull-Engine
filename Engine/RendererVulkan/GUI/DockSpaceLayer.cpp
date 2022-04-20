@@ -124,8 +124,8 @@ namespace SG
 			mLastViewportSize.x = viewportSize.x;
 			mLastViewportSize.y = viewportSize.y;
 
-			mMessageBusMember.PushEvent<Vector2f>("ViewportResizeEvent", mLastViewportSize);
 			SSystem()->GetMainScene()->GetMainCamera()->SetPerspective(60.0f, mLastViewportSize.x / mLastViewportSize.y);
+			//mMessageBusMember.PushEvent<Vector2f>("ViewportResizeEvent", mLastViewportSize);
 		}
 
 		ImGui::Image(mpViewportTexHandle, viewportSize);

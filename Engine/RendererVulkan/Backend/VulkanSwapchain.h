@@ -5,6 +5,8 @@
 #include "Render/SwapChain.h"
 #include "RendererVulkan/Utils/VkConvert.h"
 
+#include "RendererVulkan/RenderGraph/RenderGraphResource.h"
+
 #include "volk.h"
 
 #include "Stl/vector.h"
@@ -12,10 +14,10 @@
 namespace SG
 {
 
+	class VulkanContext;
 	class VulkanQueue;
 	class VulkanSemaphore;
 	class VulkanRenderTarget;
-	class VulkanContext;
 
 	class VulkanSwapchain
 	{
@@ -39,7 +41,7 @@ namespace SG
 		void DestroySurface();
 		bool CheckSurfacePresentable(UInt32 familyIndex);
 	private:
-		VulkanContext&    mContext;
+		VulkanContext&    context;
 		bool              bSwapchainAdequate = false;
 
 		VkSurfaceKHR      mPresentSurface;

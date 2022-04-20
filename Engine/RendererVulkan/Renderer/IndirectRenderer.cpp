@@ -46,7 +46,7 @@ namespace SG
 		indirectCI.name = "indirectBuffer";
 		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
 		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
-		indirectCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
+		indirectCI.memoryUsage = EGPUMemoryUsage::eGPU_To_CPU;
 		if (!VK_RESOURCE()->CreateBuffer(indirectCI))
 			return;
 
@@ -120,11 +120,11 @@ namespace SG
 					vibCI.name = "instanceBuffer";
 					vibCI.bufferSize = SG_MAX_PACKED_INSTANCE_BUFFER_SIZE;
 					vibCI.type = EBufferType::efVertex | EBufferType::efStorage;
+					vibCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 					vibCI.pInitData = buildData.perInstanceData.data();
 					vibCI.subBufferSize = static_cast<UInt32>(ivbSize);
 					vibCI.subBufferOffset = static_cast<UInt32>(mPackedVIBCurrOffset);
-					vibCI.bSubBufer = true;
-					vibCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+					vibCI.bSubBuffer = true;
 					VK_RESOURCE()->CreateBuffer(vibCI);
 					SG_LOG_DEBUG("Have instance!");
 
@@ -158,11 +158,11 @@ namespace SG
 				vbCI.name = "packed_vertex_buffer_0";
 				vbCI.bufferSize = SG_MAX_PACKED_VERTEX_BUFFER_SIZE;
 				vbCI.type = EBufferType::efVertex;
+				vbCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 				vbCI.pInitData = pMeshData->vertices.data();
 				vbCI.subBufferSize = static_cast<UInt32>(vbSize);
 				vbCI.subBufferOffset = static_cast<UInt32>(mPackedVBCurrOffset);
-				vbCI.bSubBufer = true;
-				vbCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+				vbCI.bSubBuffer = true;
 				VK_RESOURCE()->CreateBuffer(vbCI);
 
 				// create one big index buffer
@@ -170,11 +170,11 @@ namespace SG
 				ibCI.name = "packed_index_buffer_0";
 				ibCI.bufferSize = SG_MAX_PACKED_INDEX_BUFFER_SIZE;
 				ibCI.type = EBufferType::efIndex;
+				ibCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 				ibCI.pInitData = pMeshData->indices.data();
 				ibCI.subBufferSize = static_cast<UInt32>(ibSize);
 				ibCI.subBufferOffset = static_cast<UInt32>(mPackedIBCurrOffset);
-				ibCI.bSubBufer = true;
-				ibCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+				ibCI.bSubBuffer = true;
 				VK_RESOURCE()->CreateBuffer(ibCI);
 				VK_RESOURCE()->FlushBuffers();
 
@@ -223,11 +223,11 @@ namespace SG
 		insOutputCI.name = "instanceOutput";
 		insOutputCI.type = EBufferType::efStorage;
 		insOutputCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
+		insOutputCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 		insOutputCI.pInitData = instanceOutputData.data();
 		insOutputCI.subBufferSize = static_cast<UInt32>(sizeof(InstanceOutputData) * instanceOutputData.size());
 		insOutputCI.subBufferOffset = 0;
-		insOutputCI.bSubBufer = true;
-		insOutputCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+		insOutputCI.bSubBuffer = true;
 		VK_RESOURCE()->CreateBuffer(insOutputCI);
 		VK_RESOURCE()->FlushBuffers();
 

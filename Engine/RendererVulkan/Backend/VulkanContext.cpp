@@ -12,15 +12,13 @@
 
 #include <eastl/array.h>
 
-#define VMA_IMPLEMENTATION
-#include "vma/vk_mem_alloc.h"
-
 namespace SG
 {
 
 	VulkanContext::VulkanContext()
-		:instance(), device(instance.physicalDevice), swapchain(*this)
+		:instance(), device(instance.physicalDevice)
 	{
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		// create vma allocator
 		VmaAllocatorCreateInfo allocatorCI = {};
 		allocatorCI.instance = instance.instance;
@@ -56,19 +54,21 @@ namespace SG
 		vmaCreateAllocator(&allocatorCI, &vmaAllocator);
 
 		SG_LOG_INFO("VmaAllocator initialized successfully!");
+#endif
+		pSwapchain = Memory::New<VulkanSwapchain>(*this);
 
 		graphicQueue  = device.GetQueue(EQueueType::eGraphic);
 		computeQueue  = device.GetQueue(EQueueType::eCompute);
 		transferQueue = device.GetQueue(EQueueType::eTransfer);
 
 		Window* pMainWindow = OperatingSystem::GetMainWindow();
-		swapchain.CreateOrRecreate(pMainWindow->GetWidth(), pMainWindow->GetHeight());
+		pSwapchain->CreateOrRecreate(pMainWindow->GetWidth(), pMainWindow->GetHeight());
 
 		CreateDefaultResource();
 
-		colorRts.resize(swapchain.imageCount);
+		colorRts.resize(pSwapchain->imageCount);
 		for (UInt32 i = 0; i < colorRts.size(); ++i)
-			colorRts[i] = swapchain.GetRenderTarget(i);
+			colorRts[i] = pSwapchain->GetRenderTarget(i);
 
 		TextureCreateDesc depthRtCI;
 		depthRtCI.width = colorRts[0]->GetWidth();
@@ -86,7 +86,7 @@ namespace SG
 		depthRt = VulkanRenderTarget::Create(*this, depthRtCI, true);
 
 		// create command buffer
-		commandBuffers.resize(swapchain.imageCount);
+		commandBuffers.resize(pSwapchain->imageCount);
 		for (auto& pCmdBuf : commandBuffers)
 			graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
 
@@ -95,24 +95,28 @@ namespace SG
 
 	VulkanContext::~VulkanContext()
 	{
-		swapchain.CleanUp();
-		DestroyDefaultResource();
+		pSwapchain->CleanUp();
+		Memory::Delete(pSwapchain);
 
+		DestroyDefaultResource();
 		Memory::Delete(depthRt);
 
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		vmaDestroyAllocator(vmaAllocator);
+#endif
 	}
 
 	void VulkanContext::WindowResize()
 	{
 		graphicQueue.WaitIdle();
 
-		Window* pMainWindow = OperatingSystem::GetMainWindow();
-		swapchain.CreateOrRecreate(pMainWindow->GetWidth(), pMainWindow->GetHeight());
-		for (UInt32 i = 0; i < colorRts.size(); ++i)
-			colorRts[i] = swapchain.GetRenderTarget(i); // this will new a VulkanRenderTarget
-
 		Memory::Delete(depthRt);
+
+		Window* pMainWindow = OperatingSystem::GetMainWindow();
+		pSwapchain->CreateOrRecreate(pMainWindow->GetWidth(), pMainWindow->GetHeight());
+		for (UInt32 i = 0; i < colorRts.size(); ++i)
+			colorRts[i] = pSwapchain->GetRenderTarget(i); // this will new a VulkanRenderTarget
+
 		TextureCreateDesc depthRtCI;
 		depthRtCI.width = colorRts[0]->GetWidth();
 		depthRtCI.height = colorRts[0]->GetHeight();
@@ -124,9 +128,8 @@ namespace SG
 		depthRtCI.type = EImageType::e2D;
 		depthRtCI.usage = EImageUsage::efDepth_Stencil;
 		depthRtCI.initLayout = EImageLayout::eUndefined;
-		depthRtCI.memoryFlag = EGPUMemoryFlag::efDedicated_Memory;
 
-		depthRt = VulkanRenderTarget::Create(*this, depthRtCI);
+		depthRt = VulkanRenderTarget::Create(*this, depthRtCI, true);
 
 		for (auto& pCmdBuf : commandBuffers)
 		{
@@ -178,8 +181,8 @@ namespace SG
 		if (!pDefaultDescriptorPool)
 			SG_LOG_ERROR("Failed to create default descriptor pool!");
 
-		pFences.resize(swapchain.imageCount);
-		for (Size i = 0; i < swapchain.imageCount; ++i)
+		pFences.resize(pSwapchain->imageCount);
+		for (Size i = 0; i < pSwapchain->imageCount; ++i)
 		{
 			VulkanFence** ppFence = &pFences[i];
 			*ppFence = VulkanFence::Create(device, true);

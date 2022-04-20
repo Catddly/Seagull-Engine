@@ -5,16 +5,17 @@
 #include "Platform/OS.h"
 
 #include "VulkanContext.h"
-#include "VulkanSynchronizePrimitive.h"
 #include "VulkanTexture.h"
+#include "VulkanSynchronizePrimitive.h"
+#include "RendererVulkan/Utils/VkConvert.h"
 
 #include "Memory/Memory.h"
 
 namespace SG
 {
 
-	VulkanSwapchain::VulkanSwapchain(VulkanContext& context)
-		:mContext(context)
+	VulkanSwapchain::VulkanSwapchain(VulkanContext& c)
+		:context(c)
 	{
 		CreateSurface();
 	}
@@ -33,22 +34,22 @@ namespace SG
 		vector<VkSurfaceFormatKHR> formats;
 		vector<VkPresentModeKHR> presentModes;
 
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mContext.instance.physicalDevice, mPresentSurface, &capabilities);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.instance.physicalDevice, mPresentSurface, &capabilities);
 
 		UInt32 formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(mContext.instance.physicalDevice, mPresentSurface, &formatCount, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(context.instance.physicalDevice, mPresentSurface, &formatCount, nullptr);
 		if (formatCount != 0)
 		{
 			formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(mContext.instance.physicalDevice, mPresentSurface, &formatCount, formats.data());
+			vkGetPhysicalDeviceSurfaceFormatsKHR(context.instance.physicalDevice, mPresentSurface, &formatCount, formats.data());
 		}
 
 		UInt32 presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(mContext.instance.physicalDevice, mPresentSurface, &presentModeCount, nullptr);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(context.instance.physicalDevice, mPresentSurface, &presentModeCount, nullptr);
 		if (presentModeCount != 0)
 		{
 			presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(mContext.instance.physicalDevice, mPresentSurface, &presentModeCount, presentModes.data());
+			vkGetPhysicalDeviceSurfacePresentModesKHR(context.instance.physicalDevice, mPresentSurface, &presentModeCount, presentModes.data());
 		}
 
 		// if the swapchain can do presenting
@@ -80,7 +81,7 @@ namespace SG
 		}
 
 		VkSurfaceCapabilitiesKHR surfCaps;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mContext.instance.physicalDevice, mPresentSurface, &surfCaps);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.instance.physicalDevice, mPresentSurface, &surfCaps);
 
 		// find the transformation of the surface
 		VkSurfaceTransformFlagsKHR preTransform;
@@ -136,7 +137,7 @@ namespace SG
 
 		createInfo.oldSwapchain = oldSwapchain;
 
-		if (vkCreateSwapchainKHR(mContext.device.logicalDevice, &createInfo, nullptr, &swapchain) != VK_SUCCESS)
+		if (vkCreateSwapchainKHR(context.device.logicalDevice, &createInfo, nullptr, &swapchain) != VK_SUCCESS)
 		{
 			SG_LOG_ERROR("Failed to create swapchain");
 			return false;
@@ -146,15 +147,15 @@ namespace SG
 		if (oldSwapchain != VK_NULL_HANDLE)
 		{
 			for (auto& e : imageViews)
-				vkDestroyImageView(mContext.device.logicalDevice, e, nullptr);
-			vkDestroySwapchainKHR(mContext.device.logicalDevice, oldSwapchain, nullptr);
+				vkDestroyImageView(context.device.logicalDevice, e, nullptr);
+			vkDestroySwapchainKHR(context.device.logicalDevice, oldSwapchain, nullptr);
 			for (UInt32 i = 0; i < imageCount; ++i)
 				Memory::Delete(mpRts[i]);
 		}
 
-		vkGetSwapchainImagesKHR(mContext.device.logicalDevice, swapchain, &imageCount, nullptr);
+		vkGetSwapchainImagesKHR(context.device.logicalDevice, swapchain, &imageCount, nullptr);
 		images.resize(imageCount);
-		vkGetSwapchainImagesKHR(mContext.device.logicalDevice, swapchain, &imageCount, images.data());
+		vkGetSwapchainImagesKHR(context.device.logicalDevice, swapchain, &imageCount, images.data());
 
 		imageViews.resize(imageCount);
 		mpRts.resize(imageCount);
@@ -180,9 +181,9 @@ namespace SG
 
 			colorAttachmentView.image = images[i];
 
-			vkCreateImageView(mContext.device.logicalDevice, &colorAttachmentView, nullptr, &imageViews[i]);
+			vkCreateImageView(context.device.logicalDevice, &colorAttachmentView, nullptr, &imageViews[i]);
 
-			mpRts[i] = Memory::New<VulkanRenderTarget>(mContext);
+			mpRts[i] = Memory::New<VulkanRenderTarget>(context);
 			mpRts[i]->width  = swapchainExtent.width;
 			mpRts[i]->height = swapchainExtent.height;
 			mpRts[i]->depth  = 1;
@@ -196,7 +197,11 @@ namespace SG
 
 			mpRts[i]->image     = images[i];
 			mpRts[i]->imageView = imageViews[i];
-			mpRts[i]->vmaAllocation = 0;
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
+			mpRts[i]->vmaAllocation = nullptr;
+#else
+			mpRts[i]->memory    = 0;
+#endif
 			mpRts[i]->mbIsDepth = false;
 
 			mpRts[i]->id = TextureIDAllocator::NewID();
@@ -208,7 +213,7 @@ namespace SG
 	void VulkanSwapchain::DestroySurface()
 	{
 		if (mPresentSurface != VK_NULL_HANDLE)
-			vkDestroySurfaceKHR(mContext.instance.instance, mPresentSurface, nullptr);
+			vkDestroySurfaceKHR(context.instance.instance, mPresentSurface, nullptr);
 	}
 
 	VulkanRenderTarget* VulkanSwapchain::GetRenderTarget(UInt32 index) const
@@ -222,16 +227,16 @@ namespace SG
 	void VulkanSwapchain::CleanUp()
 	{
 		for (UInt32 i = 0; i < imageCount; ++i)
-			vkDestroyImageView(mContext.device.logicalDevice, imageViews[i], nullptr);
+			vkDestroyImageView(context.device.logicalDevice, imageViews[i], nullptr);
 		for (auto* ptr : mpRts)
 			Memory::Delete(ptr);
 		if (swapchain != VK_NULL_HANDLE)
-			vkDestroySwapchainKHR(mContext.device.logicalDevice, swapchain, nullptr);
+			vkDestroySwapchainKHR(context.device.logicalDevice, swapchain, nullptr);
 	}
 
 	bool VulkanSwapchain::AcquireNextImage(VulkanSemaphore* pSignalSemaphore, UInt32& imageIndex)
 	{
-		if (vkAcquireNextImageKHR(mContext.device.logicalDevice, swapchain, UINT64_MAX, pSignalSemaphore->semaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
+		if (vkAcquireNextImageKHR(context.device.logicalDevice, swapchain, UINT64_MAX, pSignalSemaphore->semaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
 		{
 			SG_LOG_WARN("Failed to acquire next image!");
 			return false;
@@ -271,16 +276,16 @@ namespace SG
 		createInfo.hwnd = (HWND)mainWindow->GetNativeHandle();
 		createInfo.hinstance = ::GetModuleHandle(NULL);
 		
-		if (vkCreateWin32SurfaceKHR(mContext.instance.instance, &createInfo, nullptr, &mPresentSurface) != VK_SUCCESS)
+		if (vkCreateWin32SurfaceKHR(context.instance.instance, &createInfo, nullptr, &mPresentSurface) != VK_SUCCESS)
 			return false;
 
-		CheckSurfacePresentable(mContext.device.queueFamilyIndices.graphics);
+		CheckSurfacePresentable(context.device.queueFamilyIndices.graphics);
 
 		// Get list of supported surface formats
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(mContext.instance.physicalDevice, mPresentSurface, &formatCount, NULL);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(context.instance.physicalDevice, mPresentSurface, &formatCount, NULL);
 		vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(mContext.instance.physicalDevice, mPresentSurface, &formatCount, surfaceFormats.data());
+		vkGetPhysicalDeviceSurfaceFormatsKHR(context.instance.physicalDevice, mPresentSurface, &formatCount, surfaceFormats.data());
 
 		// If the surface format list only includes one entry with VK_FORMAT_UNDEFINED,
 		// there is no preferred format, so we assume VK_FORMAT_B8G8R8A8_UNORM
@@ -322,7 +327,7 @@ namespace SG
 	{
 		// check if the graphic queue can do the presentation job
 		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(mContext.instance.physicalDevice, familyIndex, mPresentSurface, &presentSupport);
+		vkGetPhysicalDeviceSurfaceSupportKHR(context.instance.physicalDevice, familyIndex, mPresentSurface, &presentSupport);
 		if (!presentSupport)
 		{
 			SG_LOG_ERROR("Current physical device not support surface presentation");

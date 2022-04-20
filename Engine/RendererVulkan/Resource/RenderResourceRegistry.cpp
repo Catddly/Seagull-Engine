@@ -134,7 +134,24 @@ namespace SG
 
 		// update camera data
 		auto* pCamera = pScene->GetMainCamera();
+		auto& skyboxUbo = GetSkyboxUBO();
+		auto& cameraUbo = GetCameraUBO();
+
+		if (pCamera->IsProjDirty())
+		{
+			cameraUbo.proj = pCamera->GetProjMatrix();
+			skyboxUbo.proj = cameraUbo.proj;
+		}
+
 		if (pCamera->IsViewDirty())
+		{
+			cameraUbo.viewPos = pCamera->GetPosition();
+			cameraUbo.view = pCamera->GetViewMatrix();
+			skyboxUbo.model = Matrix4f(Matrix3f(cameraUbo.view)); // eliminate the translation part of the matrix
+			cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
+		}
+
+		if (pCamera->IsViewDirty() || pCamera->IsProjDirty())
 		{
 			auto& cullUbo = GetGPUCullUBO();
 			Frustum cameraFrustum = pCamera->GetFrustum();
@@ -145,29 +162,16 @@ namespace SG
 			cullUbo.frustum[4] = cameraFrustum.GetFrontPlane();
 			cullUbo.frustum[5] = cameraFrustum.GetBackPlane();
 			cullUbo.viewPos = pCamera->GetPosition();
-			UpdataBufferData("cullUbo", &cullUbo);
 
-			auto& skyboxUbo = GetSkyboxUBO();
-			auto& cameraUbo = GetCameraUBO();
-			if (pCamera->IsProjDirty())
-			{
-				cameraUbo.proj = pCamera->GetProjMatrix();
-				skyboxUbo.proj = cameraUbo.proj;
-				pCamera->ProjBeUpdated();
-			}
-			cameraUbo.viewPos = pCamera->GetPosition();
-			cameraUbo.view = pCamera->GetViewMatrix();
-			skyboxUbo.model = Matrix4f(Matrix3f(cameraUbo.view)); // eliminate the translation part of the matrix
-			cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
+			UpdataBufferData("cullUbo", &cullUbo);
 			UpdataBufferData("cameraUbo", &cameraUbo);
 			UpdataBufferData("skyboxUbo", &skyboxUbo);
+			pCamera->ProjBeUpdated();
 			pCamera->ViewBeUpdated();
 		}
 
 		auto* pSSBOObject = GetBuffer("perObjectBuffer");
-		auto* pObjectRenderBuffer = pSSBOObject->MapMemory<ObjcetRenderData>();
-
-		pScene->TraverseEntity([this, pObjectRenderBuffer](auto& entity)
+		pScene->TraverseEntity([this, pSSBOObject](auto& entity)
 			{
 				auto& tag = entity.GetComponent<TagComponent>();
 				if (tag.bDirty)
@@ -177,9 +181,9 @@ namespace SG
 						auto [trans, light] = entity.GetComponent<TransformComponent, PointLightComponent>();
 
 						auto& lightUbo = GetLightUBO();
-						lightUbo.pointLightPos = trans.position;
 						lightUbo.pointLightColor = light.color;
 						lightUbo.pointLightRadius = light.radius;
+						lightUbo.pointLightPos = trans.position;
 						UpdataBufferData("lightUbo", &lightUbo);
 					}
 					else if (entity.HasComponent<DirectionalLightComponent>())
@@ -199,17 +203,18 @@ namespace SG
 					{
 						auto [trans, mesh, mat] = entity.GetComponent<TransformComponent, MeshComponent, MaterialComponent>();
 
-						auto* pBuf = pObjectRenderBuffer + mesh.objectId;
-						pBuf->model = GetTransform(trans);
-						pBuf->inverseTransposeModel = glm::transpose(glm::inverse(pBuf->model));
-						pBuf->meshId = mesh.meshId;
-						pBuf->MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(pBuf->meshId) ? 1.0f : -1.0f };
-						pBuf->albedo = mat.color;
+						ObjcetRenderData renderData = {};
+						renderData.model = GetTransform(trans);
+						renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
+						renderData.meshId = mesh.meshId;
+						renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
+						renderData.albedo = mat.color;
+						// here we map and unmap memory for event dirty object, this is not good.
+						pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
 					}
 					tag.bDirty = false;
 				}
 			});
-		pSSBOObject->UnmapMemory();
 
 		auto& compositionUbo = GetCompositionUBO();
 		UpdataBufferData("compositionUbo", &compositionUbo);
@@ -299,7 +304,7 @@ namespace SG
 
 		if (bHostVisible && bufferCI.pInitData)
 		{
-			if (bufferCI.bSubBufer)
+			if (bufferCI.bSubBuffer)
 				pBuffer->UploadData(bufferCI.pInitData, bufferCI.subBufferSize, bufferCI.subBufferOffset);
 			else
 				pBuffer->UploadData(bufferCI.pInitData);
@@ -331,16 +336,15 @@ namespace SG
 		{
 			data.first.type = EBufferType::efTransfer_Src;
 			data.first.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
-			data.first.memoryFlag = EGPUMemoryFlag::efInvalid;
 
-			if (data.first.bSubBufer)
+			if (data.first.bSubBuffer)
 				data.first.bufferSize = data.first.subBufferSize;
 
 			mpStagingBuffers.push_back(VulkanBuffer::Create(*mpContext, data.first));
 			auto* pStagingBuf = mpStagingBuffers.back();
 			pStagingBuf->UploadData(data.first.pInitData);
 
-			cmd.CopyBuffer(*pStagingBuf, *data.second, 0, data.first.bSubBufer ? data.first.subBufferOffset : 0);
+			cmd.CopyBuffer(*pStagingBuf, *data.second, 0, data.first.bSubBuffer ? data.first.subBufferOffset : 0);
 			++index;
 		}
 		cmd.EndRecord();
@@ -387,7 +391,7 @@ namespace SG
 	/// Textures
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool VulkanResourceRegistry::CreateTexture(const TextureCreateDesc& textureCI)
+	bool VulkanResourceRegistry::CreateTexture(const TextureCreateDesc& textureCI, bool bLocal)
 	{
 		if (mTextures.count(textureCI.name) != 0)
 		{
@@ -396,9 +400,9 @@ namespace SG
 		}
 
 		auto& texCI = const_cast<TextureCreateDesc&>(textureCI);
-		if (!SG_HAS_ENUM_FLAG(textureCI.usage, EImageUsage::efTransfer_Dst))
+		if (bLocal && !SG_HAS_ENUM_FLAG(textureCI.usage, EImageUsage::efTransfer_Dst))
 			texCI.usage = texCI.usage | EImageUsage::efTransfer_Dst;
-		mTextures[texCI.name] = VulkanTexture::Create(*mpContext, textureCI);
+		mTextures[texCI.name] = VulkanTexture::Create(*mpContext, textureCI, bLocal);
 		VulkanTexture* pTex = mTextures[texCI.name];
 		if (!pTex)
 		{
@@ -406,17 +410,18 @@ namespace SG
 			return false;
 		}
 
-		if (textureCI.pInitData)
+		if (bLocal && textureCI.pInitData)
 		{
 			//if (!textureCI.pInitData)
 			//{
 			//	SG_LOG_ERROR("Device local buffer must have initialize data!");
 			//	return false;
 			//}
-			
+			 
 			// make a copy of bufferCI
 			BufferCreateDesc bufferCI = {};
 			bufferCI.name = textureCI.name;
+			bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 			bufferCI.type = EBufferType::efTransfer_Src;
 			bufferCI.pInitData = textureCI.pInitData;
 			bufferCI.bufferSize = textureCI.sizeInByte;
@@ -450,7 +455,6 @@ namespace SG
 		{
 			data.first.type = EBufferType::efTransfer_Src;
 			data.first.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
-			data.first.memoryFlag = EGPUMemoryFlag::efInvalid;
 
 			stagingBuffers.emplace_back(VulkanBuffer::Create(*mpContext, data.first)); // create a staging buffer
 			stagingBuffers[index]->UploadData(data.first.pInitData);

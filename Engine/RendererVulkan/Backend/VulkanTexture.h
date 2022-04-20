@@ -1,13 +1,16 @@
 #pragma once
 
 #include "Base/BasicTypes.h"
+#include "Render/SwapChain.h"
 
-#include "VulkanContext.h"
+#include "VulkanAllocator.h"
 
-#include "vma/vk_mem_alloc.h"
+#include "volk.h"
 
 namespace SG
 {
+
+	class VulkanDevice;
 
 	class VulkanSampler
 	{
@@ -23,14 +26,16 @@ namespace SG
 		VkSampler     sampler;
 	};
 
+	class VulkanContext;
+
 	class VulkanTexture
 	{
 	public:
 		VulkanTexture(VulkanContext& c) : context(c) {}
-		VulkanTexture(VulkanContext& c, const TextureCreateDesc& CI);
+		VulkanTexture(VulkanContext& c, const TextureCreateDesc& CI, bool bLocal = false);
 		~VulkanTexture();
 
-		static VulkanTexture* Create(VulkanContext& c, const TextureCreateDesc& CI);
+		static VulkanTexture* Create(VulkanContext& c, const TextureCreateDesc& CI, bool bLocal = false);
 
 		UInt32 GetWidth()  const { return width; }
 		UInt32 GetHeight() const { return height; }
@@ -54,7 +59,11 @@ namespace SG
 
 		VkImage        image;
 		VkImageView    imageView;
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		VmaAllocation  vmaAllocation;
+#else
+		VkDeviceMemory memory;
+#endif
 		VkImageLayout  currLayout; // used to do some safety check
 
 		UInt32 width;
@@ -80,7 +89,7 @@ namespace SG
 			: VulkanTexture(c), mbIsDepth(isDepth)
 		{}
 		VulkanRenderTarget(VulkanContext& c, const TextureCreateDesc& CI, bool isDepth = false)
-			: VulkanTexture(c, CI), mbIsDepth(isDepth)
+			: VulkanTexture(c, CI, true), mbIsDepth(isDepth)
 		{}
 
 		bool IsDepth() const { return mbIsDepth; }

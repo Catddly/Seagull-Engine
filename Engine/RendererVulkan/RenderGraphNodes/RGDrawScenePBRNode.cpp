@@ -60,7 +60,7 @@ namespace SG
 		texCI.pInitData = texData.pData;
 		texCI.sizeInByte = texData.sizeInByte;
 		texCI.pUserData = texData.pUserData;
-		VK_RESOURCE()->CreateTexture(texCI);
+		VK_RESOURCE()->CreateTexture(texCI, true);
 		VK_RESOURCE()->FlushTextures();
 
 		SamplerCreateDesc samplerCI = {};
@@ -330,7 +330,7 @@ namespace SG
 		texCI.type = EImageType::e2D;
 		texCI.pInitData = nullptr;
 		texCI.initLayout = EImageLayout::eUndefined;
-		VK_RESOURCE()->CreateTexture(texCI);
+		VK_RESOURCE()->CreateTexture(texCI, true);
 
 		// create for drawing and copying
 		texCI.name = "cubemap_irradiance_rt";
@@ -491,7 +491,7 @@ namespace SG
 		texCI.type = EImageType::e2D;
 		texCI.pInitData = nullptr;
 		texCI.initLayout = EImageLayout::eUndefined;
-		VK_RESOURCE()->CreateTexture(texCI);
+		VK_RESOURCE()->CreateTexture(texCI, true);
 
 		// create for drawing and copying
 		texCI.name = "cubemap_prefilter_rt";
@@ -631,21 +631,19 @@ namespace SG
 		rtCI.depth = mContext.colorRts[0]->GetDepth();
 		rtCI.array = 1;
 		rtCI.mipLevel = 1;
-		rtCI.format = EImageFormat::eSfloat_R32G32B32A32; // HDR
+		rtCI.format = EImageFormat::eSfloat_R32G32B32A32;
 		rtCI.sample = ESampleCount::eSample_1;
 		rtCI.type = EImageType::e2D;
 		rtCI.usage = EImageUsage::efColor | EImageUsage::efSample;
 		rtCI.initLayout = EImageLayout::eUndefined;
 		rtCI.memoryFlag = EGPUMemoryFlag::efDedicated_Memory;
-
 		VK_RESOURCE()->CreateRenderTarget(rtCI);
 
 		// translate color rt from undefined to shader read
 		VulkanCommandBuffer pCmd;
 		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
 		pCmd.BeginRecord();
-		auto* pRt = VK_RESOURCE()->GetRenderTarget("HDRColor");
-		pCmd.ImageBarrier(pRt, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
+		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("HDRColor"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
 		pCmd.EndRecord();
 		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
 		mContext.graphicQueue.WaitIdle();

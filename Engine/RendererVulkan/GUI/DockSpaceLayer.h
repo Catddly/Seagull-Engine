@@ -4,7 +4,7 @@
 #include "System/Input.h"
 #include "System/LayerSystem/LayerSystem.h"
 #include "Scene/Scene.h"
-#include "Event/MessageBus/MessageBus.h"
+//#include "Event/MessageBus/MessageBus.h"
 
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 
@@ -32,7 +32,7 @@ namespace SG
 		void DrawSceneHirerchy();
 		void DrawSelectedEntityProperty();
 	private:
-		MessageBusMember mMessageBusMember;
+		//MessageBusMember mMessageBusMember;
 
 		UInt32 mLastFps = 0;
 		float mElapsedTime = 0.0;

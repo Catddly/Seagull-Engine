@@ -9,10 +9,14 @@
 #include "Render/Shader/Shader.h"
 #include "Render/FrameBuffer.h"
  
+#include "RendererVulkan/Backend/VulkanAllocator.h"
+
 #include "volk.h"
 
 namespace SG
 {
+
+	VmaMemoryUsage ToVmaMemoryUsage(EGPUMemoryUsage usage);
 
 	VkAccessFlags ToVKAccessFlags(EPipelineStage stage);
 

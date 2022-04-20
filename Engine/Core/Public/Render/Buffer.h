@@ -3,7 +3,7 @@
 #include "Defs/Defs.h"
 #include "Base/BasicTypes.h"
 
-#include "DeviceMemory.h"
+#include "Render/GPUMemory.h"
 
 namespace SG
 {
@@ -24,19 +24,18 @@ namespace SG
 
 	struct BufferCreateDesc
 	{
-		const char* name;
+		const char*  name;
+		EBufferType  type;
+		UInt32       bufferSize = 0;
 
-		EBufferType type;
-		EGPUMemoryUsage memoryUsage;
-		UInt32 bufferSize = 0;
+		EGPUMemoryUsage memoryUsage = EGPUMemoryUsage::eInvalid;
+		SG_NULLABLE EGPUMemoryFlag  memoryFlag;
 
 		SG_NULLABLE const void* pInitData = nullptr;
 
-		SG_NULLABLE bool bSubBufer = false;
+		SG_NULLABLE bool   bSubBuffer = false;
 		SG_NULLABLE UInt32 subBufferSize = 0;
 		SG_NULLABLE UInt32 subBufferOffset = 0;
-
-		SG_NULLABLE EGPUMemoryFlag memoryFlag = EGPUMemoryFlag::efInvalid;
 	};
 
 }

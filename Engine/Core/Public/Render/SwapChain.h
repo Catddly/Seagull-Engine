@@ -1,10 +1,9 @@
 #pragma once
 
 #include "Base/BasicTypes.h"
+#include "Render/GPUMemory.h"
 
 #include "Platform/OS.h"
-
-#include "DeviceMemory.h"
 
 namespace SG
 {
@@ -547,25 +546,23 @@ namespace SG
 
 	struct TextureCreateDesc
 	{
-		const char*    name;
-		EImageFormat   format;
-		ESampleCount   sample;
-		EImageType     type;
-		EImageUsage    usage;
+		const char*   name;
+		EImageFormat  format;
+		ESampleCount  sample;
+		EImageType    type;
+		EImageUsage   usage;
 		SG_NULLABLE EImageLayout initLayout;
+		EGPUMemoryFlag memoryFlag = EGPUMemoryFlag::efInvalid;
 
-		UInt32         width;
-		UInt32         height;
-		UInt32         depth;
-		UInt32         array;
-		UInt32         mipLevel;
+		UInt32      width;
+		UInt32      height;
+		UInt32      depth;
+		UInt32      array;
+		UInt32      mipLevel;
 
-		UInt32         sizeInByte;
-		const void*    pInitData;
-		void*          pUserData;
-
-		//EGPUMemoryUsage memoryUsage;
-		SG_NULLABLE EGPUMemoryFlag  memoryFlag = EGPUMemoryFlag::efInvalid;
+		UInt32      sizeInByte;
+		const void* pInitData;
+		SG_NULLABLE void* pUserData;
 	};
 
 	interface RenderTarget

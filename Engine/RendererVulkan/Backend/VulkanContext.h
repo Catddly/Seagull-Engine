@@ -6,13 +6,9 @@
 #include "VulkanDevice.h"
 #include "VulkanSwapchain.h"
 #include "VulkanCommand.h"
+#include "VulkanAllocator.h"
 
 #include "Stl/vector.h"
-
-#define VK_API_VERSION_MAJOR(version) (((uint32_t)(version) >> 22) & 0x7FU)
-#define VK_API_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
-#define VK_API_VERSION_PATCH(version) ((uint32_t)(version) & 0xFFFU)
-#include "vma/vk_mem_alloc.h"
 
 namespace SG
 {
@@ -21,9 +17,9 @@ namespace SG
 	class VulkanCommandPool;
 	class VulkanRenderPass;
 	class VulkanSemaphore;
+	class VulkanRenderTarget;
 	class VulkanFence;
 	class VulkanRenderPass;
-	class VulkanRenderTarget;
 	class VulkanFrameBuffer;
 
 	class VulkanContext
@@ -35,7 +31,7 @@ namespace SG
 
 		VulkanInstance  instance;
 		VulkanDevice    device;
-		VulkanSwapchain swapchain;
+		VulkanSwapchain* pSwapchain;
 
 		VulkanCommandPool* graphicCommandPool;
 		VulkanCommandPool* computeCommandPool;
@@ -63,8 +59,9 @@ namespace SG
 		vector<VulkanRenderTarget*> colorRts;
 		VulkanRenderTarget*         depthRt;
 
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		VmaAllocator vmaAllocator;
-
+#endif
 		void WindowResize();
 	private:
 		void CreateDefaultResource();

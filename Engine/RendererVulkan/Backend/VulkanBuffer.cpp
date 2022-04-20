@@ -4,10 +4,9 @@
 #include "System/Logger.h"
 #include "Memory/Memory.h"
 
-#include "VulkanConfig.h"
-#include "RendererVulkan/Utils/VkConvert.h"
+#include "VulkanContext.h"
 
-#include "vma/vk_mem_alloc.h"
+#include "RendererVulkan/Utils/VkConvert.h"
 
 namespace SG
 {
@@ -15,20 +14,24 @@ namespace SG
 	VulkanBuffer::VulkanBuffer(VulkanContext& c, const BufferCreateDesc& CI)
 		:context(c)
 	{
+		SG_ASSERT(CI.memoryUsage != EGPUMemoryUsage::eInvalid);
+
 		if (CI.type == EBufferType::efUniform)
-			size = MinValueAlignTo(CI.bufferSize, static_cast<UInt32>(context.device.physicalDeviceLimits.minUniformBufferOffsetAlignment));
+			sizeInByteCPU = MinValueAlignTo(CI.bufferSize, static_cast<UInt32>(context.device.physicalDeviceLimits.minUniformBufferOffsetAlignment));
 		else
-			size = CI.bufferSize;
+			sizeInByteCPU = CI.bufferSize;
 		type = CI.type;
+		memoryUsage = CI.memoryUsage;
 
 		VkBufferCreateInfo bufferInfo = {};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = size;
+		bufferInfo.size  = sizeInByteCPU;
 		bufferInfo.usage = ToVkBufferUsage(type);
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		VmaAllocationCreateInfo vmaAllocateCI = { 0 };
-		vmaAllocateCI.usage = (VmaMemoryUsage)CI.memoryUsage;
+		vmaAllocateCI.usage = ToVmaMemoryUsage(CI.memoryUsage);
 		vmaAllocateCI.flags = 0;
 		if (SG_HAS_ENUM_FLAG(CI.memoryFlag, EGPUMemoryFlag::efDedicated_Memory))
 			vmaAllocateCI.flags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
@@ -38,39 +41,76 @@ namespace SG
 		VmaAllocationInfo allocInfo = {};
 		VK_CHECK(vmaCreateBuffer(context.vmaAllocator, &bufferInfo, &vmaAllocateCI, &buffer, &vmaAllocation, &allocInfo),
 			SG_LOG_ERROR("Failed to create vulkan buffer!"););
+#else
+		VK_CHECK(vkCreateBuffer(context.device.logicalDevice, &bufferInfo, nullptr, &buffer),
+			SG_LOG_ERROR("Failed to create vulkan buffer!"););
 
-		pMappedMemory = allocInfo.pMappedData;
+		VkMemoryRequirements memReqs;
+		vkGetBufferMemoryRequirements(context.device.logicalDevice, buffer, &memReqs);
+		VkMemoryAllocateInfo memAlloc = {};
+		memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		memAlloc.allocationSize = memReqs.size;
+
+		sizeInByteGPU = static_cast<UInt32>(memReqs.size);
+		alignment     = static_cast<UInt32>(memReqs.alignment);
+
+		if (bLocal)
+			memAlloc.memoryTypeIndex = context.device.GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		else
+			memAlloc.memoryTypeIndex = context.device.GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		VK_CHECK(vkAllocateMemory(context.device.logicalDevice, &memAlloc, nullptr, &memory),
+			SG_LOG_ERROR("Failed to alloc memory for buffer!"););
+
+		// TODO: support memory offset.
+		VK_CHECK(vkBindBufferMemory(context.device.logicalDevice, buffer, memory, 0),
+			SG_LOG_ERROR("Failed to bind vulkan memory to buffer!"););
+#endif
 	}
 
 	VulkanBuffer::~VulkanBuffer()
 	{
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		vmaDestroyBuffer(context.vmaAllocator, buffer, vmaAllocation);
+#else
+		vkFreeMemory(context.device.logicalDevice, memory, nullptr);
+		vkDestroyBuffer(context.device.logicalDevice, buffer, nullptr);
+#endif
 	}
 
 	bool VulkanBuffer::UploadData(const void* pData)
 	{
-		//if (bLocal) // device local in GPU
-		//{
-		//	SG_LOG_WARN("Try to upload data to device local memory!");
-		//	return false;
-		//}
+		if (!IsHostVisible(memoryUsage)) // device local in GPU
+		{
+			SG_LOG_WARN("Try to upload data to device local memory!");
+			return false;
+		}
 
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		UInt8* pUpload = nullptr;
 		VK_CHECK(vmaMapMemory(context.vmaAllocator, vmaAllocation, (void**)&pUpload),
 			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
-		memcpy(pUpload, pData, size);
+		memcpy(pUpload, pData, sizeInByteCPU);
 		vmaUnmapMemory(context.vmaAllocator, vmaAllocation);
 		return true;
+#else
+		UInt8* pUpload = nullptr;
+		VK_CHECK(vkMapMemory(context.device.logicalDevice, memory, 0, sizeInByteCPU, 0, (void**)&pUpload),
+			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
+		memcpy(pUpload, pData, sizeInByteCPU);
+		vkUnmapMemory(context.device.logicalDevice, memory);
+		return true;
+#endif
 	}
 
 	bool VulkanBuffer::UploadData(const void* pData, UInt32 size, UInt32 offset)
 	{
-		//if (bLocal) // device local in GPU
-		//{
-		//	SG_LOG_WARN("Try to upload data to device local memory!");
-		//	return false;
-		//}
+		if (!IsHostVisible(memoryUsage)) // device local in GPU
+		{
+			SG_LOG_WARN("Try to upload data to device local memory!");
+			return false;
+		}
 
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		UInt8* pUpload = nullptr;
 		VK_CHECK(vmaMapMemory(context.vmaAllocator, vmaAllocation, (void**)&pUpload),
 			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
@@ -78,16 +118,42 @@ namespace SG
 		memcpy(pUpload, pData, size);
 		vmaUnmapMemory(context.vmaAllocator, vmaAllocation);
 		return true;
+#else
+		UInt8* pUpload = nullptr;
+		VK_CHECK(vkMapMemory(context.device.logicalDevice, memory, 0, sizeInByteCPU, 0, (void**)&pUpload),
+			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
+		pUpload += offset;
+		memcpy(pUpload, pData, size);
+		vkUnmapMemory(context.device.logicalDevice, memory);
+		return true;
+#endif
 	}
 
-	VulkanBuffer* VulkanBuffer::Create(VulkanContext& context, const BufferCreateDesc& CI)
+	UInt32 VulkanBuffer::SizeInByteGPU() const
 	{
-		return Memory::New<VulkanBuffer>(context, CI);
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
+		if (vmaAllocation)
+		{
+			VmaAllocationInfo info = {};
+			vmaGetAllocationInfo(context.vmaAllocator, vmaAllocation, &info);
+			return static_cast<UInt32>(info.size);
+		}
+#endif
+		return 0;
+	}
+
+	VulkanBuffer* VulkanBuffer::Create(VulkanContext& c, const BufferCreateDesc& CI)
+	{
+		return Memory::New<VulkanBuffer>(c, CI);
 	}
 
 	void VulkanBuffer::UnmapMemory()
 	{
+#if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		vmaUnmapMemory(context.vmaAllocator, vmaAllocation);
+#else
+		vkUnmapMemory(context.device.logicalDevice, memory);
+#endif
 	}
 
 }

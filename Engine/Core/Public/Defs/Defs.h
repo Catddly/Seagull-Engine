@@ -18,6 +18,10 @@
 #define SG_ENGINE_VERSION_MINOR 2
 #define SG_ENGINE_VERSION_PATCH 0
 
+// helper signs
+//! You can ignore this value or pointer when you use it.
+#define SG_NULLABLE
+
 // TODO: intelligence
 #define SG_GRAPHICS_API_VULKAN 1
 
@@ -40,10 +44,6 @@
 #else
 #	define SG_INLINE SG_FORCE_INLINE
 #endif
-
-// helper signs
-//! You can ignore this value or pointer when you use it.
-#define SG_NULLABLE
 
 #ifndef SG_COMPILE_ASSERT
 #	define SG_COMPILE_ASSERT(x, MSG) do { static_assert(x, #MSG); } while(false)

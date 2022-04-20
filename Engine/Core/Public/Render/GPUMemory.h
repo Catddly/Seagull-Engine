@@ -18,6 +18,7 @@ namespace SG
 		eAuto,
 		eAuto_Prefer_Device,
 		eAuto_Prefer_Host,
+		eInvalid,
 	};
 
 	static bool IsHostVisible(EGPUMemoryUsage usage)

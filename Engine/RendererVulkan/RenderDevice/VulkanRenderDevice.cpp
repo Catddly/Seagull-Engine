@@ -75,7 +75,7 @@ namespace SG
 		textureCI.initLayout = EImageLayout::eUndefined;
 		textureCI.pInitData = texture.pData;
 		textureCI.sizeInByte = texture.sizeInByte;
-		VK_RESOURCE()->CreateTexture(textureCI);
+		VK_RESOURCE()->CreateTexture(textureCI, true);
 		VK_RESOURCE()->FlushTextures();
 
 		// create all the mesh resource
@@ -117,7 +117,7 @@ namespace SG
 		if (mbWindowMinimal)
 			return;
 
-		mpContext->swapchain.AcquireNextImage(mpContext->pPresentCompleteSemaphore, mCurrentFrame); // check if next image is presented, and get it as the available image
+		mpContext->pSwapchain->AcquireNextImage(mpContext->pPresentCompleteSemaphore, mCurrentFrame); // check if next image is presented, and get it as the available image
 		mpContext->pFences[mCurrentFrame]->WaitAndReset(); // wait for the render commands running on the GPU side to finish
 		mpContext->pComputeSyncFence->WaitAndReset(); // wait for the compute command buffer to finish
 
@@ -143,7 +143,7 @@ namespace SG
 			statisticData.cullSceneObjects += (pCommand + i)->instanceCount;
 		pIndirectBuffer->UnmapMemory();
 
-		mpContext->swapchain.Present(&mpContext->graphicQueue, mCurrentFrame, mpContext->pRenderCompleteSemaphore); // present the available image
+		mpContext->pSwapchain->Present(&mpContext->graphicQueue, mCurrentFrame, mpContext->pRenderCompleteSemaphore); // present the available image
 		mbBlockEvent = false;
 	}
 
