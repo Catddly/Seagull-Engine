@@ -9,7 +9,7 @@
 #include "VulkanPipelineSignature.h"
 #include "VulkanPipeline.h"
 #include "VulkanFrameBuffer.h"
-#include "VulkanSwapchain.h"
+#include "VulkanTexture.h"
 
 namespace SG
 {
@@ -285,7 +285,7 @@ namespace SG
 		VkBufferCopy copyRegion = {};
 		copyRegion.srcOffset = srcOffset;
 		copyRegion.dstOffset = dstOffset;
-		copyRegion.size = srcBuffer.SizeInByteCPU();
+		copyRegion.size = srcBuffer.Size();
 
 		vkCmdCopyBuffer(commandBuffer, srcBuffer.buffer, dstBuffer.buffer, 1, &copyRegion);
 	}
@@ -498,7 +498,7 @@ namespace SG
 		VkBufferMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 		barrier.buffer = pBuf->buffer;
-		barrier.size = pBuf->sizeInByteCPU;
+		barrier.size = pBuf->size;
 		barrier.offset = 0;
 
 		if (srcType != dstType)

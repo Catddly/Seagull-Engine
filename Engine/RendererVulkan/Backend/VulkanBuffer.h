@@ -4,9 +4,11 @@
 #include "Render/Buffer.h"
 
 #include "VulkanConfig.h"
-#include "VulkanDevice.h"
+#include "VulkanContext.h"
 
 #include "volk.h"
+
+#include "vma/vk_mem_alloc.h"
 
 namespace SG
 {
@@ -14,15 +16,19 @@ namespace SG
 	class VulkanBuffer
 	{
 	public:
-		VulkanBuffer(VulkanDevice& d, const BufferCreateDesc& CI, bool bLocal);
+		VulkanBuffer(VulkanContext& c, const BufferCreateDesc& CI);
 		~VulkanBuffer();
 		SG_CLASS_NO_COPY_ASSIGNABLE(VulkanBuffer);
 
 		bool   UploadData(const void* pData);
 		bool   UploadData(const void* pData, UInt32 size, UInt32 offset);
-		UInt32 SizeInByteCPU() const { return sizeInByteCPU; }
-		UInt32 SizeInByteGPU() const { return sizeInByteGPU; }
-		static VulkanBuffer* Create(VulkanDevice& device, const BufferCreateDesc& CI, bool bLocal);
+		UInt32 Size() const { return size; }
+		static VulkanBuffer* Create(VulkanContext& context, const BufferCreateDesc& CI);
+
+		void* GetMappedMemory() const { return pMappedMemory; }
+
+		template <typename DataType>
+		DataType* GetMappedMemoryAs() const { return reinterpret_cast<DataType*>(pMappedMemory); }
 
 		template <typename DataType>
 		DataType* MapMemory();
@@ -30,28 +36,28 @@ namespace SG
 	private:
 		friend class VulkanCommandBuffer;
 		friend class VulkanDescriptorDataBinder;
-		VulkanDevice&  device;
 
-		VkDeviceMemory memory;
+		VulkanContext& context;
+
+		VmaAllocation  vmaAllocation;
 		VkBuffer       buffer;
-		UInt32         sizeInByteCPU;
-		UInt32         sizeInByteGPU;
-		UInt32         alignment;
+		UInt32         size;
 		EBufferType    type;
-		bool           bLocal;
+
+		void*          pMappedMemory = nullptr;
 	};
 
 	template <typename DataType>
 	DataType* VulkanBuffer::MapMemory()
 	{
-		if (bLocal) // device local in GPU
-		{
-			SG_LOG_WARN("Try to upload data to device local memory!");
-			return false;
-		}
+		//if (bLocal) // device local in GPU
+		//{
+		//	SG_LOG_WARN("Try to upload data to device local memory!");
+		//	return false;
+		//}
 
 		DataType* pMappedMemory = nullptr;
-		VK_CHECK(vkMapMemory(device.logicalDevice, memory, 0, sizeInByteCPU, 0, (void**)&pMappedMemory),
+		VK_CHECK(vmaMapMemory(context.vmaAllocator, vmaAllocation, (void**)&pMappedMemory),
 			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
 		return pMappedMemory;
 	}

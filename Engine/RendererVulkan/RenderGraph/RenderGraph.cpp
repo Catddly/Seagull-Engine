@@ -5,6 +5,7 @@
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
+#include "RendererVulkan/Backend/VulkanTexture.h"
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
 
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"

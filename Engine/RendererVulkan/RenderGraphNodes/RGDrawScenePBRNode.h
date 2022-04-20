@@ -32,6 +32,9 @@ namespace SG
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
 		virtual void Draw(RGDrawInfo& context) override;
 	private:
+		void CreateColorRt();
+		void DestroyColorRt();
+
 		void GenerateBRDFLut();
 		//! For IBL-PBR(image based lighting in physical based rendering) diffuse calculation.
 		//! By using Split Sum Approximation.

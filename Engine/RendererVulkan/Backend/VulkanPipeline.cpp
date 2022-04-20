@@ -1,6 +1,7 @@
 #include "Stdafx.h"
 #include "VulkanPipeline.h"
 
+#include "VulkanConfig.h"
 #include "VulkanDescriptor.h"
 #include "VulkanFrameBuffer.h"
 #include "VulkanShader.h"

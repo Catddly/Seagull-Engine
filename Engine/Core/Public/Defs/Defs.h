@@ -41,6 +41,10 @@
 #	define SG_INLINE SG_FORCE_INLINE
 #endif
 
+// helper signs
+//! You can ignore this value or pointer when you use it.
+#define SG_NULLABLE
+
 #ifndef SG_COMPILE_ASSERT
 #	define SG_COMPILE_ASSERT(x, MSG) do { static_assert(x, #MSG); } while(false)
 #endif

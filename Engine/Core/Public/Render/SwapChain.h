@@ -4,6 +4,8 @@
 
 #include "Platform/OS.h"
 
+#include "DeviceMemory.h"
+
 namespace SG
 {
 
@@ -550,7 +552,7 @@ namespace SG
 		ESampleCount   sample;
 		EImageType     type;
 		EImageUsage    usage;
-		EImageLayout   initLayout;
+		SG_NULLABLE EImageLayout initLayout;
 
 		UInt32         width;
 		UInt32         height;
@@ -561,6 +563,9 @@ namespace SG
 		UInt32         sizeInByte;
 		const void*    pInitData;
 		void*          pUserData;
+
+		//EGPUMemoryUsage memoryUsage;
+		SG_NULLABLE EGPUMemoryFlag  memoryFlag = EGPUMemoryFlag::efInvalid;
 	};
 
 	interface RenderTarget

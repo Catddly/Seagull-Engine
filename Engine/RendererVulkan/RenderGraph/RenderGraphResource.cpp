@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "RenderGraphResource.h"
 
-#include "RendererVulkan/Backend/VulkanSwapchain.h"
+#include "RendererVulkan/Backend/VulkanTexture.h"
 
 namespace SG
 {

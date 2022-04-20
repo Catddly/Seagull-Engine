@@ -46,6 +46,7 @@ namespace SG
 		indirectCI.name = "indirectBuffer";
 		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
 		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
+		indirectCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 		if (!VK_RESOURCE()->CreateBuffer(indirectCI))
 			return;
 
@@ -53,7 +54,8 @@ namespace SG
 		insOutCI.name = "instanceOutput";
 		insOutCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
 		insOutCI.type = EBufferType::efStorage;
-		if (!VK_RESOURCE()->CreateBuffer(insOutCI, true))
+		insOutCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+		if (!VK_RESOURCE()->CreateBuffer(insOutCI))
 			return;
 		mbRendererInit = true;
 
@@ -119,10 +121,11 @@ namespace SG
 					vibCI.bufferSize = SG_MAX_PACKED_INSTANCE_BUFFER_SIZE;
 					vibCI.type = EBufferType::efVertex | EBufferType::efStorage;
 					vibCI.pInitData = buildData.perInstanceData.data();
-					vibCI.dataSize = static_cast<UInt32>(ivbSize);
-					vibCI.dataOffset = static_cast<UInt32>(mPackedVIBCurrOffset);
+					vibCI.subBufferSize = static_cast<UInt32>(ivbSize);
+					vibCI.subBufferOffset = static_cast<UInt32>(mPackedVIBCurrOffset);
 					vibCI.bSubBufer = true;
-					VK_RESOURCE()->CreateBuffer(vibCI, true);
+					vibCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+					VK_RESOURCE()->CreateBuffer(vibCI);
 					SG_LOG_DEBUG("Have instance!");
 
 					InstanceOutputData insOutputData = {};
@@ -156,10 +159,11 @@ namespace SG
 				vbCI.bufferSize = SG_MAX_PACKED_VERTEX_BUFFER_SIZE;
 				vbCI.type = EBufferType::efVertex;
 				vbCI.pInitData = pMeshData->vertices.data();
-				vbCI.dataSize = static_cast<UInt32>(vbSize);
-				vbCI.dataOffset = static_cast<UInt32>(mPackedVBCurrOffset);
+				vbCI.subBufferSize = static_cast<UInt32>(vbSize);
+				vbCI.subBufferOffset = static_cast<UInt32>(mPackedVBCurrOffset);
 				vbCI.bSubBufer = true;
-				VK_RESOURCE()->CreateBuffer(vbCI, true);
+				vbCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+				VK_RESOURCE()->CreateBuffer(vbCI);
 
 				// create one big index buffer
 				BufferCreateDesc ibCI = {};
@@ -167,10 +171,11 @@ namespace SG
 				ibCI.bufferSize = SG_MAX_PACKED_INDEX_BUFFER_SIZE;
 				ibCI.type = EBufferType::efIndex;
 				ibCI.pInitData = pMeshData->indices.data();
-				ibCI.dataSize = static_cast<UInt32>(ibSize);
-				ibCI.dataOffset = static_cast<UInt32>(mPackedIBCurrOffset);
+				ibCI.subBufferSize = static_cast<UInt32>(ibSize);
+				ibCI.subBufferOffset = static_cast<UInt32>(mPackedIBCurrOffset);
 				ibCI.bSubBufer = true;
-				VK_RESOURCE()->CreateBuffer(ibCI, true);
+				ibCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+				VK_RESOURCE()->CreateBuffer(ibCI);
 				VK_RESOURCE()->FlushBuffers();
 
 				IndirectDrawCall indirectDc;
@@ -219,10 +224,11 @@ namespace SG
 		insOutputCI.type = EBufferType::efStorage;
 		insOutputCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
 		insOutputCI.pInitData = instanceOutputData.data();
-		insOutputCI.dataSize = static_cast<UInt32>(sizeof(InstanceOutputData) * instanceOutputData.size());
-		insOutputCI.dataOffset = 0;
+		insOutputCI.subBufferSize = static_cast<UInt32>(sizeof(InstanceOutputData) * instanceOutputData.size());
+		insOutputCI.subBufferOffset = 0;
 		insOutputCI.bSubBufer = true;
-		VK_RESOURCE()->CreateBuffer(insOutputCI, true);
+		insOutputCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+		VK_RESOURCE()->CreateBuffer(insOutputCI);
 		VK_RESOURCE()->FlushBuffers();
 
 		VK_RESOURCE()->GetBuffer("indirectBuffer")->UploadData(indirectCommands.data(), static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand)* indirectCommands.size()), 0);

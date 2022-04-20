@@ -10,7 +10,7 @@
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
-#include "RendererVulkan/Backend/VulkanSwapchain.h"
+#include "RendererVulkan/Backend/VulkanTexture.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
 #include "ktx/ktx.h"
@@ -26,6 +26,7 @@ namespace SG
 		ssboCI.name = "perObjectBuffer";
 		ssboCI.bufferSize = sizeof(ObjcetRenderData) * SG_MAX_NUM_OBJECT;
 		ssboCI.type = EBufferType::efStorage;
+		ssboCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 		CreateBuffer(ssboCI);
 
 		// This is only for debugging purpose
@@ -39,6 +40,7 @@ namespace SG
 		cullBufferCI.name = "cullUbo";
 		cullBufferCI.bufferSize = sizeof(GPUCullUBO) * SG_MAX_NUM_OBJECT;
 		cullBufferCI.type = EBufferType::efUniform;
+		cullBufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 		CreateBuffer(cullBufferCI);
 
 		auto pSkybox = SSystem()->GetMainScene()->GetSkyboxEntity();
@@ -51,7 +53,8 @@ namespace SG
 		bufferCI.pInitData = skyboxVertices.data();
 		bufferCI.bufferSize = static_cast<UInt32>(vbSize);
 		bufferCI.type = EBufferType::efVertex;
-		CreateBuffer(bufferCI, true);
+		bufferCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+		CreateBuffer(bufferCI);
 		FlushBuffers();
 
 		// eliminate the translation part of the matrix
@@ -133,8 +136,8 @@ namespace SG
 		auto* pCamera = pScene->GetMainCamera();
 		if (pCamera->IsViewDirty())
 		{
-			Frustum cameraFrustum = pCamera->GetFrustum();
 			auto& cullUbo = GetGPUCullUBO();
+			Frustum cameraFrustum = pCamera->GetFrustum();
 			cullUbo.frustum[0] = cameraFrustum.GetTopPlane();
 			cullUbo.frustum[1] = cameraFrustum.GetBottomPlane();
 			cullUbo.frustum[2] = cameraFrustum.GetLeftPlane();
@@ -162,7 +165,9 @@ namespace SG
 		}
 
 		auto* pSSBOObject = GetBuffer("perObjectBuffer");
-		pScene->TraverseEntity([this, pSSBOObject](auto& entity)
+		auto* pObjectRenderBuffer = pSSBOObject->MapMemory<ObjcetRenderData>();
+
+		pScene->TraverseEntity([this, pObjectRenderBuffer](auto& entity)
 			{
 				auto& tag = entity.GetComponent<TagComponent>();
 				if (tag.bDirty)
@@ -172,9 +177,9 @@ namespace SG
 						auto [trans, light] = entity.GetComponent<TransformComponent, PointLightComponent>();
 
 						auto& lightUbo = GetLightUBO();
+						lightUbo.pointLightPos = trans.position;
 						lightUbo.pointLightColor = light.color;
 						lightUbo.pointLightRadius = light.radius;
-						lightUbo.pointLightPos = trans.position;
 						UpdataBufferData("lightUbo", &lightUbo);
 					}
 					else if (entity.HasComponent<DirectionalLightComponent>())
@@ -194,18 +199,17 @@ namespace SG
 					{
 						auto [trans, mesh, mat] = entity.GetComponent<TransformComponent, MeshComponent, MaterialComponent>();
 
-						ObjcetRenderData renderData = {};
-						renderData.model = GetTransform(trans);
-						renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
-						renderData.meshId = mesh.meshId;
-						renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
-						renderData.albedo = mat.color;
-						// here we map and unmap memory for event dirty object, this is not good.
-						pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
+						auto* pBuf = pObjectRenderBuffer + mesh.objectId;
+						pBuf->model = GetTransform(trans);
+						pBuf->inverseTransposeModel = glm::transpose(glm::inverse(pBuf->model));
+						pBuf->meshId = mesh.meshId;
+						pBuf->MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(pBuf->meshId) ? 1.0f : -1.0f };
+						pBuf->albedo = mat.color;
 					}
 					tag.bDirty = false;
 				}
 			});
+		pSSBOObject->UnmapMemory();
 
 		auto& compositionUbo = GetCompositionUBO();
 		UpdataBufferData("compositionUbo", &compositionUbo);
@@ -264,11 +268,12 @@ namespace SG
 	/// Buffers
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool VulkanResourceRegistry::CreateBuffer(const BufferCreateDesc& bufferCI, bool bLocal)
+	bool VulkanResourceRegistry::CreateBuffer(const BufferCreateDesc& bufferCI)
 	{
+		bool bHostVisible = IsHostVisible(bufferCI.memoryUsage);
 		if (mBuffers.count(bufferCI.name) != 0) // do data copy
 		{
-			if (bLocal)
+			if (!bHostVisible)
 			{
 				if (!bufferCI.pInitData)
 				{
@@ -282,9 +287,9 @@ namespace SG
 		}
 
 		auto& bufferCreateInfo = const_cast<BufferCreateDesc&>(bufferCI);
-		if (bLocal && !SG_HAS_ENUM_FLAG(bufferCreateInfo.type, EBufferType::efTransfer_Dst))
+		if (!bHostVisible && !SG_HAS_ENUM_FLAG(bufferCreateInfo.type, EBufferType::efTransfer_Dst))
 			bufferCreateInfo.type = bufferCreateInfo.type | EBufferType::efTransfer_Dst;
-		mBuffers[bufferCreateInfo.name] = VulkanBuffer::Create(mpContext->device, bufferCreateInfo, bLocal);
+		mBuffers[bufferCreateInfo.name] = VulkanBuffer::Create(*mpContext, bufferCreateInfo);
 		VulkanBuffer* pBuffer = mBuffers[bufferCI.name];
 		if (!pBuffer)
 		{
@@ -292,15 +297,15 @@ namespace SG
 			return false;
 		}
 
-		if (!bLocal && bufferCI.pInitData)
+		if (bHostVisible && bufferCI.pInitData)
 		{
 			if (bufferCI.bSubBufer)
-				pBuffer->UploadData(bufferCI.pInitData, bufferCI.dataSize, bufferCI.dataOffset);
+				pBuffer->UploadData(bufferCI.pInitData, bufferCI.subBufferSize, bufferCI.subBufferOffset);
 			else
 				pBuffer->UploadData(bufferCI.pInitData);
 		}
 
-		if (bLocal)
+		if (!bHostVisible)
 		{
 			if (bufferCI.pInitData)
 			{
@@ -325,14 +330,17 @@ namespace SG
 		for (auto& data : mWaitToSubmitBuffers) // copy all the buffers data using staging buffer
 		{
 			data.first.type = EBufferType::efTransfer_Src;
-			if (data.first.bSubBufer)
-				data.first.bufferSize = data.first.dataSize;
+			data.first.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
+			data.first.memoryFlag = EGPUMemoryFlag::efInvalid;
 
-			mpStagingBuffers.push_back(VulkanBuffer::Create(mpContext->device, data.first, false));
+			if (data.first.bSubBufer)
+				data.first.bufferSize = data.first.subBufferSize;
+
+			mpStagingBuffers.push_back(VulkanBuffer::Create(*mpContext, data.first));
 			auto* pStagingBuf = mpStagingBuffers.back();
 			pStagingBuf->UploadData(data.first.pInitData);
 
-			cmd.CopyBuffer(*pStagingBuf, *data.second, 0, data.first.bSubBufer ? data.first.dataOffset : 0);
+			cmd.CopyBuffer(*pStagingBuf, *data.second, 0, data.first.bSubBufer ? data.first.subBufferOffset : 0);
 			++index;
 		}
 		cmd.EndRecord();
@@ -379,7 +387,7 @@ namespace SG
 	/// Textures
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool VulkanResourceRegistry::CreateTexture(const TextureCreateDesc& textureCI, bool bLocal)
+	bool VulkanResourceRegistry::CreateTexture(const TextureCreateDesc& textureCI)
 	{
 		if (mTextures.count(textureCI.name) != 0)
 		{
@@ -388,9 +396,9 @@ namespace SG
 		}
 
 		auto& texCI = const_cast<TextureCreateDesc&>(textureCI);
-		if (bLocal && !SG_HAS_ENUM_FLAG(textureCI.usage, EImageUsage::efTransfer_Dst))
+		if (!SG_HAS_ENUM_FLAG(textureCI.usage, EImageUsage::efTransfer_Dst))
 			texCI.usage = texCI.usage | EImageUsage::efTransfer_Dst;
-		mTextures[texCI.name] = VulkanTexture::Create(mpContext->device, textureCI, bLocal);
+		mTextures[texCI.name] = VulkanTexture::Create(*mpContext, textureCI);
 		VulkanTexture* pTex = mTextures[texCI.name];
 		if (!pTex)
 		{
@@ -398,17 +406,17 @@ namespace SG
 			return false;
 		}
 
-		if (bLocal && textureCI.pInitData)
+		if (textureCI.pInitData)
 		{
 			//if (!textureCI.pInitData)
 			//{
 			//	SG_LOG_ERROR("Device local buffer must have initialize data!");
 			//	return false;
 			//}
+			
 			// make a copy of bufferCI
 			BufferCreateDesc bufferCI = {};
 			bufferCI.name = textureCI.name;
-			bufferCI.bLocal = bLocal;
 			bufferCI.type = EBufferType::efTransfer_Src;
 			bufferCI.pInitData = textureCI.pInitData;
 			bufferCI.bufferSize = textureCI.sizeInByte;
@@ -441,7 +449,10 @@ namespace SG
 		for (auto& data : mWaitToSubmitTextures) // copy all the buffers data using staging buffer
 		{
 			data.first.type = EBufferType::efTransfer_Src;
-			stagingBuffers.emplace_back(VulkanBuffer::Create(mpContext->device, data.first, false)); // create a staging buffer
+			data.first.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
+			data.first.memoryFlag = EGPUMemoryFlag::efInvalid;
+
+			stagingBuffers.emplace_back(VulkanBuffer::Create(*mpContext, data.first)); // create a staging buffer
 			stagingBuffers[index]->UploadData(data.first.pInitData);
 
 			vector<TextureCopyRegion> copyRegions;
@@ -600,7 +611,7 @@ namespace SG
 			return false;
 		}
 
-		mRenderTargets[textureCI.name] = VulkanRenderTarget::Create(mpContext->device, textureCI, isDepth);
+		mRenderTargets[textureCI.name] = VulkanRenderTarget::Create(*mpContext, textureCI, isDepth);
 		VulkanRenderTarget* pRt = mRenderTargets[textureCI.name];
 		if (!pRt)
 		{

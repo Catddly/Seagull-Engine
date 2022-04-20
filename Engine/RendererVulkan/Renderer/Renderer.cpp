@@ -29,8 +29,9 @@ namespace SG
 					bufferCreateDesc.pInitData = buildData.perInstanceData.data();
 					bufferCreateDesc.bufferSize = sizeof(float) * 4 * buildData.instanceCount;
 					bufferCreateDesc.type = EBufferType::efVertex;
+					bufferCreateDesc.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 
-					VK_RESOURCE()->CreateBuffer(bufferCreateDesc, false);
+					VK_RESOURCE()->CreateBuffer(bufferCreateDesc);
 					SG_LOG_DEBUG("Have instance!");
 				}
 
@@ -55,10 +56,11 @@ namespace SG
 				vbCI.bufferSize = SG_MAX_PACKED_VERTEX_BUFFER_SIZE;
 				vbCI.type = EBufferType::efVertex;
 				vbCI.pInitData = pMeshData->vertices.data();
-				vbCI.dataSize = static_cast<UInt32>(vbSize);
-				vbCI.dataOffset = static_cast<UInt32>(mPackedVBCurrOffset);
+				vbCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 				vbCI.bSubBufer = true;
-				VK_RESOURCE()->CreateBuffer(vbCI, true);
+				vbCI.subBufferSize = static_cast<UInt32>(vbSize);
+				vbCI.subBufferOffset = static_cast<UInt32>(mPackedVBCurrOffset);
+				VK_RESOURCE()->CreateBuffer(vbCI);
 
 				// create one big index buffer
 				BufferCreateDesc ibCI = {};
@@ -66,10 +68,11 @@ namespace SG
 				ibCI.bufferSize = SG_MAX_PACKED_INDEX_BUFFER_SIZE;
 				ibCI.type = EBufferType::efIndex;
 				ibCI.pInitData = pMeshData->indices.data();
-				ibCI.dataSize = static_cast<UInt32>(ibSize);
-				ibCI.dataOffset = static_cast<UInt32>(mPackedIBCurrOffset);
+				ibCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 				ibCI.bSubBufer = true;
-				VK_RESOURCE()->CreateBuffer(ibCI, true);
+				ibCI.subBufferSize = static_cast<UInt32>(ibSize);
+				ibCI.subBufferOffset = static_cast<UInt32>(mPackedIBCurrOffset);
+				VK_RESOURCE()->CreateBuffer(ibCI);
 				VK_RESOURCE()->FlushBuffers();
 
 				DrawCall dc = {};

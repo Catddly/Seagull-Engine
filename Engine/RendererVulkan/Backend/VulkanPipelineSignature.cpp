@@ -7,6 +7,7 @@
 #include "RendererVulkan/Backend/VulkanShader.h"
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
+#include "RendererVulkan/Backend/VulkanTexture.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
 namespace SG
@@ -51,6 +52,7 @@ namespace SG
 				bufferCI.name = uboData.first.c_str();
 				bufferCI.bufferSize = uboData.second.layout.GetTotalSizeInByte();
 				bufferCI.type = EBufferType::efUniform;
+				bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 				if (!VK_RESOURCE()->GetBuffer(bufferCI.name))
 					VK_RESOURCE()->CreateBuffer(bufferCI);
 
@@ -69,6 +71,7 @@ namespace SG
 				bufferCI.name = ssboData.first.c_str();
 				bufferCI.bufferSize = ssboData.second.layout.GetTotalSizeInByte();
 				bufferCI.type = EBufferType::efStorage;
+				bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 
 				if (!VK_RESOURCE()->GetBuffer(bufferCI.name))
 					VK_RESOURCE()->CreateBuffer(bufferCI);

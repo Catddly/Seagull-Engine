@@ -188,6 +188,9 @@ namespace SG
 					ImGui::TreePop();
 			});
 
+		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+			mSelectedEntity = { };
+
 		ImGui::End();
 	}
 

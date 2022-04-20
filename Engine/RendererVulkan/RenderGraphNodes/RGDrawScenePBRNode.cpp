@@ -13,7 +13,7 @@
 #include "RendererVulkan/Backend/VulkanBuffer.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
-#include "RendererVulkan/Backend/VulkanSwapchain.h"
+#include "RendererVulkan/Backend/VulkanTexture.h"
 #include "RendererVulkan/Backend/VulkanPipelineSignature.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
@@ -40,32 +40,8 @@ namespace SG
 	{
 		// init render resource
 #ifdef SG_ENABLE_HDR
-		TextureCreateDesc rtCI;
-		rtCI.name = "HDRColor";
-		rtCI.width = mContext.colorRts[0]->GetWidth();
-		rtCI.height = mContext.colorRts[0]->GetHeight();
-		rtCI.depth = mContext.colorRts[0]->GetDepth();
-		rtCI.array = 1;
-		rtCI.mipLevel = 1;
-		rtCI.format = EImageFormat::eSfloat_R32G32B32A32;
-		rtCI.sample = ESampleCount::eSample_1;
-		rtCI.type = EImageType::e2D;
-		rtCI.usage = EImageUsage::efColor | EImageUsage::efSample;
-		rtCI.initLayout = EImageLayout::eUndefined;
-
-		VK_RESOURCE()->CreateRenderTarget(rtCI);
-
-		// translate color rt from undefined to shader read
-		VulkanCommandBuffer pCmd;
-		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
-		pCmd.BeginRecord();
-		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("HDRColor"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
-		pCmd.EndRecord();
-		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mContext.graphicQueue.WaitIdle();
-		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+		CreateColorRt();
 #endif
-
 		// load cube map texture
 		TextureResourceLoader texLoader;
 		Raw2DTexture texData = {};
@@ -84,7 +60,7 @@ namespace SG
 		texCI.pInitData = texData.pData;
 		texCI.sizeInByte = texData.sizeInByte;
 		texCI.pUserData = texData.pUserData;
-		VK_RESOURCE()->CreateTexture(texCI, true);
+		VK_RESOURCE()->CreateTexture(texCI);
 		VK_RESOURCE()->FlushTextures();
 
 		SamplerCreateDesc samplerCI = {};
@@ -155,30 +131,8 @@ namespace SG
 	void RGDrawScenePBRNode::Reset()
 	{
 #ifdef SG_ENABLE_HDR
-		VK_RESOURCE()->DeleteRenderTarget("HDRColor");
-		TextureCreateDesc rtCI;
-		rtCI.name = "HDRColor";
-		rtCI.width = mContext.colorRts[0]->GetWidth();
-		rtCI.height = mContext.colorRts[0]->GetHeight();
-		rtCI.depth = mContext.colorRts[0]->GetDepth();
-		rtCI.array = 1;
-		rtCI.mipLevel = 1;
-		rtCI.format = EImageFormat::eSfloat_R32G32B32A32;
-		rtCI.sample = ESampleCount::eSample_1;
-		rtCI.type = EImageType::e2D;
-		rtCI.usage = EImageUsage::efColor | EImageUsage::efSample;
-		rtCI.initLayout = EImageLayout::eUndefined;
-		VK_RESOURCE()->CreateRenderTarget(rtCI);
-
-		// translate color rt from undefined to shader read
-		VulkanCommandBuffer pCmd;
-		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
-		pCmd.BeginRecord();
-		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("HDRColor"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
-		pCmd.EndRecord();
-		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mContext.graphicQueue.WaitIdle();
-		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+		DestroyColorRt();
+		CreateColorRt();
 
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
@@ -376,7 +330,7 @@ namespace SG
 		texCI.type = EImageType::e2D;
 		texCI.pInitData = nullptr;
 		texCI.initLayout = EImageLayout::eUndefined;
-		VK_RESOURCE()->CreateTexture(texCI, true);
+		VK_RESOURCE()->CreateTexture(texCI);
 
 		// create for drawing and copying
 		texCI.name = "cubemap_irradiance_rt";
@@ -537,7 +491,7 @@ namespace SG
 		texCI.type = EImageType::e2D;
 		texCI.pInitData = nullptr;
 		texCI.initLayout = EImageLayout::eUndefined;
-		VK_RESOURCE()->CreateTexture(texCI, true);
+		VK_RESOURCE()->CreateTexture(texCI);
 
 		// create for drawing and copying
 		texCI.name = "cubemap_prefilter_rt";
@@ -666,6 +620,41 @@ namespace SG
 		Memory::Delete(pTempVulkanRenderPass);
 		Memory::Delete(pFence);
 		VK_RESOURCE()->DeleteRenderTarget("cubemap_prefilter_rt");
+	}
+
+	void RGDrawScenePBRNode::CreateColorRt()
+	{
+		TextureCreateDesc rtCI;
+		rtCI.name = "HDRColor";
+		rtCI.width = mContext.colorRts[0]->GetWidth();
+		rtCI.height = mContext.colorRts[0]->GetHeight();
+		rtCI.depth = mContext.colorRts[0]->GetDepth();
+		rtCI.array = 1;
+		rtCI.mipLevel = 1;
+		rtCI.format = EImageFormat::eSfloat_R32G32B32A32; // HDR
+		rtCI.sample = ESampleCount::eSample_1;
+		rtCI.type = EImageType::e2D;
+		rtCI.usage = EImageUsage::efColor | EImageUsage::efSample;
+		rtCI.initLayout = EImageLayout::eUndefined;
+		rtCI.memoryFlag = EGPUMemoryFlag::efDedicated_Memory;
+
+		VK_RESOURCE()->CreateRenderTarget(rtCI);
+
+		// translate color rt from undefined to shader read
+		VulkanCommandBuffer pCmd;
+		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
+		pCmd.BeginRecord();
+		auto* pRt = VK_RESOURCE()->GetRenderTarget("HDRColor");
+		pCmd.ImageBarrier(pRt, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
+		pCmd.EndRecord();
+		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
+		mContext.graphicQueue.WaitIdle();
+		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+	}
+
+	void RGDrawScenePBRNode::DestroyColorRt()
+	{
+		VK_RESOURCE()->DeleteRenderTarget("HDRColor");
 	}
 
 }

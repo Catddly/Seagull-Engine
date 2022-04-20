@@ -4,7 +4,7 @@
 namespace SG
 {
 
-	static LightUBO  gLightUbo = {};
+	static LightUBO gLightUbo = {};
 	static SkyboxUBO gSkyboxUbo = {};
 	static ShadowUBO gShadowUbo = {};
 	static CameraUBO gCameraUbo = {};

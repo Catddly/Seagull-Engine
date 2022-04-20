@@ -52,8 +52,7 @@ namespace SG
 		void WaitBuffersUpdate() const;
 
 		/// Buffer Begin
-		// By default, create the buffer using HOST_VISIBLE bit.
-		bool CreateBuffer(const BufferCreateDesc& bufferCI, bool bLocal = false);
+		bool CreateBuffer(const BufferCreateDesc& bufferCI);
 		VulkanBuffer* GetBuffer(const string& name) const;
 		bool HaveBuffer(const char* name);
 		void DeleteBuffer(const string& name);
@@ -62,7 +61,7 @@ namespace SG
 		/// Buffer End
 
 		/// Texture Begin
-		bool CreateTexture(const TextureCreateDesc& textureCI, bool bLocal = false);
+		bool CreateTexture(const TextureCreateDesc& textureCI);
 		VulkanTexture* GetTexture(const string& name) const;
 		void FlushTextures() const;
 		/// Texture End

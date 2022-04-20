@@ -6,7 +6,7 @@
 
 #include "VulkanConfig.h"
 #include "VulkanBuffer.h"
-#include "VulkanSwapchain.h"
+#include "VulkanTexture.h"
 
 #include "RendererVulkan/Utils/VkConvert.h"
 
@@ -159,9 +159,9 @@ namespace SG
 
 		VkDescriptorBufferInfo bufferInfo = {};
 		bufferInfo.buffer = pBuf->buffer;
-		bufferInfo.range = pBuf->sizeInByteCPU;
+		bufferInfo.range = pBuf->size;
 		bufferInfo.offset = 0;
-		offset += pBuf->sizeInByteCPU;
+		offset += pBuf->size;
 
 		bufferInfos[currentBufferIndex] = eastl::move(bufferInfo);
 

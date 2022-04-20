@@ -4,18 +4,17 @@
 #include "System/System.h"
 #include "Platform/OS.h"
 
-#include "VulkanInstance.h"
-#include "VulkanDevice.h"
+#include "VulkanContext.h"
 #include "VulkanSynchronizePrimitive.h"
-#include "RendererVulkan/Utils/VkConvert.h"
+#include "VulkanTexture.h"
 
 #include "Memory/Memory.h"
 
 namespace SG
 {
 
-	VulkanSwapchain::VulkanSwapchain(VulkanInstance& instance, VulkanDevice& device)
-		:mInstance(instance), mDevice(device)
+	VulkanSwapchain::VulkanSwapchain(VulkanContext& context)
+		:mContext(context)
 	{
 		CreateSurface();
 	}
@@ -34,22 +33,22 @@ namespace SG
 		vector<VkSurfaceFormatKHR> formats;
 		vector<VkPresentModeKHR> presentModes;
 
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mInstance.physicalDevice, mPresentSurface, &capabilities);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mContext.instance.physicalDevice, mPresentSurface, &capabilities);
 
 		UInt32 formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(mInstance.physicalDevice, mPresentSurface, &formatCount, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(mContext.instance.physicalDevice, mPresentSurface, &formatCount, nullptr);
 		if (formatCount != 0)
 		{
 			formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(mInstance.physicalDevice, mPresentSurface, &formatCount, formats.data());
+			vkGetPhysicalDeviceSurfaceFormatsKHR(mContext.instance.physicalDevice, mPresentSurface, &formatCount, formats.data());
 		}
 
 		UInt32 presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(mInstance.physicalDevice, mPresentSurface, &presentModeCount, nullptr);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(mContext.instance.physicalDevice, mPresentSurface, &presentModeCount, nullptr);
 		if (presentModeCount != 0)
 		{
 			presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(mInstance.physicalDevice, mPresentSurface, &presentModeCount, presentModes.data());
+			vkGetPhysicalDeviceSurfacePresentModesKHR(mContext.instance.physicalDevice, mPresentSurface, &presentModeCount, presentModes.data());
 		}
 
 		// if the swapchain can do presenting
@@ -81,7 +80,7 @@ namespace SG
 		}
 
 		VkSurfaceCapabilitiesKHR surfCaps;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mInstance.physicalDevice, mPresentSurface, &surfCaps);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mContext.instance.physicalDevice, mPresentSurface, &surfCaps);
 
 		// find the transformation of the surface
 		VkSurfaceTransformFlagsKHR preTransform;
@@ -137,7 +136,7 @@ namespace SG
 
 		createInfo.oldSwapchain = oldSwapchain;
 
-		if (vkCreateSwapchainKHR(mDevice.logicalDevice, &createInfo, nullptr, &swapchain) != VK_SUCCESS)
+		if (vkCreateSwapchainKHR(mContext.device.logicalDevice, &createInfo, nullptr, &swapchain) != VK_SUCCESS)
 		{
 			SG_LOG_ERROR("Failed to create swapchain");
 			return false;
@@ -147,15 +146,15 @@ namespace SG
 		if (oldSwapchain != VK_NULL_HANDLE)
 		{
 			for (auto& e : imageViews)
-				vkDestroyImageView(mDevice.logicalDevice, e, nullptr);
-			vkDestroySwapchainKHR(mDevice.logicalDevice, oldSwapchain, nullptr);
+				vkDestroyImageView(mContext.device.logicalDevice, e, nullptr);
+			vkDestroySwapchainKHR(mContext.device.logicalDevice, oldSwapchain, nullptr);
 			for (UInt32 i = 0; i < imageCount; ++i)
 				Memory::Delete(mpRts[i]);
 		}
 
-		vkGetSwapchainImagesKHR(mDevice.logicalDevice, swapchain, &imageCount, nullptr);
+		vkGetSwapchainImagesKHR(mContext.device.logicalDevice, swapchain, &imageCount, nullptr);
 		images.resize(imageCount);
-		vkGetSwapchainImagesKHR(mDevice.logicalDevice, swapchain, &imageCount, images.data());
+		vkGetSwapchainImagesKHR(mContext.device.logicalDevice, swapchain, &imageCount, images.data());
 
 		imageViews.resize(imageCount);
 		mpRts.resize(imageCount);
@@ -181,9 +180,9 @@ namespace SG
 
 			colorAttachmentView.image = images[i];
 
-			vkCreateImageView(mDevice.logicalDevice, &colorAttachmentView, nullptr, &imageViews[i]);
+			vkCreateImageView(mContext.device.logicalDevice, &colorAttachmentView, nullptr, &imageViews[i]);
 
-			mpRts[i] = Memory::New<VulkanRenderTarget>(mDevice);
+			mpRts[i] = Memory::New<VulkanRenderTarget>(mContext);
 			mpRts[i]->width  = swapchainExtent.width;
 			mpRts[i]->height = swapchainExtent.height;
 			mpRts[i]->depth  = 1;
@@ -197,7 +196,7 @@ namespace SG
 
 			mpRts[i]->image     = images[i];
 			mpRts[i]->imageView = imageViews[i];
-			mpRts[i]->memory    = 0;
+			mpRts[i]->vmaAllocation = 0;
 			mpRts[i]->mbIsDepth = false;
 
 			mpRts[i]->id = TextureIDAllocator::NewID();
@@ -209,7 +208,7 @@ namespace SG
 	void VulkanSwapchain::DestroySurface()
 	{
 		if (mPresentSurface != VK_NULL_HANDLE)
-			vkDestroySurfaceKHR(mInstance.instance, mPresentSurface, nullptr);
+			vkDestroySurfaceKHR(mContext.instance.instance, mPresentSurface, nullptr);
 	}
 
 	VulkanRenderTarget* VulkanSwapchain::GetRenderTarget(UInt32 index) const
@@ -223,16 +222,16 @@ namespace SG
 	void VulkanSwapchain::CleanUp()
 	{
 		for (UInt32 i = 0; i < imageCount; ++i)
-			vkDestroyImageView(mDevice.logicalDevice, imageViews[i], nullptr);
+			vkDestroyImageView(mContext.device.logicalDevice, imageViews[i], nullptr);
 		for (auto* ptr : mpRts)
 			Memory::Delete(ptr);
 		if (swapchain != VK_NULL_HANDLE)
-			vkDestroySwapchainKHR(mDevice.logicalDevice, swapchain, nullptr);
+			vkDestroySwapchainKHR(mContext.device.logicalDevice, swapchain, nullptr);
 	}
 
 	bool VulkanSwapchain::AcquireNextImage(VulkanSemaphore* pSignalSemaphore, UInt32& imageIndex)
 	{
-		if (vkAcquireNextImageKHR(mDevice.logicalDevice, swapchain, UINT64_MAX, pSignalSemaphore->semaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
+		if (vkAcquireNextImageKHR(mContext.device.logicalDevice, swapchain, UINT64_MAX, pSignalSemaphore->semaphore, VK_NULL_HANDLE, &imageIndex) != VK_SUCCESS)
 		{
 			SG_LOG_WARN("Failed to acquire next image!");
 			return false;
@@ -272,16 +271,16 @@ namespace SG
 		createInfo.hwnd = (HWND)mainWindow->GetNativeHandle();
 		createInfo.hinstance = ::GetModuleHandle(NULL);
 		
-		if (vkCreateWin32SurfaceKHR(mInstance.instance, &createInfo, nullptr, &mPresentSurface) != VK_SUCCESS)
+		if (vkCreateWin32SurfaceKHR(mContext.instance.instance, &createInfo, nullptr, &mPresentSurface) != VK_SUCCESS)
 			return false;
 
-		CheckSurfacePresentable(mDevice.queueFamilyIndices.graphics);
+		CheckSurfacePresentable(mContext.device.queueFamilyIndices.graphics);
 
 		// Get list of supported surface formats
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(mInstance.physicalDevice, mPresentSurface, &formatCount, NULL);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(mContext.instance.physicalDevice, mPresentSurface, &formatCount, NULL);
 		vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(mInstance.physicalDevice, mPresentSurface, &formatCount, surfaceFormats.data());
+		vkGetPhysicalDeviceSurfaceFormatsKHR(mContext.instance.physicalDevice, mPresentSurface, &formatCount, surfaceFormats.data());
 
 		// If the surface format list only includes one entry with VK_FORMAT_UNDEFINED,
 		// there is no preferred format, so we assume VK_FORMAT_B8G8R8A8_UNORM
@@ -323,168 +322,13 @@ namespace SG
 	{
 		// check if the graphic queue can do the presentation job
 		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(mInstance.physicalDevice, familyIndex, mPresentSurface, &presentSupport);
+		vkGetPhysicalDeviceSurfaceSupportKHR(mContext.instance.physicalDevice, familyIndex, mPresentSurface, &presentSupport);
 		if (!presentSupport)
 		{
 			SG_LOG_ERROR("Current physical device not support surface presentation");
 			return false;
 		}
 		return true;
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// VulkanRenderTarget
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	VulkanRenderTarget* VulkanRenderTarget::Create(VulkanDevice& d, const TextureCreateDesc& CI, bool isDepth)
-	{
-		return Memory::New<VulkanRenderTarget>(d, CI, isDepth);
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// VulkanTexture
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	VulkanTexture::VulkanTexture(VulkanDevice& d, const TextureCreateDesc& CI, bool bLocal)
-		:device(d)
-	{
-		if (!IsValidImageFormat(CI.format))
-			SG_ASSERT(false);
-
-		pUserData = CI.pUserData;
-		currLayout = ToVkImageLayout(CI.initLayout);
-
-		width    = CI.width;
-		height   = CI.height;
-		depth    = CI.depth;
-		mipLevel = CI.mipLevel;
-		array    = CI.array;
-
-		format = CI.format;
-		type   = CI.type;
-		sample = CI.sample;
-		usage  = CI.usage;
-
-		VkImageCreateInfo imageCI = {};
-		imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageCI.imageType = ToVkImageType(type);
-		imageCI.format = ToVkImageFormat(format);
-		imageCI.extent = { width, height, depth };
-		imageCI.mipLevels = mipLevel;
-		imageCI.arrayLayers = array;
-		imageCI.samples = ToVkSampleCount(sample);
-		imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageCI.usage = ToVkImageUsage(usage);
-		imageCI.initialLayout = ToVkImageLayout(CI.initLayout);
-		imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		if (array == 6)
-			imageCI.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-
-		VK_CHECK(vkCreateImage(device.logicalDevice, &imageCI, nullptr, &image),
-			SG_LOG_ERROR("Failed to create vulkan texture!"););
-
-		VkMemoryRequirements memReqs = {};
-		vkGetImageMemoryRequirements(device.logicalDevice, image, &memReqs);
-
-		VkMemoryAllocateInfo memAllloc = {};
-		memAllloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		memAllloc.allocationSize = memReqs.size;
-		memAllloc.memoryTypeIndex = device.GetMemoryType(memReqs.memoryTypeBits, bLocal ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
-			(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
-		vkAllocateMemory(device.logicalDevice, &memAllloc, nullptr, &memory);
-		vkBindImageMemory(device.logicalDevice, image, memory, 0);
-
-		VkImageViewCreateInfo imageViewCI = {};
-		imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCI.viewType = ToVkImageViewType(imageCI.imageType, array);
-		imageViewCI.image  = image;
-		imageViewCI.format = imageCI.format;
-		imageViewCI.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-
-		imageViewCI.subresourceRange.baseMipLevel = 0;
-		imageViewCI.subresourceRange.baseArrayLayer = 0;
-		imageViewCI.subresourceRange.levelCount = mipLevel;
-		imageViewCI.subresourceRange.layerCount = array;
-		imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-
-		if (format == EImageFormat::eUnorm_D24_uint_S8 || format == EImageFormat::eSfloat_D32_uint_S8)
-			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-		else if (format == EImageFormat::eSfloat_D32 || format == EImageFormat::eUnorm_D16)
-			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-
-		VK_CHECK(vkCreateImageView(device.logicalDevice, &imageViewCI, nullptr, &imageView),
-			SG_LOG_ERROR("Failed to create vulkan texture image view!"););
-
-		id = TextureIDAllocator::NewID();
-	}
-
-	VulkanTexture::~VulkanTexture()
-	{
-		if (memory != 0)
-		{
-			vkDestroyImageView(device.logicalDevice, imageView, nullptr);
-			vkDestroyImage(device.logicalDevice, image, nullptr);
-			vkFreeMemory(device.logicalDevice, memory, nullptr);
-		}
-	}
-
-	VulkanTexture* VulkanTexture::Create(VulkanDevice& d, const TextureCreateDesc& CI, bool bLocal)
-	{
-		if (!IsPowerOfTwo(CI.width) || !IsPowerOfTwo(CI.height))
-		{
-			SG_LOG_ERROR("width(height) of texture must be the power of 2!");
-			return nullptr;
-		}
-
-		return Memory::New<VulkanTexture>(d, CI, bLocal);
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// VulkanSampler
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	VulkanSampler::VulkanSampler(VulkanDevice& d, const SamplerCreateDesc& CI)
-		: device(d)
-	{
-		VkSamplerCreateInfo samplerCI = {};
-		samplerCI.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerCI.magFilter = ToVkFilterMode(CI.filterMode);
-		samplerCI.minFilter = ToVkFilterMode(CI.filterMode);
-		samplerCI.mipmapMode = ToVkMipmapMode(CI.mipmapMode);
-		samplerCI.addressModeU = ToVkAddressMode(CI.addressMode);
-		samplerCI.addressModeV = ToVkAddressMode(CI.addressMode);
-		samplerCI.addressModeW = ToVkAddressMode(CI.addressMode);
-		samplerCI.mipLodBias = CI.lodBias;
-		samplerCI.compareOp = VK_COMPARE_OP_NEVER;
-		samplerCI.minLod = CI.minLod;
-		samplerCI.maxLod = CI.maxLod;
-
-		samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-		// if this physical render device can use anisotropy
-		if (CI.enableAnisotropy && device.physicalDeviceFeatures.samplerAnisotropy)
-		{
-			samplerCI.maxAnisotropy = device.physicalDeviceLimits.maxSamplerAnisotropy;
-			samplerCI.anisotropyEnable = VK_TRUE;
-		}
-		else 
-		{
-			samplerCI.maxAnisotropy = 1.0;
-			samplerCI.anisotropyEnable = VK_FALSE;
-		}
-		samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
-
-		VK_CHECK(vkCreateSampler(device.logicalDevice, &samplerCI, nullptr, &sampler),
-			SG_LOG_ERROR("Failed to create vulkan sampler!"););
-	}
-
-	VulkanSampler::~VulkanSampler()
-	{
-		vkDestroySampler(device.logicalDevice, sampler, nullptr);
-	}
-
-	VulkanSampler* VulkanSampler::Create(VulkanDevice& d, const SamplerCreateDesc& CI)
-	{
-		return Memory::New<VulkanSampler>(d, CI);
 	}
 
 }

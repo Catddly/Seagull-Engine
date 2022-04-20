@@ -35,7 +35,8 @@ project "SRendererVulkan"
         "../../Libs/volk/include/", -- volk
         "../../Libs/volk/source/",
         "../../Libs/glm/",  -- glm
-        "../../Libs/ktx/include/"
+        "../../Libs/ktx/include/",
+        "../../Libs/vulkan_memory_allocator/" -- vulkan memory allocator
     }
 
     links

@@ -2,7 +2,7 @@
 #include "VulkanFrameBuffer.h"
 
 #include "VulkanConfig.h"
-#include "VulkanSwapchain.h"
+#include "VulkanTexture.h"
 
 #include "Memory/Memory.h"
 

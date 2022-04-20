@@ -71,7 +71,7 @@ namespace SG
 			textureCI.sample = ESampleCount::eSample_1;
 			textureCI.usage = EImageUsage::efSample;
 			textureCI.type = EImageType::e2D;
-			if (!VK_RESOURCE()->CreateTexture(textureCI, true))
+			if (!VK_RESOURCE()->CreateTexture(textureCI))
 			{
 				SG_LOG_ERROR("Failed to create texture!");
 				SG_ASSERT(false);
@@ -216,13 +216,13 @@ namespace SG
 			const UInt32 vtxBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
 			const UInt32 idxBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
 
-			if (pVertexBuffer && vtxBufferSize > pVertexBuffer->SizeInByteCPU()) // need to create a new one to hold the vtx buffer
+			if (pVertexBuffer && vtxBufferSize > pVertexBuffer->Size()) // need to create a new one to hold the vtx buffer
 			{
 				VK_RESOURCE()->DeleteBuffer(vtxBufferName);
 				bNeedToCreateVtxBuffer = true;
 			}
 
-			if (pIndexBuffer && idxBufferSize > pIndexBuffer->SizeInByteCPU()) // need to create a new one to hold the idx buffer
+			if (pIndexBuffer && idxBufferSize > pIndexBuffer->Size()) // need to create a new one to hold the idx buffer
 			{
 				VK_RESOURCE()->DeleteBuffer(idxBufferName);
 				bNeedToCreateIdxBuffer = true;
@@ -234,6 +234,7 @@ namespace SG
 				bufferCI.name = vtxBufferName.c_str();
 				bufferCI.bufferSize = vtxBufferSize;
 				bufferCI.type = EBufferType::efVertex;
+				bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 				VK_RESOURCE()->CreateBuffer(bufferCI);
 			}
 
@@ -242,6 +243,7 @@ namespace SG
 				bufferCI.name = idxBufferName.c_str();
 				bufferCI.bufferSize = idxBufferSize;
 				bufferCI.type = EBufferType::efIndex;
+				bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 				VK_RESOURCE()->CreateBuffer(bufferCI);
 			}
 

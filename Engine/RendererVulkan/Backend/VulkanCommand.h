@@ -15,10 +15,10 @@ namespace SG
 
 	class VulkanPipeline;
 	class VulkanFrameBuffer;
-	class VulkanRenderTarget;
 	class VulkanPipelineSignature;
 	class VulkanDescriptorSet;
 	class VulkanTexture;
+	class VulkanRenderTarget;
 
 	class VulkanCommandBuffer
 	{

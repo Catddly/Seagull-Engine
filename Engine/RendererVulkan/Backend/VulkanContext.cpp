@@ -8,15 +8,55 @@
 #include "VulkanDescriptor.h"
 #include "VulkanSynchronizePrimitive.h"
 #include "VulkanFrameBuffer.h"
+#include "VulkanTexture.h"
 
 #include <eastl/array.h>
+
+#define VMA_IMPLEMENTATION
+#include "vma/vk_mem_alloc.h"
 
 namespace SG
 {
 
 	VulkanContext::VulkanContext()
-		:instance(), device(instance.physicalDevice), swapchain(instance, device)
+		:instance(), device(instance.physicalDevice), swapchain(*this)
 	{
+		// create vma allocator
+		VmaAllocatorCreateInfo allocatorCI = {};
+		allocatorCI.instance = instance.instance;
+		allocatorCI.physicalDevice = instance.physicalDevice;
+		allocatorCI.device = device.logicalDevice;
+		allocatorCI.vulkanApiVersion = VK_MAKE_VERSION(1, 3, 0);
+
+		VmaVulkanFunctions vulkanFunctions = {};
+		vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+		vulkanFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+		vulkanFunctions.vkAllocateMemory = vkAllocateMemory;
+		vulkanFunctions.vkBindBufferMemory = vkBindBufferMemory;
+		vulkanFunctions.vkBindImageMemory = vkBindImageMemory;
+		vulkanFunctions.vkCreateBuffer = vkCreateBuffer;
+		vulkanFunctions.vkCreateImage = vkCreateImage;
+		vulkanFunctions.vkDestroyBuffer = vkDestroyBuffer;
+		vulkanFunctions.vkDestroyImage = vkDestroyImage;
+		vulkanFunctions.vkFreeMemory = vkFreeMemory;
+		vulkanFunctions.vkGetBufferMemoryRequirements = vkGetBufferMemoryRequirements;
+		vulkanFunctions.vkGetBufferMemoryRequirements2KHR = vkGetBufferMemoryRequirements2;
+		vulkanFunctions.vkGetImageMemoryRequirements = vkGetImageMemoryRequirements;
+		vulkanFunctions.vkGetImageMemoryRequirements2KHR = vkGetImageMemoryRequirements2;
+		vulkanFunctions.vkGetPhysicalDeviceMemoryProperties = vkGetPhysicalDeviceMemoryProperties;
+		vulkanFunctions.vkGetPhysicalDeviceProperties = vkGetPhysicalDeviceProperties;
+		vulkanFunctions.vkMapMemory = vkMapMemory;
+		vulkanFunctions.vkUnmapMemory = vkUnmapMemory;
+		vulkanFunctions.vkFlushMappedMemoryRanges = vkFlushMappedMemoryRanges;
+		vulkanFunctions.vkInvalidateMappedMemoryRanges = vkInvalidateMappedMemoryRanges;
+		vulkanFunctions.vkCmdCopyBuffer = vkCmdCopyBuffer;
+
+		allocatorCI.pVulkanFunctions = &vulkanFunctions;
+		allocatorCI.pAllocationCallbacks = nullptr;
+		vmaCreateAllocator(&allocatorCI, &vmaAllocator);
+
+		SG_LOG_INFO("VmaAllocator initialized successfully!");
+
 		graphicQueue  = device.GetQueue(EQueueType::eGraphic);
 		computeQueue  = device.GetQueue(EQueueType::eCompute);
 		transferQueue = device.GetQueue(EQueueType::eTransfer);
@@ -41,8 +81,9 @@ namespace SG
 		depthRtCI.type  = EImageType::e2D;
 		depthRtCI.usage = EImageUsage::efDepth_Stencil;
 		depthRtCI.initLayout = EImageLayout::eUndefined;
+		depthRtCI.memoryFlag = EGPUMemoryFlag::efDedicated_Memory;
 
-		depthRt = VulkanRenderTarget::Create(device, depthRtCI, true);
+		depthRt = VulkanRenderTarget::Create(*this, depthRtCI, true);
 
 		// create command buffer
 		commandBuffers.resize(swapchain.imageCount);
@@ -58,19 +99,20 @@ namespace SG
 		DestroyDefaultResource();
 
 		Memory::Delete(depthRt);
+
+		vmaDestroyAllocator(vmaAllocator);
 	}
 
 	void VulkanContext::WindowResize()
 	{
 		graphicQueue.WaitIdle();
 
-		Memory::Delete(depthRt);
-
 		Window* pMainWindow = OperatingSystem::GetMainWindow();
 		swapchain.CreateOrRecreate(pMainWindow->GetWidth(), pMainWindow->GetHeight());
 		for (UInt32 i = 0; i < colorRts.size(); ++i)
 			colorRts[i] = swapchain.GetRenderTarget(i); // this will new a VulkanRenderTarget
 
+		Memory::Delete(depthRt);
 		TextureCreateDesc depthRtCI;
 		depthRtCI.width = colorRts[0]->GetWidth();
 		depthRtCI.height = colorRts[0]->GetHeight();
@@ -82,8 +124,9 @@ namespace SG
 		depthRtCI.type = EImageType::e2D;
 		depthRtCI.usage = EImageUsage::efDepth_Stencil;
 		depthRtCI.initLayout = EImageLayout::eUndefined;
+		depthRtCI.memoryFlag = EGPUMemoryFlag::efDedicated_Memory;
 
-		depthRt = VulkanRenderTarget::Create(device, depthRtCI, true);
+		depthRt = VulkanRenderTarget::Create(*this, depthRtCI);
 
 		for (auto& pCmdBuf : commandBuffers)
 		{

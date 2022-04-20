@@ -75,7 +75,7 @@ namespace SG
 		textureCI.initLayout = EImageLayout::eUndefined;
 		textureCI.pInitData = texture.pData;
 		textureCI.sizeInByte = texture.sizeInByte;
-		VK_RESOURCE()->CreateTexture(textureCI, true);
+		VK_RESOURCE()->CreateTexture(textureCI);
 		VK_RESOURCE()->FlushTextures();
 
 		// create all the mesh resource
@@ -123,6 +123,7 @@ namespace SG
 
 		mpContext->computeCmdBuffer.Reset();
 		mpContext->commandBuffers[mCurrentFrame].Reset();
+
 		mpRenderGraph->Draw(mCurrentFrame);
 
 		// submit graphic commands

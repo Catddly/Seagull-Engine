@@ -8,7 +8,7 @@
 #include "Math/MathBasic.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
-#include "RendererVulkan/Backend/VulkanSwapchain.h"
+#include "RendererVulkan/Backend/VulkanTexture.h"
 #include "RendererVulkan/Backend/VulkanPipelineSignature.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
