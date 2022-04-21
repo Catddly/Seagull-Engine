@@ -18,6 +18,8 @@ namespace SG
 	class VulkanContext;
 	class RenderGraph;
 
+	class DockSpaceLayer;
+
 	class VulkanRenderDevice : public IRenderDevice, protected ISystemMessageListener
 	{
 	public:
@@ -41,6 +43,9 @@ namespace SG
 		UniquePtr<RenderGraph> mpRenderGraph = nullptr;
 		UniquePtr<IGUIDriver>  mpGUIDriver = nullptr;
 		UInt32 mCurrentFrame = 0;
+
+		RefPtr<DockSpaceLayer> mpDockSpaceGUILayer;
+		bool mbCopyStatisticsDetail;
 
 		bool mbBlockEvent = true;
 		bool mbWindowMinimal = false;

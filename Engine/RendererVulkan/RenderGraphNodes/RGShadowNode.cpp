@@ -130,10 +130,11 @@ namespace SG
 
 	void RGShadowNode::Draw(RGDrawInfo& context)
 	{
-		// This will cull out the shadow!
+		// Do Culling
 		IndirectRenderer::DoCulling();
 
 		auto& pBuf = *context.pCmd;
+		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efTop_Of_Pipeline, 0);
 
 		pBuf.SetViewport(SG_SHADOW_MAP_SIZE, SG_SHADOW_MAP_SIZE, 0.0f, 1.0f);
 		pBuf.SetScissor({ 0, 0, SG_SHADOW_MAP_SIZE, SG_SHADOW_MAP_SIZE });
@@ -154,6 +155,7 @@ namespace SG
 			IndirectRenderer::Draw(EMeshPass::eForwardInstanced);
 			IndirectRenderer::End();
 		}
+		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efBottom_Of_Pipeline, 1);
 	}
 
 }

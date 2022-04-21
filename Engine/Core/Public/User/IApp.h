@@ -16,6 +16,8 @@ namespace SG
 		virtual void OnInit() { }
 		//! Update per frame
 		virtual void OnUpdate(float deltaTime) { }
+		//! Draw per frame
+		virtual void OnDraw() { }
 		//! Shutdown the app
 		virtual void OnShutdown() { }
 	};

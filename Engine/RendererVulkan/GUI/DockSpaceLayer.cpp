@@ -94,14 +94,20 @@ namespace SG
 
 		if (ImGui::BeginMenuBar())
 		{
-			if (ImGui::BeginMenu("Setting"))
+			if (ImGui::BeginMenu("File"))
 			{
 				if (ImGui::MenuItem("Exit"))
-				{
 					SSystem()->Terminate();
-				}
 				ImGui::EndMenu();
 			}
+
+			//if (ImGui::BeginMenu("Profile"))
+			//{
+			//	if (ImGui::MenuItem("Pipeline Statistics"))
+			//		mbShowStatisticsDetail = !mbShowStatisticsDetail;
+			//	ImGui::EndMenu();
+			//}
+
 			ImGui::EndMenuBar();
 		}
 		ImGui::End();
@@ -163,10 +169,29 @@ namespace SG
 
 		ImGui::Begin("Statistics");
 		ImGui::Text("Fps: %u", mLastFps);
-		ImGui::Separator();
 		ImGui::Text("DrawCall: %d", drawCallCnt);
 		ImGui::Text("Scene Objects: %d", cullMeshCnt);
 		ImGui::Text("Culled Objects: %d", cullMeshCnt - statisticData.cullSceneObjects);
+		ImGui::Checkbox("Show Detail", &mbShowStatisticsDetail);
+		if (mbShowStatisticsDetail)
+		{
+			double total = statisticData.gpuRenderPassTime[0] + statisticData.gpuRenderPassTime[1] + statisticData.gpuRenderPassTime[2];
+			ImGui::Separator();
+			ImGui::Text("Fps GPU: %u", UInt32(1000.0 / total));
+			ImGui::Text("Shadow Pass: %.4lf ms", statisticData.gpuRenderPassTime[0]);
+			ImGui::Text("Draw Pass: %.4lf ms", statisticData.gpuRenderPassTime[1]);
+			ImGui::Text("UI Pass: %.4lf ms", statisticData.gpuRenderPassTime[2]);
+			ImGui::Text("GPU Total: %.4lf ms", total);
+			ImGui::Separator();
+			ImGui::Text("Input assembly vertices: %d", statisticData.pipelineStatistics[0]);
+			ImGui::Text("Input assembly primitives: %d", statisticData.pipelineStatistics[1]);
+			ImGui::Text("Vertex shader invocations: %d", statisticData.pipelineStatistics[2]);
+			ImGui::Text("Clipping invocations: %d", statisticData.pipelineStatistics[3]);
+			ImGui::Text("Clipping primitives: %d", statisticData.pipelineStatistics[4]);
+			ImGui::Text("Fragment shader invocations: %d", statisticData.pipelineStatistics[5]);
+			//ImGui::Text("Culling Reset Compute shader invocations: %d", statisticData.pipelineStatistics[6]);
+			//ImGui::Text("Culling Compute shader invocations: %d", statisticData.pipelineStatistics[7]);
+		}
 		ImGui::End();
 	}
 

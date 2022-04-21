@@ -20,6 +20,8 @@ namespace SG
 	class VulkanPipelineSignature;
 	class VulkanDescriptorSet;
 
+	class VulkanQueryPool;
+
 	class VulkanCommandBuffer
 	{
 	public:
@@ -53,13 +55,19 @@ namespace SG
 
 		//void BufferBarrier();
 		void ImageBarrier(VulkanTexture* pTex, EResourceBarrier oldBarrier, EResourceBarrier newBarrier);
-		void BufferBarrier(VulkanBuffer* pBuf, EPipelineStage oldStage, EPipelineStage newStage, EPipelineType srcType = EPipelineType::eGraphic, EPipelineType dstType = EPipelineType::eGraphic);
+		void BufferBarrier(VulkanBuffer* pBuf, EPipelineStageAccess oldStage, EPipelineStageAccess newStage, EPipelineType srcType = EPipelineType::eGraphic, EPipelineType dstType = EPipelineType::eGraphic);
 		//void MemoryBarrier();
 
 		void SetDepthBias(float biasConstant, float clamp, float slopeFactor);
 
 		// compute
 		void Dispatch(UInt32 groupX, UInt32 groupY, UInt32 groupZ);
+
+		// query
+		void ResetQueryPool(VulkanQueryPool* pQueryPool);
+		void BeginQuery(VulkanQueryPool* pQueryPool, UInt32 queryIndex);
+		void EndQuery(VulkanQueryPool* pQueryPool, UInt32 queryIndex);
+		void WriteTimeStamp(VulkanQueryPool* pQueryPool, EPipelineStage pipelineStage, UInt32 query);
 	private:
 		bool IsRenderPassValid();
 	private:

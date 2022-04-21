@@ -4,6 +4,15 @@
 #include "System/System.h"
 #include "Scene/Mesh/MeshDataArchive.h"
 #include "Render/Shader/ShaderComiler.h"
+//#include "Render/CommonRenderData.h"
+
+#include "RendererVulkan/Backend/VulkanContext.h"
+#include "RendererVulkan/Backend/VulkanCommand.h"
+#include "RendererVulkan/Backend/VulkanShader.h"
+#include "RendererVulkan/Backend/VulkanPipelineSignature.h"
+#include "RendererVulkan/Backend/VulkanPipeline.h"
+#include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
+//#include "RendererVulkan/Backend/VulkanQueryPool.h"
 
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
@@ -12,6 +21,9 @@ namespace SG
 
 	VulkanContext* IndirectRenderer::mpContext = nullptr;
 	VulkanCommandBuffer* IndirectRenderer::mpCmdBuf = nullptr;
+
+	//VulkanQueryPool* IndirectRenderer::pComputeResetQueryPool = nullptr;
+	//VulkanQueryPool* IndirectRenderer::pComputeCullingQueryPool = nullptr;
 
 	eastl::fixed_map<EMeshPass, vector<IndirectDrawCall>, (UInt32)EMeshPass::NUM_MESH_PASS> IndirectRenderer::mDrawCallMap;
 	UInt32 IndirectRenderer::mPackedVBCurrOffset = 0;
@@ -47,6 +59,7 @@ namespace SG
 		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
 		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
 		indirectCI.memoryUsage = EGPUMemoryUsage::eGPU_To_CPU;
+		indirectCI.memoryFlag = EGPUMemoryFlag::efPersistent_Map;
 		if (!VK_RESOURCE()->CreateBuffer(indirectCI))
 			return;
 
@@ -69,10 +82,16 @@ namespace SG
 
 		mpWaitResetSemaphore = VulkanSemaphore::Create(mpContext->device);
 		mpContext->computeCommandPool->AllocateCommandBuffer(mResetCommand);
+
+		//pComputeResetQueryPool = VulkanQueryPool::Create(mpContext->device, ERenderQueryType::ePipeline_Statistics, EPipelineStageQueryType::efCompute_Shader_Invocations);
+		//pComputeCullingQueryPool = VulkanQueryPool::Create(mpContext->device, ERenderQueryType::ePipeline_Statistics, EPipelineStageQueryType::efCompute_Shader_Invocations);
 	}
 
 	void IndirectRenderer::OnShutdown()
 	{
+		//Memory::Delete(pComputeResetQueryPool);
+		//Memory::Delete(pComputeCullingQueryPool);
+
 		mpResetCullingShader.reset();
 		mpResetCullingPipelineSignature.reset();
 		Memory::Delete(mpResetCullingPipeline);
@@ -291,52 +310,65 @@ namespace SG
 
 	void IndirectRenderer::DoCulling()
 	{
+		auto& cmd = mpContext->computeCmdBuffer;
+		// Why adding a query pool will fail the submition of the command?
+		//auto& statistics = GetStatisticData();
+
 		mResetCommand.Reset();
 		mResetCommand.BeginRecord();
+		{
+			//mResetCommand.ResetQueryPool(pComputeResetQueryPool);
+			//mResetCommand.BeginQuery(pComputeResetQueryPool, 0);
 
-		mResetCommand.BindPipeline(mpResetCullingPipeline);
-		mResetCommand.BindPipelineSignature(mpResetCullingPipelineSignature.get(), EPipelineType::eCompute);
-		UInt32 numGroup = (UInt32)(MeshDataArchive::GetInstance()->GetNumMeshData() / 16) + 1;
-		mResetCommand.Dispatch(numGroup, 1, 1);
+			mResetCommand.BindPipeline(mpResetCullingPipeline);
+			mResetCommand.BindPipelineSignature(mpResetCullingPipelineSignature.get(), EPipelineType::eCompute);
+			UInt32 numGroup = (UInt32)(MeshDataArchive::GetInstance()->GetNumMeshData() / 16) + 1;
+			mResetCommand.Dispatch(numGroup, 1, 1);
 
+			//mResetCommand.EndQuery(pComputeResetQueryPool, 0);
+		}
 		mResetCommand.EndRecord();
 
 		mpContext->computeQueue.SubmitCommands(&mResetCommand, mpWaitResetSemaphore, nullptr, nullptr);
+		//statistics.pipelineStatistics[6] = *pComputeResetQueryPool->GetQueryResult(0, 1);
 
-		auto& cmd = mpContext->computeCmdBuffer;
 		cmd.BeginRecord();
+		{
+			//cmd.ResetQueryPool(pComputeCullingQueryPool);
+			//cmd.BeginQuery(pComputeCullingQueryPool, 0);
+			//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efIndirect_Read, EPipelineStage::efShader_Write,
+			//	EPipelineType::eGraphic, EPipelineType::eCompute);
 
-		//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efIndirect_Read, EPipelineStage::efShader_Write,
-		//	EPipelineType::eGraphic, EPipelineType::eCompute);
+			// [Data Hazard] barrier to prevent instanceOutput RAW(Read After Write) scenario
+			cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStageAccess::efShader_Read, EPipelineStageAccess::efShader_Write,
+				EPipelineType::eCompute, EPipelineType::eCompute);
 
-		// [Data Hazard] barrier to prevent instanceOutput RAW(Read After Write) scenario
-		cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStage::efShader_Read, EPipelineStage::efShader_Write,
-			EPipelineType::eCompute, EPipelineType::eCompute);
+			cmd.BindPipeline(mpGPUCullingPipeline);
+			cmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
+			UInt32 numGroup = (UInt32)(SSystem()->GetMainScene()->GetMeshEntityCount() / 128) + 1;
+			cmd.Dispatch(numGroup, 1, 1);
 
-		cmd.BindPipeline(mpGPUCullingPipeline);
-		cmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
-		numGroup = (UInt32)(SSystem()->GetMainScene()->GetMeshEntityCount() / 128) + 1;
-		cmd.Dispatch(numGroup, 1, 1);
+			cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStageAccess::efShader_Write, EPipelineStageAccess::efShader_Read,
+				EPipelineType::eCompute, EPipelineType::eCompute);
 
-		cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStage::efShader_Write, EPipelineStage::efShader_Read,
-			EPipelineType::eCompute, EPipelineType::eCompute);
+			cmd.BindPipeline(mpDrawCallCompactPipeline);
+			cmd.BindPipelineSignature(mpDrawCallCompactPipelineSignature.get(), EPipelineType::eCompute);
+			cmd.Dispatch(1, 1, 1);
 
-		cmd.BindPipeline(mpDrawCallCompactPipeline);
-		cmd.BindPipelineSignature(mpDrawCallCompactPipelineSignature.get(), EPipelineType::eCompute);
-		cmd.Dispatch(1, 1, 1);
-
-		// We use semaphore to ensure that out compute command is finish before the graphic queue begin to draw,
-		// So i think we don't need the buffer barrier here!
+			// We use semaphore to ensure that out compute command is finish before the graphic queue begin to draw,
+			// So i think we don't need the buffer barrier here!
 		 
-		//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efShader_Write, EPipelineStage::efIndirect_Read,
-		//	EPipelineType::eCompute, EPipelineType::eGraphic);
-
+			//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efShader_Write, EPipelineStage::efIndirect_Read,
+			//	EPipelineType::eCompute, EPipelineType::eGraphic);
+			//cmd.EndQuery(pComputeCullingQueryPool, 0);
+		}
 		cmd.EndRecord();
 
 		// submit compute commands
 		// semaphore used to ensure the sequence of GPU-side execution
 		// fence used to ensure CPU is not write to a pending status command buffer. (because here we only have one compute command buffer)
 		mpContext->computeQueue.SubmitCommands(&cmd, mpContext->pComputeCompleteSemaphore, mpWaitResetSemaphore, mpContext->pComputeSyncFence);
+		//statistics.pipelineStatistics[7] = *pComputeCullingQueryPool->GetQueryResult(0, 1);
 	}
 
 	void IndirectRenderer::Draw(EMeshPass meshPass)

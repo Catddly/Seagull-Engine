@@ -17,22 +17,23 @@ namespace SG
 		SG_ASSERT(CI.memoryUsage != EGPUMemoryUsage::eInvalid);
 
 		if (CI.type == EBufferType::efUniform)
-			sizeInByteCPU = MinValueAlignTo(CI.bufferSize, static_cast<UInt32>(context.device.physicalDeviceLimits.minUniformBufferOffsetAlignment));
+			size = MinValueAlignTo(CI.bufferSize, static_cast<UInt32>(context.device.physicalDeviceLimits.minUniformBufferOffsetAlignment));
 		else
-			sizeInByteCPU = CI.bufferSize;
+			size = CI.bufferSize;
 		type = CI.type;
 		memoryUsage = CI.memoryUsage;
+		memoryFlag = CI.memoryFlag;
 
 		VkBufferCreateInfo bufferInfo = {};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size  = sizeInByteCPU;
+		bufferInfo.size  = size;
 		bufferInfo.usage = ToVkBufferUsage(type);
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 #if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		VmaAllocationCreateInfo vmaAllocateCI = { 0 };
 		vmaAllocateCI.usage = ToVmaMemoryUsage(CI.memoryUsage);
-		vmaAllocateCI.flags = 0;
+		vmaAllocateCI.flags = VMA_ALLOCATION_CREATE_STRATEGY_BEST_FIT_BIT;
 		if (SG_HAS_ENUM_FLAG(CI.memoryFlag, EGPUMemoryFlag::efDedicated_Memory))
 			vmaAllocateCI.flags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 		if (SG_HAS_ENUM_FLAG(CI.memoryFlag, EGPUMemoryFlag::efPersistent_Map))
@@ -41,6 +42,9 @@ namespace SG
 		VmaAllocationInfo allocInfo = {};
 		VK_CHECK(vmaCreateBuffer(context.vmaAllocator, &bufferInfo, &vmaAllocateCI, &buffer, &vmaAllocation, &allocInfo),
 			SG_LOG_ERROR("Failed to create vulkan buffer!"););
+
+		if (SG_HAS_ENUM_FLAG(CI.memoryFlag, EGPUMemoryFlag::efPersistent_Map))
+			pMappedMemory = allocInfo.pMappedData;
 #else
 		VK_CHECK(vkCreateBuffer(context.device.logicalDevice, &bufferInfo, nullptr, &buffer),
 			SG_LOG_ERROR("Failed to create vulkan buffer!"););
@@ -79,24 +83,30 @@ namespace SG
 
 	bool VulkanBuffer::UploadData(const void* pData)
 	{
-		if (!IsHostVisible(memoryUsage)) // device local in GPU
+		if (!IsHostVisible(memoryUsage))
 		{
-			SG_LOG_WARN("Try to upload data to device local memory!");
+			SG_LOG_WARN("Try to upload data to device local memory! Please use sub-buffer to upload data.");
 			return false;
+		}
+
+		if (SG_HAS_ENUM_FLAG(memoryFlag, EGPUMemoryFlag::efPersistent_Map))
+		{
+			memcpy(pMappedMemory, pData, size);
+			return true;
 		}
 
 #if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		UInt8* pUpload = nullptr;
 		VK_CHECK(vmaMapMemory(context.vmaAllocator, vmaAllocation, (void**)&pUpload),
 			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
-		memcpy(pUpload, pData, sizeInByteCPU);
+		memcpy(pUpload, pData, size);
 		vmaUnmapMemory(context.vmaAllocator, vmaAllocation);
 		return true;
 #else
 		UInt8* pUpload = nullptr;
-		VK_CHECK(vkMapMemory(context.device.logicalDevice, memory, 0, sizeInByteCPU, 0, (void**)&pUpload),
+		VK_CHECK(vkMapMemory(context.device.logicalDevice, memory, 0, size, 0, (void**)&pUpload),
 			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
-		memcpy(pUpload, pData, sizeInByteCPU);
+		memcpy(pUpload, pData, size);
 		vkUnmapMemory(context.device.logicalDevice, memory);
 		return true;
 #endif
@@ -104,10 +114,17 @@ namespace SG
 
 	bool VulkanBuffer::UploadData(const void* pData, UInt32 size, UInt32 offset)
 	{
-		if (!IsHostVisible(memoryUsage)) // device local in GPU
+		if (!IsHostVisible(memoryUsage))
 		{
-			SG_LOG_WARN("Try to upload data to device local memory!");
+			SG_LOG_WARN("Try to upload data to device local memory! Please use sub-buffer to upload data.");
 			return false;
+		}
+
+		if (SG_HAS_ENUM_FLAG(memoryFlag, EGPUMemoryFlag::efPersistent_Map))
+		{
+			auto* pUpload = reinterpret_cast<UInt8*>(pMappedMemory) + offset;
+			memcpy(pUpload, pData, size);
+			return true;
 		}
 
 #if SG_USE_VULKAN_MEMORY_ALLOCATOR
@@ -120,7 +137,7 @@ namespace SG
 		return true;
 #else
 		UInt8* pUpload = nullptr;
-		VK_CHECK(vkMapMemory(context.device.logicalDevice, memory, 0, sizeInByteCPU, 0, (void**)&pUpload),
+		VK_CHECK(vkMapMemory(context.device.logicalDevice, memory, 0, size, 0, (void**)&pUpload),
 			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
 		pUpload += offset;
 		memcpy(pUpload, pData, size);
@@ -129,7 +146,7 @@ namespace SG
 #endif
 	}
 
-	UInt32 VulkanBuffer::SizeInByteGPU() const
+	UInt32 VulkanBuffer::SizeGPU() const
 	{
 #if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		if (vmaAllocation)
@@ -149,6 +166,9 @@ namespace SG
 
 	void VulkanBuffer::UnmapMemory()
 	{
+		if (SG_HAS_ENUM_FLAG(memoryFlag, EGPUMemoryFlag::efPersistent_Map)) // do nothing, since the memory is persitently mapping to CPU memory.
+			return;
+
 #if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		vmaUnmapMemory(context.vmaAllocator, vmaAllocation);
 #else

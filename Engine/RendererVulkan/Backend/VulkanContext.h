@@ -22,6 +22,8 @@ namespace SG
 	class VulkanRenderPass;
 	class VulkanFrameBuffer;
 
+	class VulkanQueryPool;
+
 	class VulkanContext
 	{
 	public:
@@ -62,6 +64,10 @@ namespace SG
 #if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		VmaAllocator vmaAllocator;
 #endif
+
+		VulkanQueryPool* pPipelineStatisticsQueryPool;
+		VulkanQueryPool* pTimeStampQueryPool;
+
 		void WindowResize();
 	private:
 		void CreateDefaultResource();

@@ -53,6 +53,7 @@ namespace SG
 				bufferCI.bufferSize = uboData.second.layout.GetTotalSizeInByte();
 				bufferCI.type = EBufferType::efUniform;
 				bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
+				bufferCI.memoryFlag = EGPUMemoryFlag::efPersistent_Map;
 				if (!VK_RESOURCE()->GetBuffer(bufferCI.name))
 					VK_RESOURCE()->CreateBuffer(bufferCI);
 
@@ -66,13 +67,13 @@ namespace SG
 				if (GetSet(ssboData.second.setbinding) != setIndex)
 					continue;
 
-				// create a buffer for this ubo layout
+				// create a buffer for this ssbo layout
 				BufferCreateDesc bufferCI = {};
 				bufferCI.name = ssboData.first.c_str();
 				bufferCI.bufferSize = ssboData.second.layout.GetTotalSizeInByte();
 				bufferCI.type = EBufferType::efStorage;
 				bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
-
+				bufferCI.memoryFlag = EGPUMemoryFlag::efPersistent_Map;
 				if (!VK_RESOURCE()->GetBuffer(bufferCI.name))
 					VK_RESOURCE()->CreateBuffer(bufferCI);
 

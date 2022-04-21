@@ -22,8 +22,8 @@ namespace SG
 
 		bool   UploadData(const void* pData);
 		bool   UploadData(const void* pData, UInt32 size, UInt32 offset);
-		UInt32 SizeInByteCPU() const { return sizeInByteCPU; }
-		UInt32 SizeInByteGPU() const;
+		UInt32 SizeCPU() const { return size; }
+		UInt32 SizeGPU() const;
 		static VulkanBuffer* Create(VulkanContext& c, const BufferCreateDesc& CI);
 
 		template <typename DataType>
@@ -40,9 +40,12 @@ namespace SG
 		VkDeviceMemory memory;
 #endif
 		VkBuffer        buffer;
-		UInt32          sizeInByteCPU;
+		UInt32          size;
 		EBufferType     type;
 		EGPUMemoryUsage memoryUsage;
+
+		EGPUMemoryFlag  memoryFlag;
+		void*           pMappedMemory = nullptr; //! Only the memoryFlag has EGPUMemoryFlag::efPersistent_Map bit, it is valid,
 	};
 
 	template <typename DataType>
@@ -50,9 +53,12 @@ namespace SG
 	{
 		if (!IsHostVisible(memoryUsage)) // device local in GPU
 		{
-			SG_LOG_WARN("Try to upload data to device local memory!");
+			SG_LOG_WARN("Try to upload data to device local memory! Please use sub-buffer to upload data.");
 			return false;
 		}
+
+		if (SG_HAS_ENUM_FLAG(memoryFlag, EGPUMemoryFlag::efPersistent_Map))
+			return reinterpret_cast<DataType*>(pMappedMemory);
 
 #if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		DataType* pMappedMemory = nullptr;
@@ -61,7 +67,7 @@ namespace SG
 		return pMappedMemory;
 #else
 		DataType* pMappedMemory = nullptr;
-		VK_CHECK(vkMapMemory(context.device.logicalDevice, memory, 0, sizeInByteCPU, 0, (void**)&pMappedMemory),
+		VK_CHECK(vkMapMemory(context.device.logicalDevice, memory, 0, size, 0, (void**)&pMappedMemory),
 			SG_LOG_ERROR("Failed to map vulkan buffer!"); return false;);
 		return pMappedMemory;
 #endif

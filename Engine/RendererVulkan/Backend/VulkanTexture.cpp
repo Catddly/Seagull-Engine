@@ -100,7 +100,7 @@ namespace SG
 
 #if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		VmaAllocationCreateInfo vmaAllocationCI = {};
-		vmaAllocationCI.flags = 0;
+		vmaAllocationCI.flags = VMA_ALLOCATION_CREATE_STRATEGY_BEST_FIT_BIT;
 		if (SG_HAS_ENUM_FLAG(CI.memoryFlag, EGPUMemoryFlag::efDedicated_Memory))
 			vmaAllocationCI.flags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 		 

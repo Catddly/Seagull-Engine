@@ -116,6 +116,10 @@ namespace SG
 			deviceFeatures.samplerAnisotropy = VK_TRUE;
 		if (physicalDeviceFeatures.multiDrawIndirect)
 			deviceFeatures.multiDrawIndirect = VK_TRUE;
+#ifdef SG_DEBUG
+		if (physicalDeviceFeatures.pipelineStatisticsQuery) // enable pipeline statistics query
+			deviceFeatures.pipelineStatisticsQuery = VK_TRUE;
+#endif
 
 		// to support swapchain
 		vector<const char*> deviceExtensions = {};
@@ -264,7 +268,7 @@ namespace SG
 		return -1;
 	}
 
-	SG::UInt32 VulkanDevice::GetMemoryType(UInt32 typeBits, VkMemoryPropertyFlags properties, VkBool32* memTypeFound) const
+	UInt32 VulkanDevice::GetMemoryType(UInt32 typeBits, VkMemoryPropertyFlags properties, VkBool32* memTypeFound) const
 	{
 		VkPhysicalDeviceMemoryProperties memoryProperties;
 		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);

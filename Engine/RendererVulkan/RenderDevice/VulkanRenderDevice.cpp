@@ -12,6 +12,7 @@
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
+#include "RendererVulkan/Backend/VulkanQueryPool.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
 // TODO: add graphic api abstraction
@@ -85,7 +86,9 @@ namespace SG
 		BuildRenderGraph();
 
 		//mpGUIDriver->PushUserLayer(MakeRef<TestGUILayer>());
-		mpGUIDriver->PushUserLayer(MakeRef<DockSpaceLayer>());
+		mpDockSpaceGUILayer = MakeRef<DockSpaceLayer>();
+		mpGUIDriver->PushUserLayer(mpDockSpaceGUILayer);
+		mbCopyStatisticsDetail = mpDockSpaceGUILayer->ShowStatisticsDetail();
 
 		// update one frame here to avoid imgui do not draw the first frame.
 		mpGUIDriver->OnUpdate(0.00000001f);
@@ -108,6 +111,20 @@ namespace SG
 	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
 		mpGUIDriver->OnUpdate(deltaTime);
+		if (mpDockSpaceGUILayer->ShowStatisticsDetail() != mbCopyStatisticsDetail)
+		{
+			mbCopyStatisticsDetail = mpDockSpaceGUILayer->ShowStatisticsDetail();
+			if (mbCopyStatisticsDetail)
+			{
+				mpContext->pPipelineStatisticsQueryPool->Wake();
+				mpContext->pTimeStampQueryPool->Wake();
+			}
+			else
+			{
+				mpContext->pPipelineStatisticsQueryPool->Sleep();
+				mpContext->pTimeStampQueryPool->Sleep();
+			}
+		}
 		mpRenderGraph->Update();
 		VK_RESOURCE()->OnUpdate();
 	}
@@ -134,6 +151,8 @@ namespace SG
 		// we have to wait for the commands had been executed, then we present this image.
 		// we use semaphore to have GPU-GPU sync.
 
+		mpContext->pSwapchain->Present(&mpContext->graphicQueue, mCurrentFrame, mpContext->pRenderCompleteSemaphore); // present the available image
+
 		// copy statistic data
 		auto& statisticData = GetStatisticData();
 		statisticData.cullSceneObjects = 0;
@@ -142,8 +161,21 @@ namespace SG
 		for (UInt32 i = 0; i < MeshDataArchive::GetInstance()->GetNumMeshData(); ++i)
 			statisticData.cullSceneObjects += (pCommand + i)->instanceCount;
 		pIndirectBuffer->UnmapMemory();
+		
+		// copy the query result
+		if (!mpContext->pPipelineStatisticsQueryPool->IsSleep())
+		{
+			auto& pipelineResult = mpContext->pPipelineStatisticsQueryPool->GetQueryResult();
+			memcpy(statisticData.pipelineStatistics.data(), pipelineResult.data(), sizeof(QueryResult) * pipelineResult.size());
+		}
+		if (!mpContext->pTimeStampQueryPool->IsSleep())
+		{
+			mpContext->pTimeStampQueryPool->GetQueryResult();
+			statisticData.gpuRenderPassTime[0] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(0, 1);
+			statisticData.gpuRenderPassTime[1] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(2, 3);
+			statisticData.gpuRenderPassTime[2] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(4, 5);
+		}
 
-		mpContext->pSwapchain->Present(&mpContext->graphicQueue, mCurrentFrame, mpContext->pRenderCompleteSemaphore); // present the available image
 		mbBlockEvent = false;
 	}
 

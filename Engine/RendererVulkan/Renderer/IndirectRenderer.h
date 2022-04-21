@@ -2,13 +2,6 @@
 
 #include "Scene/RenderDataBuilder.h"
 
-#include "RendererVulkan/Backend/VulkanContext.h"
-#include "RendererVulkan/Backend/VulkanCommand.h"
-#include "RendererVulkan/Backend/VulkanShader.h"
-#include "RendererVulkan/Backend/VulkanPipelineSignature.h"
-#include "RendererVulkan/Backend/VulkanPipeline.h"
-#include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
-
 #include "RendererVulkan/Resource/DrawCall.h"
 #include "RendererVulkan/RenderDevice/MeshPass.h"
 
@@ -20,6 +13,15 @@ namespace SG
 {
 
 #define SG_MAX_DRAW_CALL 100
+
+	class VulkanContext;
+	class VulkanCommandBuffer;
+	class VulkanSemaphore;
+	class VulkanPipeline;
+	class VulkanPipelineSignature;
+	class VulkanShader;
+
+	//class VulkanQueryPool;
 
 	//! State machine, a functionality class to record draw command, and persist the render context.
 	class IndirectRenderer
@@ -63,6 +65,9 @@ namespace SG
 		static RefPtr<VulkanPipelineSignature> mpDrawCallCompactPipelineSignature;
 		static VulkanPipeline*                 mpDrawCallCompactPipeline;
 		static RefPtr<VulkanShader>            mpDrawCallCompactShader;
+
+		//static VulkanQueryPool* pComputeResetQueryPool;
+		//static VulkanQueryPool* pComputeCullingQueryPool;
 
 		static bool mbRendererInit;
 		static bool mbBeginDraw;

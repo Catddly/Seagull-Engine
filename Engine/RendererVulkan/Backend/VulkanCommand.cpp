@@ -10,6 +10,7 @@
 #include "VulkanPipeline.h"
 #include "VulkanFrameBuffer.h"
 #include "VulkanTexture.h"
+#include "VulkanQueryPool.h"
 
 namespace SG
 {
@@ -285,7 +286,7 @@ namespace SG
 		VkBufferCopy copyRegion = {};
 		copyRegion.srcOffset = srcOffset;
 		copyRegion.dstOffset = dstOffset;
-		copyRegion.size = srcBuffer.SizeInByteCPU();
+		copyRegion.size = srcBuffer.SizeCPU();
 
 		vkCmdCopyBuffer(commandBuffer, srcBuffer.buffer, dstBuffer.buffer, 1, &copyRegion);
 	}
@@ -486,7 +487,7 @@ namespace SG
 		pTex->currLayout = barrier.newLayout;
 	}
 
-	void VulkanCommandBuffer::BufferBarrier(VulkanBuffer* pBuf, EPipelineStage oldStage, EPipelineStage newStage,
+	void VulkanCommandBuffer::BufferBarrier(VulkanBuffer* pBuf, EPipelineStageAccess oldStage, EPipelineStageAccess newStage,
 		EPipelineType srcType, EPipelineType dstType)
 	{
 		if (!pBuf)
@@ -498,7 +499,7 @@ namespace SG
 		VkBufferMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 		barrier.buffer = pBuf->buffer;
-		barrier.size = pBuf->sizeInByteCPU;
+		barrier.size = pBuf->size;
 		barrier.offset = 0;
 
 		if (srcType != dstType)
@@ -529,27 +530,27 @@ namespace SG
 		VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM,
 			dstStage = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;
 
-		if (oldStage == EPipelineStage::efIndirect_Read &&
-			newStage == EPipelineStage::efShader_Write)
+		if (oldStage == EPipelineStageAccess::efIndirect_Read &&
+			newStage == EPipelineStageAccess::efShader_Write)
 		{
 			srcStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
 			dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 		}
-		else if (oldStage == EPipelineStage::efShader_Write &&
-			newStage == EPipelineStage::efIndirect_Read)
+		else if (oldStage == EPipelineStageAccess::efShader_Write &&
+			newStage == EPipelineStageAccess::efIndirect_Read)
 		{
 			srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 			dstStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
 		}
-		else if (oldStage == EPipelineStage::efShader_Read &&
-			newStage == EPipelineStage::efShader_Write)
+		else if (oldStage == EPipelineStageAccess::efShader_Read &&
+			newStage == EPipelineStageAccess::efShader_Write)
 		{
 			// Temporary
 			srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 			dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 		}
-		else if (oldStage == EPipelineStage::efShader_Write &&
-			newStage == EPipelineStage::efShader_Read)
+		else if (oldStage == EPipelineStageAccess::efShader_Write &&
+			newStage == EPipelineStageAccess::efShader_Read)
 		{
 			srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 			dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
@@ -579,6 +580,34 @@ namespace SG
 		if (!IsRenderPassValid())
 			return;
 		vkCmdDispatch(commandBuffer, groupX, groupY, groupZ);
+	}
+
+	void VulkanCommandBuffer::ResetQueryPool(VulkanQueryPool* pQueryPool)
+	{
+		if (pQueryPool->bSleep)
+			return;
+		vkCmdResetQueryPool(commandBuffer, pQueryPool->queryPool, 0, pQueryPool->queryCount);
+	}
+
+	void VulkanCommandBuffer::BeginQuery(VulkanQueryPool* pQueryPool, UInt32 queryIndex)
+	{
+		if (pQueryPool->bSleep)
+			return;
+		vkCmdBeginQuery(commandBuffer, pQueryPool->queryPool, queryIndex, 0);
+	}
+
+	void VulkanCommandBuffer::EndQuery(VulkanQueryPool* pQueryPool, UInt32 queryIndex)
+	{
+		if (pQueryPool->bSleep)
+			return;
+		vkCmdEndQuery(commandBuffer, pQueryPool->queryPool, queryIndex);
+	}
+
+	void VulkanCommandBuffer::WriteTimeStamp(VulkanQueryPool* pQueryPool, EPipelineStage pipelineStage, UInt32 query)
+	{
+		if (pQueryPool->bSleep)
+			return;
+		vkCmdWriteTimestamp(commandBuffer, ToVKPipelineStageFlags(pipelineStage), pQueryPool->queryPool, query);
 	}
 
 	bool VulkanCommandBuffer::IsRenderPassValid()

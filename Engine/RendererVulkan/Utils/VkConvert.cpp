@@ -572,7 +572,7 @@ namespace SG
 		return VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM;
 	}
 
-	SG::ESampleCount ToSGSampleCount(VkSampleCountFlagBits cnt)
+	ESampleCount ToSGSampleCount(VkSampleCountFlagBits cnt)
 	{
 		switch (cnt)
 		{
@@ -717,6 +717,34 @@ namespace SG
 	}
 
 
+	VkQueryPipelineStatisticFlags ToVkQueryPipelineStatisticsFlag(EPipelineStageQueryType type)
+	{
+		VkQueryPipelineStatisticFlags ret = 0;
+		if (SG_HAS_ENUM_FLAG(EPipelineStageQueryType::efInput_Assembly_Vertices, type))
+			ret |= VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_VERTICES_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStageQueryType::efInput_Assembly_Primitives, type))
+			ret |= VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStageQueryType::efVertex_Shader_Invocations, type))
+			ret |= VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStageQueryType::efGeometry_Shader_Invocation, type))
+			ret |= VK_QUERY_PIPELINE_STATISTIC_GEOMETRY_SHADER_INVOCATIONS_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStageQueryType::efGeometry_Shader_Primitives, type))
+			ret |= VK_QUERY_PIPELINE_STATISTIC_GEOMETRY_SHADER_PRIMITIVES_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStageQueryType::efClipping_Invocations, type))
+			ret |= VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStageQueryType::efClipping_Primitives, type))
+			ret |= VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStageQueryType::efFragment_Shader_Invocations, type))
+			ret |= VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStageQueryType::efTessellation_Control_Shader_Patches, type))
+			ret |= VK_QUERY_PIPELINE_STATISTIC_TESSELLATION_CONTROL_SHADER_PATCHES_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStageQueryType::efTessellation_Evaluation_Shader_Invocations, type))
+			ret |= VK_QUERY_PIPELINE_STATISTIC_TESSELLATION_EVALUATION_SHADER_INVOCATIONS_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStageQueryType::efCompute_Shader_Invocations, type))
+			ret |= VK_QUERY_PIPELINE_STATISTIC_COMPUTE_SHADER_INVOCATIONS_BIT;
+		return ret;
+	}
+
 	VmaMemoryUsage ToVmaMemoryUsage(EGPUMemoryUsage usage)
 	{
 		switch (usage)
@@ -738,42 +766,82 @@ namespace SG
 		return VMA_MEMORY_USAGE_MAX_ENUM;
 	}
 
-	VkAccessFlags ToVKAccessFlags(EPipelineStage stage)
+	VkPipelineStageFlagBits ToVKPipelineStageFlags(EPipelineStage stage)
+	{
+		VkPipelineStageFlags ret = 0;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efTop_Of_Pipeline, stage))
+			ret |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efDraw_Indirect, stage))
+			ret |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efVertex_Input, stage))
+			ret |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efVertex_Shader, stage))
+			ret |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efTessellation_Control_Shader, stage))
+			ret |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efTessellation_Evaluation_Shader, stage))
+			ret |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efGeometry_Shader, stage))
+			ret |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efFragment_Shader, stage))
+			ret |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efEarly_Fragment_Tests, stage))
+			ret |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efLate_Fragment_Tests, stage))
+			ret |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efColor_Attachment_Output, stage))
+			ret |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efCompute_Shader, stage))
+			ret |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efTransfer, stage))
+			ret |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efBottom_Of_Pipeline, stage))
+			ret |= VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efHost, stage))
+			ret |= VK_PIPELINE_STAGE_HOST_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efAll_Graphic, stage))
+			ret |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+		if (SG_HAS_ENUM_FLAG(EPipelineStage::efAll_Command, stage))
+			ret |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+		return (VkPipelineStageFlagBits)ret;
+	}
+
+	VkAccessFlags ToVKAccessFlags(EPipelineStageAccess stage)
 	{
 		VkAccessFlags ret = 0;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efIndirect_Read, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efIndirect_Read, stage))
 			ret |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efIndex_Read, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efIndex_Read, stage))
 			ret |= VK_ACCESS_INDEX_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efVertex_Read, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efVertex_Read, stage))
 			ret |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efUniforn_Read, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efUniforn_Read, stage))
 			ret |= VK_ACCESS_UNIFORM_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efInput_Attachment_Read, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efInput_Attachment_Read, stage))
 			ret |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efShader_Read, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efShader_Read, stage))
 			ret |= VK_ACCESS_SHADER_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efShader_Write, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efShader_Write, stage))
 			ret |= VK_ACCESS_SHADER_WRITE_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efColor_Attachment_Read, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efColor_Attachment_Read, stage))
 			ret |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efColor_Attachment_Write, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efColor_Attachment_Write, stage))
 			ret |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efDepth_Stencil_Attachment_Read, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efDepth_Stencil_Attachment_Read, stage))
 			ret |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efDepth_Stencil_Attachment_Write, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efDepth_Stencil_Attachment_Write, stage))
 			ret |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efTransfer_Read, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efTransfer_Read, stage))
 			ret |= VK_ACCESS_TRANSFER_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efTransfer_Write, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efTransfer_Write, stage))
 			ret |= VK_ACCESS_TRANSFER_WRITE_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efHost_Read, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efHost_Read, stage))
 			ret |= VK_ACCESS_HOST_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efHost_Write, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efHost_Write, stage))
 			ret |= VK_ACCESS_HOST_WRITE_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efMemory_Read, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efMemory_Read, stage))
 			ret |= VK_ACCESS_MEMORY_READ_BIT;
-		if (SG_HAS_ENUM_FLAG(EPipelineStage::efMemory_Write, stage))
+		if (SG_HAS_ENUM_FLAG(EPipelineStageAccess::efMemory_Write, stage))
 			ret |= VK_ACCESS_MEMORY_WRITE_BIT;
 		return ret;
 	}

@@ -8,6 +8,7 @@
 #include "Render/Buffer.h"
 #include "Render/Shader/Shader.h"
 #include "Render/FrameBuffer.h"
+#include "Render/Query.h"
  
 #include "RendererVulkan/Backend/VulkanAllocator.h"
 
@@ -16,9 +17,12 @@
 namespace SG
 {
 
+	VkQueryPipelineStatisticFlags ToVkQueryPipelineStatisticsFlag(EPipelineStageQueryType type);
+
 	VmaMemoryUsage ToVmaMemoryUsage(EGPUMemoryUsage usage);
 
-	VkAccessFlags ToVKAccessFlags(EPipelineStage stage);
+	VkPipelineStageFlagBits ToVKPipelineStageFlags(EPipelineStage stage);
+	VkAccessFlags ToVKAccessFlags(EPipelineStageAccess stage);
 
 	VkVertexInputRate ToVkVertexInputRate(EVertexInputRate vertexip);
 	VkPolygonMode ToVkPolygonMode(EPolygonMode polymode);

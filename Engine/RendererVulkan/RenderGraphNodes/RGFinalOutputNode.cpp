@@ -188,8 +188,10 @@ namespace SG
 		//	pBuf.Draw(3, 1, 0, 0);
 		//}
 
+		context.pCmd->WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efTop_Of_Pipeline, 4);
 		// 2. Draw GUI on top of the color rt
 		GUIDraw(*context.pCmd, context.frameIndex);
+		context.pCmd->WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efBottom_Of_Pipeline, 5);
 	}
 
 	void RGFinalOutputNode::GUIDraw(VulkanCommandBuffer& pBuf, UInt32 frameIndex)
@@ -216,13 +218,13 @@ namespace SG
 			const UInt32 vtxBufferSize = drawData->TotalVtxCount * sizeof(ImDrawVert);
 			const UInt32 idxBufferSize = drawData->TotalIdxCount * sizeof(ImDrawIdx);
 
-			if (pVertexBuffer && vtxBufferSize > pVertexBuffer->SizeInByteCPU()) // need to create a new one to hold the vtx buffer
+			if (pVertexBuffer && vtxBufferSize > pVertexBuffer->SizeCPU()) // need to create a new one to hold the vtx buffer
 			{
 				VK_RESOURCE()->DeleteBuffer(vtxBufferName);
 				bNeedToCreateVtxBuffer = true;
 			}
 
-			if (pIndexBuffer && idxBufferSize > pIndexBuffer->SizeInByteCPU()) // need to create a new one to hold the idx buffer
+			if (pIndexBuffer && idxBufferSize > pIndexBuffer->SizeCPU()) // need to create a new one to hold the idx buffer
 			{
 				VK_RESOURCE()->DeleteBuffer(idxBufferName);
 				bNeedToCreateIdxBuffer = true;

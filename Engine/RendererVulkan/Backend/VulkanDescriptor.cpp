@@ -159,9 +159,9 @@ namespace SG
 
 		VkDescriptorBufferInfo bufferInfo = {};
 		bufferInfo.buffer = pBuf->buffer;
-		bufferInfo.range = pBuf->sizeInByteCPU;
+		bufferInfo.range = pBuf->size;
 		bufferInfo.offset = 0;
-		offset += pBuf->sizeInByteCPU;
+		offset += pBuf->size;
 
 		bufferInfos[currentBufferIndex] = eastl::move(bufferInfo);
 

@@ -35,7 +35,7 @@ namespace SG
 		ePoint,
 	};
 
-	enum class EPipelineStage : UInt32
+	enum class EPipelineStageAccess : UInt32
 	{
 		efIndirect_Read = BIT(0),
 		efIndex_Read = BIT(1),
@@ -54,6 +54,28 @@ namespace SG
 		efHost_Write = BIT(14),
 		efMemory_Read = BIT(15),
 		efMemory_Write = BIT(16),
+	};
+	SG_ENUM_CLASS_FLAG(UInt32, EPipelineStageAccess);
+
+	enum class EPipelineStage : UInt32 
+	{
+		efTop_Of_Pipeline = BIT(0),
+		efDraw_Indirect = BIT(1),
+		efVertex_Input = BIT(2),
+		efVertex_Shader = BIT(3),
+		efTessellation_Control_Shader = BIT(4),
+		efTessellation_Evaluation_Shader = BIT(5),
+		efGeometry_Shader = BIT(6),
+		efFragment_Shader = BIT(7),
+		efEarly_Fragment_Tests = BIT(8),
+		efLate_Fragment_Tests = BIT(9),
+		efColor_Attachment_Output = BIT(10),
+		efCompute_Shader = BIT(11),
+		efTransfer = BIT(12),
+		efBottom_Of_Pipeline = BIT(13),
+		efHost = BIT(14),
+		efAll_Graphic = BIT(15),
+		efAll_Command = BIT(16)
 	};
 	SG_ENUM_CLASS_FLAG(UInt32, EPipelineStage);
 

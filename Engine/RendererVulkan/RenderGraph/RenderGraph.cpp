@@ -79,6 +79,9 @@ namespace SG
 		RenderGraphNode::RGDrawInfo drawContext = { &commandBuf, frameIndex };
 
 		commandBuf.BeginRecord();
+		commandBuf.ResetQueryPool(mpContext->pPipelineStatisticsQueryPool);
+		commandBuf.ResetQueryPool(mpContext->pTimeStampQueryPool);
+
 		for (auto* pCurrNode : mpNodes)
 		{
 			// calculate the hash data

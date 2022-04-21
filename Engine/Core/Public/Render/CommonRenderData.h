@@ -3,6 +3,8 @@
 #include "RendererVulkan/Config.h"
 #include "Math/MathBasic.h"
 
+#include "eastl/array.h"
+
 namespace SG
 {
 
@@ -97,6 +99,8 @@ namespace SG
 	struct StatisticData
 	{
 		UInt32 cullSceneObjects = 0;
+		eastl::array<UInt64, 8> pipelineStatistics = {};
+		eastl::array<double, 3> gpuRenderPassTime;
 	};
 
 	// temporary

@@ -111,6 +111,8 @@ namespace SG
 
 			// modules OnDraw()
 			mModuleManager.Draw();
+			if (mpCurrActiveProcess)
+				mpCurrActiveProcess->OnDraw();
 
 			Impl::MessageBus::GetInstance()->ClearEvents();
 		}

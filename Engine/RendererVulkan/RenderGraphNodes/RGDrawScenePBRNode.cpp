@@ -177,6 +177,7 @@ namespace SG
 	void RGDrawScenePBRNode::Draw(RGDrawInfo& context)
 	{
 		auto& pBuf = *context.pCmd;
+		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efTop_Of_Pipeline, 2);
 
 		// 1. Draw Skybox
 		{
@@ -192,7 +193,11 @@ namespace SG
 		}
 
 		// 2. Draw Scene
+		pBuf.BeginQuery(mContext.pPipelineStatisticsQueryPool, 0);
 		DrawScene(pBuf);
+		pBuf.EndQuery(mContext.pPipelineStatisticsQueryPool, 0);
+
+		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efBottom_Of_Pipeline, 3);
 	}
 
 	void RGDrawScenePBRNode::DrawScene(VulkanCommandBuffer& pBuf)

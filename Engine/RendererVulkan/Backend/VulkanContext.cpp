@@ -9,6 +9,7 @@
 #include "VulkanSynchronizePrimitive.h"
 #include "VulkanFrameBuffer.h"
 #include "VulkanTexture.h"
+#include "VulkanQueryPool.h"
 
 #include <eastl/array.h>
 
@@ -193,10 +194,23 @@ namespace SG
 		pPresentCompleteSemaphore = VulkanSemaphore::Create(device);
 
 		pComputeSyncFence = VulkanFence::Create(device, true);
+
+		EPipelineStageQueryType types =
+			EPipelineStageQueryType::efInput_Assembly_Vertices |
+			EPipelineStageQueryType::efInput_Assembly_Primitives |
+			EPipelineStageQueryType::efVertex_Shader_Invocations |
+			EPipelineStageQueryType::efClipping_Invocations |
+			EPipelineStageQueryType::efClipping_Primitives |
+			EPipelineStageQueryType::efFragment_Shader_Invocations;
+		pPipelineStatisticsQueryPool = VulkanQueryPool::Create(device, ERenderQueryType::ePipeline_Statistics, types);
+		pTimeStampQueryPool = VulkanQueryPool::Create(device, ERenderQueryType::eTimeStamp, 6);
 	}
 
 	void VulkanContext::DestroyDefaultResource()
 	{
+		Memory::Delete(pTimeStampQueryPool);
+		Memory::Delete(pPipelineStatisticsQueryPool);
+
 		Memory::Delete(pComputeSyncFence);
 		Memory::Delete(pComputeCompleteSemaphore);
 

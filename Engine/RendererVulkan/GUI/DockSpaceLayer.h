@@ -22,6 +22,8 @@ namespace SG
 		virtual void OnAttach();
 
 		virtual void OnUpdate(float deltaTime);
+
+		bool ShowStatisticsDetail() const { return mbShowStatisticsDetail; }
 	private:
 		virtual bool OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos) override;
 	private:
@@ -43,6 +45,7 @@ namespace SG
 		Scene::Entity mSelectedEntity;
 
 		bool mbViewportCanUpdateMouse = false;
+		bool mbShowStatisticsDetail = true;
 	};
 
 }
