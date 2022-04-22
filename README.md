@@ -25,7 +25,7 @@ If you have any questions on this engine, you can contact me with these email: 2
 It is called TipECS and it have the basic subset of a ECS.
 
 - GPU-Driven Rendering Pipeline  
-Most of the scene object(excluding skybox) are culled and drawn by GPU. (Using Draw Indirect and compute shader)
+Most of the scene objects(excluding skybox) are culled and drawn by GPU. (Using Draw Indirect and compute shader)
 
 - Auto Shader Recompilation (not the hot reload)  
 Automatically detect the modification of the shader and recompile it to SPIR-V shader.
@@ -34,7 +34,7 @@ Automatically detect the modification of the shader and recompile it to SPIR-V s
 Now have brdf implemented. PBR Lighting and PBR camera need to be done later.
 
 - Frame Graph(Or Render Graph) Based Render System  
-RenderPasses are construct into node, easy to figure out the dependencies between renderpass and easy to do custom rendering.
+RenderPasses are constructed into nodes, it is easy to figure out the dependencies between renderpass and easy to do custom rendering.
 
 ## Developing Screenshots
 
