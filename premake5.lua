@@ -39,6 +39,7 @@ group "Libs"
     include "Libs/ktx/"
     include "Libs/imgui/"
     include "Libs/spirv-cross/"
+    include "Libs/tracy/"
 
 group ""
 
@@ -86,6 +87,7 @@ group "Runtime"
         {
             "mimalloc",
             "eastl",
+            "tracy_server",
             "SCore",
             "S3DEngine",
             "SRendererVulkan",
@@ -98,6 +100,10 @@ group "Runtime"
     filter "configurations:Debug"
         runtime "Debug"
         symbols "on"
+        -- To use tracy, we have to make __LINE__ constexpr (__LINE__ is not a constexpr since C++17 or later in MSVC).
+        -- Use "/Zi" for Debug Infomation Format in C++ Settings can make __LINE__ in C++17 constexpr.
+        debugformat "Default"
+        editandcontinue "Off"
 
     filter "configurations:Release"
         runtime "Release"

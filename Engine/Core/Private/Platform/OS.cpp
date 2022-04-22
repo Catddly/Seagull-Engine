@@ -3,6 +3,7 @@
 
 #include "System/Logger.h"
 #include "System/Input.h"
+#include "Profile/Profile.h"
 
 #include "Memory/Memory.h"
 
@@ -14,12 +15,16 @@ namespace SG
 
 	void OperatingSystem::OnInit()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mDeviceManager.OnInit();
 		mWindowManager.OnInit(mDeviceManager.GetPrimaryMonitor());
 	}
 
 	void OperatingSystem::OnShutdown()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mWindowManager.OnShutdown();
 		mDeviceManager.OnShutdown();
 	}
@@ -46,11 +51,15 @@ namespace SG
 
 	Window* OperatingSystem::CreateNewWindow()
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mWindowManager.CreateNewWindow(GetMainMonitor());
 	}
 
 	Vector2i OperatingSystem::GetMousePos()
 	{
+		SG_PROFILE_FUNCTION();
+
 		POINT pos = {};
 		::GetCursorPos(&pos);
 		Vector2i p = { pos.x, pos.y };
@@ -74,6 +83,8 @@ namespace SG
 
 	bool OperatingSystem::IsMainWindowOutOfScreen()
 	{
+		SG_PROFILE_FUNCTION();
+
 		Window* mainWindow = mWindowManager.GetMainWindow();
 		Monitor* mainMonitor = mDeviceManager.GetPrimaryMonitor();
 		Vector2i RPos = mainWindow->GetMousePosRelative();

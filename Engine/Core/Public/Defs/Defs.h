@@ -115,3 +115,17 @@
 
 // render relative
 #define SG_ENABLE_HDR 1
+
+#if (__cplusplus == 201402L)
+#	define SG_CPP_VERSION_14 1
+#elif (__cplusplus == 201703L)
+#	define SG_CPP_VERSION_17 1
+#elif (__cplusplus == 202002L)
+#	define SG_CPP_VERSION_20 1
+#endif
+
+#if !(SG_CPP_VERSION_14 && SG_CPP_VERSION_17 && SG_CPP_VERSION_20) // default, use C++17
+#	define SG_CPP_VERSION_17 1
+#endif
+
+#define SG_ENABLE_PROFILE 1

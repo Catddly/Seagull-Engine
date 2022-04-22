@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Defs/Defs.h"
+
 #include <stdint.h>
 #include <numeric>
 
@@ -36,7 +38,11 @@ namespace SG
 	using IntPtr = intptr_t;
 	using UIntPtr = uintptr_t;
 
+#if SG_CPP_VERSION_17
 	using Byte = std::byte;
+#else
+	using Byte = unsigned char;
+#endif
 
 	//typedef void* Handle;
 

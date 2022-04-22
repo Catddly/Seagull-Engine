@@ -3,6 +3,8 @@
 
 #include "System/Logger.h"
 
+#include "Profile/Profile.h"
+
 #ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
@@ -17,6 +19,8 @@ namespace SG
 	static Rect tempWorkRect;
 	static BOOL _EnumMonitorCallback(HMONITOR monitor, HDC hdc, LPRECT pRect, LPARAM pUser)
 	{
+		SG_PROFILE_FUNCTION();
+
 		Monitor* pMonitor = (Monitor*)pUser;
 
 		MONITORINFOEXW info = {};
@@ -30,15 +34,20 @@ namespace SG
 
 	void DeviceManager::OnInit()
 	{
+		SG_PROFILE_FUNCTION();
+
 		CollectInfos();
 	}
 
 	void DeviceManager::OnShutdown()
 	{
+		SG_PROFILE_FUNCTION();
 	}
 
 	void DeviceManager::CollectInfos()
 	{
+		SG_PROFILE_FUNCTION();
+
 		// count the monitors
 		int monitorCount = 0;
 		int adapterCount = 0;
@@ -165,6 +174,8 @@ namespace SG
 
 	SG::Monitor* DeviceManager::GetMonitor(UInt32 index) 
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto& e : mMonitors)
 		{
 			if (e.mIndex == index)
@@ -175,6 +186,8 @@ namespace SG
 
 	SG::Monitor* DeviceManager::GetPrimaryMonitor()
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto& e : mMonitors)
 		{
 			if (e.bIsPrimary)
@@ -185,6 +198,8 @@ namespace SG
 
 	SG::Vector2f DeviceManager::GetDpiScale() const
 	{
+		SG_PROFILE_FUNCTION();
+
 		HDC hdc = ::GetDC(NULL);
 		const float dpiScale = 96.0f; // TODO: maybe this can be set somewhere
 		Vector2f dpi;
@@ -207,11 +222,15 @@ namespace SG
 
 	SG::UInt32 DeviceManager::GetAdapterCount() const
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mAdapterCount;
 	}
 
 	SG::Adapter* DeviceManager::GetPrimaryAdapter()
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto& adapter : mAdapters)
 		{
 			if (adapter.bIsActive)

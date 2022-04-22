@@ -3,6 +3,7 @@
 
 #include "System/Logger.h"
 #include "Platform/OS.h"
+#include "Profile/Profile.h"
 
 namespace SG
 {
@@ -16,19 +17,25 @@ namespace SG
 
 	void Input::OnInit()
 	{
+		SG_PROFILE_FUNCTION();
 	}
 
 	void Input::OnShutdown()
 	{
+		SG_PROFILE_FUNCTION();
 	}
 
 	void Input::RegisterListener(EListenerPriority priority, IInputListener* pListener)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpListeners.emplace(priority, pListener);
 	}
 
 	void Input::MuteListener(IInputListener* pListener)
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto& e : mpListeners)
 		{
 			if (e.second == pListener)
@@ -40,6 +47,8 @@ namespace SG
 
 	void Input::RemoveListener(IInputListener* pListener)
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto beg = mpListeners.begin(); beg != mpListeners.end(); beg++)
 		{
 			if (beg->second == pListener)
@@ -52,6 +61,8 @@ namespace SG
 
 	void Input::OnUpdate(float deltaTime)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (!OperatingSystem::GetMainWindow()->IsMouseCursorInWindow()) // mouse is out of the screen, eliminate all holding event
 		{
 			for (auto& key : mKeyElapsedTimeMap) // force to release
@@ -82,6 +93,8 @@ namespace SG
 
 	void Input::OnSystemKeyInputEvent(EKeyCode keycode, bool bPressed)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (keycode == KeyCode_Null)
 			return;
 
@@ -111,6 +124,8 @@ namespace SG
 
 	void Input::OnSystemMouseMoveInputEvent(int xPos, int yPos)
 	{
+		SG_PROFILE_FUNCTION();
+
 		Vector2i currFrameMousePos = { xPos, yPos };
 		// update mouse moving event
 		const int moveDeltaX = currFrameMousePos[0] - mPrevFrameMousePos[0];
@@ -125,6 +140,8 @@ namespace SG
 
 	void Input::OnSystemMouseWheelInputEvent(int direction)
 	{
+		SG_PROFILE_FUNCTION();
+
 		// update mouse wheeling event
 		for (auto& e : mpListeners)
 		{
@@ -135,6 +152,8 @@ namespace SG
 
 	void Input::OnSystemCharInput(Char c)
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto& e : mpListeners)
 		{
 			if (!e.second->OnCharInput(c))
@@ -144,6 +163,8 @@ namespace SG
 
 	void Input::OnSystemWideCharInput(WChar wc)
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto& e : mpListeners)
 		{
 			if (!e.second->OnWideCharInput(wc))

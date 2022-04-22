@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "System/Logger.h"
 
+#include "Profile/Profile.h"
+
 namespace SG
 {
 
@@ -13,6 +15,8 @@ namespace SG
 
 	void Logger::OnInit()
 	{
+		SG_PROFILE_FUNCTION();
+
 		SetFormat("[%y:%o:%d]-[%h:%m:%s]");
 
 		FileSystem::RemoveFile(EResourceDirectory::eLog, "log.txt");
@@ -30,6 +34,8 @@ namespace SG
 
 	void Logger::OnShutdown()
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (sFileLogOutCache.length())
 		{
 			if (mLogMode == ELogMode::eLog_Mode_Default || mLogMode == ELogMode::eLog_Mode_Quite)
@@ -43,6 +49,8 @@ namespace SG
 
 	bool Logger::NeedLogToConsole(ELogLevel logLevel)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mLogMode == ELogMode::eLog_Mode_Quite || mLogMode == ELogMode::eLog_Mode_Quite_No_File)
 		{
 			if (SG_HAS_ENUM_FLAG(logLevel, ELogLevel::efLog_Level_Info | ELogLevel::efLog_Level_Debug))
@@ -53,12 +61,16 @@ namespace SG
 
 	void Logger::ClearTempBuffer()
 	{
+		SG_PROFILE_FUNCTION();
+
 		sTempBufferSize = 0;
 		sTempBuffer[0] = { 0 };
 	}
 
 	void Logger::LogToConsole(ELogLevel logLevel, const char* format, ...)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (!NeedLogToConsole(logLevel))
 			return;
 
@@ -84,6 +96,8 @@ namespace SG
 
 	void Logger::LogToConsole(const char* file, int line, ELogLevel logLevel, const char* format, ...)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (!NeedLogToConsole(logLevel))
 			return;
 
@@ -109,17 +123,23 @@ namespace SG
 
 	int Logger::AddPrefix(char* pBuf)
 	{
+		SG_PROFILE_FUNCTION();
+
 		return sprintf_s(pBuf, SG_MAX_TEMP_BUFFER_SIZE, "%s ", fmt::Formatter::GetFormattedString().c_str());
 	}
 
 	int Logger::AddPrefix(char* pBuf, const char* file, int line)
 	{
+		SG_PROFILE_FUNCTION();
+
 		return sprintf_s(pBuf, SG_MAX_TEMP_BUFFER_SIZE, "%s At file: %s, line: %d\nMessage: ", fmt::Formatter::GetFormattedString().c_str(),
 			file, line);
 	}
 
 	void Logger::LogToFile()
 	{
+		SG_PROFILE_FUNCTION();
+
 		FileSystem::SetFileStream(&mFileStream);
 		FileSystem::Write(sFileLogOutCache.data(), sFileLogOutCache.length());
 		FileSystem::SetToDefaultFileStream();
@@ -127,6 +147,8 @@ namespace SG
 
 	void Logger::FlushToDisk()
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mLogMode == ELogMode::eLog_Mode_Default || mLogMode == ELogMode::eLog_Mode_Quite)
 			LogToFile();
 		sFileLogOutCache.clear();
@@ -134,6 +156,8 @@ namespace SG
 
 	void Logger::LogToConsole(ELogLevel logLevel, char* pBuffer)
 	{
+		SG_PROFILE_FUNCTION();
+
 		bool isError = SG_HAS_ENUM_FLAG(logLevel, ELogLevel::efLog_Level_Error | ELogLevel::efLog_Level_Criticle);
 		FILE* out = isError ? stderr : stdout;
 		HANDLE handle = ::GetStdHandle(STD_OUTPUT_HANDLE);

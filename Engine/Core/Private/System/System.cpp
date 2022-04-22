@@ -12,6 +12,7 @@
 #include "Profile/Timer.h"
 #include "Profile/FpsTimer.h"
 #include "Memory/Memory.h"
+#include "Profile/Profile.h"
 
 #include <filesystem>
 
@@ -23,6 +24,8 @@ namespace SG
 
 	void System::Initialize()
 	{
+		SG_PROFILE_FUNCTION();
+
 #ifdef SG_PLATFORM_WINDOWS
 		char abPath[SG_MAX_FILE_PATH] = { 0 };
 		::GetModuleFileNameA(NULL, abPath, sizeof(abPath));
@@ -60,6 +63,8 @@ namespace SG
 
 	void System::Shutdown()
 	{
+		SG_PROFILE_FUNCTION();
+
 		ShaderLibrary::GetInstance()->OnShutdown();
 		mp3DScene->OnSceneUnLoad();
 
@@ -77,12 +82,16 @@ namespace SG
 
 	void System::AddIProcess(IProcess* pProcess)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (pProcess)
 			mpCurrActiveProcess = pProcess;
 	}
 
 	bool System::SystemMainLoop()
 	{
+		SG_PROFILE_FUNCTION();
+
 		bool bIsSafeQuit = true;
 		bool bIsExit = false;
 
@@ -115,6 +124,8 @@ namespace SG
 				mpCurrActiveProcess->OnDraw();
 
 			Impl::MessageBus::GetInstance()->ClearEvents();
+
+			SG_PROFILE_FRAME_MARK();
 		}
 		return bIsSafeQuit;
 	}
@@ -130,11 +141,15 @@ namespace SG
 
 	RefPtr<Scene> System::GetMainScene()
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mp3DScene;
 	}
 
 	RefPtr<RenderDataBuilder> System::GetRenderDataBuilder()
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mpRenderDataBuilder;
 	}
 
@@ -146,11 +161,15 @@ namespace SG
 
 	void System::SetRootPath(const string& path)
 	{
+		SG_PROFILE_FUNCTION();
+
 		std::filesystem::current_path(path.c_str());
 	}
 
 	int System::RunProcess(const string& command, const char* pOut)
 	{
+		SG_PROFILE_FUNCTION();
+
 #ifdef SG_PLATFORM_WINDOWS
 		STARTUPINFOA        startupInfo;
 		PROCESS_INFORMATION processInfo;
@@ -195,11 +214,15 @@ namespace SG
 
 	void System::RegisterSystemMessageListener(ISystemMessageListener* pListener)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mSystemMessageManager.RegisterListener(pListener);
 	}
 
 	void System::RemoveSystemMessageListener(ISystemMessageListener* pListener)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mSystemMessageManager.RemoveListener(pListener);
 	}
 
@@ -212,6 +235,8 @@ namespace SG
 
 	System* const System::GetInstance()
 	{
+		SG_PROFILE_FUNCTION();
+
 		static System instance;
 		return &instance;
 	}

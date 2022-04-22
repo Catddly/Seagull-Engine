@@ -7,6 +7,8 @@
 #endif
 #include "Memory/Memory.h"
 
+#include "Profile/Profile.h"
+
 #include "stl/string.h"
 #include "eastl/queue.h"
 #include <filesystem>
@@ -34,6 +36,8 @@ namespace SG
 
 	void FileSystem::OnInit()
 	{
+		SG_PROFILE_FUNCTION();
+
 #ifdef SG_PLATFORM_WINDOWS
 		mpStreamOp = Memory::New<WindowsStreamOp>();
 #endif
@@ -44,47 +48,65 @@ namespace SG
 
 	void FileSystem::OnShutdown()
 	{
+		SG_PROFILE_FUNCTION();
+
 		Memory::Delete(mpStreamOp);
 	}
 
 	bool FileSystem::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, Size rootFolderOffset)
 	{
+		SG_PROFILE_FUNCTION();
+
 		ExistOrCreate(directory, "", rootFolderOffset);
 		return mpStreamOp->Open(directory, filename, filemode, mpCurrentStream, rootFolderOffset);
 	}
 
 	bool FileSystem::Close()
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mpStreamOp->Close(mpCurrentStream);
 	}
 
 	Size FileSystem::Read(void* pInBuf, Size bufSizeInByte)
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mpStreamOp->Read(mpCurrentStream, pInBuf, bufSizeInByte);
 	}
 
 	Size FileSystem::Write(const void* const pOutBuf, Size bufSizeInByte)
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mpStreamOp->Write(mpCurrentStream, pOutBuf, bufSizeInByte);
 	}
 
 	bool FileSystem::Seek(EFileBaseOffset baseOffset, Size offset)
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mpStreamOp->Seek(mpCurrentStream, baseOffset, offset);
 	}
 
 	Size FileSystem::Tell()
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mpStreamOp->Tell(mpCurrentStream);
 	}
 
 	Size FileSystem::FileSize()
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mpStreamOp->FileSize(mpCurrentStream);
 	}
 
 	Size FileSystem::FileSize(const EResourceDirectory directory, const string& filename)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string file = GetResourceFolderPath(directory);
 		file += filename;
 		return std::filesystem::file_size(file.c_str());
@@ -92,6 +114,8 @@ namespace SG
 
 	bool FileSystem::RemoveFile(const EResourceDirectory directory, const string& filename)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string file = GetResourceFolderPath(directory);
 		file += filename;
 		return std::filesystem::remove(file.c_str());
@@ -99,16 +123,22 @@ namespace SG
 
 	bool FileSystem::Flush()
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mpStreamOp->Flush(&mStream);
 	}
 
 	bool FileSystem::IsEndOfFile()
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mpStreamOp->IsEndOfFile(&mStream);
 	}
 
 	string FileSystem::GetResourceFolderPath(EResourceDirectory directory, Size rootFolderOffset)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string path = "";
 		if (rootFolderOffset != 0)
 		{
@@ -124,6 +154,8 @@ namespace SG
 
 	string FileSystem::GetResourceFolderName(EResourceDirectory directory)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (directory == EResourceDirectory::Num_Directory)
 			SG_ASSERT(false && "Invalid directory");
 		return sResourceDirectory[(UInt32)directory];
@@ -131,16 +163,22 @@ namespace SG
 
 	string FileSystem::ToAbsolutePath(const string& path)
 	{
+		SG_PROFILE_FUNCTION();
+
 		return std::filesystem::absolute(path.c_str()).generic_string().c_str();
 	}
 
 	string FileSystem::ToRelativePath(const string& path)
 	{
+		SG_PROFILE_FUNCTION();
+
 		return std::filesystem::relative(path.c_str()).generic_string().c_str();
 	}
 
 	void FileSystem::TraverseFileAndSubDirectoryInFolder(EResourceDirectory directory, const string& folderPath, FileTraverseFunc func, UInt32 baseOffset)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string folder = GetResourceFolderPath(directory, baseOffset);
 		folder += folderPath;
 
@@ -172,6 +210,8 @@ namespace SG
 
 	void FileSystem::TraverseFilesInFolder(EResourceDirectory directory, const string& folderPath, FileTraverseFunc func, UInt32 baseOffset)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string folder = GetResourceFolderPath(directory, baseOffset);
 		folder += folderPath;
 
@@ -185,22 +225,30 @@ namespace SG
 
 	void FileSystem::SetIStreamOp(IStreamOps* pStreamOp)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (pStreamOp != nullptr)
 			mpStreamOp = pStreamOp;
 	}
 
 	void FileSystem::SetFileStream(FileStream* pFileStream)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpCurrentStream = pFileStream;
 	}
 
 	void FileSystem::SetToDefaultFileStream()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpCurrentStream = &mStream;
 	}
 
 	bool FileSystem::Exist(const EResourceDirectory directory, const char* filename, Size rootFolderOffset)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string filepath = GetResourceFolderPath(directory, rootFolderOffset);
 		filepath += filename;
 		return std::filesystem::exists(filepath.c_str());
@@ -208,6 +256,8 @@ namespace SG
 
 	bool FileSystem::CreateFolder(const EResourceDirectory directory, const char* folderName)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string path = GetResourceFolderName(directory) + "/";
 		path += folderName;
 		return std::filesystem::create_directory(path.c_str());
@@ -215,6 +265,8 @@ namespace SG
 
 	bool FileSystem::ExistOrCreate(const EResourceDirectory directory, const string& filename, Size rootFolderOffset)
 	{
+		SG_PROFILE_FUNCTION();
+
 		bool bSuccess = true;
 		string folder = "";
 		string path = filename;
@@ -246,6 +298,8 @@ namespace SG
 
 	TimePoint FileSystem::GetFileCreateTime(EResourceDirectory directory, const char* filename, UInt32 baseOffset)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string path = GetResourceFolderPath(directory, baseOffset);
 		path += filename;
 #ifdef SG_PLATFORM_WINDOWS
@@ -255,6 +309,8 @@ namespace SG
 
 	TimePoint FileSystem::GetFileLastWriteTime(EResourceDirectory directory, const char* filename, UInt32 baseOffset)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string path = GetResourceFolderPath(directory, baseOffset);
 		path += filename;
 #ifdef SG_PLATFORM_WINDOWS
@@ -264,6 +320,8 @@ namespace SG
 
 	TimePoint FileSystem::GetFileLastReadTime(EResourceDirectory directory, const char* filename, UInt32 baseOffset)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string path = GetResourceFolderPath(directory, baseOffset);
 		path += filename;
 #ifdef SG_PLATFORM_WINDOWS

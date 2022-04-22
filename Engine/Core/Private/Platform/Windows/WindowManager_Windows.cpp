@@ -4,6 +4,7 @@
 #include "System/Logger.h"
 #include "System/Input.h"
 #include "System/System.h"
+#include "Profile/Profile.h"
 #include "Memory/Memory.h"
 
 #if 0
@@ -183,6 +184,8 @@ namespace SG
 
 	void WindowManager::OnInit(Monitor* const pMonitor)
 	{
+		SG_PROFILE_FUNCTION();
+
 		// register a window class
 		WNDCLASSEX wc;
 		HINSTANCE instance = (HINSTANCE)::GetModuleHandle(NULL);
@@ -211,6 +214,8 @@ namespace SG
 
 	void WindowManager::OnShutdown()
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto* pWindow : mSecondaryWindows)
 			Memory::Delete(pWindow);
 		Memory::Delete(mMainWindow);
@@ -218,11 +223,15 @@ namespace SG
 
 	SG::Window* WindowManager::GetMainWindow() const
 	{
+		SG_PROFILE_FUNCTION();
+
 		return mMainWindow;
 	}
 
 	SG::Window* WindowManager::CreateNewWindow(Monitor* const pMonitor)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto* newWindow = Memory::New<Window>(pMonitor);
 		mSecondaryWindows.push_back(newWindow);
 		return newWindow;
@@ -230,16 +239,22 @@ namespace SG
 
 	void WindowManager::ShowMouseCursor() const
 	{
+		SG_PROFILE_FUNCTION();
+
 		::ShowCursor(true);
 	}
 
 	void WindowManager::HideMouseCursor() const
 	{
+		SG_PROFILE_FUNCTION();
+
 		::ShowCursor(false);
 	}
 
 	void WindowManager::SetMouseCursor(ECursorType type)
 	{
+		SG_PROFILE_FUNCTION();
+
 		LPCWSTR cursor = IDC_ARROW;
 		switch (type)
 		{
