@@ -123,9 +123,9 @@ namespace SG
 
 	RGDrawScenePBRNode::~RGDrawScenePBRNode()
 	{
-		Memory::Delete(mpSkyboxPipeline);
-		Memory::Delete(mpInstancePipeline);
-		Memory::Delete(mpPipeline);
+		Delete(mpSkyboxPipeline);
+		Delete(mpInstancePipeline);
+		Delete(mpPipeline);
 	}
 
 	void RGDrawScenePBRNode::Reset()
@@ -299,10 +299,10 @@ namespace SG
 
 		pFence->Wait();
 		mContext.graphicCommandPool->FreeCommandBuffer(cmdBuf);
-		Memory::Delete(pBrdfLutPipeline);
-		Memory::Delete(pTempFrameBuffer);
-		Memory::Delete(pTempVulkanRenderPass);
-		Memory::Delete(pFence);
+		Delete(pBrdfLutPipeline);
+		Delete(pTempFrameBuffer);
+		Delete(pTempVulkanRenderPass);
+		Delete(pFence);
 	}
 
 	void RGDrawScenePBRNode::PreCalcIrradianceCubemap()
@@ -459,10 +459,10 @@ namespace SG
 		pFence->Wait();
 
 		mContext.graphicCommandPool->FreeCommandBuffer(cmd);
-		Memory::Delete(pIrradiancePipeline);
-		Memory::Delete(pTempFrameBuffer);
-		Memory::Delete(pTempVulkanRenderPass);
-		Memory::Delete(pFence);
+		Delete(pIrradiancePipeline);
+		Delete(pTempFrameBuffer);
+		Delete(pTempVulkanRenderPass);
+		Delete(pFence);
 		VK_RESOURCE()->DeleteRenderTarget("cubemap_irradiance_rt");
 	}
 
@@ -620,10 +620,10 @@ namespace SG
 
 		pFence->Wait();
 		mContext.graphicCommandPool->FreeCommandBuffer(cmd);
-		Memory::Delete(pPrefilterPipeline);
-		Memory::Delete(pTempFrameBuffer);
-		Memory::Delete(pTempVulkanRenderPass);
-		Memory::Delete(pFence);
+		Delete(pPrefilterPipeline);
+		Delete(pTempFrameBuffer);
+		Delete(pTempVulkanRenderPass);
+		Delete(pFence);
 		VK_RESOURCE()->DeleteRenderTarget("cubemap_prefilter_rt");
 	}
 

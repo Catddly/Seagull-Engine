@@ -71,11 +71,12 @@ namespace SG
 		if (mpCurrActiveProcess)
 		{
 			mpCurrActiveProcess->OnShutdown();
-			Memory::Delete(mpCurrActiveProcess);
+			Delete(mpCurrActiveProcess);
 		}
 
 		OperatingSystem::OnShutdown();
 		Input::OnShutdown();
+
 		Logger::OnShutdown();
 		FileSystem::OnShutdown();
 	}

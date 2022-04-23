@@ -161,7 +161,7 @@ namespace SG
 
 	VulkanBuffer* VulkanBuffer::Create(VulkanContext& c, const BufferCreateDesc& CI)
 	{
-		return Memory::New<VulkanBuffer>(c, CI);
+		return New(VulkanBuffer, c, CI);
 	}
 
 	void VulkanBuffer::UnmapMemory()

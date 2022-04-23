@@ -208,7 +208,7 @@ namespace SG
 			PeekLastOSError();
 		}
 
-		mMainWindow = Memory::New<Window>(pMonitor, L"Seagull Engine");
+		mMainWindow = New(Window, pMonitor, L"Seagull Engine");
 		mSecondaryWindows.resize(0);
 	}
 
@@ -217,22 +217,22 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		for (auto* pWindow : mSecondaryWindows)
-			Memory::Delete(pWindow);
-		Memory::Delete(mMainWindow);
+			Delete(pWindow);
+		Delete(mMainWindow);
 	}
 
-	SG::Window* WindowManager::GetMainWindow() const
+	Window* WindowManager::GetMainWindow() const
 	{
 		SG_PROFILE_FUNCTION();
 
 		return mMainWindow;
 	}
 
-	SG::Window* WindowManager::CreateNewWindow(Monitor* const pMonitor)
+	Window* WindowManager::CreateNewWindow(Monitor* const pMonitor)
 	{
 		SG_PROFILE_FUNCTION();
 
-		auto* newWindow = Memory::New<Window>(pMonitor);
+		auto* newWindow = New(Window, pMonitor);
 		mSecondaryWindows.push_back(newWindow);
 		return newWindow;
 	}

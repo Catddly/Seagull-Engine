@@ -2,30 +2,43 @@
 #include "Allocator.h"
 
 #include "Defs/Defs.h"
-//#include "Memory/Memory.h"
+
+#include "Math/MathBasic.h"
+#include "Profile/Profile.h"
+#include "Memory/Memory.h"
 
 namespace SG
 {
 
 	void* DefaultAllocator::allocate(Size size) noexcept
 	{
-		//return Memory::Malloc(size);
-		return mi_malloc(size);
+		void* ptr = mi_malloc(size);
+#if SG_ENABLE_MEMORY_PROFILE
+		SG_PROFILE_ALLOC(ptr, size);
+#endif
+		return ptr;
 	}
 
 	void* DefaultAllocator::allocate(Size size, Size alignment, Size alignmentOffset, int flags /*= 0*/) noexcept
 	{
 		SG_NO_USE(flags);
 		if ((alignmentOffset % alignment) == 0)
-			return mi_malloc_aligned(size, alignment);
-			//return Memory::MallocAlign(size, alignment);
+		{
+			void* ptr = mi_malloc_aligned(size, alignment);
+#if SG_ENABLE_MEMORY_PROFILE
+			SG_PROFILE_ALLOC(ptr, MinValueAlignTo(static_cast<UInt32>(size), static_cast<UInt32>(alignment)));
+#endif
+			return ptr;
+		}
 		return nullptr;
 	}
 
 	void DefaultAllocator::deallocate(void* ptr, Size size) noexcept
 	{
 		SG_NO_USE(size);
-		//Memory::Free(ptr);
+#if SG_ENABLE_MEMORY_PROFILE
+		SG_PROFILE_FREE(ptr);
+#endif
 		mi_free(ptr);
 	}
 

@@ -119,15 +119,17 @@ namespace SG
 	{
 		// release all the memory
 		for (auto beg = mBuffers.begin(); beg != mBuffers.end(); ++beg)
-			Memory::Delete(beg->second);
+			Delete(beg->second);
 		for (auto beg = mTextures.begin(); beg != mTextures.end(); ++beg)
-			Memory::Delete(beg->second);
+			Delete(beg->second);
 		for (auto beg = mDescriptorSets.begin(); beg != mDescriptorSets.end(); ++beg)
-			Memory::Delete(beg->second);
+			Delete(beg->second);
+		for (auto beg = mDescriptorSetHandles.begin(); beg != mDescriptorSetHandles.end(); ++beg)
+			Delete(beg->second);
 		for (auto beg = mRenderTargets.begin(); beg != mRenderTargets.end(); ++beg)
-			Memory::Delete(beg->second);
+			Delete(beg->second);
 		for (auto beg = mSamplers.begin(); beg != mSamplers.end(); ++beg)
-			Memory::Delete(beg->second);
+			Delete(beg->second);
 	}
 
 	void VulkanResourceRegistry::OnUpdate()
@@ -244,9 +246,9 @@ namespace SG
 		for (auto& buf : mSubmitedCommandBuffers)
 			mpContext->transferCommandPool->FreeCommandBuffer(buf);
 		for (auto* pStagingBuf : mpStagingBuffers)
-			Memory::Delete(pStagingBuf);
+			Delete(pStagingBuf);
 		for (auto* pFence : mpBufferUploadFences)
-			Memory::Delete(pFence);
+			Delete(pFence);
 
 		mpBufferUploadFences.clear();
 		mpStagingBuffers.clear();
@@ -349,7 +351,7 @@ namespace SG
 		auto* pBuffer = GetBuffer(name);
 		if (pBuffer)
 		{
-			Memory::Delete(pBuffer);
+			Delete(pBuffer);
 			mBuffers.erase(name);
 		}
 	}
@@ -487,7 +489,7 @@ namespace SG
 
 		mpContext->graphicCommandPool->FreeCommandBuffer(pCmd);
 		for (auto* e : stagingBuffers)
-			Memory::Delete(e);
+			Delete(e);
 		mWaitToSubmitTextures.clear();
 	}
 
@@ -505,7 +507,7 @@ namespace SG
 		}
 		mDescriptorSets[name] = pSet;
 		if (bCreateHandle)
-			mDescriptorSetHandles[name] = Handle<VulkanDescriptorSet>(pSet, nullptr);
+			mDescriptorSetHandles[name] = New(Handle<VulkanDescriptorSet>, pSet, nullptr);
 	}
 
 	void VulkanResourceRegistry::AddDescriptorSetHandle(const string& name, VulkanDescriptorSet* pSet)
@@ -516,7 +518,7 @@ namespace SG
 			SG_LOG_ERROR("Already have a descriptor set handle named: %s", name.c_str());
 			return;
 		}
-		mDescriptorSetHandles[name] = Handle<VulkanDescriptorSet>(pSet, nullptr);
+		mDescriptorSetHandles[name] = New(Handle<VulkanDescriptorSet>, pSet, nullptr);
 	}
 
 	void VulkanResourceRegistry::RemoveDescriptorSet(const string& name)
@@ -527,15 +529,18 @@ namespace SG
 			SG_LOG_ERROR("No descriptor set named: %s", name.c_str());
 			return;
 		}
-		Memory::Delete(node->second);
+
+		Delete(node->second);
 		mDescriptorSets.erase(node);
 
-		//auto nodeHandle = mDescriptorSetHandles.find(name);
-		//if (nodeHandle != mDescriptorSetHandles.end())
-		//{
-		//	nodeHandle->second.Invalidate();
-		//	mDescriptorSetHandles.erase(nodeHandle);
-		//}
+		auto nodeHandle = mDescriptorSetHandles.find(name);
+		if (nodeHandle != mDescriptorSetHandles.end())
+		{
+			auto* pHandle = nodeHandle->second;
+			pHandle->Invalidate();
+			mDescriptorSetHandles.erase(nodeHandle);
+			Delete(pHandle);
+		}
 	}
 
 	void VulkanResourceRegistry::RemoveDescriptorSet(VulkanDescriptorSet* pSet)
@@ -545,15 +550,17 @@ namespace SG
 			if (node.second == pSet)
 			{
 				mDescriptorSets.erase(node.first);
-				//for (auto nodeHandle : mDescriptorSetHandles)
-				//{
-				//	if (nodeHandle.second.GetData() == pSet)
-				//	{
-				//		nodeHandle.second.Invalidate();
-				//		mDescriptorSetHandles.erase(nodeHandle.first);
-				//	}
-				//	return;
-				//}
+				for (auto nodeHandle : mDescriptorSetHandles)
+				{
+					if (nodeHandle.second->GetData() == pSet)
+					{
+						auto* pHandle = nodeHandle.second;
+						pHandle->Invalidate();
+						mDescriptorSetHandles.erase(nodeHandle.first);
+						Delete(pHandle);
+					}
+					return;
+				}
 				return;
 			}
 		}
@@ -579,12 +586,7 @@ namespace SG
 			SG_LOG_ERROR("No descritor set handle named: %s", name.c_str());
 			return nullptr;
 		}
-		return &node->second;
-	}
-
-	ReadOnlyHandle<VulkanDescriptorSet> VulkanResourceRegistry::GetDescriptorSetReadOnlyHandle(const string& name)
-	{
-		return GetDescriptorSetHandle(name)->ReadOnly();
+		return node->second;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -615,7 +617,7 @@ namespace SG
 		auto* pRt = GetRenderTarget(name);
 		if (pRt)
 		{
-			Memory::Delete(pRt);
+			Delete(pRt);
 			mRenderTargets.erase(name);
 		}
 	}

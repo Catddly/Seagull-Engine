@@ -85,13 +85,13 @@ namespace SG
 	VulkanQueryPool* VulkanQueryPool::Create(VulkanDevice& d, ERenderQueryType type, EPipelineStageQueryType pipelineStageTypes)
 	{
 		SG_ASSERT(type == ERenderQueryType::ePipeline_Statistics);
-		return Memory::New<VulkanQueryPool>(d, pipelineStageTypes);
+		return New(VulkanQueryPool, d, pipelineStageTypes);
 	}
 
 	VulkanQueryPool* VulkanQueryPool::Create(VulkanDevice& d, ERenderQueryType type, UInt32 maxQueryCount)
 	{
 		SG_ASSERT(type == ERenderQueryType::eTimeStamp);
-		return Memory::New<VulkanQueryPool>(d, maxQueryCount);
+		return New(VulkanQueryPool, d, maxQueryCount);
 	}
 
 }

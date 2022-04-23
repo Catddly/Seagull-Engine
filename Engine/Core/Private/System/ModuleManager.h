@@ -27,7 +27,7 @@ namespace SG
 		template <class T>
 		static T GetModule();
 	private:
-		SG_CORE_API static eastl::map<const char*, IModule*> mUserModuleMap;
+		SG_CORE_API static eastl::map<string, IModule*> mUserModuleMap;
 	};
 
 	template <class T>

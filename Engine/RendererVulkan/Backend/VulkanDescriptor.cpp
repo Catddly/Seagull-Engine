@@ -43,7 +43,7 @@ namespace SG
 			return nullptr;
 		}
 
-		return Memory::New<VulkanDescriptorPool>(d, poolSizes, maxSets);
+		return New(VulkanDescriptorPool, d, poolSizes, maxSets);
 	}
 
 	VulkanDescriptorPool::VulkanDescriptorPool(VulkanDevice& d, const vector<VkDescriptorPoolSize>& poolSizes, UInt32 maxSets)

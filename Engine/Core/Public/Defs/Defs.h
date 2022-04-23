@@ -46,7 +46,7 @@
 #endif
 
 #ifndef SG_COMPILE_ASSERT
-#	define SG_COMPILE_ASSERT(x, MSG) do { static_assert(x, #MSG); } while(false)
+#	define SG_COMPILE_ASSERT(x, msg) do { static_assert(x, msg); } while(false)
 #endif
 
 #ifndef SG_ASSERT

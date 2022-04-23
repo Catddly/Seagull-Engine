@@ -136,8 +136,8 @@ namespace SG
 			(*mpRefCount) -= 1;
 			if (*mpRefCount == 0)
 			{
-				Memory::Delete(mpVersionNumber);
-				Memory::Delete(mpRefCount);
+				Delete(mpVersionNumber);
+				Delete(mpRefCount);
 				//SG_LOG_DEBUG("ReadOnlyHandle destroyed!");
 			}
 		}
@@ -187,8 +187,18 @@ namespace SG
 	Handle<T>::Handle()
 		:mpData(nullptr), mpFallBackData(nullptr)
 	{
-		mpVersionNumber = Memory::New<int>(0);
-		mpRefCount = Memory::New<int>(0);
+		mpVersionNumber = New(int, 0);
+		mpRefCount = New(int, 0);
+		(*mpRefCount) += 1;
+		//SG_LOG_DEBUG("Handle created with ref count: %d", *mpRefCount);
+	}
+
+	template <typename T>
+	Handle<T>::Handle(DataType* pData, DataType* pFallbackData)
+		:mpData(pData), mpFallBackData(pFallbackData), mMyVersionNumber(0)
+	{
+		mpVersionNumber = New(int, 0);
+		mpRefCount = New(int, 0);
 		(*mpRefCount) += 1;
 		//SG_LOG_DEBUG("Handle created with ref count: %d", *mpRefCount);
 	}
@@ -218,16 +228,6 @@ namespace SG
 	}
 
 	template <typename T>
-	Handle<T>::Handle(DataType* pData, DataType* pFallbackData)
-		:mpData(pData), mpFallBackData(pFallbackData), mMyVersionNumber(0)
-	{
-		mpVersionNumber = Memory::New<int>(0);
-		mpRefCount = Memory::New<int>(0);
-		(*mpRefCount) += 1;
-		//SG_LOG_DEBUG("Handle created with ref count: %d", *mpRefCount);
-	}
-
-	template <typename T>
 	Handle<T>::~Handle()
 	{
 		if (mpRefCount)
@@ -235,8 +235,8 @@ namespace SG
 			(*mpRefCount) -= 1;
 			if (*mpRefCount == 0)
 			{
-				Memory::Delete(mpVersionNumber);
-				Memory::Delete(mpRefCount);
+				Delete(mpVersionNumber);
+				Delete(mpRefCount);
 				//SG_LOG_DEBUG("Handle destroyed!");
 			}
 		}
@@ -280,8 +280,8 @@ namespace SG
 			(*mpRefCount) -= 1;
 			if (*mpRefCount == 0)
 			{
-				Memory::Delete(mpRefCount);
-				Memory::Delete(mpVersionNumber);
+				Delete(mpRefCount);
+				Delete(mpVersionNumber);
 				//SG_LOG_DEBUG("Copy Self destroyed!");
 			}
 
@@ -304,8 +304,8 @@ namespace SG
 			(*mpRefCount) -= 1;
 			if (*mpRefCount == 0)
 			{
-				Memory::Delete(mpRefCount);
-				Memory::Delete(mpVersionNumber);
+				Delete(mpRefCount);
+				Delete(mpVersionNumber);
 				//SG_LOG_DEBUG("Move Self destroyed!");
 			}
 

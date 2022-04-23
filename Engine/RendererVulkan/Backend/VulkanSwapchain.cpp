@@ -150,7 +150,7 @@ namespace SG
 				vkDestroyImageView(context.device.logicalDevice, e, nullptr);
 			vkDestroySwapchainKHR(context.device.logicalDevice, oldSwapchain, nullptr);
 			for (UInt32 i = 0; i < imageCount; ++i)
-				Memory::Delete(mpRts[i]);
+				Delete(mpRts[i]);
 		}
 
 		vkGetSwapchainImagesKHR(context.device.logicalDevice, swapchain, &imageCount, nullptr);
@@ -183,7 +183,7 @@ namespace SG
 
 			vkCreateImageView(context.device.logicalDevice, &colorAttachmentView, nullptr, &imageViews[i]);
 
-			mpRts[i] = Memory::New<VulkanRenderTarget>(context);
+			mpRts[i] = New(VulkanRenderTarget, context);
 			mpRts[i]->width  = swapchainExtent.width;
 			mpRts[i]->height = swapchainExtent.height;
 			mpRts[i]->depth  = 1;
@@ -229,7 +229,7 @@ namespace SG
 		for (UInt32 i = 0; i < imageCount; ++i)
 			vkDestroyImageView(context.device.logicalDevice, imageViews[i], nullptr);
 		for (auto* ptr : mpRts)
-			Memory::Delete(ptr);
+			Delete(ptr);
 		if (swapchain != VK_NULL_HANDLE)
 			vkDestroySwapchainKHR(context.device.logicalDevice, swapchain, nullptr);
 	}

@@ -94,7 +94,7 @@ namespace SG
 		case VK_QUEUE_FLAG_BITS_MAX_ENUM:
 		default: SG_LOG_WARN("Unsupported queue type!"); break;
 		}
-		return Memory::New<VulkanCommandPool>(d, queueFamilyIndex, flag);
+		return New(VulkanCommandPool, d, queueFamilyIndex, flag);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////

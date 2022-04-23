@@ -4,10 +4,12 @@
 
 #include "Memory/Memory.h"
 
+#include "Stl/string.h"
+
 namespace SG
 {
 
-	eastl::map<const char*, IModule*> ModuleManager::mUserModuleMap;
+	eastl::map<string, IModule*> ModuleManager::mUserModuleMap;
 
 	ModuleManager::ModuleManager()
 	{
@@ -19,7 +21,7 @@ namespace SG
 		for (auto beg = mUserModuleMap.rbegin(); beg != mUserModuleMap.rend(); beg++)
 		{
 			beg->second->OnShutdown();
-			Memory::Delete(beg->second);
+			Delete(beg->second);
 		}
 	}
 

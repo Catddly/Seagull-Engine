@@ -35,7 +35,7 @@ namespace SG
 	RenderGraphBuilder& RenderGraphBuilder::NewRenderPass()
 	{
 		static_assert(eastl::is_base_of_v<RenderGraphNode, TRenderPassNode>);
-		auto* pNode = Memory::New<TRenderPassNode>(*mpContext, mpRenderGraph.get());
+		auto* pNode = New(TRenderPassNode, *mpContext, mpRenderGraph.get());
 		mpRenderGraph->mpNodes.push_back(pNode);
 		return *this;
 	}

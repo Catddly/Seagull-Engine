@@ -39,7 +39,7 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 #ifdef SG_PLATFORM_WINDOWS
-		mpStreamOp = Memory::New<WindowsStreamOp>();
+		mpStreamOp = New(WindowsStreamOp);
 #endif
 		if (!mpStreamOp)
 			SG_ASSERT(false);
@@ -50,7 +50,7 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		Memory::Delete(mpStreamOp);
+		Delete(mpStreamOp);
 	}
 
 	bool FileSystem::Open(const EResourceDirectory directory, const char* filename, const EFileMode filemode, Size rootFolderOffset)

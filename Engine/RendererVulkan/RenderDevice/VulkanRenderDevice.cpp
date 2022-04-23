@@ -54,7 +54,7 @@ namespace SG
 		mpGUIDriver = MakeUnique<ImGuiDriver>();
 		mpGUIDriver->OnInit();
 
-		mpContext = Memory::New<VulkanContext>();
+		mpContext = New(VulkanContext);
 		VK_RESOURCE()->Initialize(mpContext);
 		SG_LOG_INFO("RenderDevice - Vulkan Init");
 
@@ -102,7 +102,7 @@ namespace SG
 
 		mpRenderGraph.reset();
 		VK_RESOURCE()->Shutdown();
-		Memory::Delete(mpContext);
+		Delete(mpContext);
 		SG_LOG_INFO("RenderDevice - Vulkan Shutdown");
 
 		mpGUIDriver->OnShutdown();

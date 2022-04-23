@@ -56,7 +56,7 @@ namespace SG
 
 	VulkanSampler* VulkanSampler::Create(VulkanDevice& d, const SamplerCreateDesc& CI)
 	{
-		return Memory::New<VulkanSampler>(d, CI);
+		return New(VulkanSampler, d, CI);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -176,7 +176,7 @@ namespace SG
 			return nullptr;
 		}
 
-		return Memory::New<VulkanTexture>(c, CI, bLocal);
+		return New(VulkanTexture, c, CI, bLocal);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,7 +185,7 @@ namespace SG
 
 	VulkanRenderTarget* VulkanRenderTarget::Create(VulkanContext& c, const TextureCreateDesc& CI, bool isDepth)
 	{
-		return Memory::New<VulkanRenderTarget>(c, CI, isDepth);
+		return New(VulkanRenderTarget, c, CI, isDepth);
 	}
 
 }

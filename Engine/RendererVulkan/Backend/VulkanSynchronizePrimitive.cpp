@@ -39,7 +39,7 @@ namespace SG
 
 	VulkanSemaphore* VulkanSemaphore::Create(VulkanDevice& d, bool bTimeLine)
 	{
-		return Memory::New<VulkanSemaphore>(d, bTimeLine);
+		return New(VulkanSemaphore, d, bTimeLine);
 	}
 
 	void VulkanSemaphore::Signal()
@@ -91,7 +91,7 @@ namespace SG
 
 	VulkanFence* VulkanFence::Create(VulkanDevice& d, bool bSignaled)
 	{
-		return Memory::New<VulkanFence>(d, bSignaled);
+		return New(VulkanFence, d, bSignaled);
 	}
 
 }

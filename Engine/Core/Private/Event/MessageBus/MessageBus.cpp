@@ -21,7 +21,7 @@ namespace SG
 		void MessageBus::ClearEvents()
 		{
 			for (auto node : mpEventsMap)
-				Memory::Delete(node.second);
+				Delete(node.second);
 			mpEventsMap.clear();
 		}
 
@@ -52,7 +52,7 @@ namespace SG
 			{
 				auto* pOldEvent = node->second;
 				node->second = pEvent;
-				Memory::Delete(pOldEvent);
+				Delete(pOldEvent);
 				return;
 			}
 			mpEventsMap[eventName] = pEvent;

@@ -120,8 +120,8 @@ namespace SG
 
 	RGDrawSceneNode::~RGDrawSceneNode()
 	{
-		Memory::Delete(mpSkyboxPipeline);
-		Memory::Delete(mpPipeline);
+		Delete(mpSkyboxPipeline);
+		Delete(mpPipeline);
 	}
 
 	void RGDrawSceneNode::Reset()

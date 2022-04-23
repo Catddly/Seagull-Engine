@@ -132,7 +132,7 @@ namespace SG
 			return nullptr;
 		}
 
-		return Memory::New<VulkanRenderPass>(device, eastl::move(attachments), eastl::move(dependencies), eastl::move(subpasses), eastl::move(transitions));
+		return New(VulkanRenderPass, device, eastl::move(attachments), eastl::move(dependencies), eastl::move(subpasses), eastl::move(transitions));
 	}
 
 	VulkanRenderPass::VulkanRenderPass(VulkanDevice& d, const vector<VkAttachmentDescription>& attachments, 
@@ -243,7 +243,7 @@ namespace SG
 
 	VulkanFrameBuffer* VulkanFrameBuffer::Builder::Build()
 	{
-		return Memory::New<VulkanFrameBuffer>(device, renderTargets, clearValues, pRenderPass);
+		return New(VulkanFrameBuffer, device, renderTargets, clearValues, pRenderPass);
 	}
 
 }

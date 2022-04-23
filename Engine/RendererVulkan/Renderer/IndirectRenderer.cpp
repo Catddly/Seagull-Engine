@@ -94,18 +94,18 @@ namespace SG
 
 		mpResetCullingShader.reset();
 		mpResetCullingPipelineSignature.reset();
-		Memory::Delete(mpResetCullingPipeline);
+		Delete(mpResetCullingPipeline);
 
 		mpDrawCallCompactShader.reset();
 		mpDrawCallCompactPipelineSignature.reset();
-		Memory::Delete(mpDrawCallCompactPipeline);
+		Delete(mpDrawCallCompactPipeline);
 
 		mpGPUCullingShader.reset();
 		mpGPUCullingPipelineSignature.reset();
-		Memory::Delete(mpGPUCullingPipeline);
+		Delete(mpGPUCullingPipeline);
 
 		mpContext->computeCommandPool->FreeCommandBuffer(mResetCommand);
-		Memory::Delete(mpWaitResetSemaphore);
+		Delete(mpWaitResetSemaphore);
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer");
 		mbRendererInit = false;
 	}

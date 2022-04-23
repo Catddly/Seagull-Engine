@@ -56,7 +56,7 @@ namespace SG
 
 		SG_LOG_INFO("VmaAllocator initialized successfully!");
 #endif
-		pSwapchain = Memory::New<VulkanSwapchain>(*this);
+		pSwapchain = New(VulkanSwapchain, *this);
 
 		graphicQueue  = device.GetQueue(EQueueType::eGraphic);
 		computeQueue  = device.GetQueue(EQueueType::eCompute);
@@ -97,10 +97,10 @@ namespace SG
 	VulkanContext::~VulkanContext()
 	{
 		pSwapchain->CleanUp();
-		Memory::Delete(pSwapchain);
+		Delete(pSwapchain);
 
 		DestroyDefaultResource();
-		Memory::Delete(depthRt);
+		Delete(depthRt);
 
 #if SG_USE_VULKAN_MEMORY_ALLOCATOR
 		vmaDestroyAllocator(vmaAllocator);
@@ -111,7 +111,7 @@ namespace SG
 	{
 		graphicQueue.WaitIdle();
 
-		Memory::Delete(depthRt);
+		Delete(depthRt);
 
 		Window* pMainWindow = OperatingSystem::GetMainWindow();
 		pSwapchain->CreateOrRecreate(pMainWindow->GetWidth(), pMainWindow->GetHeight());
@@ -208,24 +208,24 @@ namespace SG
 
 	void VulkanContext::DestroyDefaultResource()
 	{
-		Memory::Delete(pTimeStampQueryPool);
-		Memory::Delete(pPipelineStatisticsQueryPool);
+		Delete(pTimeStampQueryPool);
+		Delete(pPipelineStatisticsQueryPool);
 
-		Memory::Delete(pComputeSyncFence);
-		Memory::Delete(pComputeCompleteSemaphore);
+		Delete(pComputeSyncFence);
+		Delete(pComputeCompleteSemaphore);
 
-		Memory::Delete(pRenderCompleteSemaphore);
-		Memory::Delete(pPresentCompleteSemaphore);
+		Delete(pRenderCompleteSemaphore);
+		Delete(pPresentCompleteSemaphore);
 		for (auto* pFence : pFences)
-			Memory::Delete(pFence);
+			Delete(pFence);
 
-		Memory::Delete(pDefaultDescriptorPool);
+		Delete(pDefaultDescriptorPool);
 		if (computeCommandPool && device.queueFamilyIndices.graphics != device.queueFamilyIndices.compute)
-			Memory::Delete(computeCommandPool);
+			Delete(computeCommandPool);
 		if (transferCommandPool && device.queueFamilyIndices.graphics != device.queueFamilyIndices.transfer)
-			Memory::Delete(transferCommandPool);
+			Delete(transferCommandPool);
 		if (graphicCommandPool)
-			Memory::Delete(graphicCommandPool);
+			Delete(graphicCommandPool);
 	}
 
 }

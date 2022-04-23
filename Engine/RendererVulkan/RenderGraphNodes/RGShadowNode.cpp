@@ -91,8 +91,8 @@ namespace SG
 
 	RGShadowNode::~RGShadowNode()
 	{
-		Memory::Delete(mpShadowInstancePipeline);
-		Memory::Delete(mpShadowPipeline);
+		Delete(mpShadowInstancePipeline);
+		Delete(mpShadowPipeline);
 	}
 
 	void RGShadowNode::Reset()

@@ -126,14 +126,16 @@ namespace SG
 	template <class T>
 	void System::UnResgisterModule()
 	{
+		SG_COMPILE_ASSERT(eastl::is_base_of<IModule, T>::value);
 		IModule* pModule = mModuleManager.UnRegisterUserModule(Refl::CT_TypeName<T>().c_str());
-		Memory::Delete(pModule);
+		Delete(pModule);
 	}
 
 	template <class T>
 	bool System::RegisterModule()
 	{
-		T* pModule = Memory::New<T>();
+		SG_COMPILE_ASSERT(eastl::is_base_of<IModule, T>::value);
+		T* pModule = New(T);
 		if (pModule)
 		{
 			mModuleManager.RegisterUserModule(Refl::CT_TypeName<T>().c_str(), pModule);

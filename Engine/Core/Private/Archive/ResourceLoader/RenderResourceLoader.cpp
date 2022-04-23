@@ -5,16 +5,16 @@
 #include "System/FileSystem.h"
 
 // redefine memory allocation for stb_image.h
-#define STBI_MALLOC(sz)        SG::Memory::Malloc(sz)
-#define STBI_REALLOC(p, newsz) SG::Memory::Realloc(p, newsz)
-#define STBI_FREE(p)           SG::Memory::Free(p)
+//#define STBI_MALLOC(sz)        Malloc(sz)
+//#define STBI_REALLOC(p, newsz) Realloc(p, newsz)
+//#define STBI_FREE(p)           Free(p)
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "ThirdParty/stb_image.h"
 
-#undef STBI_MALLOC
-#undef STBI_REALLOC
-#undef STBI_FREE
-#undef STB_IMAGE_IMPLEMENTATION
+//#undef STBI_MALLOC
+//#undef STBI_REALLOC
+//#undef STBI_FREE
 
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
@@ -42,7 +42,7 @@ namespace SG
 	{
 		//! Warning!! this is dangerous. Figure out a better way to do this.
 		if (!pUserData)
-			Memory::Free(pData);
+			free(pData);
 	}
 
 	bool TextureResourceLoader::LoadFromFile(const char* name, Raw2DTexture& outRaw, bool bNeedMipMap, bool bIsCubeMap)

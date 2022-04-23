@@ -187,11 +187,11 @@ private:
 		if (FileSystem::Open(EResourceDirectory::eRoot, "test.spv", EFileMode::efRead_Binary))
 		{
 			SG_LOG_DEBUG("FileSize: %d", FileSystem::FileSize());
-			void* buf = Memory::Malloc(FileSystem::FileSize());
+			void* buf = Malloc(FileSystem::FileSize());
 			FileSystem::Read(buf, FileSystem::FileSize());
 			SG_LOG_DEBUG("a = %d", *(int*)buf);
 			FileSystem::Close();
-			Memory::Free(buf);
+			Free(buf);
 		}
 	}
 
@@ -220,13 +220,13 @@ private:
 			*ptrA = 5;
 
 			auto* ptr = MallocTrack(BigChunk);
-			Memory::Free(ptr);
+			Free(ptr);
 
 			{
 				MemoryScopeTracker scope3("Deep Inside");
 
 				auto* ptrD = MallocTrack(long);
-				Memory::Free(ptrD);
+				Free(ptrD);
 
 				auto* pHello = MallocTrack(BigChunk); // this memory leaked
 				pDeepOuter = pHello;
@@ -235,8 +235,8 @@ private:
 			pOuter = ptrA;
 		}
 
-		Memory::Free(pOuter);
-		Memory::Free(ptrC);
+		Free(pOuter);
+		Free(ptrC);
 		//Memory::Free(pDeepOuter);
 	}
 private:
@@ -247,6 +247,6 @@ SG::Mutex  MyApp::sMutex;
 
 SG::IApp* SG::GetAppInstance()
 {
-	return Memory::New<MyApp>();
+	return New(MyApp);
 	//return nullptr;
 }

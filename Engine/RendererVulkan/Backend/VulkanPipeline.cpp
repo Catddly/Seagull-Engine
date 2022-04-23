@@ -362,11 +362,11 @@ namespace SG
 		if (pipelineType == EPipelineType::eGraphic)
 		{
 			SetVertexLayout(pShader->GetAttributesLayout(EShaderStage::efVert));
-			return Memory::New<VulkanPipeline>(device, createInfos, pLayout, pRenderPass, pShader);
+			return New(VulkanPipeline, device, createInfos, pLayout, pRenderPass, pShader);
 		}
 		else if (pipelineType == EPipelineType::eCompute)
 		{
-			return Memory::New<VulkanPipeline>(device, pLayout, pShader);
+			return New(VulkanPipeline, device, pLayout, pShader);
 		}
 		return nullptr;
 	}

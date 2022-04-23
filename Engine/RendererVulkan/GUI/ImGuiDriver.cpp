@@ -154,13 +154,13 @@ namespace SG
 	static void* _ImGuiMemAllocFunc(Size sz, void* userData)
 	{
 		SG_NO_USE(userData);
-		return Memory::Malloc(sz);
+		return Malloc(sz);
 	}
 
 	static void  _ImGuiMemFreeFunc(void* ptr, void* userData)
 	{
 		SG_NO_USE(userData);
-		return Memory::Free(ptr);
+		return Free(ptr);
 	}
 
 	static void _ImGui_Platform_CreateWindow_Impl(ImGuiViewport* vp)
@@ -298,7 +298,7 @@ namespace SG
 
 		// set the minimized window size
 		auto& style = ImGui::GetStyle();
-		style.WindowMinSize.x = 450.0f;
+		//style.WindowMinSize.x = 450.0f;
 
 		// when viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -358,7 +358,7 @@ namespace SG
 		{
 			void* pFontData = nullptr;
 			Size filesize = FileSystem::FileSize();
-			pFontData = Memory::Malloc(filesize);
+			pFontData = Malloc(filesize);
 
 			if (!pFontData)
 			{
@@ -377,7 +377,7 @@ namespace SG
 		{
 			void* pFontData = nullptr;
 			Size filesize = FileSystem::FileSize();
-			pFontData = Memory::Malloc(filesize);
+			pFontData = Malloc(filesize);
 
 			if (!pFontData)
 			{
@@ -395,7 +395,7 @@ namespace SG
 		{
 			void* pFontData = nullptr;
 			Size filesize = FileSystem::FileSize();
-			pFontData = Memory::Malloc(filesize);
+			pFontData = Malloc(filesize);
 
 			if (!pFontData)
 			{

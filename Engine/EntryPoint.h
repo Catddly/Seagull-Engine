@@ -39,7 +39,7 @@ int main(int argv, char** argc)
 
 	Main::Shutdown();
 
-	//#ifdef SG_DEBUG
-	//	_CrtDumpMemoryLeaks();
-	//#endif
+//#ifdef SG_DEBUG
+//		_CrtDumpMemoryLeaks();
+//#endif
 }

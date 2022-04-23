@@ -60,11 +60,11 @@ namespace SG
 	void Window::SetTitle(const char* title)
 	{
 		int length = MultiByteToWideChar(CP_ACP, 0, title, -1, NULL, 0);
-		WCHAR* buf = reinterpret_cast<WCHAR*>(Memory::Malloc(sizeof(WCHAR) * (length + 1)));
+		WCHAR* buf = reinterpret_cast<WCHAR*>(Malloc(sizeof(WCHAR) * (length + 1)));
 		ZeroMemory(buf, (length + 1) * sizeof(WCHAR));
 		MultiByteToWideChar(CP_ACP, 0, title, -1, buf, length);
 		mTitie = buf;
-		Memory::Free(buf);
+		Free(buf);
 
 		::SetWindowText((HWND)mHandle, mTitie.c_str());
 	}

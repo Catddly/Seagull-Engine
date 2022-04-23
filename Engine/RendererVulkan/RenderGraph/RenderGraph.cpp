@@ -30,7 +30,7 @@ namespace SG
 		if (!mbInitSuccess)
 		{
 			for (auto* pNode : mpRenderGraph->mpNodes)
-				Memory::Delete(pNode);
+				Delete(pNode);
 			mpRenderGraph->mpNodes.clear();
 			mpRenderGraph.reset(nullptr);
 		}
@@ -55,14 +55,14 @@ namespace SG
 	RenderGraph::~RenderGraph()
 	{
 		for (auto* pNode : mpNodes)
-			Memory::Delete(pNode);
+			Delete(pNode);
 		mpNodes.clear();
 
 		// Delete all the render pass and frame buffer
 		for (auto& beg = mRenderPassesMap.begin(); beg != mRenderPassesMap.end(); ++beg)
-			Memory::Delete(beg->second);
+			Delete(beg->second);
 		for (auto& beg = mFrameBuffersMap.begin(); beg != mFrameBuffersMap.end(); ++beg)
-			Memory::Delete(beg->second);
+			Delete(beg->second);
 	}
 
 	void RenderGraph::Update()
@@ -114,7 +114,7 @@ namespace SG
 		mpContext->graphicQueue.WaitIdle();
 
 		for (auto& beg = mFrameBuffersMap.begin(); beg != mFrameBuffersMap.end(); ++beg)
-			Memory::Delete(beg->second);
+			Delete(beg->second);
 		mFrameBuffersMap.clear();
 
 		// after the resizing, all the render targets had been recreated,
@@ -243,7 +243,7 @@ namespace SG
 		auto node = mFrameBuffersMap.find(frameBufferHash);
 		if (node != mFrameBuffersMap.end())
 		{
-			Memory::Delete(node->second);
+			Delete(node->second);
 			mFrameBuffersMap.erase(node);
 		}
 		CompileFrameBuffers(pNode);

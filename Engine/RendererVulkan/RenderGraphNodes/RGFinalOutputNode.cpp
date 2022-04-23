@@ -103,12 +103,12 @@ namespace SG
 			VK_RESOURCE()->AddDescriptorSetHandle("_imgui_font_tex", &mpGUIPipelineSignature->GetSetLayoutAndHandle(0).descriptorSet);
 			io.Fonts->SetTexID((ImTextureID)VK_RESOURCE()->GetDescriptorSetHandle("_imgui_font_tex"));
 
-			VulkanDescriptorSet* pViewportSet = Memory::New<VulkanDescriptorSet>();
+			VulkanDescriptorSet* pViewportSet = New(VulkanDescriptorSet);
 			VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
 				.AddCombindSamplerImage(0, "comp_sampler", "HDRColor")
 				.Bind(*pViewportSet);
 
-			VulkanDescriptorSet* pLogoSet = Memory::New<VulkanDescriptorSet>();
+			VulkanDescriptorSet* pLogoSet = New(VulkanDescriptorSet);
 			VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
 				.AddCombindSamplerImage(0, "comp_sampler", "logo")
 				.Bind(*pLogoSet);
@@ -127,8 +127,8 @@ namespace SG
 
 	RGFinalOutputNode::~RGFinalOutputNode()
 	{
-		Memory::Delete(mpCompPipeline);
-		Memory::Delete(mpGUIPipeline);
+		Delete(mpCompPipeline);
+		Delete(mpGUIPipeline);
 	}
 
 	void RGFinalOutputNode::Reset()
@@ -138,7 +138,7 @@ namespace SG
 			.Build();
 
 		VK_RESOURCE()->RemoveDescriptorSet("ViewportTex");
-		VulkanDescriptorSet* pViewportSet = Memory::New<VulkanDescriptorSet>();
+		VulkanDescriptorSet* pViewportSet = New(VulkanDescriptorSet);
 		VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
 			.AddCombindSamplerImage(0, "comp_sampler", "HDRColor")
 			.Bind(*pViewportSet);
