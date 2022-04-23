@@ -21,6 +21,8 @@ class MyApp : public SG::IApp, public SG::IInputListener
 public:
 	virtual void OnInit() override
 	{
+		SG_PROFILE_FUNCTION();
+
 		using namespace SG;
 
 		SG_LOG_INFO("User OnInit()");
@@ -50,6 +52,8 @@ public:
 
 	virtual void OnUpdate(float deltaTime) override
 	{
+		SG_PROFILE_FUNCTION();
+
 		using namespace SG;
 
 		//auto* pOS = CSystem::GetInstance()->GetOS();
@@ -68,6 +72,8 @@ public:
 
 	virtual void OnShutdown() override
 	{
+		SG_PROFILE_FUNCTION();
+
 		//auto* pInputSystem = SG::System::GetInstance()->GetIInputSystem();
 		//pInputSystem->RemoveListener(this);
 
@@ -76,6 +82,8 @@ public:
 
 	virtual bool OnKeyInputUpdate(SG::EKeyCode keycode, SG::EKeyState keyState) override
 	{
+		SG_PROFILE_FUNCTION();
+
 		SG_LOG_INFO("User input %d (%d)", keycode, keyState);
 		return true;
 	}

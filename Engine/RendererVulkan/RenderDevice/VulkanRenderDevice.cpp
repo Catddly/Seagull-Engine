@@ -9,6 +9,8 @@
 #include "Math/MathBasic.h"
 #include "Math/Plane.h"
 #include "Scene/Mesh/MeshDataArchive.h"
+#include "Profile/Profile.h"
+#include "Render/CommonRenderData.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
@@ -51,6 +53,8 @@ namespace SG
 
 	void VulkanRenderDevice::OnInit()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpGUIDriver = MakeUnique<ImGuiDriver>();
 		mpGUIDriver->OnInit();
 
@@ -96,6 +100,8 @@ namespace SG
 
 	void VulkanRenderDevice::OnShutdown()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpContext->device.WaitIdle();
 
 		IndirectRenderer::OnShutdown();
@@ -110,6 +116,8 @@ namespace SG
 
 	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpGUIDriver->OnUpdate(deltaTime);
 		if (mpDockSpaceGUILayer->ShowStatisticsDetail() != mbCopyStatisticsDetail)
 		{
@@ -131,6 +139,8 @@ namespace SG
 
 	void VulkanRenderDevice::OnDraw()
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mbWindowMinimal)
 			return;
 
@@ -153,27 +163,31 @@ namespace SG
 
 		mpContext->pSwapchain->Present(&mpContext->graphicQueue, mCurrentFrame, mpContext->pRenderCompleteSemaphore); // present the available image
 
-		// copy statistic data
-		auto& statisticData = GetStatisticData();
-		statisticData.cullSceneObjects = 0;
-		auto* pIndirectBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer");
-		DrawIndexedIndirectCommand* pCommand = pIndirectBuffer->MapMemory<DrawIndexedIndirectCommand>();
-		for (UInt32 i = 0; i < MeshDataArchive::GetInstance()->GetNumMeshData(); ++i)
-			statisticData.cullSceneObjects += (pCommand + i)->instanceCount;
-		pIndirectBuffer->UnmapMemory();
-		
-		// copy the query result
-		if (!mpContext->pPipelineStatisticsQueryPool->IsSleep())
 		{
-			auto& pipelineResult = mpContext->pPipelineStatisticsQueryPool->GetQueryResult();
-			memcpy(statisticData.pipelineStatistics.data(), pipelineResult.data(), sizeof(QueryResult) * pipelineResult.size());
-		}
-		if (!mpContext->pTimeStampQueryPool->IsSleep())
-		{
-			mpContext->pTimeStampQueryPool->GetQueryResult();
-			statisticData.gpuRenderPassTime[0] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(0, 1);
-			statisticData.gpuRenderPassTime[1] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(2, 3);
-			statisticData.gpuRenderPassTime[2] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(4, 5);
+			SG_PROFILE_SCOPE("Copy Statistics");
+
+			// copy statistic data
+			auto& statisticData = GetStatisticData();
+			statisticData.cullSceneObjects = 0;
+			auto* pIndirectBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer");
+			DrawIndexedIndirectCommand* pCommand = pIndirectBuffer->MapMemory<DrawIndexedIndirectCommand>();
+			for (UInt32 i = 0; i < MeshDataArchive::GetInstance()->GetNumMeshData(); ++i)
+				statisticData.cullSceneObjects += (pCommand + i)->instanceCount;
+			pIndirectBuffer->UnmapMemory();
+
+			// copy the query result
+			if (!mpContext->pPipelineStatisticsQueryPool->IsSleep())
+			{
+				auto& pipelineResult = mpContext->pPipelineStatisticsQueryPool->GetQueryResult();
+				memcpy(statisticData.pipelineStatistics.data(), pipelineResult.data(), sizeof(QueryResult) * pipelineResult.size());
+			}
+			if (!mpContext->pTimeStampQueryPool->IsSleep())
+			{
+				mpContext->pTimeStampQueryPool->GetQueryResult();
+				statisticData.gpuRenderPassTime[0] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(0, 1);
+				statisticData.gpuRenderPassTime[1] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(2, 3);
+				statisticData.gpuRenderPassTime[2] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(4, 5);
+			}
 		}
 
 		mbBlockEvent = false;
@@ -181,6 +195,8 @@ namespace SG
 
 	bool VulkanRenderDevice::OnSystemMessage(ESystemMessage msg)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mbBlockEvent)
 			return true;
 
@@ -194,6 +210,8 @@ namespace SG
 
 	void VulkanRenderDevice::BuildRenderGraph()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpRenderGraph = RenderGraphBuilder("Default", mpContext)
 			.NewRenderPass<RGShadowNode>()
 			.NewRenderPass<RGDrawScenePBRNode>()
@@ -203,6 +221,8 @@ namespace SG
 
 	void VulkanRenderDevice::WindowResize()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpContext->WindowResize();
 		VK_RESOURCE()->WindowResize();
 		mpRenderGraph->WindowResize();

@@ -104,13 +104,13 @@ namespace SG
 	};
 
 	// temporary
-	SG_RENDERER_VK_API SG_INLINE LightUBO&  GetLightUBO();
-	SG_RENDERER_VK_API SG_INLINE ShadowUBO& GetShadowUBO();
-	SG_RENDERER_VK_API SG_INLINE SkyboxUBO& GetSkyboxUBO();
-	SG_RENDERER_VK_API SG_INLINE CameraUBO& GetCameraUBO();
-	SG_RENDERER_VK_API SG_INLINE CompositionUBO& GetCompositionUBO();
-	SG_RENDERER_VK_API SG_INLINE GPUCullUBO& GetGPUCullUBO();
+	SG_RENDERER_VK_API LightUBO&  GetLightUBO();
+	SG_RENDERER_VK_API ShadowUBO& GetShadowUBO();
+	SG_RENDERER_VK_API SkyboxUBO& GetSkyboxUBO();
+	SG_RENDERER_VK_API CameraUBO& GetCameraUBO();
+	SG_RENDERER_VK_API CompositionUBO& GetCompositionUBO();
+	SG_RENDERER_VK_API GPUCullUBO& GetGPUCullUBO();
 
-	SG_RENDERER_VK_API SG_INLINE StatisticData& GetStatisticData();
+	SG_RENDERER_VK_API StatisticData& GetStatisticData();
 
 }

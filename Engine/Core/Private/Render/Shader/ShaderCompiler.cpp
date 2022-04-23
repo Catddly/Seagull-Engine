@@ -6,6 +6,7 @@
 #include "System/Logger.h"
 #include "Memory/Memory.h"
 #include "Render/Shader/ShaderLibrary.h"
+#include "Profile/Profile.h"
 
 #include "spirv-cross/spirv_cross.hpp"
 
@@ -58,6 +59,8 @@ namespace SG
 
 	bool ShaderCompiler::LoadSPIRVShader(const string& binShaderName, Shader* pShader)
 	{
+		SG_PROFILE_FUNCTION();
+
 		UInt8 shaderBits = 0;
 		if (!FileSystem::Exist(EResourceDirectory::eShader_Binarires, ""))
 		{
@@ -93,6 +96,8 @@ namespace SG
 
 	bool ShaderCompiler::LoadSPIRVShader(const string& vertShaderName, const string& fragShaderName, Shader* pShader)
 	{
+		SG_PROFILE_FUNCTION();
+
 		UInt8 shaderBits = 0;
 		if (!FileSystem::Exist(EResourceDirectory::eShader_Binarires, ""))
 		{
@@ -127,6 +132,8 @@ namespace SG
 
 	bool ShaderCompiler::CompileGLSLShader(const string& binShaderName, Shader* pShader)
 	{
+		SG_PROFILE_FUNCTION();
+
 		UInt8 shaderBits = 0;
 		FileSystem::ExistOrCreate(EResourceDirectory::eShader_Binarires, ""); // create ShaderBin folder if it doesn't exist
 
@@ -204,6 +211,8 @@ namespace SG
 
 	bool ShaderCompiler::CompileGLSLShader(const string& vertShaderName, const string& fragShaderName, Shader* pShader)
 	{
+		SG_PROFILE_FUNCTION();
+
 		UInt8 shaderBits = 0;
 		FileSystem::ExistOrCreate(EResourceDirectory::eShader_Binarires, ""); // create ShaderBin folder if it doesn't exist
 
@@ -293,6 +302,8 @@ namespace SG
 
 	bool ShaderCompiler::ReadInShaderData(const string& name, UInt32 stage, Shader* pShader, UInt8& checkFlag)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (FileSystem::Open(EResourceDirectory::eShader_Binarires, name.c_str(), EFileMode::efRead_Binary))
 		{
 			const Size sizeInByte = FileSystem::FileSize();
@@ -311,6 +322,8 @@ namespace SG
 
 	bool ShaderCompiler::CompileShaderVkSDK(const string& actualName, const string& compiledName, const string& pOut)
 	{
+		SG_PROFILE_FUNCTION();
+
 		char* glslc = "";
 		Size num = 1;
 		_dupenv_s(&glslc, &num, "VULKAN_SDK");
@@ -335,6 +348,8 @@ namespace SG
 
 	bool ShaderCompiler::CompileShaderVendor(const string& actualName, const string& compiledName, const string& pOut)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string exePath = FileSystem::GetResourceFolderPath(EResourceDirectory::eVendor, SG_ENGINE_DEBUG_BASE_OFFSET);
 		exePath += "glslc.exe ";
 
@@ -356,6 +371,8 @@ namespace SG
 
 	bool ShaderCompiler::CheckCompileError(const string& actualName, const string& outputMessage)
 	{
+		SG_PROFILE_FUNCTION();
+
 		bool bHaveError = false;
 		if (FileSystem::FileSize(EResourceDirectory::eShader_Binarires, outputMessage) != 0) // failed to compile shader, log out the error message
 		{
@@ -376,6 +393,8 @@ namespace SG
 
 	bool ShaderCompiler::ReflectSPIRV(Shader* pShader)
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto& beg = pShader->mShaderStages.begin(); beg != pShader->mShaderStages.end(); ++beg)
 		{
 			auto& shaderData = beg->second;

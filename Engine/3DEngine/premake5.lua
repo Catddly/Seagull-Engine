@@ -1,5 +1,6 @@
 project "S3DEngine"
-    kind "SharedLib"
+    --kind "SharedLib"
+    kind "StaticLib"
     language "C++"
     cppdialect "C++17"
     staticruntime "off"
@@ -21,7 +22,7 @@ project "S3DEngine"
 
     defines
     {
-        "SG_BUILD_DLL",
+        -- "SG_BUILD_DLL",
         "SG_MODULE",
     }
 

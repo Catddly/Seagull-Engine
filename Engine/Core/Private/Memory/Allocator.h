@@ -30,8 +30,15 @@ namespace SG
 #endif
 	};
 
-	SG_CORE_API inline bool operator==(const DefaultAllocator& a, const DefaultAllocator& b);
-	SG_CORE_API inline bool operator!=(const DefaultAllocator& a, const DefaultAllocator& b);
+	SG_CORE_API SG_INLINE bool operator==(const DefaultAllocator& a, const DefaultAllocator& b)
+	{
+		return a.get_name() == b.get_name();
+	}
+
+	SG_CORE_API SG_INLINE bool operator!=(const DefaultAllocator& a, const DefaultAllocator& b)
+	{
+		return !(a == b);
+	}
 
 	SG_CORE_API DefaultAllocator* GetDefaultAllocator();
 	SG_CORE_API DefaultAllocator* SetDefaultAllocator(DefaultAllocator* pAllocator);

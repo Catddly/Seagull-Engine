@@ -6,6 +6,7 @@
 #include "Memory/Memory.h"
 #include "Render/SwapChain.h"
 #include "Scene/Mesh/MeshDataArchive.h"
+#include "Profile/Profile.h"
 #include "TipECS/Entity.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
@@ -20,6 +21,8 @@ namespace SG
 
 	void VulkanResourceRegistry::Initialize(const VulkanContext* pContext)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpContext = const_cast<VulkanContext*>(pContext);
 
 		BufferCreateDesc ssboCI = {};
@@ -117,6 +120,8 @@ namespace SG
 
 	void VulkanResourceRegistry::Shutdown()
 	{
+		SG_PROFILE_FUNCTION();
+
 		// release all the memory
 		for (auto beg = mBuffers.begin(); beg != mBuffers.end(); ++beg)
 			Delete(beg->second);
@@ -134,6 +139,8 @@ namespace SG
 
 	void VulkanResourceRegistry::OnUpdate()
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto pScene = SSystem()->GetMainScene();
 
 		// update camera data
@@ -240,6 +247,8 @@ namespace SG
 
 	void VulkanResourceRegistry::WaitBuffersUpdate() const
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto* pFence : mpBufferUploadFences)
 			pFence->WaitAndReset();
 
@@ -261,6 +270,8 @@ namespace SG
 
 	bool VulkanResourceRegistry::CreateBuffer(const BufferCreateDesc& bufferCI)
 	{
+		SG_PROFILE_FUNCTION();
+
 		bool bHostVisible = IsHostVisible(bufferCI.memoryUsage);
 		if (mBuffers.count(bufferCI.name) != 0) // do data copy
 		{
@@ -309,6 +320,8 @@ namespace SG
 
 	void VulkanResourceRegistry::FlushBuffers() const
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mWaitToSubmitBuffers.empty())
 			return;
 
@@ -341,6 +354,8 @@ namespace SG
 
 	VulkanBuffer* VulkanResourceRegistry::GetBuffer(const string& name) const
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mBuffers.count(name) == 0)
 			return nullptr;
 		return mBuffers[name];
@@ -348,6 +363,8 @@ namespace SG
 
 	void VulkanResourceRegistry::DeleteBuffer(const string& name)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto* pBuffer = GetBuffer(name);
 		if (pBuffer)
 		{
@@ -358,6 +375,8 @@ namespace SG
 
 	bool VulkanResourceRegistry::HaveBuffer(const char* name)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mBuffers.count(name) == 0)
 			return false;
 		return true;
@@ -365,6 +384,8 @@ namespace SG
 
 	bool VulkanResourceRegistry::UpdataBufferData(const char* name, const void* pData)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mBuffers.count(name) == 0)
 		{
 			SG_LOG_ERROR("No buffer named: %s", name);
@@ -379,6 +400,8 @@ namespace SG
 
 	bool VulkanResourceRegistry::CreateTexture(const TextureCreateDesc& textureCI, bool bLocal)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mTextures.count(textureCI.name) != 0)
 		{
 			SG_LOG_ERROR("Already have a texture named %s!", textureCI.name);
@@ -418,6 +441,8 @@ namespace SG
 
 	VulkanTexture* VulkanResourceRegistry::GetTexture(const string& name) const
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mTextures.count(name) == 0)
 		{
 			//SG_LOG_ERROR("No texture named: %s", name);
@@ -428,6 +453,8 @@ namespace SG
 
 	void VulkanResourceRegistry::FlushTextures() const
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mWaitToSubmitTextures.empty())
 			return;
 
@@ -485,7 +512,7 @@ namespace SG
 		pCmd.EndRecord();
 
 		mpContext->graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mpContext->graphicQueue.WaitIdle();
+		mpContext->graphicQueue.WaitIdle(); // [Critical] Huge impact on performance 
 
 		mpContext->graphicCommandPool->FreeCommandBuffer(pCmd);
 		for (auto* e : stagingBuffers)
@@ -499,6 +526,8 @@ namespace SG
 
 	void VulkanResourceRegistry::AddDescriptorSet(const string& name, VulkanDescriptorSet* pSet, bool bCreateHandle)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto node = mDescriptorSets.find(name);
 		if (node != mDescriptorSets.end())
 		{
@@ -512,6 +541,8 @@ namespace SG
 
 	void VulkanResourceRegistry::AddDescriptorSetHandle(const string& name, VulkanDescriptorSet* pSet)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto node = mDescriptorSets.find(name);
 		if (node != mDescriptorSets.end())
 		{
@@ -523,6 +554,8 @@ namespace SG
 
 	void VulkanResourceRegistry::RemoveDescriptorSet(const string& name)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto node = mDescriptorSets.find(name);
 		if (node == mDescriptorSets.end())
 		{
@@ -545,6 +578,8 @@ namespace SG
 
 	void VulkanResourceRegistry::RemoveDescriptorSet(VulkanDescriptorSet* pSet)
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto node : mDescriptorSets)
 		{
 			if (node.second == pSet)
@@ -569,6 +604,8 @@ namespace SG
 
 	VulkanDescriptorSet* VulkanResourceRegistry::GetDescriptorSet(const string& name) const
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto node = mDescriptorSets.find(name);
 		if (node == mDescriptorSets.end())
 		{
@@ -580,6 +617,8 @@ namespace SG
 
 	Handle<VulkanDescriptorSet>* VulkanResourceRegistry::GetDescriptorSetHandle(const string& name)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto node = mDescriptorSetHandles.find(name);
 		if (node == mDescriptorSetHandles.end())
 		{
@@ -595,6 +634,8 @@ namespace SG
 
 	bool VulkanResourceRegistry::CreateRenderTarget(const TextureCreateDesc& textureCI, bool isDepth)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mRenderTargets.count(textureCI.name) != 0)
 		{
 			SG_LOG_ERROR("Already have a render target named %s!", textureCI.name);
@@ -614,6 +655,8 @@ namespace SG
 
 	void VulkanResourceRegistry::DeleteRenderTarget(const string& name)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto* pRt = GetRenderTarget(name);
 		if (pRt)
 		{
@@ -624,6 +667,8 @@ namespace SG
 
 	VulkanRenderTarget* VulkanResourceRegistry::GetRenderTarget(const string& name) const
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mRenderTargets.count(name) == 0)
 		{
 			//SG_LOG_ERROR("No render target named: %s", name);
@@ -638,6 +683,8 @@ namespace SG
 
 	bool VulkanResourceRegistry::CreateSampler(const SamplerCreateDesc& samplerCI)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mSamplers.count(samplerCI.name) != 0)
 		{
 			SG_LOG_ERROR("Already have a sampler named %s!", samplerCI.name);
@@ -656,6 +703,8 @@ namespace SG
 
 	VulkanSampler* VulkanResourceRegistry::GetSampler(const string& name) const
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mSamplers.count(name) == 0)
 		{
 			SG_LOG_ERROR("No sampler named: %s", name);

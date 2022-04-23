@@ -80,7 +80,7 @@ group "Runtime"
 
         defines
         {
-            "SG_BUILD_DLL",
+            -- "SG_BUILD_DLL",
         }
 
         links

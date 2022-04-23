@@ -143,7 +143,7 @@ namespace SG
 		return false;
 	}
 
-	bool DrawGUIDragFloat(const eastl::string& label, float& values, float defaultValue, float speed,
+	bool DrawGUIDragFloat(const string& label, float& values, float defaultValue, float speed,
 		float minValue, float maxValue, float columnWidth)
 	{
 		ImGuiIO io = ImGui::GetIO();
@@ -189,7 +189,7 @@ namespace SG
 		return bDirty;
 	}
 
-	bool DrawGUIDragFloat3(const eastl::string& label, Vector3f& values, const Vector3f& defaultValue, float speed,
+	bool DrawGUIDragFloat3(const string& label, Vector3f& values, const Vector3f& defaultValue, float speed,
 		const Vector3f& minValues, const Vector3f& maxValues, float columnWidth)
 	{
 		ImGuiIO io = ImGui::GetIO();

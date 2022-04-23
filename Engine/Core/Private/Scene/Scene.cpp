@@ -4,6 +4,7 @@
 #include "Platform/OS.h"
 #include "Scene/Camera/FirstPersonCamera.h"
 #include "Scene/Mesh/MeshDataArchive.h"
+#include "Profile/Profile.h"
 
 namespace SG
 {
@@ -12,6 +13,8 @@ namespace SG
 
 	void Scene::OnSceneLoad()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 3.0f, 7.0f));
 		mpMainCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
 
@@ -47,10 +50,13 @@ namespace SG
 
 	void Scene::OnSceneUnLoad()
 	{
+		SG_PROFILE_FUNCTION();
 	}
 
 	void Scene::OnUpdate(float deltaTime)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpMainCamera->OnUpdate(deltaTime);
 
 		static float totalTime = 0.0f;
@@ -69,6 +75,8 @@ namespace SG
 
 	Scene::Entity* Scene::CreateEntity(const string& name)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mEntities.find(name) != mEntities.end())
 		{
 			SG_LOG_WARN("Already have an entity named: %s", name.c_str());
@@ -85,6 +93,8 @@ namespace SG
 
 	Scene::Entity* Scene::CreateEntity(const string& name, const Vector3f& pos, const Vector3f& scale, const Vector3f& rot)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mEntities.find(name) != mEntities.end())
 		{
 			SG_LOG_WARN("Already have an entity named: %s", name.c_str());
@@ -101,6 +111,8 @@ namespace SG
 
 	void Scene::DestroyEntity(Entity& entity)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto& tag = entity.GetComponent<TagComponent>();
 		mEntities.erase(tag.name);
 		mEntityManager.DestroyEntity(entity);
@@ -108,6 +120,8 @@ namespace SG
 
 	void Scene::DestroyEntityByName(const string& name)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto* pEntity = GetEntityByName(name);
 		mEntityManager.DestroyEntity(*pEntity);
 		mEntities.erase(name);
@@ -115,6 +129,8 @@ namespace SG
 
 	Scene::Entity* Scene::GetEntityByName(const string& name)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto node = mEntities.find(name);
 		if (node == mEntities.end())
 		{
@@ -126,6 +142,8 @@ namespace SG
 
 	void Scene::DefaultScene()
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto* pEntity = CreateEntity("model");
 		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.2f, 0.8f);
 		auto& mesh = pEntity->AddComponent<MeshComponent>();
@@ -147,6 +165,8 @@ namespace SG
 
 	void Scene::MaterialTestScene()
 	{
+		SG_PROFILE_FUNCTION();
+
 		const float zPos = -4.0f;
 		const float INTERVAL = 1.5f;
 		for (UInt32 i = 0; i < 10; ++i)

@@ -27,6 +27,7 @@
 #include "ktx/ktxvulkan.h"
 
 #include "Stl/string.h"
+#include "Profile/Profile.h"
 
 #include "Math/MathBasic.h"
 
@@ -47,6 +48,8 @@ namespace SG
 
 	bool TextureResourceLoader::LoadFromFile(const char* name, Raw2DTexture& outRaw, bool bNeedMipMap, bool bIsCubeMap)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto type = GetResourceType(name);
 		string path = FileSystem::GetResourceFolderPath(EResourceDirectory::eTextures, SG_ENGINE_DEBUG_BASE_OFFSET);
 		path += name;
@@ -92,6 +95,8 @@ namespace SG
 
 	bool MeshResourceLoader::LoadFromFile(const char* name, vector<float>& vertices, vector<UInt32>& indices)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string path = FileSystem::GetResourceFolderPath(EResourceDirectory::eMeshes, SG_ENGINE_DEBUG_BASE_OFFSET);
 		path += name;
 

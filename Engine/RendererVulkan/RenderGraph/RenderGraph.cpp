@@ -54,6 +54,8 @@ namespace SG
 
 	RenderGraph::~RenderGraph()
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto* pNode : mpNodes)
 			Delete(pNode);
 		mpNodes.clear();
@@ -67,12 +69,16 @@ namespace SG
 
 	void RenderGraph::Update()
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto* pCurrNode : mpNodes)
 			pCurrNode->Update();
 	}
 
 	void RenderGraph::Draw(UInt32 frameIndex) const
 	{
+		SG_PROFILE_FUNCTION();
+
 		SG_ASSERT(!mFrameBuffersMap.empty() && "RenderGraphBuilder should call Build() or RenderGraph should call Compile() after the node insertion!");
 
 		auto& commandBuf = mpContext->commandBuffers[frameIndex];
@@ -111,6 +117,8 @@ namespace SG
 
 	void RenderGraph::WindowResize()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpContext->graphicQueue.WaitIdle();
 
 		for (auto& beg = mFrameBuffersMap.begin(); beg != mFrameBuffersMap.end(); ++beg)
@@ -135,6 +143,8 @@ namespace SG
 
 	void RenderGraph::Compile()
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto* pCurrNode : mpNodes) // iterate all nodes
 		{
 			if (!pCurrNode->HaveValidResource())
@@ -155,6 +165,8 @@ namespace SG
 
 	VulkanRenderPass* RenderGraph::CompileRenderPasses(const RenderGraphNode* pCurrNode)
 	{
+		SG_PROFILE_FUNCTION();
+
 		Size renderpassHash = 0;
 		for (auto& resource : pCurrNode->mInResources)
 		{
@@ -188,6 +200,8 @@ namespace SG
 
 	void RenderGraph::CompileFrameBuffers(const RenderGraphNode* pCurrNode)
 	{
+		SG_PROFILE_FUNCTION();
+
 		// Each Render Graph Resource Should Have its own FrameBuffer!
 		UInt32 maxNum = 1;
 		for (auto& resource : pCurrNode->mInResources)
@@ -240,6 +254,8 @@ namespace SG
 
 	void RenderGraph::ResetFrameBuffer(RenderGraphNode* pNode, Size frameBufferHash) noexcept
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto node = mFrameBuffersMap.find(frameBufferHash);
 		if (node != mFrameBuffersMap.end())
 		{
@@ -251,11 +267,15 @@ namespace SG
 
 	void RenderGraph::AddResourceDenpendency(VulkanRenderTarget* pRenderTarget, EResourceBarrier srcStatus, EResourceBarrier dstStatus)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mResourceStatusKeeper.AddResourceDenpendency(pRenderTarget, srcStatus, dstStatus);
 	}
 
 	void RenderGraph::RemoveResourceDenpendency(VulkanRenderTarget* pRenderTarget)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mResourceStatusKeeper.RemoveResourceDenpendency(pRenderTarget);
 	}
 

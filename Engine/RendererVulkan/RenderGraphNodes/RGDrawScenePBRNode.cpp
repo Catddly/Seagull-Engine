@@ -6,6 +6,7 @@
 #include "Render/Shader/ShaderComiler.h"
 #include "Render/CommonRenderData.h"
 #include "Archive/ResourceLoader/RenderResourceLoader.h"
+#include "Profile/Profile.h"
 
 #include "Stl/Utility.h"
 
@@ -38,6 +39,8 @@ namespace SG
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
 	{
+		SG_PROFILE_FUNCTION();
+
 		// init render resource
 #ifdef SG_ENABLE_HDR
 		CreateColorRt();
@@ -123,6 +126,8 @@ namespace SG
 
 	RGDrawScenePBRNode::~RGDrawScenePBRNode()
 	{
+		SG_PROFILE_FUNCTION();
+
 		Delete(mpSkyboxPipeline);
 		Delete(mpInstancePipeline);
 		Delete(mpPipeline);
@@ -130,6 +135,8 @@ namespace SG
 
 	void RGDrawScenePBRNode::Reset()
 	{
+		SG_PROFILE_FUNCTION();
+
 #ifdef SG_ENABLE_HDR
 		DestroyColorRt();
 		CreateColorRt();
@@ -146,6 +153,8 @@ namespace SG
 
 	void RGDrawScenePBRNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpSkyboxPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetRasterizer(ECullMode::eFront)
 			.SetColorBlend(false)
@@ -176,6 +185,8 @@ namespace SG
 
 	void RGDrawScenePBRNode::Draw(RGDrawInfo& context)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto& pBuf = *context.pCmd;
 		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efTop_Of_Pipeline, 2);
 
@@ -202,6 +213,8 @@ namespace SG
 
 	void RGDrawScenePBRNode::DrawScene(VulkanCommandBuffer& pBuf)
 	{
+		SG_PROFILE_FUNCTION();
+
 		pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
 		//pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
@@ -220,6 +233,8 @@ namespace SG
 
 	void RGDrawScenePBRNode::GenerateBRDFLut()
 	{
+		SG_PROFILE_FUNCTION();
+
 		const UInt32 texSize = BRDF_LUT_TEX_SIZE;
 
 		SamplerCreateDesc samplerCI = {};
@@ -307,6 +322,8 @@ namespace SG
 
 	void RGDrawScenePBRNode::PreCalcIrradianceCubemap()
 	{
+		SG_PROFILE_FUNCTION();
+
 		const UInt32 texSize = IRRADIANCE_CUBEMAP_TEX_SIZE;
 		const UInt32 numMip = CalcMipmapLevel(texSize, texSize);
 
@@ -468,6 +485,8 @@ namespace SG
 
 	void RGDrawScenePBRNode::PrefilterCubemap()
 	{
+		SG_PROFILE_FUNCTION();
+
 		const UInt32 texSize = PREFILTER_CUBEMAP_TEX_SIZE;
 		const UInt32 numMip = CalcMipmapLevel(texSize, texSize);
 
@@ -629,6 +648,8 @@ namespace SG
 
 	void RGDrawScenePBRNode::CreateColorRt()
 	{
+		SG_PROFILE_FUNCTION();
+
 		TextureCreateDesc rtCI;
 		rtCI.name = "HDRColor";
 		rtCI.width = mContext.colorRts[0]->GetWidth();
@@ -657,6 +678,8 @@ namespace SG
 
 	void RGDrawScenePBRNode::DestroyColorRt()
 	{
+		SG_PROFILE_FUNCTION();
+
 		VK_RESOURCE()->DeleteRenderTarget("HDRColor");
 	}
 

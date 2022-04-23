@@ -1,5 +1,6 @@
 project "SCore"
-    kind "SharedLib"
+    --kind "SharedLib"
+    kind "StaticLib"
     language "C++"
     cppdialect "C++17"
     staticruntime "off"
@@ -21,7 +22,7 @@ project "SCore"
 
     defines
     {
-        "SG_BUILD_DLL",
+        -- "SG_BUILD_DLL",
         "SG_MODULE",
 
         "_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING", -- hash<Vector3f>

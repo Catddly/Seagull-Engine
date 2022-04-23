@@ -3,6 +3,7 @@
 
 #include "System/Logger.h"
 #include "System/FileSystem.h"
+#include "Profile/Profile.h"
 
 #include "Stl/vector.h"
 
@@ -11,6 +12,8 @@ namespace SG
 
 	void ShaderLibrary::OnInit()
 	{
+		SG_PROFILE_FUNCTION();
+
 		// if can't find shader_env.ini, just keep the map empty.
 		if (FileSystem::Open(EResourceDirectory::eRoot, "shader_env.ini", EFileMode::efRead))
 		{
@@ -71,6 +74,8 @@ namespace SG
 
 	void ShaderLibrary::OnShutdown()
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (FileSystem::Open(EResourceDirectory::eRoot, "shader_env.ini", EFileMode::efWrite))
 		{
 			FileSystem::TraverseFileAndSubDirectoryInFolder(EResourceDirectory::eShader_Sources, "", [](const char* filename)
@@ -97,6 +102,8 @@ namespace SG
 
 	void ShaderLibrary::SetShaderTimeStamp(const string& shaderName, const TimePoint& tp)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto pNode = mShaderTimePointMap.find(shaderName);
 		if (pNode == mShaderTimePointMap.end())
 		{
@@ -108,6 +115,8 @@ namespace SG
 
 	TimePoint ShaderLibrary::GetShaderTimeStamp(const string& shaderName)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto pNode = mShaderTimePointMap.find(shaderName);
 		if (pNode == mShaderTimePointMap.end())
 		{

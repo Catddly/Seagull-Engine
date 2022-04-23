@@ -6,6 +6,7 @@
 #include "Render/MeshGenerate/MeshGenerator.h"
 #include "Archive/ResourceLoader/RenderResourceLoader.h"
 #include "Archive/ResourceLoader/ResourceDefs.h"
+#include "Profile/Profile.h"
 
 #include "TipECS/Registry.h"
 
@@ -48,6 +49,8 @@ namespace SG
 
 	SG_INLINE Matrix4f GetTransform(const TransformComponent& comp)
 	{
+		SG_PROFILE_FUNCTION();
+
 		return glm::translate(Matrix4f(1.0f), comp.position) *
 			glm::toMat4(Quternion(glm::radians(comp.rotation))) *
 			glm::scale(Matrix4f(1.0f), comp.scale);
@@ -72,6 +75,8 @@ namespace SG
 
 	SG_INLINE void LoadMesh(EGennerateMeshType type, MeshComponent& comp)
 	{
+		SG_PROFILE_FUNCTION();
+
 		MeshData meshData = {};
 		if (type == EGennerateMeshType::eGrid)
 			MeshGenerator::GenGrid(meshData.vertices, meshData.indices);
@@ -82,6 +87,8 @@ namespace SG
 
 	SG_INLINE void LoadMesh(const char* filename, EMeshType type, MeshComponent& comp)
 	{
+		SG_PROFILE_FUNCTION();
+
 		string fullName = filename;
 		fullName += MeshTypeToExtString(type);
 
@@ -95,6 +102,8 @@ namespace SG
 
 	SG_INLINE void CopyMesh(const MeshComponent& srcMesh, MeshComponent& dstMesh)
 	{
+		SG_PROFILE_FUNCTION();
+
 		dstMesh.meshType = srcMesh.meshType;
 		dstMesh.meshId = srcMesh.meshId;
 	}
@@ -146,12 +155,16 @@ namespace SG
 
 	SG_INLINE Vector3f CalcViewDirectionNormalized(const TransformComponent& trans)
 	{
+		SG_PROFILE_FUNCTION();
+
 		Vector3f rotatedVec = Vector4f(SG_ENGINE_FRONT_VEC(), 0.0f) * glm::toMat4(Quternion(glm::radians(trans.rotation)));
 		return glm::normalize(rotatedVec);
 	}
 
 	SG_INLINE Matrix4f CalcDirectionalLightViewProj(const TransformComponent& trans)
 	{
+		SG_PROFILE_FUNCTION();
+
 		return BuildOrthographicMatrix(-10.0f, 10.0f, -10.0f, 10.0f, 0.0001f, 200.0f) *
 			BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
 	}

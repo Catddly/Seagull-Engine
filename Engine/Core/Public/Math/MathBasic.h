@@ -77,6 +77,7 @@ namespace SG
 
 	SG_INLINE bool   IsPowerOfTwo(UInt32 v) { return !(v & (v - 1)); }
 	SG_INLINE UInt32 MinValueAlignTo(UInt32 v, UInt32 align) { return ((v + align - 1) / align) * align; }
+	SG_INLINE Size   MinValueAlignTo(Size v, Size align) { return ((v + align - 1) / align) * align; }
 
 	SG_INLINE float Clamp(float& v, float min, float max) { return v < min ? min : (v > max ? max : v); }
 

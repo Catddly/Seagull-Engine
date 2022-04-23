@@ -276,6 +276,8 @@ namespace SG
 
 	bool ImGuiDriver::OnInit()
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGui::SetAllocatorFunctions(_ImGuiMemAllocFunc, _ImGuiMemFreeFunc);
 		ImGui::CreateContext();
 
@@ -328,11 +330,15 @@ namespace SG
 
 	void ImGuiDriver::OnShutdown()
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGui::DestroyContext();
 	}
 
 	void ImGuiDriver::OnUpdate(float deltaTime)
 	{
+		SG_PROFILE_FUNCTION();
+
 		UpdateFrameData(deltaTime);
 
 		ImGui::NewFrame();
@@ -350,6 +356,8 @@ namespace SG
 
 	void ImGuiDriver::LoadFonts()
 	{
+		SG_PROFILE_FUNCTION();
+
 		const float FONT_SIZE_PIXEL = 20.0f;
 		auto& io = ImGui::GetIO();
 
@@ -411,6 +419,8 @@ namespace SG
 
 	void ImGuiDriver::UpdateFrameData(float deltaTime)
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGuiIO& io = ImGui::GetIO();
 		io.DeltaTime = deltaTime;
 
@@ -436,6 +446,8 @@ namespace SG
 
 	void ImGuiDriver::UpdateMouseData()
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGuiIO& io = ImGui::GetIO();
 		const ImVec2 mousePosPrev = io.MousePos;
 
@@ -470,6 +482,8 @@ namespace SG
 
 	void ImGuiDriver::UpdateCursorData()
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGuiIO& io = ImGui::GetIO();
 		if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
 			return;
@@ -495,6 +509,8 @@ namespace SG
 	// callback functions
 	bool ImGuiDriver::OnKeyInputUpdate(EKeyCode keycode, EKeyState keyState)
 	{
+		SG_PROFILE_FUNCTION();
+
 		//if (keyState == EKeyState::eHold)
 		//	SG_LOG_DEBUG("Hold: %d", keycode);
 		//else if (keyState == EKeyState::ePressed)
@@ -542,6 +558,8 @@ namespace SG
 
 	bool ImGuiDriver::OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos)
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGuiIO& io = ImGui::GetIO();
 		//if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		//{
@@ -560,6 +578,8 @@ namespace SG
 
 	bool ImGuiDriver::OnMouseWheelInputUpdate(int direction)
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGuiIO& io = ImGui::GetIO();
 		io.AddMouseWheelEvent((float)0, (float)direction);
 
@@ -571,6 +591,8 @@ namespace SG
 
 	bool ImGuiDriver::OnCharInput(Char c)
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto& io = ImGui::GetIO();
 		io.AddInputCharacter(c);
 		return true;

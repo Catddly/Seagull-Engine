@@ -4,6 +4,7 @@
 #include "System/System.h"
 #include "Render/CommonRenderData.h"
 #include "Render/Shader/ShaderComiler.h"
+#include "Profile/Profile.h"
 
 #include "Math/MathBasic.h"
 
@@ -30,6 +31,8 @@ namespace SG
 		:RenderGraphNode(pRenderGraph), mContext(context),
 		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
+		SG_PROFILE_FUNCTION();
+
 		mbDrawShadow = true;
 
 		TextureCreateDesc texCI = {};
@@ -91,12 +94,16 @@ namespace SG
 
 	RGShadowNode::~RGShadowNode()
 	{
+		SG_PROFILE_FUNCTION();
+
 		Delete(mpShadowInstancePipeline);
 		Delete(mpShadowPipeline);
 	}
 
 	void RGShadowNode::Reset()
 	{
+		SG_PROFILE_FUNCTION();
+
 		ClearValue cv = {};
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
@@ -105,6 +112,8 @@ namespace SG
 
 	void RGShadowNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpShadowInstancePipeline = VulkanPipeline::Builder(mContext.device)
 			.SetInputVertexRange(sizeof(Vertex), EVertexInputRate::ePerVertex)
 			.SetInputVertexRange(sizeof(PerInstanceData), EVertexInputRate::ePerInstance)
@@ -130,6 +139,8 @@ namespace SG
 
 	void RGShadowNode::Draw(RGDrawInfo& context)
 	{
+		SG_PROFILE_FUNCTION();
+
 		// Do Culling
 		IndirectRenderer::DoCulling();
 

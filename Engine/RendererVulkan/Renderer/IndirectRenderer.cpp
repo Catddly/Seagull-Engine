@@ -4,6 +4,7 @@
 #include "System/System.h"
 #include "Scene/Mesh/MeshDataArchive.h"
 #include "Render/Shader/ShaderComiler.h"
+#include "Profile/Profile.h"
 //#include "Render/CommonRenderData.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
@@ -52,6 +53,8 @@ namespace SG
 
 	void IndirectRenderer::OnInit(VulkanContext& context)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpContext = &context;
 
 		BufferCreateDesc indirectCI = {};
@@ -89,6 +92,8 @@ namespace SG
 
 	void IndirectRenderer::OnShutdown()
 	{
+		SG_PROFILE_FUNCTION();
+
 		//Memory::Delete(pComputeResetQueryPool);
 		//Memory::Delete(pComputeCullingQueryPool);
 
@@ -112,6 +117,8 @@ namespace SG
 
 	void IndirectRenderer::CollectRenderData(RefPtr<RenderDataBuilder> pRenderDataBuilder)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (!mbRendererInit)
 		{
 			SG_LOG_ERROR("Renderer not initialized");
@@ -281,6 +288,8 @@ namespace SG
 
 	void IndirectRenderer::Begin(VulkanCommandBuffer* pCmdBuf)
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (mbBeginDraw)
 		{
 			SG_LOG_ERROR("Did you forget to call End() after drawing?");
@@ -298,6 +307,8 @@ namespace SG
 
 	void IndirectRenderer::End()
 	{
+		SG_PROFILE_FUNCTION();
+
 		if (!mbBeginDraw)
 		{
 			SG_LOG_ERROR("Did you forget to call Begin() before drawing?");
@@ -310,6 +321,9 @@ namespace SG
 
 	void IndirectRenderer::DoCulling()
 	{
+		// [Critical] Here discovered severe performance fluctuation.
+		SG_PROFILE_FUNCTION();
+
 		auto& cmd = mpContext->computeCmdBuffer;
 		// Why adding a query pool will fail the submition of the command?
 		//auto& statistics = GetStatisticData();
@@ -373,6 +387,8 @@ namespace SG
 
 	void IndirectRenderer::Draw(EMeshPass meshPass)
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto& dc : mDrawCallMap[meshPass])
 		{
 			BindMesh(dc.drawMesh);
@@ -384,6 +400,8 @@ namespace SG
 
 	void IndirectRenderer::BindMesh(const DrawMesh& drawMesh)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpCmdBuf->BindVertexBuffer(0, 1, *drawMesh.pVertexBuffer, &drawMesh.vBOffset);
 		if (drawMesh.pInstanceBuffer)
 			mpCmdBuf->BindVertexBuffer(1, 1, *drawMesh.pInstanceBuffer, &drawMesh.instanceOffset);

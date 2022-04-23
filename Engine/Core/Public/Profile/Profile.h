@@ -12,6 +12,7 @@ namespace SG
 
 #if SG_ENABLE_PROFILE
 #	define SG_PROFILE_FUNCTION() ZoneScoped
+#	define SG_PROFILE_SCOPE(NAME) ZoneScopedN(NAME)
 #	define SG_PROFILE_FRAME_MARK() FrameMark
 #	define SG_PROFILE_ALLOC(PTR, SIZE) TracyAlloc(PTR, SIZE)
 #	define SG_PROFILE_FREE(PTR) TracyFree(PTR)

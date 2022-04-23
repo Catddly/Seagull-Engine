@@ -4,6 +4,7 @@
 #include "Memory/Memory.h"
 #include "Render/CommonRenderData.h"
 #include "Render/Shader/ShaderComiler.h"
+#include "Profile/Profile.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
@@ -24,6 +25,8 @@ namespace SG
 		:RenderGraphNode(pRenderGraph), mContext(context), mCurrVertexCount(0), mCurrIndexCount(0),
 		mColorRtLoadStoreOp({ ELoadOp::eDont_Care, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care })
 	{
+		SG_PROFILE_FUNCTION();
+
 		// bottom color render target present
 		{
 			mpCompShader = VulkanShader::Create(mContext.device);
@@ -127,12 +130,16 @@ namespace SG
 
 	RGFinalOutputNode::~RGFinalOutputNode()
 	{
+		SG_PROFILE_FUNCTION();
+
 		Delete(mpCompPipeline);
 		Delete(mpGUIPipeline);
 	}
 
 	void RGFinalOutputNode::Reset()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpCompPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpCompShader)
 			.AddCombindSamplerImage("comp_sampler", "HDRColor")
 			.Build();
@@ -154,6 +161,8 @@ namespace SG
 
 	void RGFinalOutputNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpCompPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetRasterizer(ECullMode::eNone)
 			.SetDynamicStates()
@@ -175,6 +184,8 @@ namespace SG
 
 	void RGFinalOutputNode::Draw(RGDrawInfo& context)
 	{
+		SG_PROFILE_FUNCTION();
+
 		// 1. Draw the color rt (just a simple quad on the screen)
 		//{
 		//	auto& pBuf = *context.pCmd;
@@ -196,6 +207,8 @@ namespace SG
 
 	void RGFinalOutputNode::GUIDraw(VulkanCommandBuffer& pBuf, UInt32 frameIndex)
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGui::Render();
 
 		ImDrawData* drawData = ImGui::GetDrawData();

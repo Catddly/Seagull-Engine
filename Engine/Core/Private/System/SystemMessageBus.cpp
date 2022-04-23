@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "System/System.h"
 
+#include "Profile/Profile.h"
+
 #include <eastl/type_traits.h>
 
 namespace SG
@@ -8,6 +10,8 @@ namespace SG
 
 	void SystemMessageManager::Update()
 	{
+		SG_PROFILE_FUNCTION();
+
 		for (auto beg = mMessages.begin(); beg != mMessages.end(); beg++)
 		{
 			for (auto* e : mpListeners)

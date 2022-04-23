@@ -2,6 +2,7 @@
 #include "Scene/RenderDataBuilder.h"
 
 #include "Scene/Mesh/MeshDataArchive.h"
+#include "Profile/Profile.h"
 #include "TipECS/Entity.h"
 
 #include "System/Logger.h"
@@ -16,12 +17,16 @@ namespace SG
 
 	void RenderDataBuilder::SetScene(WeakRefPtr<Scene> pScene)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpScene = pScene;
 		mbIsRenderDataReady = false;
 	}
 
 	void RenderDataBuilder::BuildData()
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto pScene = mpScene.lock();
 		if (!pScene)
 			SG_LOG_ERROR("No scene is set to build the render data!");

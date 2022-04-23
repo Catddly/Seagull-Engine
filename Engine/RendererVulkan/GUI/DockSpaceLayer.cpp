@@ -30,11 +30,15 @@ namespace SG
 
 	void DockSpaceLayer::OnAttach()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mpViewportTexHandle = VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex");
 	}
 
 	void DockSpaceLayer::OnUpdate(float deltaTime)
 	{
+		SG_PROFILE_FUNCTION();
+
 		DrawDockSpaceBackground();
 		DrawSceneHirerchy();
 		DrawMainViewport();
@@ -45,6 +49,8 @@ namespace SG
 
 	bool DockSpaceLayer::OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos)
 	{
+		SG_PROFILE_FUNCTION();
+
 		// just block other events, so that the camera do not get the input update message.
 		if (mbViewportCanUpdateMouse)
 			return true;
@@ -54,6 +60,8 @@ namespace SG
 
 	void DockSpaceLayer::DrawDockSpaceBackground()
 	{
+		SG_PROFILE_FUNCTION();
+
 		static bool sbFullsrceen = true;
 		static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None;
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
@@ -115,6 +123,8 @@ namespace SG
 
 	void DockSpaceLayer::DrawMainViewport()
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0.0f, 0.0f });
 
 		static bool sbOpen = true;
@@ -142,6 +152,8 @@ namespace SG
 
 	void DockSpaceLayer::DrawSettingPanel()
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGui::Begin("Global Settings");
 
 		ImGui::Separator();
@@ -156,6 +168,8 @@ namespace SG
 
 	void DockSpaceLayer::DrawStatistics(float deltaTime)
 	{
+		SG_PROFILE_FUNCTION();
+
 		mElapsedTime += deltaTime;
 		if (mElapsedTime >= 0.5f)
 		{
@@ -197,6 +211,8 @@ namespace SG
 
 	void DockSpaceLayer::DrawSceneHirerchy()
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGui::Begin("Scene");
 
 		auto pScene = SSystem()->GetMainScene();
@@ -221,6 +237,8 @@ namespace SG
 
 	void DockSpaceLayer::DrawSelectedEntityProperty()
 	{
+		SG_PROFILE_FUNCTION();
+
 		ImGui::Begin("Property");
 
 		if (mSelectedEntity.IsValid())
