@@ -102,11 +102,15 @@ namespace SG
 			gameloopTimer.ProfileScope();
 			float deltaTime = gameloopTimer.GetDurationSecond();
 
-			// collect all the messages
-			EOsMessage msg = EOsMessage::eNull;
-			msg = PeekOSMessage();
-			if (msg == EOsMessage::eQuit)
-				bIsExit = true;
+			{
+				SG_PROFILE_SCOPE("Message Peeking");
+
+				// collect all the messages
+				EOsMessage msg = EOsMessage::eNull;
+				msg = PeekOSMessage();
+				if (msg == EOsMessage::eQuit)
+					bIsExit = true;
+			}
 
 			// dispatch all the system messages
 			mSystemMessageManager.Update();

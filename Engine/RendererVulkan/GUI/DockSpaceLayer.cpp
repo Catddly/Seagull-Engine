@@ -14,6 +14,8 @@
 
 #include "glm/gtc/type_ptr.hpp"
 
+#include <thread>
+
 namespace SG
 {
 
@@ -109,12 +111,13 @@ namespace SG
 				ImGui::EndMenu();
 			}
 
-			//if (ImGui::BeginMenu("Profile"))
-			//{
-			//	if (ImGui::MenuItem("Pipeline Statistics"))
-			//		mbShowStatisticsDetail = !mbShowStatisticsDetail;
-			//	ImGui::EndMenu();
-			//}
+			if (ImGui::BeginMenu("Profile"))
+			{
+				if (ImGui::MenuItem("Open Tracy Profiler"))
+				{
+				}
+				ImGui::EndMenu();
+			}
 
 			ImGui::EndMenuBar();
 		}

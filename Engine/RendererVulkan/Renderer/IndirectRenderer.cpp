@@ -324,65 +324,73 @@ namespace SG
 		// [Critical] Here discovered severe performance fluctuation.
 		SG_PROFILE_FUNCTION();
 
-		auto& cmd = mpContext->computeCmdBuffer;
-		// Why adding a query pool will fail the submition of the command?
-		//auto& statistics = GetStatisticData();
-
-		mResetCommand.Reset();
-		mResetCommand.BeginRecord();
 		{
-			//mResetCommand.ResetQueryPool(pComputeResetQueryPool);
-			//mResetCommand.BeginQuery(pComputeResetQueryPool, 0);
+			SG_PROFILE_SCOPE("Compute Culling Reset");
 
-			mResetCommand.BindPipeline(mpResetCullingPipeline);
-			mResetCommand.BindPipelineSignature(mpResetCullingPipelineSignature.get(), EPipelineType::eCompute);
-			UInt32 numGroup = (UInt32)(MeshDataArchive::GetInstance()->GetNumMeshData() / 16) + 1;
-			mResetCommand.Dispatch(numGroup, 1, 1);
+			// Why adding a query pool will fail the submittion of the command?
+			//auto& statistics = GetStatisticData();
 
-			//mResetCommand.EndQuery(pComputeResetQueryPool, 0);
+			mResetCommand.Reset();
+			mResetCommand.BeginRecord();
+			{
+				//mResetCommand.ResetQueryPool(pComputeResetQueryPool);
+				//mResetCommand.BeginQuery(pComputeResetQueryPool, 0);
+
+				mResetCommand.BindPipeline(mpResetCullingPipeline);
+				mResetCommand.BindPipelineSignature(mpResetCullingPipelineSignature.get(), EPipelineType::eCompute);
+				UInt32 numGroup = (UInt32)(MeshDataArchive::GetInstance()->GetNumMeshData() / 16) + 1;
+				mResetCommand.Dispatch(numGroup, 1, 1);
+
+				//mResetCommand.EndQuery(pComputeResetQueryPool, 0);
+			}
+			mResetCommand.EndRecord();
+
+			mpContext->computeQueue.SubmitCommands(&mResetCommand, mpWaitResetSemaphore, nullptr, nullptr);
+			//statistics.pipelineStatistics[6] = *pComputeResetQueryPool->GetQueryResult(0, 1);
 		}
-		mResetCommand.EndRecord();
 
-		mpContext->computeQueue.SubmitCommands(&mResetCommand, mpWaitResetSemaphore, nullptr, nullptr);
-		//statistics.pipelineStatistics[6] = *pComputeResetQueryPool->GetQueryResult(0, 1);
-
-		cmd.BeginRecord();
 		{
-			//cmd.ResetQueryPool(pComputeCullingQueryPool);
-			//cmd.BeginQuery(pComputeCullingQueryPool, 0);
-			//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efIndirect_Read, EPipelineStage::efShader_Write,
-			//	EPipelineType::eGraphic, EPipelineType::eCompute);
+			SG_PROFILE_SCOPE("Compute Culling");
 
-			// [Data Hazard] barrier to prevent instanceOutput RAW(Read After Write) scenario
-			cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStageAccess::efShader_Read, EPipelineStageAccess::efShader_Write,
-				EPipelineType::eCompute, EPipelineType::eCompute);
+			auto& cmd = mpContext->computeCmdBuffer;
+			cmd.BeginRecord();
+			{
+				//cmd.ResetQueryPool(pComputeCullingQueryPool);
+				//cmd.BeginQuery(pComputeCullingQueryPool, 0);
+				//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efIndirect_Read, EPipelineStage::efShader_Write,
+				//	EPipelineType::eGraphic, EPipelineType::eCompute);
 
-			cmd.BindPipeline(mpGPUCullingPipeline);
-			cmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
-			UInt32 numGroup = (UInt32)(SSystem()->GetMainScene()->GetMeshEntityCount() / 128) + 1;
-			cmd.Dispatch(numGroup, 1, 1);
+				// [Data Hazard] barrier to prevent instanceOutput RAW(Read After Write) scenario
+				cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStageAccess::efShader_Read, EPipelineStageAccess::efShader_Write,
+					EPipelineType::eCompute, EPipelineType::eCompute);
 
-			cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStageAccess::efShader_Write, EPipelineStageAccess::efShader_Read,
-				EPipelineType::eCompute, EPipelineType::eCompute);
+				cmd.BindPipeline(mpGPUCullingPipeline);
+				cmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
+				UInt32 numGroup = (UInt32)(SSystem()->GetMainScene()->GetMeshEntityCount() / 128) + 1;
+				cmd.Dispatch(numGroup, 1, 1);
 
-			cmd.BindPipeline(mpDrawCallCompactPipeline);
-			cmd.BindPipelineSignature(mpDrawCallCompactPipelineSignature.get(), EPipelineType::eCompute);
-			cmd.Dispatch(1, 1, 1);
+				cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStageAccess::efShader_Write, EPipelineStageAccess::efShader_Read,
+					EPipelineType::eCompute, EPipelineType::eCompute);
 
-			// We use semaphore to ensure that out compute command is finish before the graphic queue begin to draw,
-			// So i think we don't need the buffer barrier here!
+				cmd.BindPipeline(mpDrawCallCompactPipeline);
+				cmd.BindPipelineSignature(mpDrawCallCompactPipelineSignature.get(), EPipelineType::eCompute);
+				cmd.Dispatch(1, 1, 1);
+
+				// We use semaphore to ensure that out compute command is finish before the graphic queue begin to draw,
+				// So i think we don't need the buffer barrier here!
 		 
-			//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efShader_Write, EPipelineStage::efIndirect_Read,
-			//	EPipelineType::eCompute, EPipelineType::eGraphic);
-			//cmd.EndQuery(pComputeCullingQueryPool, 0);
-		}
-		cmd.EndRecord();
+				//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efShader_Write, EPipelineStage::efIndirect_Read,
+				//	EPipelineType::eCompute, EPipelineType::eGraphic);
+				//cmd.EndQuery(pComputeCullingQueryPool, 0);
+			}
+			cmd.EndRecord();
 
-		// submit compute commands
-		// semaphore used to ensure the sequence of GPU-side execution
-		// fence used to ensure CPU is not write to a pending status command buffer. (because here we only have one compute command buffer)
-		mpContext->computeQueue.SubmitCommands(&cmd, mpContext->pComputeCompleteSemaphore, mpWaitResetSemaphore, mpContext->pComputeSyncFence);
-		//statistics.pipelineStatistics[7] = *pComputeCullingQueryPool->GetQueryResult(0, 1);
+			// submit compute commands
+			// semaphore used to ensure the sequence of GPU-side execution
+			// fence used to ensure CPU is not write to a pending status command buffer. (because here we only have one compute command buffer)
+			mpContext->computeQueue.SubmitCommands(&cmd, mpContext->pComputeCompleteSemaphore, mpWaitResetSemaphore, mpContext->pComputeSyncFence);
+			//statistics.pipelineStatistics[7] = *pComputeCullingQueryPool->GetQueryResult(0, 1);
+		}
 	}
 
 	void IndirectRenderer::Draw(EMeshPass meshPass)

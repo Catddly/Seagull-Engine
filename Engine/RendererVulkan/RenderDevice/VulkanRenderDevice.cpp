@@ -144,24 +144,45 @@ namespace SG
 		if (mbWindowMinimal)
 			return;
 
-		mpContext->pSwapchain->AcquireNextImage(mpContext->pPresentCompleteSemaphore, mCurrentFrame); // check if next image is presented, and get it as the available image
-		mpContext->pFences[mCurrentFrame]->WaitAndReset(); // wait for the render commands running on the GPU side to finish
-		mpContext->pComputeSyncFence->WaitAndReset(); // wait for the compute command buffer to finish
+		{
+			SG_PROFILE_SCOPE("Acquiring Image");
 
-		mpContext->computeCmdBuffer.Reset();
-		mpContext->commandBuffers[mCurrentFrame].Reset();
+			mpContext->pSwapchain->AcquireNextImage(mpContext->pPresentCompleteSemaphore, mCurrentFrame); // check if next image is presented, and get it as the available image
+		}
+
+		{
+			SG_PROFILE_SCOPE("Fence Waiting");
+
+			mpContext->pFences[mCurrentFrame]->WaitAndReset(); // wait for the render commands running on the GPU side to finish
+			mpContext->pComputeSyncFence->WaitAndReset(); // wait for the compute command buffer to finish
+		}
+
+		{
+			SG_PROFILE_SCOPE("Render Command Reset");
+
+			mpContext->computeCmdBuffer.Reset();
+			mpContext->commandBuffers[mCurrentFrame].Reset();
+		}
 
 		mpRenderGraph->Draw(mCurrentFrame);
 
-		// submit graphic commands
-		mpContext->graphicQueue.SubmitCommands(&mpContext->commandBuffers[mCurrentFrame],
-			mpContext->pRenderCompleteSemaphore, mpContext->pPresentCompleteSemaphore, mpContext->pComputeCompleteSemaphore,
-			mpContext->pFences[mCurrentFrame]); // submit new render commands to the available image
+		{
+			SG_PROFILE_SCOPE("Graphic Command Submit");
+
+			// submit graphic commands
+			mpContext->graphicQueue.SubmitCommands(&mpContext->commandBuffers[mCurrentFrame],
+				mpContext->pRenderCompleteSemaphore, mpContext->pPresentCompleteSemaphore, mpContext->pComputeCompleteSemaphore,
+				mpContext->pFences[mCurrentFrame]); // submit new render commands to the available image
 		// once submit the commands to GPU, pRenderCompleteSemaphore will be locked, and will be unlocked after the GPU finished the commands.
 		// we have to wait for the commands had been executed, then we present this image.
 		// we use semaphore to have GPU-GPU sync.
+		}
 
-		mpContext->pSwapchain->Present(&mpContext->graphicQueue, mCurrentFrame, mpContext->pRenderCompleteSemaphore); // present the available image
+		{
+			SG_PROFILE_SCOPE("Image Present");
+
+			mpContext->pSwapchain->Present(&mpContext->graphicQueue, mCurrentFrame, mpContext->pRenderCompleteSemaphore); // present the available image
+		}
 
 		{
 			SG_PROFILE_SCOPE("Copy Statistics");
