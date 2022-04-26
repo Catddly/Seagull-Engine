@@ -158,7 +158,7 @@ namespace SG
 			.Build();
 	}
 
-	void RGDrawSceneNode::Draw(RGDrawInfo& context)
+	void RGDrawSceneNode::Draw(DrawInfo& context)
 	{
 		auto& pBuf = *context.pCmd;
 
@@ -167,7 +167,7 @@ namespace SG
 			pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 1.0f, 1.0f); // set z to 1.0
 			pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
-			pBuf.BindPipelineSignature(mpSkyboxPipelineSignature.get());
+			pBuf.BindPipelineSignatureNonDynamic(mpSkyboxPipelineSignature.get());
 			pBuf.BindPipeline(mpSkyboxPipeline);
 
 			const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();

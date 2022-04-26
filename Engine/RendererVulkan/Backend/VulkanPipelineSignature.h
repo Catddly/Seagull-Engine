@@ -19,17 +19,20 @@ namespace SG
 	class VulkanPipelineSignature
 	{
 	public:
-		VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages);
+		VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages,
+			const unordered_map<string, EDescriptorType>& overrides);
 		~VulkanPipelineSignature() = default;
 
 		//! One descriptor set layout can contain different descriptor set.
-		struct SetLayoutAndHandle
+		struct SetDescriptorsData
 		{
 			RefPtr<VulkanDescriptorSetLayout> descriptorSetLayout;
-			VulkanDescriptorSet descriptorSet;
+			vector<VulkanDescriptorSet> descriptorSets;
+			unordered_map<string, UInt32> setIndexMap; // name -> index of descriptorSets
 		};
 
-		SetLayoutAndHandle& GetSetLayoutAndHandle(UInt32 set) { return mDescriptorSetData[set]; }
+		SetDescriptorsData&  GetSetDescriptorsData(UInt32 set) { return mDescriptorSetData[set]; }
+		VulkanDescriptorSet& GetDescriptorSet(UInt32 set, const string& name);
 		
 		class DataBinder
 		{
@@ -53,14 +56,17 @@ namespace SG
 
 			//! You should add the combine image textures in the order written in the shader!
 			Builder& AddCombindSamplerImage(const char* samplerName, const char* textureName);
+			Builder& OverrideDescriptorType(const string& name, EDescriptorType type);
 			RefPtr<VulkanPipelineSignature> Build();
 		private:
 			VulkanContext& mContext;
 			RefPtr<VulkanShader> mpShader;
 			vector<eastl::pair<const char*, const char*>> mCombineImages;
+			unordered_map<string, EDescriptorType> mOverridesTypes;
 		};
 
-		static RefPtr<VulkanPipelineSignature> Create(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages);
+		static RefPtr<VulkanPipelineSignature> Create(VulkanContext& context, RefPtr<VulkanShader> pShader, 
+			const vector<eastl::pair<const char*, const char*>>& combineImages, const unordered_map<string, EDescriptorType>& overrides);
 	private:
 		friend class VulkanCommandBuffer;
 		friend class VulkanPipeline;
@@ -68,8 +74,7 @@ namespace SG
 
 		RefPtr<VulkanShader>&        mpShader;
 		RefPtr<VulkanPipelineLayout> mpPipelineLayout;
-		eastl::unordered_map<UInt32, SetLayoutAndHandle> mDescriptorSetData;
-
+		eastl::unordered_map<UInt32, SetDescriptorsData> mDescriptorSetData; // set -> <descriptorSetLayouts, descriptors>
 	};
 
 }

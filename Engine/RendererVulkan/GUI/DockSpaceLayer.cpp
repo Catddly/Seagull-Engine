@@ -11,10 +11,9 @@
 #include "RendererVulkan/GUI/Utility.h"
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 #include "glm/gtc/type_ptr.hpp"
-
-#include <thread>
 
 namespace SG
 {
@@ -37,6 +36,13 @@ namespace SG
 		mpViewportTexHandle = VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex");
 	}
 
+	void DockSpaceLayer::OnDetach()
+	{
+		SG_PROFILE_FUNCTION();
+
+		mpViewportTexHandle = nullptr;
+	}
+
 	void DockSpaceLayer::OnUpdate(float deltaTime)
 	{
 		SG_PROFILE_FUNCTION();
@@ -44,6 +50,7 @@ namespace SG
 		DrawDockSpaceBackground();
 		DrawSceneHirerchy();
 		DrawMainViewport();
+
 		DrawSelectedEntityProperty();
 		DrawStatistics(deltaTime);
 		DrawSettingPanel();

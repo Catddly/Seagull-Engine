@@ -22,6 +22,7 @@ namespace SG
 
 	VulkanContext* IndirectRenderer::mpContext = nullptr;
 	VulkanCommandBuffer* IndirectRenderer::mpCmdBuf = nullptr;
+	UInt32 IndirectRenderer::mCurrFrameIndex = 0;
 
 	//VulkanQueryPool* IndirectRenderer::pComputeResetQueryPool = nullptr;
 	//VulkanQueryPool* IndirectRenderer::pComputeCullingQueryPool = nullptr;
@@ -32,7 +33,8 @@ namespace SG
 	UInt32 IndirectRenderer::mPackedIBCurrOffset = 0;
 	UInt32 IndirectRenderer::mCurrDrawCallIndex = 0;
 
-	VulkanCommandBuffer IndirectRenderer::mResetCommand;
+	vector<VulkanCommandBuffer> IndirectRenderer::mResetCommands;
+	vector<VulkanCommandBuffer> IndirectRenderer::mCullingCommands;
 	VulkanSemaphore* IndirectRenderer::mpWaitResetSemaphore = nullptr;
 
 	RefPtr<VulkanPipelineSignature> IndirectRenderer::mpResetCullingPipelineSignature = nullptr;
@@ -59,21 +61,27 @@ namespace SG
 
 		BufferCreateDesc indirectCI = {};
 		indirectCI.name = "indirectBuffer";
+#if SG_USE_TRIPLE_BUFFERING
+		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL * 3;
+#else
 		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
+#endif
 		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
-		indirectCI.memoryUsage = EGPUMemoryUsage::eGPU_To_CPU;
-		indirectCI.memoryFlag = EGPUMemoryFlag::efPersistent_Map;
+		indirectCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 		if (!VK_RESOURCE()->CreateBuffer(indirectCI))
 			return;
 
 		BufferCreateDesc insOutCI = {};
 		insOutCI.name = "instanceOutput";
+#if SG_USE_TRIPLE_BUFFERING
+		insOutCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData) * 3;
+#else
 		insOutCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
+#endif
 		insOutCI.type = EBufferType::efStorage;
 		insOutCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 		if (!VK_RESOURCE()->CreateBuffer(insOutCI))
 			return;
-		mbRendererInit = true;
 
 		mpGPUCullingShader = VulkanShader::Create(mpContext->device);
 		mpDrawCallCompactShader = VulkanShader::Create(mpContext->device);
@@ -84,10 +92,17 @@ namespace SG
 		compiler.CompileGLSLShader("culling/culling_reset", mpResetCullingShader.get());
 
 		mpWaitResetSemaphore = VulkanSemaphore::Create(mpContext->device);
-		mpContext->computeCommandPool->AllocateCommandBuffer(mResetCommand);
+
+		mResetCommands.resize(mpContext->pSwapchain->imageCount);
+		for (auto& cmd : mResetCommands)
+			mpContext->computeCommandPool->AllocateCommandBuffer(cmd);
+		mCullingCommands.resize(mpContext->pSwapchain->imageCount);
+		for (auto& cmd : mCullingCommands)
+			mpContext->computeCommandPool->AllocateCommandBuffer(cmd);
 
 		//pComputeResetQueryPool = VulkanQueryPool::Create(mpContext->device, ERenderQueryType::ePipeline_Statistics, EPipelineStageQueryType::efCompute_Shader_Invocations);
 		//pComputeCullingQueryPool = VulkanQueryPool::Create(mpContext->device, ERenderQueryType::ePipeline_Statistics, EPipelineStageQueryType::efCompute_Shader_Invocations);
+		mbRendererInit = true;
 	}
 
 	void IndirectRenderer::OnShutdown()
@@ -109,9 +124,13 @@ namespace SG
 		mpGPUCullingPipelineSignature.reset();
 		Delete(mpGPUCullingPipeline);
 
-		mpContext->computeCommandPool->FreeCommandBuffer(mResetCommand);
+		for (auto& cmd : mResetCommands)
+			mpContext->computeCommandPool->FreeCommandBuffer(cmd);
+		for (auto& cmd : mCullingCommands)
+			mpContext->computeCommandPool->FreeCommandBuffer(cmd);
 		Delete(mpWaitResetSemaphore);
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer");
+
 		mbRendererInit = false;
 	}
 
@@ -255,11 +274,29 @@ namespace SG
 		insOutputCI.subBufferOffset = 0;
 		insOutputCI.bSubBuffer = true;
 		VK_RESOURCE()->CreateBuffer(insOutputCI);
+
+		BufferCreateDesc indirectCI = {};
+		indirectCI.name = "indirectBuffer";
+#if SG_USE_TRIPLE_BUFFERING
+		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL * 3;
+#else
+		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
+#endif
+		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
+		indirectCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+		indirectCI.pInitData = indirectCommands.data();
+		insOutputCI.subBufferSize = static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand) * indirectCommands.size());
+		insOutputCI.subBufferOffset = 0;
+		insOutputCI.bSubBuffer = true;
+		if (!VK_RESOURCE()->CreateBuffer(indirectCI))
+			return;
 		VK_RESOURCE()->FlushBuffers();
 
-		VK_RESOURCE()->GetBuffer("indirectBuffer")->UploadData(indirectCommands.data(), static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand)* indirectCommands.size()), 0);
-
 		mpResetCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpResetCullingShader)
+#if SG_USE_TRIPLE_BUFFERING
+			.OverrideDescriptorType("cullUbo", EDescriptorType::eUniform_Buffer_Dynamic)
+			.OverrideDescriptorType("indirectBuffer", EDescriptorType::eStorage_Buffer_Dynamic)
+#endif
 			.Build();
 
 		mpResetCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
@@ -268,6 +305,11 @@ namespace SG
 			.Build();
 
 		mpGPUCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpGPUCullingShader)
+#if SG_USE_TRIPLE_BUFFERING
+			.OverrideDescriptorType("cullUbo", EDescriptorType::eUniform_Buffer_Dynamic)
+			.OverrideDescriptorType("indirectBuffer", EDescriptorType::eStorage_Buffer_Dynamic)
+			.OverrideDescriptorType("instanceOutput", EDescriptorType::eStorage_Buffer_Dynamic)
+#endif
 			.Build();
 
 		mpGPUCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
@@ -276,6 +318,10 @@ namespace SG
 			.Build();
 
 		mpDrawCallCompactPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpDrawCallCompactShader)
+#if SG_USE_TRIPLE_BUFFERING
+			.OverrideDescriptorType("cullUbo", EDescriptorType::eUniform_Buffer_Dynamic)
+			.OverrideDescriptorType("instanceOutput", EDescriptorType::eStorage_Buffer_Dynamic)
+#endif
 			.Build();
 
 		mpDrawCallCompactPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
@@ -286,7 +332,7 @@ namespace SG
 		mbDrawCallReady = true;
 	}
 
-	void IndirectRenderer::Begin(VulkanCommandBuffer* pCmdBuf)
+	void IndirectRenderer::Begin(DrawInfo& drawInfo)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -302,7 +348,8 @@ namespace SG
 		}
 
 		mbBeginDraw = true;
-		mpCmdBuf = pCmdBuf;
+		mpCmdBuf = drawInfo.pCmd;
+		mCurrFrameIndex = drawInfo.frameIndex;
 	}
 
 	void IndirectRenderer::End()
@@ -317,6 +364,41 @@ namespace SG
 
 		mbBeginDraw = false;
 		mpCmdBuf = nullptr;
+		mCurrFrameIndex = UInt32(-1);
+	}
+
+	void IndirectRenderer::CullingReset()
+	{
+		// [Critical] Here discovered severe performance fluctuation.
+		SG_PROFILE_FUNCTION();
+
+		// Why adding a query pool will fail the submittion of the command?
+		//auto& statistics = GetStatisticData();
+
+		auto& cmd = mResetCommands[mCurrFrameIndex];
+		cmd.Reset();
+		cmd.BeginRecord();
+		{
+			//mResetCommand.ResetQueryPool(pComputeResetQueryPool);
+			//mResetCommand.BeginQuery(pComputeResetQueryPool, 0);
+
+			cmd.BindPipeline(mpResetCullingPipeline);
+#if SG_USE_TRIPLE_BUFFERING
+			auto& descriptors = mpGPUCullingPipelineSignature->GetSetDescriptorsData(0);
+			UInt32 dynamicOffset[1] = { sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL * mCurrFrameIndex };
+			cmd.BindDescriptorSet(mpGPUCullingPipelineSignature.get(), 0, &descriptors.descriptorSet, 1, dynamicOffset, EPipelineType::eCompute);
+#else
+			cmd.BindPipelineSignatureNonDynamic(mpResetCullingPipelineSignature.get(), EPipelineType::eCompute);
+#endif
+			UInt32 numGroup = (UInt32)(MeshDataArchive::GetInstance()->GetNumMeshData() / 16) + 1;
+			cmd.Dispatch(numGroup, 1, 1);
+
+			//mResetCommand.EndQuery(pComputeResetQueryPool, 0);
+		}
+		cmd.EndRecord();
+
+		mpContext->computeQueue.SubmitCommands(&cmd, mpWaitResetSemaphore, nullptr, nullptr);
+		//statistics.pipelineStatistics[6] = *pComputeResetQueryPool->GetQueryResult(0, 1);
 	}
 
 	void IndirectRenderer::DoCulling()
@@ -324,73 +406,55 @@ namespace SG
 		// [Critical] Here discovered severe performance fluctuation.
 		SG_PROFILE_FUNCTION();
 
+		auto& cmd = mCullingCommands[mCurrFrameIndex];
+		cmd.Reset();
+		cmd.BeginRecord();
 		{
-			SG_PROFILE_SCOPE("Compute Culling Reset");
+			//cmd.ResetQueryPool(pComputeCullingQueryPool);
+			//cmd.BeginQuery(pComputeCullingQueryPool, 0);
 
-			// Why adding a query pool will fail the submittion of the command?
-			//auto& statistics = GetStatisticData();
+			//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStageAccess::efIndirect_Read, EPipelineStageAccess::efShader_Write,
+			//	EPipelineType::eGraphic, EPipelineType::eCompute);
 
-			mResetCommand.Reset();
-			mResetCommand.BeginRecord();
-			{
-				//mResetCommand.ResetQueryPool(pComputeResetQueryPool);
-				//mResetCommand.BeginQuery(pComputeResetQueryPool, 0);
+			// [Data Hazard] barrier to prevent instanceOutput RAW(Read After Write) scenario
+			cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStageAccess::efShader_Read, EPipelineStageAccess::efShader_Write,
+				EPipelineType::eCompute, EPipelineType::eCompute);
 
-				mResetCommand.BindPipeline(mpResetCullingPipeline);
-				mResetCommand.BindPipelineSignature(mpResetCullingPipelineSignature.get(), EPipelineType::eCompute);
-				UInt32 numGroup = (UInt32)(MeshDataArchive::GetInstance()->GetNumMeshData() / 16) + 1;
-				mResetCommand.Dispatch(numGroup, 1, 1);
+			cmd.BindPipeline(mpGPUCullingPipeline);
+#if SG_USE_TRIPLE_BUFFERING
+			auto& descriptors = mpGPUCullingPipelineSignature->GetSetDescriptorsData(0);
+			UInt32 dynamicOffset[1] = { sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL * mCurrFrameIndex };
+			cmd.BindDescriptorSet(mpGPUCullingPipelineSignature.get(), 0, &descriptors.descriptorSet, 1, dynamicOffset, EPipelineType::eCompute);
+#else
+			cmd.BindPipelineSignatureNonDynamic(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
+#endif
+			UInt32 numGroup = (UInt32)(SSystem()->GetMainScene()->GetMeshEntityCount() / 128) + 1;
+			cmd.Dispatch(numGroup, 1, 1);
 
-				//mResetCommand.EndQuery(pComputeResetQueryPool, 0);
-			}
-			mResetCommand.EndRecord();
+			cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStageAccess::efShader_Write, EPipelineStageAccess::efShader_Read,
+				EPipelineType::eCompute, EPipelineType::eCompute);
 
-			mpContext->computeQueue.SubmitCommands(&mResetCommand, mpWaitResetSemaphore, nullptr, nullptr);
-			//statistics.pipelineStatistics[6] = *pComputeResetQueryPool->GetQueryResult(0, 1);
-		}
+			cmd.BindPipeline(mpDrawCallCompactPipeline);
+#if !(SG_USE_TRIPLE_BUFFERING)
+			cmd.BindPipelineSignatureNonDynamic(mpDrawCallCompactPipelineSignature.get(), EPipelineType::eCompute);
+#endif
+			cmd.Dispatch(1, 1, 1);
 
-		{
-			SG_PROFILE_SCOPE("Compute Culling");
-
-			auto& cmd = mpContext->computeCmdBuffer;
-			cmd.BeginRecord();
-			{
-				//cmd.ResetQueryPool(pComputeCullingQueryPool);
-				//cmd.BeginQuery(pComputeCullingQueryPool, 0);
-				//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efIndirect_Read, EPipelineStage::efShader_Write,
-				//	EPipelineType::eGraphic, EPipelineType::eCompute);
-
-				// [Data Hazard] barrier to prevent instanceOutput RAW(Read After Write) scenario
-				cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStageAccess::efShader_Read, EPipelineStageAccess::efShader_Write,
-					EPipelineType::eCompute, EPipelineType::eCompute);
-
-				cmd.BindPipeline(mpGPUCullingPipeline);
-				cmd.BindPipelineSignature(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
-				UInt32 numGroup = (UInt32)(SSystem()->GetMainScene()->GetMeshEntityCount() / 128) + 1;
-				cmd.Dispatch(numGroup, 1, 1);
-
-				cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("instanceOutput"), EPipelineStageAccess::efShader_Write, EPipelineStageAccess::efShader_Read,
-					EPipelineType::eCompute, EPipelineType::eCompute);
-
-				cmd.BindPipeline(mpDrawCallCompactPipeline);
-				cmd.BindPipelineSignature(mpDrawCallCompactPipelineSignature.get(), EPipelineType::eCompute);
-				cmd.Dispatch(1, 1, 1);
-
-				// We use semaphore to ensure that out compute command is finish before the graphic queue begin to draw,
-				// So i think we don't need the buffer barrier here!
+			// We use semaphore to ensure that out compute command is finish before the graphic queue begin to draw,
+			// So i think we don't need the buffer barrier here!
 		 
-				//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStage::efShader_Write, EPipelineStage::efIndirect_Read,
-				//	EPipelineType::eCompute, EPipelineType::eGraphic);
-				//cmd.EndQuery(pComputeCullingQueryPool, 0);
-			}
-			cmd.EndRecord();
+			//cmd.BufferBarrier(VK_RESOURCE()->GetBuffer("indirectBuffer"), EPipelineStageAccess::efShader_Write, EPipelineStageAccess::efIndirect_Read,
+			//	EPipelineType::eCompute, EPipelineType::eGraphic);
 
-			// submit compute commands
-			// semaphore used to ensure the sequence of GPU-side execution
-			// fence used to ensure CPU is not write to a pending status command buffer. (because here we only have one compute command buffer)
-			mpContext->computeQueue.SubmitCommands(&cmd, mpContext->pComputeCompleteSemaphore, mpWaitResetSemaphore, mpContext->pComputeSyncFence);
-			//statistics.pipelineStatistics[7] = *pComputeCullingQueryPool->GetQueryResult(0, 1);
+			//cmd.EndQuery(pComputeCullingQueryPool, 0);
 		}
+		cmd.EndRecord();
+
+		// submit compute commands
+		// semaphore used to ensure the sequence of GPU-side execution
+		// fence used to ensure CPU is not write to a pending status command buffer. (because here we only have one compute command buffer)
+		mpContext->computeQueue.SubmitCommands(&cmd, mpContext->pComputeCompleteSemaphore, mpWaitResetSemaphore, mpContext->pComputeSyncFences[mCurrFrameIndex]);
+		//statistics.pipelineStatistics[7] = *pComputeCullingQueryPool->GetQueryResult(0, 1);
 	}
 
 	void IndirectRenderer::Draw(EMeshPass meshPass)

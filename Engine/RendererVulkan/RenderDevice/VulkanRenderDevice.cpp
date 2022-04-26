@@ -154,13 +154,13 @@ namespace SG
 			SG_PROFILE_SCOPE("Fence Waiting");
 
 			mpContext->pFences[mCurrentFrame]->WaitAndReset(); // wait for the render commands running on the GPU side to finish
-			mpContext->pComputeSyncFence->WaitAndReset(); // wait for the compute command buffer to finish
+			mpContext->pComputeSyncFences[mCurrentFrame]->WaitAndReset(); // wait for the compute command buffer to finish
 		}
 
 		{
 			SG_PROFILE_SCOPE("Render Command Reset");
 
-			mpContext->computeCmdBuffer.Reset();
+			//mpContext->computeCmdBuffer.Reset();
 			mpContext->commandBuffers[mCurrentFrame].Reset();
 		}
 
@@ -189,12 +189,6 @@ namespace SG
 
 			// copy statistic data
 			auto& statisticData = GetStatisticData();
-			statisticData.cullSceneObjects = 0;
-			auto* pIndirectBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer");
-			DrawIndexedIndirectCommand* pCommand = pIndirectBuffer->MapMemory<DrawIndexedIndirectCommand>();
-			for (UInt32 i = 0; i < MeshDataArchive::GetInstance()->GetNumMeshData(); ++i)
-				statisticData.cullSceneObjects += (pCommand + i)->instanceCount;
-			pIndirectBuffer->UnmapMemory();
 
 			// copy the query result
 			if (!mpContext->pPipelineStatisticsQueryPool->IsSleep())
@@ -247,6 +241,10 @@ namespace SG
 		mpContext->WindowResize();
 		VK_RESOURCE()->WindowResize();
 		mpRenderGraph->WindowResize();
+
+		// pop and push again to attach and detach the layer.
+		mpGUIDriver->PopUserLayer(mpDockSpaceGUILayer);
+		mpGUIDriver->PushUserLayer(mpDockSpaceGUILayer);
 	}
 
 }

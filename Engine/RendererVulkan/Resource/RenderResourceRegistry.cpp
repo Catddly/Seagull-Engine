@@ -42,7 +42,11 @@ namespace SG
 
 		BufferCreateDesc cullBufferCI = {};
 		cullBufferCI.name = "cullUbo";
+#if SG_USE_TRIPLE_BUFFERING
+		cullBufferCI.bufferSize = sizeof(GPUCullUBO) * SG_MAX_NUM_OBJECT * 3;
+#else
 		cullBufferCI.bufferSize = sizeof(GPUCullUBO) * SG_MAX_NUM_OBJECT;
+#endif
 		cullBufferCI.type = EBufferType::efUniform;
 		cullBufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 		cullBufferCI.memoryFlag = EGPUMemoryFlag::efPersistent_Map;

@@ -91,7 +91,7 @@ namespace SG
 		for (auto& pCmdBuf : commandBuffers)
 			graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
 
-		computeCommandPool->AllocateCommandBuffer(computeCmdBuffer);
+		//computeCommandPool->AllocateCommandBuffer(computeCmdBuffer);
 	}
 
 	VulkanContext::~VulkanContext()
@@ -193,7 +193,12 @@ namespace SG
 		pRenderCompleteSemaphore = VulkanSemaphore::Create(device);
 		pPresentCompleteSemaphore = VulkanSemaphore::Create(device);
 
-		pComputeSyncFence = VulkanFence::Create(device, true);
+		pComputeSyncFences.resize(pSwapchain->imageCount);
+		for (Size i = 0; i < pSwapchain->imageCount; ++i)
+		{
+			VulkanFence** ppFence = &pComputeSyncFences[i];
+			*ppFence = VulkanFence::Create(device, true);
+		}
 
 		EPipelineStageQueryType types =
 			EPipelineStageQueryType::efInput_Assembly_Vertices |
@@ -211,7 +216,8 @@ namespace SG
 		Delete(pTimeStampQueryPool);
 		Delete(pPipelineStatisticsQueryPool);
 
-		Delete(pComputeSyncFence);
+		for (auto* pFence : pComputeSyncFences)
+			Delete(pFence);
 		Delete(pComputeCompleteSemaphore);
 
 		Delete(pRenderCompleteSemaphore);

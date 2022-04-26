@@ -2,6 +2,7 @@
 
 #include "Scene/RenderDataBuilder.h"
 
+#include "RendererVulkan/Renderer/RenderInfo.h"
 #include "RendererVulkan/Resource/DrawCall.h"
 #include "RendererVulkan/RenderDevice/MeshPass.h"
 
@@ -32,9 +33,10 @@ namespace SG
 		//! Collect the render data from RenderDataBuilder, make render resource and packed to drawcall.
 		static void CollectRenderData(RefPtr<RenderDataBuilder> pRenderDataBuilder);
 
-		static void Begin(VulkanCommandBuffer* pCmdBuf);
+		static void Begin(DrawInfo& drawInfo);
 		static void End();
 
+		static void CullingReset();
 		static void DoCulling();
 		static void Draw(EMeshPass meshPass);
 	private:
@@ -43,6 +45,7 @@ namespace SG
 	private:
 		static VulkanContext* mpContext;
 		static VulkanCommandBuffer* mpCmdBuf;
+		static UInt32 mCurrFrameIndex;
 
 		static eastl::fixed_map<EMeshPass, vector<IndirectDrawCall>, (UInt32)EMeshPass::NUM_MESH_PASS> mDrawCallMap;
 		static UInt32 mPackedVBCurrOffset;
@@ -50,7 +53,8 @@ namespace SG
 		static UInt32 mPackedIBCurrOffset;
 		static UInt32 mCurrDrawCallIndex;
 
-		static VulkanCommandBuffer mResetCommand;
+		static vector<VulkanCommandBuffer> mResetCommands;
+		static vector<VulkanCommandBuffer> mCullingCommands;
 		static VulkanSemaphore* mpWaitResetSemaphore;
 
 		static RefPtr<VulkanPipelineSignature> mpResetCullingPipelineSignature;

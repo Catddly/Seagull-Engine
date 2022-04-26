@@ -39,7 +39,7 @@ namespace SG
 		VulkanCommandPool* computeCommandPool;
 		VulkanCommandPool* transferCommandPool;
 
-		VulkanCommandBuffer computeCmdBuffer;
+		//VulkanCommandBuffer computeCmdBuffer;
 		vector<VulkanCommandBuffer> commandBuffers;
 
 		VulkanQueue        graphicQueue;
@@ -48,7 +48,7 @@ namespace SG
 
 		// Compute Sync
 		VulkanSemaphore* pComputeCompleteSemaphore;
-		VulkanFence*     pComputeSyncFence;
+		vector<VulkanFence*> pComputeSyncFences;
 
 		// [GPU To GPU Synchronization]
 		VulkanSemaphore* pRenderCompleteSemaphore;

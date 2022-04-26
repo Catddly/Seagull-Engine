@@ -29,7 +29,7 @@ namespace SG
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
-		virtual void Draw(RGDrawInfo& context) override;
+		virtual void Draw(DrawInfo& context) override;
 	private:
 		void DrawScene(VulkanCommandBuffer& pBuf);
 	private:

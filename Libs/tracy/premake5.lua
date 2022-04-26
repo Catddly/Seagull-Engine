@@ -1,7 +1,6 @@
 project "tracy_server"
     kind "StaticLib"
     language "C++"
-    staticruntime "off"
     -- To use tracy, we have to make __LINE__ constexpr (__LINE__ is not a constexpr since C++17 or later in MSVC).
     -- Use "/Zi" for Debug Infomation Format in C++ Settings can make __LINE__ in C++17 constexpr.
     debugformat "Default"
@@ -34,6 +33,7 @@ project "tracy_server"
 filter "configurations:Debug"
     runtime "Debug"
     symbols "on"
+    staticruntime "off"
     -- enable if you want to build a dll
     -- postbuildcommands
     -- {
@@ -41,9 +41,15 @@ filter "configurations:Debug"
     --     ("{COPY} \"libs/mimalloc-redirect.dll\" \"../../bin/" .. outputdir .. "/Sandbox/\""),
     -- }
 
+filter "configurations:DebugStatic"
+    runtime "Debug"
+    symbols "on"
+    staticruntime "on"
+
 filter "configurations:Release"
     runtime "Release"
     optimize "on"
+    staticruntime "off"
     -- postbuildcommands
     -- {
     --     ("{COPY} %{cfg.buildtarget.relpath} \"../../bin/" .. outputdir .. "/Sandbox/\""),

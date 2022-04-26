@@ -2,7 +2,6 @@ project "eastl"
     kind "StaticLib"
     language "C++"
     cppdialect "C++17"
-    staticruntime "off"
 
     -- bin/Debug-windows-x64/Seagull Core
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -34,8 +33,14 @@ project "eastl"
 filter "configurations:Debug"
     runtime "Debug"
     symbols "on"
-    -- enable if you want to build a dll
+    staticruntime "off"
 
+filter "configurations:DebugStatic"
+    runtime "Debug"
+    symbols "on"
+    staticruntime "on"
+    
 filter "configurations:Release"
     runtime "Release"
     optimize "on"
+    staticruntime "off"

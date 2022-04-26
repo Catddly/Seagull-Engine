@@ -137,11 +137,12 @@ namespace SG
 			.Build();
 	}
 
-	void RGShadowNode::Draw(RGDrawInfo& context)
+	void RGShadowNode::Draw(DrawInfo& context)
 	{
 		SG_PROFILE_FUNCTION();
 
-		// Do Culling
+		IndirectRenderer::Begin(context);
+		IndirectRenderer::CullingReset();
 		IndirectRenderer::DoCulling();
 
 		auto& pBuf = *context.pCmd;
@@ -154,15 +155,14 @@ namespace SG
 
 		if (mbDrawShadow)
 		{
-			IndirectRenderer::Begin(&pBuf);
 			// 1.1 Forward Mesh Pass
 			pBuf.BindPipeline(mpShadowPipeline);
-			pBuf.BindPipelineSignature(mpShadowPipelineSignature.get());
+			pBuf.BindPipelineSignatureNonDynamic(mpShadowPipelineSignature.get());
 			IndirectRenderer::Draw(EMeshPass::eForward);
 
 			// 1.2 Forward Instanced Mesh Pass
 			pBuf.BindPipeline(mpShadowInstancePipeline);
-			pBuf.BindPipelineSignature(mpShadowInstancePipelineSignature.get());
+			pBuf.BindPipelineSignatureNonDynamic(mpShadowInstancePipelineSignature.get());
 			IndirectRenderer::Draw(EMeshPass::eForwardInstanced);
 			IndirectRenderer::End();
 		}

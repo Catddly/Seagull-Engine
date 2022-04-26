@@ -28,27 +28,27 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		// bottom color render target present
-		{
-			mpCompShader = VulkanShader::Create(mContext.device);
-			ShaderCompiler compiler;
-			compiler.CompileGLSLShader("composition", mpCompShader.get());
+		//{
+		//	mpCompShader = VulkanShader::Create(mContext.device);
+		//	ShaderCompiler compiler;
+		//	compiler.CompileGLSLShader("composition", mpCompShader.get());
 
-			SamplerCreateDesc samplerCI = {};
-			samplerCI.name = "comp_sampler";
-			samplerCI.filterMode = EFilterMode::eNearest;
-			samplerCI.mipmapMode = EFilterMode::eLinear;
-			samplerCI.addressMode = EAddressMode::eClamp_To_Edge;
-			samplerCI.lodBias = 0.0f;
-			samplerCI.minLod = 0.0f;
-			samplerCI.maxLod = 1.0f;
-			samplerCI.maxAnisotropy = 1.0f;
-			samplerCI.enableAnisotropy = false;
-			VK_RESOURCE()->CreateSampler(samplerCI);
+		SamplerCreateDesc samplerCI = {};
+		samplerCI.name = "comp_sampler";
+		samplerCI.filterMode = EFilterMode::eNearest;
+		samplerCI.mipmapMode = EFilterMode::eLinear;
+		samplerCI.addressMode = EAddressMode::eClamp_To_Edge;
+		samplerCI.lodBias = 0.0f;
+		samplerCI.minLod = 0.0f;
+		samplerCI.maxLod = 1.0f;
+		samplerCI.maxAnisotropy = 1.0f;
+		samplerCI.enableAnisotropy = false;
+		VK_RESOURCE()->CreateSampler(samplerCI);
 
-			mpCompPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpCompShader)
-				.AddCombindSamplerImage("comp_sampler", "HDRColor")
-				.Build();
-		}
+		//	mpCompPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpCompShader)
+		//		.AddCombindSamplerImage("comp_sampler", "HDRColor")
+		//		.Build();
+		//}
 
 		// draw ui layer
 		{
@@ -103,7 +103,7 @@ namespace SG
 				.AddCombindSamplerImage("_imgui_sampler", "_imgui_font")
 				.Build();
 
-			VK_RESOURCE()->AddDescriptorSetHandle("_imgui_font_tex", &mpGUIPipelineSignature->GetSetLayoutAndHandle(0).descriptorSet);
+			VK_RESOURCE()->AddDescriptorSetHandle("_imgui_font_tex", &mpGUIPipelineSignature->GetDescriptorSet(0, "_imgui_font"));
 			io.Fonts->SetTexID((ImTextureID)VK_RESOURCE()->GetDescriptorSetHandle("_imgui_font_tex"));
 
 			VulkanDescriptorSet* pViewportSet = New(VulkanDescriptorSet);
@@ -132,7 +132,7 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		Delete(mpCompPipeline);
+		//Delete(mpCompPipeline);
 		Delete(mpGUIPipeline);
 	}
 
@@ -140,16 +140,16 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		mpCompPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpCompShader)
-			.AddCombindSamplerImage("comp_sampler", "HDRColor")
-			.Build();
+		//mpCompPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpCompShader)
+		//	.AddCombindSamplerImage("comp_sampler", "HDRColor")
+		//	.Build();
 
 		VK_RESOURCE()->RemoveDescriptorSet("ViewportTex");
 		VulkanDescriptorSet* pViewportSet = New(VulkanDescriptorSet);
 		VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
 			.AddCombindSamplerImage(0, "comp_sampler", "HDRColor")
 			.Bind(*pViewportSet);
-		VK_RESOURCE()->AddDescriptorSet("ViewportTex", pViewportSet);
+		VK_RESOURCE()->AddDescriptorSet("ViewportTex", pViewportSet, true);
 		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetData(VK_RESOURCE()->GetDescriptorSet("ViewportTex"));
 		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetFallBackData(VK_RESOURCE()->GetDescriptorSet("logo"));
 
@@ -163,14 +163,14 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		mpCompPipeline = VulkanPipeline::Builder(mContext.device)
-			.SetRasterizer(ECullMode::eNone)
-			.SetDynamicStates()
-			.SetDepthStencil(false)
-			.BindSignature(mpCompPipelineSignature.get())
-			.BindRenderPass(pRenderpass)
-			.BindShader(mpCompShader.get())
-			.Build();
+		//mpCompPipeline = VulkanPipeline::Builder(mContext.device)
+		//	.SetRasterizer(ECullMode::eNone)
+		//	.SetDynamicStates()
+		//	.SetDepthStencil(false)
+		//	.BindSignature(mpCompPipelineSignature.get())
+		//	.BindRenderPass(pRenderpass)
+		//	.BindShader(mpCompShader.get())
+		//	.Build();
 
 		mpGUIPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetRasterizer(ECullMode::eNone)
@@ -182,7 +182,7 @@ namespace SG
 			.Build();
 	}
 
-	void RGFinalOutputNode::Draw(RGDrawInfo& context)
+	void RGFinalOutputNode::Draw(DrawInfo& context)
 	{
 		SG_PROFILE_FUNCTION();
 

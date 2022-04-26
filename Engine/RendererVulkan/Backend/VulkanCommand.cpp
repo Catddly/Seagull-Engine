@@ -216,7 +216,7 @@ namespace SG
 		vkCmdPushConstants(commandBuffer, pSignature->mpPipelineLayout->layout, ToVkShaderStageFlags(shaderStage), offset, size, pConstants);
 	}
 
-	void VulkanCommandBuffer::BindDescriptorSet(VulkanPipelineSignature* pSignature, UInt32 firstSet, VulkanDescriptorSet* set, EPipelineType type)
+	void VulkanCommandBuffer::BindDescriptorSet(VulkanPipelineSignature* pSignature, UInt32 firstSet, VulkanDescriptorSet* set, UInt32 dynamicOffsetCnt, UInt32* pOffsets, EPipelineType type)
 	{
 		VkPipelineBindPoint bp;
 		switch (type)
@@ -225,10 +225,10 @@ namespace SG
 		case EPipelineType::eTransfer: bp = VK_PIPELINE_BIND_POINT_GRAPHICS; break;
 		case EPipelineType::eCompute: bp = VK_PIPELINE_BIND_POINT_COMPUTE; break;
 		}
-		vkCmdBindDescriptorSets(commandBuffer, bp, pSignature->mpPipelineLayout->layout, firstSet, 1, &set->set, 0, nullptr);
+		vkCmdBindDescriptorSets(commandBuffer, bp, pSignature->mpPipelineLayout->layout, firstSet, 1, &set->set, dynamicOffsetCnt, pOffsets);
 	}
 
-	void VulkanCommandBuffer::BindPipelineSignature(VulkanPipelineSignature* pSignature, EPipelineType type)
+	void VulkanCommandBuffer::BindPipelineSignatureNonDynamic(VulkanPipelineSignature* pSignature, EPipelineType type)
 	{
 		if (!IsRenderPassValid())
 			return;
@@ -241,8 +241,9 @@ namespace SG
 			case EPipelineType::eTransfer: bp = VK_PIPELINE_BIND_POINT_GRAPHICS; break;
 			case EPipelineType::eCompute: bp = VK_PIPELINE_BIND_POINT_COMPUTE; break;
 			}
+			// here we assume that user know that this shader have non-dynamic buffers
 			vkCmdBindDescriptorSets(commandBuffer, bp, pSignature->mpPipelineLayout->layout,
-				set.first, 1, &set.second.descriptorSet.set, 0, nullptr);
+				set.first, 1, &(set.second.descriptorSets.back().set), 0, nullptr);
 		}
 	}
 

@@ -19,23 +19,43 @@ namespace SG
 		return *this;
 	}
 
+	VulkanPipelineSignature::Builder& VulkanPipelineSignature::Builder::OverrideDescriptorType(const string& name, EDescriptorType type)
+	{
+		mOverridesTypes[name] = type;
+		return *this;
+	}
+
 	RefPtr<VulkanPipelineSignature> VulkanPipelineSignature::Builder::Build()
 	{
-		return VulkanPipelineSignature::Create(mContext, mpShader, mCombineImages);
+		return VulkanPipelineSignature::Create(mContext, mpShader, mCombineImages, mOverridesTypes);
 	}
 
-	RefPtr<VulkanPipelineSignature> VulkanPipelineSignature::Create(VulkanContext& context, RefPtr<VulkanShader> pShader, 
-		const vector<eastl::pair<const char*, const char*>>& combineImages)
+	VulkanDescriptorSet& VulkanPipelineSignature::GetDescriptorSet(UInt32 set, const string& name)
 	{
-		return MakeRef<VulkanPipelineSignature>(context, pShader, combineImages);
+		SG_ASSERT(set < mDescriptorSetData.size());
+		auto& setDescriptorsData = mDescriptorSetData[set];
+		auto node = setDescriptorsData.setIndexMap.find(name);
+		if (node == setDescriptorsData.setIndexMap.end())
+			return setDescriptorsData.descriptorSets.back();
+		else
+			return setDescriptorsData.descriptorSets[node->second];
 	}
 
-	VulkanPipelineSignature::VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages)
+	RefPtr<VulkanPipelineSignature> VulkanPipelineSignature::Create(VulkanContext& context, RefPtr<VulkanShader> pShader,
+		const vector<eastl::pair<const char*, const char*>>& combineImages, const unordered_map<string, EDescriptorType>& overrides)
+	{
+		return MakeRef<VulkanPipelineSignature>(context, pShader, combineImages, overrides);
+	}
+
+	VulkanPipelineSignature::VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, 
+		const vector<eastl::pair<const char*, const char*>>& combineImages, const unordered_map<string, EDescriptorType>& overrides)
 		:mContext(context), mpShader(pShader)
 	{
 		for (auto setIndex : pShader->GetSetIndices())
 		{
+			bool bHaveNonDynamicBuffer = false;
 			mDescriptorSetData.insert(setIndex);
+			auto& setDescriptorsData = mDescriptorSetData[setIndex];
 
 			// bind to the descriptor set
 			VulkanDescriptorSetLayout::Builder descLayoutBuilder(mContext.device);
@@ -54,10 +74,21 @@ namespace SG
 				bufferCI.type = EBufferType::efUniform;
 				bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 				bufferCI.memoryFlag = EGPUMemoryFlag::efPersistent_Map;
-				if (!VK_RESOURCE()->GetBuffer(bufferCI.name))
+				if (!VK_RESOURCE()->HaveBuffer(bufferCI.name))
 					VK_RESOURCE()->CreateBuffer(bufferCI);
 
-				descLayoutBuilder.AddBinding(EDescriptorType::eUniform_Buffer, uboData.second.stage, GetBinding(uboData.second.setbinding), 1);
+				// check if user override this descriptor's type. since shader can not identify the difference of buffer and dynamic buffer.
+				if (auto node = overrides.find(bufferCI.name); node != overrides.end())
+				{
+					descLayoutBuilder.AddBinding(node->second, uboData.second.stage, GetBinding(uboData.second.setbinding), 1);
+					setDescriptorsData.setIndexMap[bufferCI.name] = static_cast<UInt32>(setDescriptorsData.descriptorSets.size());
+					setDescriptorsData.descriptorSets.push_back();
+				}
+				else
+				{
+					descLayoutBuilder.AddBinding(EDescriptorType::eUniform_Buffer, uboData.second.stage, GetBinding(uboData.second.setbinding), 1);
+					bHaveNonDynamicBuffer |= true;
+				}
 			}
 
 			// for all the ssbo
@@ -74,10 +105,21 @@ namespace SG
 				bufferCI.type = EBufferType::efStorage;
 				bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 				bufferCI.memoryFlag = EGPUMemoryFlag::efPersistent_Map;
-				if (!VK_RESOURCE()->GetBuffer(bufferCI.name))
+				if (!VK_RESOURCE()->HaveBuffer(bufferCI.name))
 					VK_RESOURCE()->CreateBuffer(bufferCI);
 
-				descLayoutBuilder.AddBinding(EDescriptorType::eStorage_Buffer, ssboData.second.stage, GetBinding(ssboData.second.setbinding), 1);
+				// check if user override this descriptor's type. since shader can not identify the difference of buffer and dynamic buffer.w
+				if (auto node = overrides.find(bufferCI.name); node != overrides.end())
+				{
+					descLayoutBuilder.AddBinding(node->second, ssboData.second.stage, GetBinding(ssboData.second.setbinding), 1);
+					setDescriptorsData.setIndexMap[bufferCI.name] = static_cast<UInt32>(setDescriptorsData.descriptorSets.size());
+					setDescriptorsData.descriptorSets.push_back();
+				}
+				else
+				{
+					descLayoutBuilder.AddBinding(EDescriptorType::eStorage_Buffer, ssboData.second.stage, GetBinding(ssboData.second.setbinding), 1);
+					bHaveNonDynamicBuffer |= true;
+				}
 			}
 
 			auto& combineImageLayout = pShader->GetSampledImageLayout(EShaderStage::efFrag);
@@ -88,6 +130,7 @@ namespace SG
 			{
 				if (GetSet(imageData.second) != setIndex)
 					continue;
+
 				descLayoutBuilder.AddBinding(EDescriptorType::eCombine_Image_Sampler, EShaderStage::efFrag, GetBinding(imageData.second), 1);
 			}
 
@@ -97,52 +140,87 @@ namespace SG
 				SG_LOG_ERROR("Failed to create descriptor set layout with shader: (%s, %s) (set: %d)!", pShader->GetName(EShaderStage::efVert).c_str(), pShader->GetName(EShaderStage::efFrag).c_str(), setIndex);
 				SG_ASSERT(false);
 			}
+
+			if (bHaveNonDynamicBuffer || !combineImageLayout.Empty()) // add the non-uniform buffers into one descriptors
+			{
+				setDescriptorsData.setIndexMap["__non_dynamic"] = static_cast<UInt32>(setDescriptorsData.descriptorSets.size());
+				setDescriptorsData.descriptorSets.push_back();
+			}
 		}
 
 		UInt32 numImages = 0;
-		for (auto setIndex : pShader->GetSetIndices())
+		for (auto setIndex : pShader->GetSetIndices()) // bind descriptors for each set
 		{
-			auto pSetLayout = mDescriptorSetData[setIndex].descriptorSetLayout;
-			VulkanDescriptorDataBinder setDataBinder(*mContext.pDefaultDescriptorPool, *pSetLayout);
-			// bind ubo buffer
+			typedef eastl::pair<string, GPUBufferLayout> BufferLayoutType;
+			auto& setDescriptorsData = mDescriptorSetData[setIndex];
+			vector<BufferLayoutType> nonDynamicBuffers;
+
 			auto& uboLayout = pShader->GetUniformBufferLayout();
-			for (auto& uboData : uboLayout)
+			for (const BufferLayoutType& uboData : uboLayout)
 			{
 				if (GetSet(uboData.second.setbinding) != setIndex)
 					continue;
-				setDataBinder.BindBuffer(GetBinding(uboData.second.setbinding), VK_RESOURCE()->GetBuffer(uboData.first));
+
+				if (setDescriptorsData.setIndexMap.find(uboData.first) == setDescriptorsData.setIndexMap.end()) // add non-dynamic buffers data
+					nonDynamicBuffers.emplace_back(uboData);
+				else // bind dynamic descriptors
+				{
+					VulkanDescriptorDataBinder setDataBinder(*mContext.pDefaultDescriptorPool, *setDescriptorsData.descriptorSetLayout);
+					setDataBinder.BindBuffer(GetBinding(uboData.second.setbinding), VK_RESOURCE()->GetBuffer(uboData.first));
+					auto& descriptorSet = setDescriptorsData.descriptorSets[setDescriptorsData.setIndexMap[uboData.first]];
+					setDataBinder.Bind(descriptorSet); // bind the corresponding descriptor set
+					descriptorSet.belongingSet = setIndex;
+				}
 			}
-			// bind storage buffer
+
 			auto& ssboLayout = pShader->GetStorageBufferLayout();
-			for (auto& ssboData : ssboLayout)
+			for (const BufferLayoutType& ssboData : ssboLayout)
 			{
 				if (GetSet(ssboData.second.setbinding) != setIndex)
 					continue;
-				string bufferName = ssboData.first;
-				setDataBinder.BindBuffer(GetBinding(ssboData.second.setbinding), VK_RESOURCE()->GetBuffer(bufferName));
-			}
-			// bind combine image
-			auto& combineImageLayout = pShader->GetSampledImageLayout(EShaderStage::efFrag);
-			OrderSet<SetBindingKey> orderedSIInputLayout;
-			for (auto& imageData : combineImageLayout)
-				orderedSIInputLayout.emplace(imageData.second, imageData.second);
-			UInt32 imageIndex = 0;
-			for (auto& imageData : orderedSIInputLayout) // should use the ordered setbinding input data
-			{
-				if (GetSet(imageData.second) != setIndex)
-					continue;
-				VulkanTexture* pTex = VK_RESOURCE()->GetTexture(combineImages[imageIndex].second);
-				if (pTex)
-					setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first), pTex);
-				else
-					setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first),
-						VK_RESOURCE()->GetRenderTarget(combineImages[imageIndex].second));
-				++imageIndex;
+
+				if (setDescriptorsData.setIndexMap.find(ssboData.first) == setDescriptorsData.setIndexMap.end())  // add non-dynamic buffers data
+					nonDynamicBuffers.emplace_back(ssboData);
+				else // bind dynamic descriptors
+				{
+					VulkanDescriptorDataBinder setDataBinder(*mContext.pDefaultDescriptorPool, *setDescriptorsData.descriptorSetLayout);
+					setDataBinder.BindBuffer(GetBinding(ssboData.second.setbinding), VK_RESOURCE()->GetBuffer(ssboData.first));
+					auto& descriptorSet = setDescriptorsData.descriptorSets[setDescriptorsData.setIndexMap[ssboData.first]];
+					setDataBinder.Bind(descriptorSet); // bind the corresponding descriptor set
+					descriptorSet.belongingSet = setIndex;
+				}
 			}
 
-			setDataBinder.Bind(mDescriptorSetData[setIndex].descriptorSet);
-			mDescriptorSetData[setIndex].descriptorSet.belongingSet = setIndex;
-			numImages += imageIndex;
+			auto& combineImageLayout = pShader->GetSampledImageLayout(EShaderStage::efFrag);
+			if (!nonDynamicBuffers.empty() || !combineImageLayout.Empty())
+			{
+				// bind non-dynamic descriptors
+				VulkanDescriptorDataBinder setDataBinder(*mContext.pDefaultDescriptorPool, *setDescriptorsData.descriptorSetLayout);
+				for (auto& bufferLayout : nonDynamicBuffers)
+					setDataBinder.BindBuffer(GetBinding(bufferLayout.second.setbinding), VK_RESOURCE()->GetBuffer(bufferLayout.first));
+
+				// bind combine image
+				OrderSet<SetBindingKey> orderedSIInputLayout;
+				for (auto& imageData : combineImageLayout)
+					orderedSIInputLayout.emplace(imageData.second, imageData.second);
+				UInt32 imageIndex = 0;
+				for (auto& imageData : orderedSIInputLayout) // should use the ordered setbinding input data
+				{
+					if (GetSet(imageData.second) != setIndex)
+						continue;
+					VulkanTexture* pTex = VK_RESOURCE()->GetTexture(combineImages[imageIndex].second);
+					if (pTex)
+						setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first), pTex);
+					else
+						setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first),
+							VK_RESOURCE()->GetRenderTarget(combineImages[imageIndex].second));
+					++imageIndex;
+				}
+
+				setDataBinder.Bind(setDescriptorsData.descriptorSets.back());
+				setDescriptorsData.descriptorSets.back().belongingSet = setIndex;
+				numImages += imageIndex;
+			}
 		}
 
 		VulkanPipelineLayout::Builder pipelineLayoutBuilder(mContext.device);

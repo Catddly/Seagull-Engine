@@ -183,7 +183,7 @@ namespace SG
 			.Build();
 	}
 
-	void RGDrawScenePBRNode::Draw(RGDrawInfo& context)
+	void RGDrawScenePBRNode::Draw(DrawInfo& context)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -195,7 +195,7 @@ namespace SG
 			pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 1.0f, 1.0f); // set z to 1.0
 			pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
-			pBuf.BindPipelineSignature(mpSkyboxPipelineSignature.get());
+			pBuf.BindPipelineSignatureNonDynamic(mpSkyboxPipelineSignature.get());
 			pBuf.BindPipeline(mpSkyboxPipeline);
 
 			const DrawCall& skybox = VK_RESOURCE()->GetSkyboxDrawCall();
@@ -205,28 +205,29 @@ namespace SG
 
 		// 2. Draw Scene
 		pBuf.BeginQuery(mContext.pPipelineStatisticsQueryPool, 0);
-		DrawScene(pBuf);
+		DrawScene(context);
 		pBuf.EndQuery(mContext.pPipelineStatisticsQueryPool, 0);
 
 		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efBottom_Of_Pipeline, 3);
 	}
 
-	void RGDrawScenePBRNode::DrawScene(VulkanCommandBuffer& pBuf)
+	void RGDrawScenePBRNode::DrawScene(DrawInfo& drawInfo)
 	{
 		SG_PROFILE_FUNCTION();
 
+		auto& pBuf = *drawInfo.pCmd;
 		pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
 		//pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
-		IndirectRenderer::Begin(&pBuf);
+		IndirectRenderer::Begin(drawInfo);
 		// 1.1 Forward Mesh Pass
 		pBuf.BindPipeline(mpPipeline);
-		pBuf.BindPipelineSignature(mpPipelineSignature.get());
+		pBuf.BindPipelineSignatureNonDynamic(mpPipelineSignature.get());
 		IndirectRenderer::Draw(EMeshPass::eForward);
 
 		// 1.2 Forward Instanced Mesh Pass
 		pBuf.BindPipeline(mpInstancePipeline);
-		pBuf.BindPipelineSignature(mpInstancePipelineSignature.get());
+		pBuf.BindPipelineSignatureNonDynamic(mpInstancePipelineSignature.get());
 		IndirectRenderer::Draw(EMeshPass::eForwardInstanced);
 		IndirectRenderer::End();
 	}
@@ -440,7 +441,7 @@ namespace SG
 						cmd.SetViewport((float)(texSize >> mip), (float)(texSize >> mip), 0.0f, 1.0f);
 						cmd.SetScissor({ 0, 0, (int)(texSize >> mip), (int)(texSize >> mip) });
 
-						cmd.BindPipelineSignature(pIrradiancePipelineSignature.get());
+						cmd.BindPipelineSignatureNonDynamic(pIrradiancePipelineSignature.get());
 						cmd.BindPipeline(pIrradiancePipeline);
 
 						PushConstant pushConstant;
@@ -606,7 +607,7 @@ namespace SG
 						cmd.SetViewport((float)(texSize >> mip), (float)(texSize >> mip), 0.0f, 1.0f);
 						cmd.SetScissor({ 0, 0, (int)(texSize >> mip), (int)(texSize >> mip) });
 
-						cmd.BindPipelineSignature(pPrefilterPipelineSignature.get());
+						cmd.BindPipelineSignatureNonDynamic(pPrefilterPipelineSignature.get());
 						cmd.BindPipeline(pPrefilterPipeline);
 
 						pushConstant.mvp = BuildPerspectiveMatrix(glm::radians(90.0f), 1.0f, 0.1f, 256.0f) * directionMats[face];

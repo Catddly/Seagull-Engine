@@ -82,7 +82,7 @@ namespace SG
 		SG_ASSERT(!mFrameBuffersMap.empty() && "RenderGraphBuilder should call Build() or RenderGraph should call Compile() after the node insertion!");
 
 		auto& commandBuf = mpContext->commandBuffers[frameIndex];
-		RenderGraphNode::RGDrawInfo drawContext = { &commandBuf, frameIndex };
+		DrawInfo drawInfo = { &commandBuf, frameIndex };
 
 		commandBuf.BeginRecord();
 		commandBuf.ResetQueryPool(mpContext->pPipelineStatisticsQueryPool);
@@ -109,7 +109,7 @@ namespace SG
 			auto* pFrameBuffer = mFrameBuffersMap.find(framebufferHash)->second;
 
 			commandBuf.BeginRenderPass(pFrameBuffer);
-			pCurrNode->Draw(drawContext);
+			pCurrNode->Draw(drawInfo);
 			commandBuf.EndRenderPass();
 		}
 		commandBuf.EndRecord();

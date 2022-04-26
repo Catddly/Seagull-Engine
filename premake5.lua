@@ -5,6 +5,7 @@ workspace "Seagull"
     configurations
     {
         "Debug",
+        "DebugStatic",
 		"Release"
     }
 
@@ -78,11 +79,6 @@ group "Runtime"
             "Libs/glm/",
         }
 
-        defines
-        {
-            -- "SG_BUILD_DLL",
-        }
-
         links
         {
             "mimalloc",
@@ -104,10 +100,33 @@ group "Runtime"
         -- Use "/Zi" for Debug Infomation Format in C++ Settings can make __LINE__ in C++17 constexpr.
         debugformat "Default"
         editandcontinue "Off"
+        staticruntime "off"
+        defines
+        {
+            "SG_BUILD_DLL",
+        }
+
+    filter "configurations:DebugStatic"
+        runtime "Debug"
+        symbols "on"
+        -- To use tracy, we have to make __LINE__ constexpr (__LINE__ is not a constexpr since C++17 or later in MSVC).
+        -- Use "/Zi" for Debug Infomation Format in C++ Settings can make __LINE__ in C++17 constexpr.
+        debugformat "Default"
+        editandcontinue "Off"
+        staticruntime "on"
+        ignoredefaultlibraries 
+        { 
+            "MSVCRT"
+        }
 
     filter "configurations:Release"
         runtime "Release"
         optimize "on"
+        staticruntime "off"
+        defines
+        {
+            "SG_BUILD_DLL",
+        }
 
     filter "platforms:Win64"
         system "Windows"

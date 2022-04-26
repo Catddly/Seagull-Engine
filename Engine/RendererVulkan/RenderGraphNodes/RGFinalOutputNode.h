@@ -28,7 +28,7 @@ namespace SG
 	private:
 		virtual void Reset() override;
 		virtual void Prepare(VulkanRenderPass* pRenderpass) override;
-		virtual void Draw(RGDrawInfo& context) override;
+		virtual void Draw(DrawInfo& context) override;
 	private:
 		void GUIDraw(VulkanCommandBuffer& pBuf, UInt32 frameIndex);
 	private:
@@ -37,9 +37,9 @@ namespace SG
 		LoadStoreClearOp  mColorRtLoadStoreOp;
 
 		// draw composition pipeline
-		RefPtr<VulkanPipelineSignature> mpCompPipelineSignature;
-		VulkanPipeline* mpCompPipeline;
-		RefPtr<VulkanShader> mpCompShader;
+		//RefPtr<VulkanPipelineSignature> mpCompPipelineSignature;
+		//VulkanPipeline* mpCompPipeline;
+		//RefPtr<VulkanShader> mpCompShader;
 
 		// draw gui pipeline
 		RefPtr<VulkanPipelineSignature> mpGUIPipelineSignature;

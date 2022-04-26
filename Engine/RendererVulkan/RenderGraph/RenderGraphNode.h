@@ -2,6 +2,7 @@
 
 #include "Defs/Defs.h"
 
+#include "RendererVulkan/Renderer/RenderInfo.h"
 #include "RenderGraphResource.h"
 
 #include "Stl/vector.h"
@@ -24,12 +25,6 @@ namespace SG
 
 		RenderGraphNode(RenderGraph* pRenderGraph);
 		virtual ~RenderGraphNode() = default;
-
-		struct RGDrawInfo
-		{
-			VulkanCommandBuffer* pCmd;
-			UInt32               frameIndex;
-		};
 	protected:
 		const InResourceType& GetResource(UInt32 slot);
 		void AttachResource(UInt32 slot, const RenderGraphInReousrce& resource);
@@ -48,7 +43,7 @@ namespace SG
 		//! Be called when the render graph finish compiling, user can use renderpass to create pipeline.
 		virtual void Prepare(VulkanRenderPass* pRenderpass) = 0;
 		//! Be called every frame to record render command.
-		virtual void Draw(RGDrawInfo& context) = 0;
+		virtual void Draw(DrawInfo& context) = 0;
 	private:
 		bool HaveValidResource() const;
 	private:

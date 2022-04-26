@@ -131,19 +131,22 @@ namespace SG
 		typedef typename eastl::map<string, typename ElementType>::iterator       IteratorType;
 		typedef typename eastl::map<string, typename ElementType>::const_iterator ConstIteratorType;
 
-		bool Exist(const string& name) { return mUBODataMap.find(name) != mUBODataMap.end(); }
-		ElementType& Get(const string& name) { return mUBODataMap[name]; }
+		bool Exist(const string& name) { return mDataMap.find(name) != mDataMap.end(); }
+		ElementType& Get(const string& name) { return mDataMap[name]; }
 		void Emplace(const string& name, const ElementType& element);
 
-		IteratorType      begin()        { return mUBODataMap.begin(); }
-		IteratorType      end()          { return mUBODataMap.end(); }
-		ConstIteratorType begin()  const { return mUBODataMap.begin(); }
-		ConstIteratorType end()    const { return mUBODataMap.end(); }
-		ConstIteratorType cbegin() const { return mUBODataMap.cbegin(); }
-		ConstIteratorType cend()   const { return mUBODataMap.cend(); }
+		Size GetSize() const { return mDataMap.size(); }
+		bool Empty() const { return GetSize() == 0; }
+
+		IteratorType      begin()        { return mDataMap.begin(); }
+		IteratorType      end()          { return mDataMap.end(); }
+		ConstIteratorType begin()  const { return mDataMap.begin(); }
+		ConstIteratorType end()    const { return mDataMap.end(); }
+		ConstIteratorType cbegin() const { return mDataMap.cbegin(); }
+		ConstIteratorType cend()   const { return mDataMap.cend(); }
 	private:
 		friend class ShaderCompiler;
-		eastl::map<string, typename ElementType> mUBODataMap;
+		eastl::map<string, typename ElementType> mDataMap;
 	};
 
 	struct GPUBufferLayout
@@ -156,12 +159,12 @@ namespace SG
 	template <typename ElementType>
 	void ShaderSetBindingAttributeLayout<ElementType>::Emplace(const string& name, const ElementType& element)
 	{
-		if (mUBODataMap.find(name) != mUBODataMap.end())
+		if (mDataMap.find(name) != mDataMap.end())
 		{
 			SG_LOG_ERROR("Already have a shader uniform buffer layout called: %s", name.c_str());
 			SG_ASSERT(false);
 		}
-		mUBODataMap[name] = element;
+		mDataMap[name] = element;
 	}
 
 	// dump wrapper of shader map
