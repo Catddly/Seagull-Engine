@@ -19,6 +19,7 @@ namespace SG
 	class VulkanCommandBuffer;
 	class VulkanSemaphore;
 	class VulkanPipeline;
+	class VulkanFence;
 	class VulkanPipelineSignature;
 	class VulkanShader;
 
@@ -38,6 +39,8 @@ namespace SG
 
 		static void CullingReset();
 		static void DoCulling();
+		static void CopyStatisticsData();
+		static void WaitForStatisticsCopyed();
 		static void Draw(EMeshPass meshPass);
 	private:
 		static void BindMesh(const DrawMesh& drawMesh);
@@ -55,6 +58,8 @@ namespace SG
 
 		static vector<VulkanCommandBuffer> mResetCommands;
 		static vector<VulkanCommandBuffer> mCullingCommands;
+		static vector<VulkanCommandBuffer> mTransferCommands;
+		static vector<VulkanFence*> mTransferFences;
 		static VulkanSemaphore* mpWaitResetSemaphore;
 
 		static RefPtr<VulkanPipelineSignature> mpResetCullingPipelineSignature;

@@ -9,6 +9,7 @@
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
+#include "RendererVulkan/Backend/VulkanQueue.h"
 #include "RendererVulkan/Backend/VulkanShader.h"
 #include "RendererVulkan/Backend/VulkanPipelineSignature.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
@@ -35,6 +36,8 @@ namespace SG
 
 	vector<VulkanCommandBuffer> IndirectRenderer::mResetCommands;
 	vector<VulkanCommandBuffer> IndirectRenderer::mCullingCommands;
+	vector<VulkanCommandBuffer> IndirectRenderer::mTransferCommands;
+	vector<VulkanFence*> IndirectRenderer::mTransferFences;
 	VulkanSemaphore* IndirectRenderer::mpWaitResetSemaphore = nullptr;
 
 	RefPtr<VulkanPipelineSignature> IndirectRenderer::mpResetCullingPipelineSignature = nullptr;
@@ -61,23 +64,24 @@ namespace SG
 
 		BufferCreateDesc indirectCI = {};
 		indirectCI.name = "indirectBuffer";
-#if SG_USE_TRIPLE_BUFFERING
-		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL * 3;
-#else
 		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
-#endif
-		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
+		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage | EBufferType::efTransfer_Src;
 		indirectCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 		if (!VK_RESOURCE()->CreateBuffer(indirectCI))
 			return;
 
+		BufferCreateDesc indirectReadBackCI = {};
+		indirectReadBackCI.name = "indirectBuffer_read_back";
+		indirectReadBackCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
+		indirectReadBackCI.type = EBufferType::efStorage | EBufferType::efTransfer_Dst;
+		indirectReadBackCI.memoryUsage = EGPUMemoryUsage::eGPU_To_CPU;
+		indirectReadBackCI.memoryFlag = EGPUMemoryFlag::efPersistent_Map;
+		if (!VK_RESOURCE()->CreateBuffer(indirectReadBackCI))
+			return;
+
 		BufferCreateDesc insOutCI = {};
 		insOutCI.name = "instanceOutput";
-#if SG_USE_TRIPLE_BUFFERING
-		insOutCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData) * 3;
-#else
 		insOutCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
-#endif
 		insOutCI.type = EBufferType::efStorage;
 		insOutCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 		if (!VK_RESOURCE()->CreateBuffer(insOutCI))
@@ -92,6 +96,12 @@ namespace SG
 		compiler.CompileGLSLShader("culling/culling_reset", mpResetCullingShader.get());
 
 		mpWaitResetSemaphore = VulkanSemaphore::Create(mpContext->device);
+		mTransferFences.resize(mpContext->pSwapchain->imageCount);
+		for (Size i = 0; i < mpContext->pSwapchain->imageCount; ++i)
+		{
+			VulkanFence** ppFence = &mTransferFences[i];
+			*ppFence = VulkanFence::Create(mpContext->device);
+		}
 
 		mResetCommands.resize(mpContext->pSwapchain->imageCount);
 		for (auto& cmd : mResetCommands)
@@ -99,6 +109,9 @@ namespace SG
 		mCullingCommands.resize(mpContext->pSwapchain->imageCount);
 		for (auto& cmd : mCullingCommands)
 			mpContext->computeCommandPool->AllocateCommandBuffer(cmd);
+		mTransferCommands.resize(mpContext->pSwapchain->imageCount);
+		for (auto& cmd : mTransferCommands)
+			mpContext->transferCommandPool->AllocateCommandBuffer(cmd);
 
 		//pComputeResetQueryPool = VulkanQueryPool::Create(mpContext->device, ERenderQueryType::ePipeline_Statistics, EPipelineStageQueryType::efCompute_Shader_Invocations);
 		//pComputeCullingQueryPool = VulkanQueryPool::Create(mpContext->device, ERenderQueryType::ePipeline_Statistics, EPipelineStageQueryType::efCompute_Shader_Invocations);
@@ -124,6 +137,10 @@ namespace SG
 		mpGPUCullingPipelineSignature.reset();
 		Delete(mpGPUCullingPipeline);
 
+		for (auto* pFence : mTransferFences)
+			Delete(pFence);
+		for (auto& cmd : mTransferCommands)
+			mpContext->transferCommandPool->FreeCommandBuffer(cmd);
 		for (auto& cmd : mResetCommands)
 			mpContext->computeCommandPool->FreeCommandBuffer(cmd);
 		for (auto& cmd : mCullingCommands)
@@ -277,11 +294,7 @@ namespace SG
 
 		BufferCreateDesc indirectCI = {};
 		indirectCI.name = "indirectBuffer";
-#if SG_USE_TRIPLE_BUFFERING
-		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL * 3;
-#else
 		indirectCI.bufferSize = sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL;
-#endif
 		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
 		indirectCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 		indirectCI.pInitData = indirectCommands.data();
@@ -293,10 +306,6 @@ namespace SG
 		VK_RESOURCE()->FlushBuffers();
 
 		mpResetCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpResetCullingShader)
-#if SG_USE_TRIPLE_BUFFERING
-			.OverrideDescriptorType("cullUbo", EDescriptorType::eUniform_Buffer_Dynamic)
-			.OverrideDescriptorType("indirectBuffer", EDescriptorType::eStorage_Buffer_Dynamic)
-#endif
 			.Build();
 
 		mpResetCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
@@ -305,11 +314,6 @@ namespace SG
 			.Build();
 
 		mpGPUCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpGPUCullingShader)
-#if SG_USE_TRIPLE_BUFFERING
-			.OverrideDescriptorType("cullUbo", EDescriptorType::eUniform_Buffer_Dynamic)
-			.OverrideDescriptorType("indirectBuffer", EDescriptorType::eStorage_Buffer_Dynamic)
-			.OverrideDescriptorType("instanceOutput", EDescriptorType::eStorage_Buffer_Dynamic)
-#endif
 			.Build();
 
 		mpGPUCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
@@ -318,10 +322,6 @@ namespace SG
 			.Build();
 
 		mpDrawCallCompactPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpDrawCallCompactShader)
-#if SG_USE_TRIPLE_BUFFERING
-			.OverrideDescriptorType("cullUbo", EDescriptorType::eUniform_Buffer_Dynamic)
-			.OverrideDescriptorType("instanceOutput", EDescriptorType::eStorage_Buffer_Dynamic)
-#endif
 			.Build();
 
 		mpDrawCallCompactPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
@@ -383,13 +383,7 @@ namespace SG
 			//mResetCommand.BeginQuery(pComputeResetQueryPool, 0);
 
 			cmd.BindPipeline(mpResetCullingPipeline);
-#if SG_USE_TRIPLE_BUFFERING
-			auto& descriptors = mpGPUCullingPipelineSignature->GetSetDescriptorsData(0);
-			UInt32 dynamicOffset[1] = { sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL * mCurrFrameIndex };
-			cmd.BindDescriptorSet(mpGPUCullingPipelineSignature.get(), 0, &descriptors.descriptorSet, 1, dynamicOffset, EPipelineType::eCompute);
-#else
 			cmd.BindPipelineSignatureNonDynamic(mpResetCullingPipelineSignature.get(), EPipelineType::eCompute);
-#endif
 			UInt32 numGroup = (UInt32)(MeshDataArchive::GetInstance()->GetNumMeshData() / 16) + 1;
 			cmd.Dispatch(numGroup, 1, 1);
 
@@ -397,7 +391,7 @@ namespace SG
 		}
 		cmd.EndRecord();
 
-		mpContext->computeQueue.SubmitCommands(&cmd, mpWaitResetSemaphore, nullptr, nullptr);
+		mpContext->pComputeQueue->SubmitCommands<0, 1, 0>(&cmd, nullptr, &mpWaitResetSemaphore, nullptr, nullptr);
 		//statistics.pipelineStatistics[6] = *pComputeResetQueryPool->GetQueryResult(0, 1);
 	}
 
@@ -421,13 +415,7 @@ namespace SG
 				EPipelineType::eCompute, EPipelineType::eCompute);
 
 			cmd.BindPipeline(mpGPUCullingPipeline);
-#if SG_USE_TRIPLE_BUFFERING
-			auto& descriptors = mpGPUCullingPipelineSignature->GetSetDescriptorsData(0);
-			UInt32 dynamicOffset[1] = { sizeof(DrawIndexedIndirectCommand) * SG_MAX_DRAW_CALL * mCurrFrameIndex };
-			cmd.BindDescriptorSet(mpGPUCullingPipelineSignature.get(), 0, &descriptors.descriptorSet, 1, dynamicOffset, EPipelineType::eCompute);
-#else
 			cmd.BindPipelineSignatureNonDynamic(mpGPUCullingPipelineSignature.get(), EPipelineType::eCompute);
-#endif
 			UInt32 numGroup = (UInt32)(SSystem()->GetMainScene()->GetMeshEntityCount() / 128) + 1;
 			cmd.Dispatch(numGroup, 1, 1);
 
@@ -435,9 +423,7 @@ namespace SG
 				EPipelineType::eCompute, EPipelineType::eCompute);
 
 			cmd.BindPipeline(mpDrawCallCompactPipeline);
-#if !(SG_USE_TRIPLE_BUFFERING)
 			cmd.BindPipelineSignatureNonDynamic(mpDrawCallCompactPipelineSignature.get(), EPipelineType::eCompute);
-#endif
 			cmd.Dispatch(1, 1, 1);
 
 			// We use semaphore to ensure that out compute command is finish before the graphic queue begin to draw,
@@ -453,8 +439,30 @@ namespace SG
 		// submit compute commands
 		// semaphore used to ensure the sequence of GPU-side execution
 		// fence used to ensure CPU is not write to a pending status command buffer. (because here we only have one compute command buffer)
-		mpContext->computeQueue.SubmitCommands(&cmd, mpContext->pComputeCompleteSemaphore, mpWaitResetSemaphore, mpContext->pComputeSyncFences[mCurrFrameIndex]);
+		EPipelineStage waitStage[1] = { EPipelineStage::efTop_Of_Pipeline };
+		mpContext->pComputeQueue->SubmitCommands<1, 1, 1>(&cmd, waitStage, &mpContext->pComputeCompleteSemaphore, 
+			&mpWaitResetSemaphore, mpContext->pComputeSyncFences[mCurrFrameIndex]);
 		//statistics.pipelineStatistics[7] = *pComputeCullingQueryPool->GetQueryResult(0, 1);
+	}
+
+	void IndirectRenderer::CopyStatisticsData()
+	{
+		auto& cmd = mTransferCommands[mCurrFrameIndex];
+
+		cmd.Reset();
+		cmd.BeginRecord();
+		{
+			cmd.CopyBuffer(*VK_RESOURCE()->GetBuffer("indirectBuffer"), *VK_RESOURCE()->GetBuffer("indirectBuffer_read_back"), 0, 0);
+		}
+		cmd.EndRecord();
+
+		EPipelineStage waitStage[1] = { EPipelineStage::efCompute_Shader };
+		mpContext->pTransferQueue->SubmitCommands<1, 0, 1>(&cmd, waitStage, nullptr, &mpContext->pComputeCompleteSemaphore, mTransferFences[mCurrFrameIndex]);
+	}
+
+	void IndirectRenderer::WaitForStatisticsCopyed()
+	{
+		mTransferFences[mCurrFrameIndex]->WaitAndReset();
 	}
 
 	void IndirectRenderer::Draw(EMeshPass meshPass)

@@ -101,7 +101,7 @@ namespace SG
 		path += name;
 
 		Assimp::Importer importer;
-		auto* scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate);
+		auto* scene = importer.ReadFile(path.c_str(), aiProcess_CalcTangentSpace);
 
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
 		{
@@ -117,6 +117,9 @@ namespace SG
 			{
 				const aiMesh* pMesh = scene->mMeshes[i];
 				const UInt32  meshNumVertices = pMesh->mNumVertices;
+
+				SG_ASSERT(pMesh->HasNormals() && pMesh->HasTextureCoords(0));
+
 				for (UInt32 index = 0; index < meshNumVertices; ++index)
 				{
 					const aiVector3D& vertexPos = pMesh->mVertices[index];
@@ -124,12 +127,27 @@ namespace SG
 					vertices.emplace_back(vertexPos.y);
 					vertices.emplace_back(vertexPos.z);
 
-					if (pMesh->HasNormals())
+					const aiVector3D& vertexNormal = pMesh->mNormals[index];
+					vertices.emplace_back(vertexNormal.x);
+					vertices.emplace_back(vertexNormal.y);
+					vertices.emplace_back(vertexNormal.z);
+
+					const aiVector3D& vertexUV = pMesh->mTextureCoords[0][index];
+					vertices.emplace_back(vertexUV.x);
+					vertices.emplace_back(vertexUV.y);
+
+					if (pMesh->HasTangentsAndBitangents())
 					{
-						const aiVector3D& vertexNormal = pMesh->mNormals[index];
-						vertices.emplace_back(vertexNormal.x);
-						vertices.emplace_back(vertexNormal.y);
-						vertices.emplace_back(vertexNormal.z);
+						const aiVector3D& vertexTangent = pMesh->mTangents[index];
+						vertices.emplace_back(vertexTangent.x);
+						vertices.emplace_back(vertexTangent.y);
+						vertices.emplace_back(vertexTangent.z);
+					}
+					else
+					{
+						vertices.emplace_back(0.0f);
+						vertices.emplace_back(0.0f);
+						vertices.emplace_back(0.0f);
 					}
 				}
 

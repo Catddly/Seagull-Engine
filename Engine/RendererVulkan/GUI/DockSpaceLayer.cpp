@@ -181,10 +181,13 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		mElapsedTime += deltaTime;
-		if (mElapsedTime >= 0.5f)
+		mAvgDeltaTime = mElapsedTime / (float)mCounter;
+		mCounter++;
+		if (mElapsedTime >= 1.0f)
 		{
-			mLastFps = UInt32(1.0f / deltaTime);
-			mElapsedTime -= 0.5f;
+			mLastFps = UInt32(1.0f / mAvgDeltaTime);
+			mElapsedTime -= 1.0f;
+			mCounter = 1;
 		}
 
 		Size cullMeshCnt = SSystem()->GetMainScene()->GetMeshEntityCount();
@@ -192,7 +195,7 @@ namespace SG
 		auto& statisticData = GetStatisticData();
 
 		ImGui::Begin("Statistics");
-		ImGui::Text("Fps: %u", mLastFps);
+		ImGui::Text("Avg Fps: %u", mLastFps);
 		ImGui::Text("DrawCall: %d", drawCallCnt);
 		ImGui::Text("Scene Objects: %d", cullMeshCnt);
 		ImGui::Text("Culled Objects: %d", cullMeshCnt - statisticData.cullSceneObjects);

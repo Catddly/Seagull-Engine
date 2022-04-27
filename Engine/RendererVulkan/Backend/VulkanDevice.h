@@ -1,6 +1,5 @@
 #pragma once
 
-#include "RendererVulkan/Config.h"
 #include "Base/BasicTypes.h"
 #include "Render/Queue.h"
 #include "Render/Shader/Shader.h"
@@ -8,40 +7,21 @@
 #include "Render/SwapChain.h"
 #include "Render/Buffer.h"
 
+#include "RendererVulkan/Config.h"
 #include "volk.h"
 
 #include <Stl/vector.h>
 #include <Stl/string.h>
+#include "eastl/list.h"
 
 namespace SG
 {
-
-	class VulkanCommandBuffer;
-	class VulkanRenderPass;
-	class VulkanSemaphore;
-	class VulkanFence;
-
-	class VulkanQueue
-	{
-	public:
-		bool SubmitCommands(VulkanCommandBuffer* pCmdBuf, VulkanSemaphore* pSignalSemaphore, VulkanSemaphore* pWaitSemaphore, VulkanFence* fence);
-		bool SubmitCommands(VulkanCommandBuffer* pCmdBuf, VulkanSemaphore* pSignalSemaphore, VulkanSemaphore* pWaitSemaphore1, VulkanSemaphore* pWaitSemaphore2, 
-			VulkanFence* fence);
-		void WaitIdle() const;
-	private:
-		friend class VulkanSwapchain;
-		friend class VulkanDevice;
-
-		UInt32         familyIndex;
-		EQueueType     type = EQueueType::eNull;
-		EQueuePriority priority = EQueuePriority::eNormal;
-		VkQueue        handle = VK_NULL_HANDLE;
-	};
 
 	class VulkanBuffer;
 	class VulkanCommandPool;
 	class VulkanRenderTarget;
 	class VulkanRenderContext;
+	class VulkanQueue;
 
 	//! @brief All the device relative data are stored in here.
 	//! Should be initialized by VulkanInstace.
@@ -68,7 +48,7 @@ namespace SG
 
 		void WaitIdle() const;
 
-		VulkanQueue GetQueue(EQueueType type) const;
+		VulkanQueue* GetQueue(EQueueType type) const;
 
 		VkDescriptorSet  AllocateDescriptorSet(VkDescriptorSetLayout layout, VkDescriptorPool pool);
 		void             FreeDescriptorSet(VkDescriptorSet set, VkDescriptorPool pool);
@@ -83,6 +63,8 @@ namespace SG
 		void DestroyLogicalDevice();
 
 		int FetchQueueFamilyIndicies(VkQueueFlagBits type);
+	private:
+		mutable eastl::list<VulkanQueue> mQueues;
 	};
 
 }

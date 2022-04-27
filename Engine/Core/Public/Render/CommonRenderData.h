@@ -12,6 +12,8 @@ namespace SG
 	{
 		Vector3f position;
 		Vector3f normal;
+		Vector2f uv0;
+		Vector3f tangent;
 	};
 
 	struct CameraUBO
@@ -82,8 +84,8 @@ namespace SG
 
 	struct InstanceOutputData
 	{
-		Int32  testIndex = -1;
-		UInt32 baseOffset = 0;
+		Int32  testIndex = -1; //! if testIndex is -1, it means this instance is invalid, should not be drawn on screen.
+		UInt32 baseOffset = 0; //! the offset of the instance buffer (the mesh) of this exact instance.
 	};
 
 	struct PerInstanceData

@@ -19,9 +19,9 @@
 namespace SG
 {
 
-#define SG_MAX_PACKED_VERTEX_BUFFER_SIZE 1024 * 1024 * 4 // 4mb
-#define SG_MAX_PACKED_INSTANCE_BUFFER_SIZE 1024 * 1024   // 1mb
-#define SG_MAX_PACKED_INDEX_BUFFER_SIZE  1024 * 1024 * 4 // 4mb
+#define SG_MAX_PACKED_VERTEX_BUFFER_SIZE 1024 * 1024 * 8   // 8mb
+#define SG_MAX_PACKED_INSTANCE_BUFFER_SIZE 1024 * 1024 * 2 // 2mb
+#define SG_MAX_PACKED_INDEX_BUFFER_SIZE  1024 * 1024 * 8   // 8mb
 
 #define SG_MAX_NUM_OBJECT 250
 
@@ -58,6 +58,7 @@ namespace SG
 		bool HaveBuffer(const char* name);
 		void DeleteBuffer(const string& name);
 		bool UpdataBufferData(const char* name, const void* pData);
+		bool UpdataBufferData(const char* name, const void* pData, UInt32 size, UInt32 offset);
 		void FlushBuffers() const;
 		/// Buffer End
 

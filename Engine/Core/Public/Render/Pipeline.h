@@ -75,7 +75,8 @@ namespace SG
 		efBottom_Of_Pipeline = BIT(13),
 		efHost = BIT(14),
 		efAll_Graphic = BIT(15),
-		efAll_Command = BIT(16)
+		efAll_Command = BIT(16),
+		efInvalid = 0,
 	};
 	SG_ENUM_CLASS_FLAG(UInt32, EPipelineStage);
 

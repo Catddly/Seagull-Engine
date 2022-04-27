@@ -26,7 +26,6 @@ namespace SG
 		static void Draw(EMeshPass meshPass);
 	private:
 		static void BindMesh(const DrawMesh& drawMesh);
-		static void BindInstanceMesh(const DrawMesh& drawMesh);
 		static void BindMaterial(const DrawMaterial& drawMaterial);
 	private:
 		static VulkanCommandBuffer* mpCmdBuf;

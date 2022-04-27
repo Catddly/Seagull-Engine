@@ -5,6 +5,7 @@
 #include "Memory/Memory.h"
 
 #include "VulkanCommand.h"
+#include "VulkanQueue.h"
 #include "VulkanDescriptor.h"
 #include "VulkanSynchronizePrimitive.h"
 #include "VulkanFrameBuffer.h"
@@ -58,9 +59,9 @@ namespace SG
 #endif
 		pSwapchain = New(VulkanSwapchain, *this);
 
-		graphicQueue  = device.GetQueue(EQueueType::eGraphic);
-		computeQueue  = device.GetQueue(EQueueType::eCompute);
-		transferQueue = device.GetQueue(EQueueType::eTransfer);
+		pGraphicQueue  = device.GetQueue(EQueueType::eGraphic);
+		pComputeQueue  = device.GetQueue(EQueueType::eCompute);
+		pTransferQueue = device.GetQueue(EQueueType::eTransfer);
 
 		Window* pMainWindow = OperatingSystem::GetMainWindow();
 		pSwapchain->CreateOrRecreate(pMainWindow->GetWidth(), pMainWindow->GetHeight());
@@ -109,7 +110,7 @@ namespace SG
 
 	void VulkanContext::WindowResize()
 	{
-		graphicQueue.WaitIdle();
+		pGraphicQueue->WaitIdle();
 
 		Delete(depthRt);
 

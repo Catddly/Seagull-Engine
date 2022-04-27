@@ -9,6 +9,8 @@
 #include "Math/MathBasic.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
+#include "RendererVulkan/Backend/VulkanBuffer.h"
+#include "RendererVulkan/Backend/VulkanQueue.h"
 #include "RendererVulkan/Backend/VulkanTexture.h"
 #include "RendererVulkan/Backend/VulkanPipelineSignature.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
@@ -59,8 +61,8 @@ namespace SG
 		pCmd.BeginRecord();
 		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("shadow map"), EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil_Read_Only);
 		pCmd.EndRecord();
-		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mContext.graphicQueue.WaitIdle();
+		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&pCmd, nullptr, nullptr, nullptr, nullptr);
+		mContext.pGraphicQueue->WaitIdle();
 		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
 
 		SamplerCreateDesc samplerCI = {};
@@ -144,6 +146,7 @@ namespace SG
 		IndirectRenderer::Begin(context);
 		IndirectRenderer::CullingReset();
 		IndirectRenderer::DoCulling();
+		IndirectRenderer::CopyStatisticsData();
 
 		auto& pBuf = *context.pCmd;
 		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efTop_Of_Pipeline, 0);

@@ -52,11 +52,9 @@ namespace SG
 		VulkanPipeline*                 mpSkyboxPipeline;
 		RefPtr<VulkanShader>            mpSkyboxShader;
 
-		RefPtr<VulkanPipelineSignature> mpInstancePipelineSignature;
+		RefPtr<VulkanPipelineSignature> mpPipelineSignature;
 		VulkanPipeline*					mpInstancePipeline;
 		RefPtr<VulkanShader>            mpInstanceShader;
-
-		RefPtr<VulkanPipelineSignature> mpPipelineSignature;
 		VulkanPipeline*                 mpPipeline;
 		RefPtr<VulkanShader>            mpShader;
 	};

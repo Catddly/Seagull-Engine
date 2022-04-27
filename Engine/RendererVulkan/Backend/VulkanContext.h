@@ -21,6 +21,7 @@ namespace SG
 	class VulkanFence;
 	class VulkanRenderPass;
 	class VulkanFrameBuffer;
+	class VulkanQueue;
 
 	class VulkanQueryPool;
 
@@ -42,9 +43,9 @@ namespace SG
 		//VulkanCommandBuffer computeCmdBuffer;
 		vector<VulkanCommandBuffer> commandBuffers;
 
-		VulkanQueue        graphicQueue;
-		VulkanQueue        computeQueue;
-		VulkanQueue        transferQueue;
+		VulkanQueue* pGraphicQueue;
+		VulkanQueue* pComputeQueue;
+		VulkanQueue* pTransferQueue;
 
 		// Compute Sync
 		VulkanSemaphore* pComputeCompleteSemaphore;

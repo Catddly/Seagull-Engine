@@ -69,7 +69,8 @@ namespace SG
 		}
 
 		void DefaultScene();
-		void MaterialTestScene();
+		void MaterialScene();
+		void MaterialTexturedScene();
 	private:
 		Entity mSkyboxEntity;
 		RefPtr<ICamera> mpMainCamera; // TODO: support multiply switchable camera

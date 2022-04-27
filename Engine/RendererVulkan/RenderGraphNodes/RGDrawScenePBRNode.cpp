@@ -13,6 +13,7 @@
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
+#include "RendererVulkan/Backend/VulkanQueue.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanTexture.h"
 #include "RendererVulkan/Backend/VulkanPipelineSignature.h"
@@ -64,9 +65,112 @@ namespace SG
 		texCI.sizeInByte = texData.sizeInByte;
 		texCI.pUserData = texData.pUserData;
 		VK_RESOURCE()->CreateTexture(texCI, true);
+
+		// load gun textures
+		Raw2DTexture gunAlbedoTexData = {};
+		texLoader.LoadFromFile("cerberus/albedo.ktx", gunAlbedoTexData, true);
+		texCI = {};
+		texCI.name = "cerberus_albedo";
+		texCI.width = gunAlbedoTexData.width;
+		texCI.height = gunAlbedoTexData.height;
+		texCI.depth = 1;
+		texCI.array = gunAlbedoTexData.array;
+		texCI.mipLevel = gunAlbedoTexData.mipLevel;
+		texCI.format = EImageFormat::eUnorm_R8G8B8A8;
+		texCI.sample = ESampleCount::eSample_1;
+		texCI.usage = EImageUsage::efSample;
+		texCI.type = EImageType::e2D;
+		texCI.pInitData = gunAlbedoTexData.pData;
+		texCI.sizeInByte = gunAlbedoTexData.sizeInByte;
+		texCI.pUserData = gunAlbedoTexData.pUserData;
+		VK_RESOURCE()->CreateTexture(texCI, true); //TODO: erase the second param
+
+		Raw2DTexture gunNormalTexData = {};
+		texLoader.LoadFromFile("cerberus/normal.ktx", gunNormalTexData, true);
+		texCI = {};
+		texCI.name = "cerberus_normal";
+		texCI.width = gunNormalTexData.width;
+		texCI.height = gunNormalTexData.height;
+		texCI.depth = 1;
+		texCI.array = gunNormalTexData.array;
+		texCI.mipLevel = gunNormalTexData.mipLevel;
+		texCI.format = EImageFormat::eUnorm_R8G8B8A8;
+		texCI.sample = ESampleCount::eSample_1;
+		texCI.usage = EImageUsage::efSample;
+		texCI.type = EImageType::e2D;
+		texCI.pInitData = gunNormalTexData.pData;
+		texCI.sizeInByte = gunNormalTexData.sizeInByte;
+		texCI.pUserData = gunNormalTexData.pUserData;
+		VK_RESOURCE()->CreateTexture(texCI, true); //TODO: erase the second param
+
+		Raw2DTexture gunMetallicTexData = {};
+		texLoader.LoadFromFile("cerberus/metallic.ktx", gunMetallicTexData, true);
+		texCI = {};
+		texCI.name = "cerberus_metallic";
+		texCI.width = gunMetallicTexData.width;
+		texCI.height = gunMetallicTexData.height;
+		texCI.depth = 1;
+		texCI.array = gunMetallicTexData.array;
+		texCI.mipLevel = gunMetallicTexData.mipLevel;
+		texCI.format = EImageFormat::eUnorm_R8;
+		texCI.sample = ESampleCount::eSample_1;
+		texCI.usage = EImageUsage::efSample;
+		texCI.type = EImageType::e2D;
+		texCI.pInitData = gunMetallicTexData.pData;
+		texCI.sizeInByte = gunMetallicTexData.sizeInByte;
+		texCI.pUserData = gunMetallicTexData.pUserData;
+		VK_RESOURCE()->CreateTexture(texCI, true); //TODO: erase the second param
+
+		Raw2DTexture gunRoughnessTexData = {};
+		texLoader.LoadFromFile("cerberus/roughness.ktx", gunRoughnessTexData, true);
+		texCI = {};
+		texCI.name = "cerberus_roughness";
+		texCI.width = gunRoughnessTexData.width;
+		texCI.height = gunRoughnessTexData.height;
+		texCI.depth = 1;
+		texCI.array = gunRoughnessTexData.array;
+		texCI.mipLevel = gunRoughnessTexData.mipLevel;
+		texCI.format = EImageFormat::eUnorm_R8;
+		texCI.sample = ESampleCount::eSample_1;
+		texCI.usage = EImageUsage::efSample;
+		texCI.type = EImageType::e2D;
+		texCI.pInitData = gunRoughnessTexData.pData;
+		texCI.sizeInByte = gunRoughnessTexData.sizeInByte;
+		texCI.pUserData = gunRoughnessTexData.pUserData;
+		VK_RESOURCE()->CreateTexture(texCI, true); //TODO: erase the second param
+
+		Raw2DTexture gunAOTexData = {};
+		texLoader.LoadFromFile("cerberus/ao.ktx", gunAOTexData, true);
+		texCI = {};
+		texCI.name = "cerberus_ao";
+		texCI.width = gunAOTexData.width;
+		texCI.height = gunAOTexData.height;
+		texCI.depth = 1;
+		texCI.array = gunAOTexData.array;
+		texCI.mipLevel = gunAOTexData.mipLevel;
+		texCI.format = EImageFormat::eUnorm_R8;
+		texCI.sample = ESampleCount::eSample_1;
+		texCI.usage = EImageUsage::efSample;
+		texCI.type = EImageType::e2D;
+		texCI.pInitData = gunAOTexData.pData;
+		texCI.sizeInByte = gunAOTexData.sizeInByte;
+		texCI.pUserData = gunAOTexData.pUserData;
+		VK_RESOURCE()->CreateTexture(texCI, true); //TODO: erase the second param
+
 		VK_RESOURCE()->FlushTextures();
 
 		SamplerCreateDesc samplerCI = {};
+		samplerCI.name = "texture_sampler";
+		samplerCI.filterMode = EFilterMode::eLinear;
+		samplerCI.mipmapMode = EFilterMode::eLinear;
+		samplerCI.addressMode = EAddressMode::eRepeat;
+		samplerCI.lodBias = 0.0f;
+		samplerCI.minLod = 0.0f;
+		samplerCI.maxLod = (float)gunAlbedoTexData.mipLevel;
+		samplerCI.enableAnisotropy = true;
+		VK_RESOURCE()->CreateSampler(samplerCI);
+
+		samplerCI = {};
 		samplerCI.name = "cubemap_sampler";
 		samplerCI.filterMode = EFilterMode::eLinear;
 		samplerCI.mipmapMode = EFilterMode::eLinear;
@@ -93,18 +197,16 @@ namespace SG
 			.AddCombindSamplerImage("cubemap_sampler", "cubemap")
 			.Build();
 
-		mpInstancePipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShader)
-			.AddCombindSamplerImage("shadow_sampler", "shadow map")
-			.AddCombindSamplerImage("brdf_lut_sampler", "brdf_lut")
-			.AddCombindSamplerImage("irradiance_cubemap_sampler", "cubemap_irradiance")
-			.AddCombindSamplerImage("prefilter_cubemap_sampler", "cubemap_prefilter")
-			.Build();
-
 		mpPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShader)
 			.AddCombindSamplerImage("shadow_sampler", "shadow map")
 			.AddCombindSamplerImage("brdf_lut_sampler", "brdf_lut")
 			.AddCombindSamplerImage("irradiance_cubemap_sampler", "cubemap_irradiance")
 			.AddCombindSamplerImage("prefilter_cubemap_sampler", "cubemap_prefilter")
+			.AddCombindSamplerImage("texture_sampler", "cerberus_albedo")
+			.AddCombindSamplerImage("texture_sampler", "cerberus_metallic")
+			.AddCombindSamplerImage("texture_sampler", "cerberus_roughness")
+			.AddCombindSamplerImage("texture_sampler", "cerberus_ao")
+			.AddCombindSamplerImage("texture_sampler", "cerberus_normal")
 			.Build();
 
 #ifdef SG_ENABLE_HDR
@@ -168,7 +270,7 @@ namespace SG
 			.SetInputVertexRange(sizeof(Vertex), EVertexInputRate::ePerVertex)
 			.SetInputVertexRange(sizeof(PerInstanceData), EVertexInputRate::ePerInstance)
 			.SetColorBlend(false)
-			.BindSignature(mpInstancePipelineSignature.get())
+			.BindSignature(mpPipelineSignature.get())
 			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
 			.BindShader(mpInstanceShader.get())
@@ -227,7 +329,7 @@ namespace SG
 
 		// 1.2 Forward Instanced Mesh Pass
 		pBuf.BindPipeline(mpInstancePipeline);
-		pBuf.BindPipelineSignatureNonDynamic(mpInstancePipelineSignature.get());
+		pBuf.BindPipelineSignatureNonDynamic(mpPipelineSignature.get());
 		IndirectRenderer::Draw(EMeshPass::eForwardInstanced);
 		IndirectRenderer::End();
 	}
@@ -311,7 +413,7 @@ namespace SG
 		cmdBuf.EndRenderPass();
 		cmdBuf.EndRecord();
 
-		mContext.graphicQueue.SubmitCommands(&cmdBuf, nullptr, nullptr, pFence);
+		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&cmdBuf, nullptr, nullptr, nullptr, pFence);
 
 		pFence->Wait();
 		mContext.graphicCommandPool->FreeCommandBuffer(cmdBuf);
@@ -370,7 +472,7 @@ namespace SG
 		cmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Source);
 		cmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_irradiance"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
 		cmd.EndRecord();
-		mContext.graphicQueue.SubmitCommands(&cmd, nullptr, nullptr, pFence);
+		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&cmd, nullptr, nullptr, nullptr, pFence);
 		pFence->WaitAndReset();
 
 		auto pIrradianceShader = VulkanShader::Create(mContext.device);
@@ -472,7 +574,7 @@ namespace SG
 		cmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_irradiance"), EResourceBarrier::efCopy_Dest, EResourceBarrier::efShader_Resource);
 		cmd.EndRecord();
 
-		mContext.graphicQueue.SubmitCommands(&cmd, nullptr, nullptr, pFence);
+		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&cmd, nullptr, nullptr, nullptr, pFence);
 
 		pFence->Wait();
 
@@ -533,7 +635,7 @@ namespace SG
 		cmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Source);
 		cmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_prefilter"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
 		cmd.EndRecord();
-		mContext.graphicQueue.SubmitCommands(&cmd, nullptr, nullptr, pFence);
+		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&cmd, nullptr, nullptr, nullptr, pFence);
 		pFence->WaitAndReset();
 
 		auto pPrefilterShader = VulkanShader::Create(mContext.device);
@@ -636,7 +738,7 @@ namespace SG
 		cmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_prefilter"), EResourceBarrier::efCopy_Dest, EResourceBarrier::efShader_Resource);
 		cmd.EndRecord();
 
-		mContext.graphicQueue.SubmitCommands(&cmd, nullptr, nullptr, pFence);
+		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&cmd, nullptr, nullptr, nullptr, pFence);
 
 		pFence->Wait();
 		mContext.graphicCommandPool->FreeCommandBuffer(cmd);
@@ -672,8 +774,8 @@ namespace SG
 		pCmd.BeginRecord();
 		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("HDRColor"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
 		pCmd.EndRecord();
-		mContext.graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mContext.graphicQueue.WaitIdle();
+		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&pCmd, nullptr, nullptr, nullptr, nullptr);
+		mContext.pGraphicQueue->WaitIdle();
 		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
 	}
 

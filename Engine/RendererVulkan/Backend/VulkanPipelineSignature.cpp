@@ -51,6 +51,7 @@ namespace SG
 		const vector<eastl::pair<const char*, const char*>>& combineImages, const unordered_map<string, EDescriptorType>& overrides)
 		:mContext(context), mpShader(pShader)
 	{
+		UInt32 imageIndex = 0;
 		for (auto setIndex : pShader->GetSetIndices())
 		{
 			bool bHaveNonDynamicBuffer = false;
@@ -148,7 +149,6 @@ namespace SG
 			}
 		}
 
-		UInt32 numImages = 0;
 		for (auto setIndex : pShader->GetSetIndices()) // bind descriptors for each set
 		{
 			typedef eastl::pair<string, GPUBufferLayout> BufferLayoutType;
@@ -203,7 +203,6 @@ namespace SG
 				OrderSet<SetBindingKey> orderedSIInputLayout;
 				for (auto& imageData : combineImageLayout)
 					orderedSIInputLayout.emplace(imageData.second, imageData.second);
-				UInt32 imageIndex = 0;
 				for (auto& imageData : orderedSIInputLayout) // should use the ordered setbinding input data
 				{
 					if (GetSet(imageData.second) != setIndex)
@@ -219,7 +218,6 @@ namespace SG
 
 				setDataBinder.Bind(setDescriptorsData.descriptorSets.back());
 				setDescriptorsData.descriptorSets.back().belongingSet = setIndex;
-				numImages += imageIndex;
 			}
 		}
 
@@ -242,7 +240,7 @@ namespace SG
 			SG_ASSERT(false);
 		}
 
-		if (numImages != combineImages.size())
+		if (imageIndex != combineImages.size())
 		{
 			SG_LOG_WARN("The number of textures pass in the shader do not match the number of the bindings!");
 		}

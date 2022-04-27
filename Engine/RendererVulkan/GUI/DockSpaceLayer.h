@@ -38,7 +38,9 @@ namespace SG
 		//MessageBusMember mMessageBusMember;
 
 		UInt32 mLastFps = 0;
-		float mElapsedTime = 0.0;
+		UInt32 mCounter = 1;
+		float mElapsedTime = 0.0f;
+		float mAvgDeltaTime = 0.0f;
 
 		Vector2f mLastViewportSize = { 0.0f, 0.0f };
 

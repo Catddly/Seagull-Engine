@@ -1,14 +1,13 @@
 #include "StdAfx.h"
 #include "VulkanDevice.h"
 
-#include "System/Logger.h"
 #include "Memory/Memory.h"
 
 #include "VulkanConfig.h"
 #include "VulkanSwapchain.h"
 #include "VulkanBuffer.h"
 #include "VulkanCommand.h"
-#include "VulkanSynchronizePrimitive.h"
+#include "VulkanQueue.h"
 #include "RendererVulkan/Utils/VkConvert.h"
 
 #include "Stl/vector.h"
@@ -169,21 +168,23 @@ namespace SG
 		vkDestroyDevice(logicalDevice, nullptr);
 	}
 
-	VulkanQueue VulkanDevice::GetQueue(EQueueType type) const
+	VulkanQueue* VulkanDevice::GetQueue(EQueueType type) const
 	{
-		VulkanQueue queue;
+		mQueues.push_back();
+		auto& queue = mQueues.back();
+
 		switch (type)
 		{
-		case SG::EQueueType::eNull: SG_LOG_ERROR("Wrong queue type!"); break;
-		case SG::EQueueType::eGraphic:  
+		case EQueueType::eNull: SG_LOG_ERROR("Wrong queue type!"); break;
+		case EQueueType::eGraphic:  
 			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.graphics, 0, &queue.handle); 
 			queue.familyIndex = queueFamilyIndices.graphics;
 			break;
-		case SG::EQueueType::eCompute:
+		case EQueueType::eCompute:
 			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.compute, 0, &queue.handle);
 			queue.familyIndex = queueFamilyIndices.compute;
 			break;
-		case SG::EQueueType::eTransfer: 
+		case EQueueType::eTransfer: 
 			vkGetDeviceQueue(logicalDevice, queueFamilyIndices.transfer, 0, &queue.handle);
 			queue.familyIndex = queueFamilyIndices.transfer;
 			break;
@@ -191,7 +192,7 @@ namespace SG
 		}
 		queue.type     = type;
 		queue.priority = EQueuePriority::eNormal;
-		return queue;
+		return &queue;
 	}
 
 	VkDescriptorSet VulkanDevice::AllocateDescriptorSet(VkDescriptorSetLayout layout, VkDescriptorPool pool)
@@ -301,94 +302,6 @@ namespace SG
 		}
 
 		return 0;
-	}
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// VulkanQueue
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	bool VulkanQueue::SubmitCommands(VulkanCommandBuffer* pCmdBuf, VulkanSemaphore* pSignalSemaphore, VulkanSemaphore* pWaitSemaphore, VulkanFence* fence)
-	{
-		if (pCmdBuf->queueFamilyIndex != familyIndex) // check if the command is submitted to the right queue
-		{
-			SG_LOG_ERROR("Vulkan command buffer had been submit to the wrong queue! (Submit To: %s)", 
-				(type == EQueueType::eGraphic) ? "Graphic" : (type == EQueueType::eCompute ? "Compute" : "Transfer"));
-			return false;
-		}
-
-		// pipeline stage at which the queue submission will wait (via pWaitSemaphores)
-		// the submit info structure specifies a command buffer queue submission batch
-		VkPipelineStageFlags waitStageMask = {};
-		VkSubmitInfo submitInfo = {};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		if (pWaitSemaphore && pSignalSemaphore)
-		{
-			waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		}
-		submitInfo.pWaitDstStageMask = &waitStageMask;
-
-		if (pWaitSemaphore)
-		{
-			submitInfo.pWaitSemaphores = &pWaitSemaphore->semaphore;
-			submitInfo.waitSemaphoreCount = 1;
-		}
-		if (pSignalSemaphore)
-		{
-			submitInfo.pSignalSemaphores = &pSignalSemaphore->semaphore;
-			submitInfo.signalSemaphoreCount = 1;
-		}
-		submitInfo.pCommandBuffers = &pCmdBuf->commandBuffer;
-		submitInfo.commandBufferCount = 1;
-
-		VK_CHECK(vkQueueSubmit(handle, 1, &submitInfo, fence ? fence->fence : VK_NULL_HANDLE),
-			SG_LOG_ERROR("Failed to submit render commands to queue!");
-			return false;);
-		return true;
-	}
-
-	bool VulkanQueue::SubmitCommands(VulkanCommandBuffer* pCmdBuf, VulkanSemaphore* pSignalSemaphore, VulkanSemaphore* pWaitSemaphore1, VulkanSemaphore* pWaitSemaphore2, VulkanFence* fence)
-	{
-		if (pCmdBuf->queueFamilyIndex != familyIndex) // check if the command is submitted to the right queue
-		{
-			SG_LOG_ERROR("Vulkan command buffer had been submit to the wrong queue! (Submit To: %s)",
-				(type == EQueueType::eGraphic) ? "Graphic" : (type == EQueueType::eCompute ? "Compute" : "Transfer"));
-			return false;
-		}
-
-		// pipeline stage at which the queue submission will wait (via pWaitSemaphores)
-		// the submit info structure specifies a command buffer queue submission batch
-		VkPipelineStageFlags waitStageMask[2] = {};
-		VkSubmitInfo submitInfo = {};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		waitStageMask[0] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		waitStageMask[1] = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-		submitInfo.pWaitDstStageMask = waitStageMask;
-
-		VkSemaphore semaphores[2] = {};
-		semaphores[0] = pWaitSemaphore1->semaphore;
-		semaphores[1] = pWaitSemaphore2->semaphore;
-		if (pWaitSemaphore1 && pWaitSemaphore2)
-		{
-			submitInfo.pWaitSemaphores = semaphores;
-			submitInfo.waitSemaphoreCount = 2;
-		}
-		if (pSignalSemaphore)
-		{
-			submitInfo.pSignalSemaphores = &pSignalSemaphore->semaphore;
-			submitInfo.signalSemaphoreCount = 1;
-		}
-		submitInfo.pCommandBuffers = &pCmdBuf->commandBuffer;
-		submitInfo.commandBufferCount = 1;
-
-		VK_CHECK(vkQueueSubmit(handle, 1, &submitInfo, fence ? fence->fence : VK_NULL_HANDLE),
-			SG_LOG_ERROR("Failed to submit render commands to queue!");
-		return false;);
-		return true;
-	}
-
-	void VulkanQueue::WaitIdle() const
-	{
-		vkQueueWaitIdle(handle);
 	}
 
 }

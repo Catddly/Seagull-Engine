@@ -135,39 +135,20 @@ namespace SG
 
 	void Renderer::Draw(EMeshPass meshPass)
 	{
-		// TODO: think of a more generic way to draw.
-		if (meshPass == EMeshPass::eForward)
+		for (auto& dc : mDrawCallMap[meshPass])
 		{
-			for (auto& dc : mDrawCallMap[meshPass])
-			{
-				BindMesh(dc.drawMesh);
-				BindMaterial(dc.drawMaterial);
+			BindMesh(dc.drawMesh);
+			BindMaterial(dc.drawMaterial);
 
-				mpCmdBuf->DrawIndexed(static_cast<UInt32>(dc.drawMesh.iBSize / sizeof(UInt32)), 1, 0, 0, dc.objectId /* corresponding to gl_BaseInstance */);
-			}
-		}
-		else if (meshPass == EMeshPass::eForwardInstanced)
-		{
-			for (auto& dc : mDrawCallMap[meshPass])
-			{
-				BindInstanceMesh(dc.drawMesh);
-				BindMaterial(dc.drawMaterial);
-
-				mpCmdBuf->DrawIndexed(static_cast<UInt32>(dc.drawMesh.iBSize / sizeof(UInt32)), dc.instanceCount, 0, 0, 0);
-			}
+			mpCmdBuf->DrawIndexed(static_cast<UInt32>(dc.drawMesh.iBSize / sizeof(UInt32)), dc.instanceCount, 0, 0, 0);
 		}
 	}
 
 	void Renderer::BindMesh(const DrawMesh& drawMesh)
 	{
 		mpCmdBuf->BindVertexBuffer(0, 1, *drawMesh.pVertexBuffer, &drawMesh.vBOffset);
-		mpCmdBuf->BindIndexBuffer(*drawMesh.pIndexBuffer, drawMesh.iBOffset);
-	}
-
-	void Renderer::BindInstanceMesh(const DrawMesh& drawMesh)
-	{
-		mpCmdBuf->BindVertexBuffer(0, 1, *drawMesh.pVertexBuffer, &drawMesh.vBOffset);
-		mpCmdBuf->BindVertexBuffer(1, 1, *drawMesh.pInstanceBuffer, &drawMesh.instanceOffset);
+		if (drawMesh.pInstanceBuffer)
+			mpCmdBuf->BindVertexBuffer(1, 1, *drawMesh.pInstanceBuffer, &drawMesh.instanceOffset);
 		mpCmdBuf->BindIndexBuffer(*drawMesh.pIndexBuffer, drawMesh.iBOffset);
 	}
 

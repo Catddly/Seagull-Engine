@@ -4,6 +4,7 @@
 #include "System/Logger.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
+#include "RendererVulkan/Backend/VulkanQueue.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanTexture.h"
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
@@ -119,7 +120,7 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		mpContext->graphicQueue.WaitIdle();
+		mpContext->pGraphicQueue->WaitIdle();
 
 		for (auto& beg = mFrameBuffersMap.begin(); beg != mFrameBuffersMap.end(); ++beg)
 			Delete(beg->second);

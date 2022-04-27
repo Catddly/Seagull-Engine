@@ -10,6 +10,7 @@
 #include "TipECS/Entity.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
+#include "RendererVulkan/Backend/VulkanQueue.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
 #include "RendererVulkan/Backend/VulkanTexture.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
@@ -42,11 +43,7 @@ namespace SG
 
 		BufferCreateDesc cullBufferCI = {};
 		cullBufferCI.name = "cullUbo";
-#if SG_USE_TRIPLE_BUFFERING
-		cullBufferCI.bufferSize = sizeof(GPUCullUBO) * SG_MAX_NUM_OBJECT * 3;
-#else
 		cullBufferCI.bufferSize = sizeof(GPUCullUBO) * SG_MAX_NUM_OBJECT;
-#endif
 		cullBufferCI.type = EBufferType::efUniform;
 		cullBufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 		cullBufferCI.memoryFlag = EGPUMemoryFlag::efPersistent_Map;
@@ -98,6 +95,7 @@ namespace SG
 		cullUbo.numObjects = static_cast<UInt32>(pScene->GetMeshEntityCount());
 		cullUbo.numDrawCalls = MeshDataArchive::GetInstance()->GetNumMeshData();
 		GetBuffer("cullUbo")->UploadData(&cullUbo);
+
 		auto& skyboxUbo = GetSkyboxUBO();
 		skyboxUbo.proj = cameraUbo.proj;
 
@@ -117,7 +115,7 @@ namespace SG
 			renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
 			renderData.meshId = mesh.meshId;
 			renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
-			renderData.albedo = mat.color;
+			renderData.albedo = mat.albedo;
 			pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
 		}
 	}
@@ -225,7 +223,7 @@ namespace SG
 						renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
 						renderData.meshId = mesh.meshId;
 						renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
-						renderData.albedo = mat.color;
+						renderData.albedo = mat.albedo;
 						pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
 					}
 					tag.bDirty = false;
@@ -352,7 +350,7 @@ namespace SG
 		}
 		cmd.EndRecord();
 
-		mpContext->transferQueue.SubmitCommands(&cmd, nullptr, nullptr, mpBufferUploadFences.back());
+		mpContext->pTransferQueue->SubmitCommands<0, 0, 0>(&cmd, nullptr, nullptr, nullptr, mpBufferUploadFences.back());
 		mWaitToSubmitBuffers.clear();
 	}
 
@@ -396,6 +394,18 @@ namespace SG
 			return false;
 		}
 		return mBuffers[name]->UploadData(pData);
+	}
+
+	bool VulkanResourceRegistry::UpdataBufferData(const char* name, const void* pData, UInt32 size, UInt32 offset)
+	{
+		SG_PROFILE_FUNCTION();
+
+		if (mBuffers.count(name) == 0)
+		{
+			SG_LOG_ERROR("No buffer named: %s", name);
+			return false;
+		}
+		return mBuffers[name]->UploadData(pData, size, offset);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -515,8 +525,8 @@ namespace SG
 		}
 		pCmd.EndRecord();
 
-		mpContext->graphicQueue.SubmitCommands(&pCmd, nullptr, nullptr, nullptr);
-		mpContext->graphicQueue.WaitIdle(); // [Critical] Huge impact on performance 
+		mpContext->pGraphicQueue->SubmitCommands<0, 0, 0>(&pCmd, nullptr, nullptr, nullptr, nullptr);
+		mpContext->pGraphicQueue->WaitIdle(); // [Critical] Huge impact on performance 
 
 		mpContext->graphicCommandPool->FreeCommandBuffer(pCmd);
 		for (auto* e : stagingBuffers)

@@ -113,7 +113,7 @@ namespace SG
 			});
 		DrawComponent<MaterialComponent>(entity, [&tag](MaterialComponent& comp)
 			{
-				tag.bDirty |= DrawGUIColorEdit3("Color", comp.color);
+				tag.bDirty |= DrawGUIColorEdit3("Color", comp.albedo);
 				tag.bDirty |= DrawGUIDragFloat("Metallic", comp.metallic, 0.35f, 0.05f, 0.0f, 1.0f);
 				tag.bDirty |= DrawGUIDragFloat("Roughness", comp.roughness, 0.75f, 0.05f, 0.0f, 1.0f);
 			});
@@ -126,17 +126,12 @@ namespace SG
 			});
 		DrawComponent<PointLightComponent>(entity, [&entity, &tag](PointLightComponent& comp)
 			{
-				auto& trans = entity.GetComponent<TransformComponent>();
-				tag.bDirty |= DrawGUIDragFloat3("Position", trans.position);
 				tag.bDirty |= DrawGUIColorEdit3("Color", comp.color);
 				tag.bDirty |= DrawGUIDragFloat("Radius", comp.radius);
 			});
 		DrawComponent<DirectionalLightComponent>(entity, [&entity, &tag](DirectionalLightComponent& comp)
 			{
-				auto& trans = entity.GetComponent<TransformComponent>();
-				tag.bDirty |= DrawGUIDragFloat3("Position", trans.position);
 				tag.bDirty |= DrawGUIColorEdit3("Color", comp.color);
-				tag.bDirty |= DrawGUIDragFloat3("Rotation", trans.rotation);
 			});
 		ImGui::PopID();
 

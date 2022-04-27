@@ -114,13 +114,16 @@ namespace SG
 
 	struct MaterialComponent
 	{
-		Vector3f color = { 1.0f, 1.0f, 1.0f };
+		Vector3f albedo = { 1.0f, 1.0f, 1.0f };
+		// TODO: temporary: should be replace by the actual handle
+		const string& albedoTexture = "";
+
 		float    metallic = 0.7f;
 		float    roughness = 0.35f;
 
 		MaterialComponent() = default;
 		MaterialComponent(const Vector3f& c, float m, float r)
-			:color(c), metallic(m), roughness(r)
+			:albedo(c), metallic(m), roughness(r)
 		{}
 	};
 

@@ -5,6 +5,7 @@
 #include "Platform/OS.h"
 
 #include "VulkanContext.h"
+#include "VulkanQueue.h"
 #include "VulkanTexture.h"
 #include "VulkanSynchronizePrimitive.h"
 #include "RendererVulkan/Utils/VkConvert.h"

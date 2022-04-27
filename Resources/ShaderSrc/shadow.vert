@@ -2,6 +2,8 @@
 // per vertex attributes
 layout (location = 0) in vec3 inPosWS;
 layout (location = 1) in vec3 inNormalLS;
+layout (location = 2) in vec2 inUV;
+layout (location = 3) in vec3 inTangentLS;
 
 layout (set = 0, binding = 0) uniform UBO
 {

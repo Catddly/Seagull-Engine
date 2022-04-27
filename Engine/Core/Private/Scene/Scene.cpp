@@ -35,8 +35,9 @@ namespace SG
 		pointLight.color = { 0.0f, 1.0f, 0.705f };
 		pEntity->GetComponent<TagComponent>().bDirty = true;
 
-		DefaultScene();
-		MaterialTestScene();
+		//DefaultScene();
+		//MaterialScene();
+		MaterialTexturedScene();
 
 		mEntityManager.ReFresh();
 
@@ -59,16 +60,16 @@ namespace SG
 
 		mpMainCamera->OnUpdate(deltaTime);
 
-		static float totalTime = 0.0f;
-		static float speed = 2.5f;
+		//static float totalTime = 0.0f;
+		//static float speed = 2.5f;
 
-		// Do animation
-		auto* pModel = GetEntityByName("model");
-		auto [tag, trans] = pModel->GetComponent<TagComponent, TransformComponent>();
-		tag.bDirty = true;
-		trans.position = { Sin(totalTime) * 0.5f, 0.0f, 0.0f };
+		//// Do animation
+		//auto* pModel = GetEntityByName("model");
+		//auto [tag, trans] = pModel->GetComponent<TagComponent, TransformComponent>();
+		//tag.bDirty = true;
+		//trans.position = { Sin(totalTime) * 0.5f, 0.0f, 0.0f };
 
-		totalTime += deltaTime * speed;
+		//totalTime += deltaTime * speed;
 
 		mEntityManager.ReFresh();
 	}
@@ -163,7 +164,7 @@ namespace SG
 		LoadMesh(EGennerateMeshType::eGrid, mesh2);
 	}
 
-	void Scene::MaterialTestScene()
+	void Scene::MaterialScene()
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -197,6 +198,20 @@ namespace SG
 				}
 			}
 		}
+	}
+
+	void Scene::MaterialTexturedScene()
+	{
+		auto* pEntity = CreateEntity("cerberus");
+		auto& trans = pEntity->GetComponent<TransformComponent>();
+		trans.position.x = 2.7f;
+		trans.position.y = 3.0f;
+		trans.rotation.y = 90.0f;
+		trans.scale = { 3.0f, 3.0f, 3.0f };
+		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.05f, 0.9f);
+		auto& mesh = pEntity->AddComponent<MeshComponent>();
+		mesh.objectId = NewObjectID();
+		LoadMesh("cerberus", EMeshType::eOBJ, mesh);
 	}
 
 }
