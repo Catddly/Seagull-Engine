@@ -5,7 +5,7 @@
 #include "System/Logger.h"
 #include "Render/Shader/ShaderComiler.h"
 #include "Render/CommonRenderData.h"
-#include "Archive/ResourceLoader/RenderResourceLoader.h"
+#include "Scene/ResourceLoader/RenderResourceLoader.h"
 #include "Profile/Profile.h"
 
 #include "Stl/Utility.h"
@@ -160,7 +160,7 @@ namespace SG
 		VK_RESOURCE()->FlushTextures();
 
 		SamplerCreateDesc samplerCI = {};
-		samplerCI.name = "texture_sampler";
+		samplerCI.name = "texture_2k_mipmap_sampler";
 		samplerCI.filterMode = EFilterMode::eLinear;
 		samplerCI.mipmapMode = EFilterMode::eLinear;
 		samplerCI.addressMode = EAddressMode::eRepeat;
@@ -202,11 +202,11 @@ namespace SG
 			.AddCombindSamplerImage("brdf_lut_sampler", "brdf_lut")
 			.AddCombindSamplerImage("irradiance_cubemap_sampler", "cubemap_irradiance")
 			.AddCombindSamplerImage("prefilter_cubemap_sampler", "cubemap_prefilter")
-			.AddCombindSamplerImage("texture_sampler", "cerberus_albedo")
-			.AddCombindSamplerImage("texture_sampler", "cerberus_metallic")
-			.AddCombindSamplerImage("texture_sampler", "cerberus_roughness")
-			.AddCombindSamplerImage("texture_sampler", "cerberus_ao")
-			.AddCombindSamplerImage("texture_sampler", "cerberus_normal")
+			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_albedo")
+			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_metallic")
+			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_roughness")
+			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_ao")
+			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_normal")
 			.Build();
 
 #ifdef SG_ENABLE_HDR
@@ -398,7 +398,7 @@ namespace SG
 
 		VulkanFence* pFence = VulkanFence::Create(mContext.device);
 		VulkanCommandBuffer cmdBuf;
-		mContext.graphicCommandPool->AllocateCommandBuffer(cmdBuf);
+		mContext.pGraphicCommandPool->AllocateCommandBuffer(cmdBuf);
 
 		cmdBuf.BeginRecord();
 		cmdBuf.BeginRenderPass(pTempFrameBuffer);
@@ -416,7 +416,7 @@ namespace SG
 		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&cmdBuf, nullptr, nullptr, nullptr, pFence);
 
 		pFence->Wait();
-		mContext.graphicCommandPool->FreeCommandBuffer(cmdBuf);
+		mContext.pGraphicCommandPool->FreeCommandBuffer(cmdBuf);
 		Delete(pBrdfLutPipeline);
 		Delete(pTempFrameBuffer);
 		Delete(pTempVulkanRenderPass);
@@ -467,7 +467,7 @@ namespace SG
 		VulkanFence* pFence = VulkanFence::Create(mContext.device);
 
 		VulkanCommandBuffer cmd;
-		mContext.graphicCommandPool->AllocateCommandBuffer(cmd);
+		mContext.pGraphicCommandPool->AllocateCommandBuffer(cmd);
 		cmd.BeginRecord();
 		cmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Source);
 		cmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_irradiance"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
@@ -578,7 +578,7 @@ namespace SG
 
 		pFence->Wait();
 
-		mContext.graphicCommandPool->FreeCommandBuffer(cmd);
+		mContext.pGraphicCommandPool->FreeCommandBuffer(cmd);
 		Delete(pIrradiancePipeline);
 		Delete(pTempFrameBuffer);
 		Delete(pTempVulkanRenderPass);
@@ -630,7 +630,7 @@ namespace SG
 		VulkanFence* pFence = VulkanFence::Create(mContext.device);
 
 		VulkanCommandBuffer cmd;
-		mContext.graphicCommandPool->AllocateCommandBuffer(cmd);
+		mContext.pGraphicCommandPool->AllocateCommandBuffer(cmd);
 		cmd.BeginRecord();
 		cmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Source);
 		cmd.ImageBarrier(VK_RESOURCE()->GetTexture("cubemap_prefilter"), EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
@@ -741,7 +741,7 @@ namespace SG
 		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&cmd, nullptr, nullptr, nullptr, pFence);
 
 		pFence->Wait();
-		mContext.graphicCommandPool->FreeCommandBuffer(cmd);
+		mContext.pGraphicCommandPool->FreeCommandBuffer(cmd);
 		Delete(pPrefilterPipeline);
 		Delete(pTempFrameBuffer);
 		Delete(pTempVulkanRenderPass);
@@ -770,13 +770,13 @@ namespace SG
 
 		// translate color rt from undefined to shader read
 		VulkanCommandBuffer pCmd;
-		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
+		mContext.pGraphicCommandPool->AllocateCommandBuffer(pCmd);
 		pCmd.BeginRecord();
 		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("HDRColor"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
 		pCmd.EndRecord();
 		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&pCmd, nullptr, nullptr, nullptr, nullptr);
 		mContext.pGraphicQueue->WaitIdle();
-		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+		mContext.pGraphicCommandPool->FreeCommandBuffer(pCmd);
 	}
 
 	void RGDrawScenePBRNode::DestroyColorRt()

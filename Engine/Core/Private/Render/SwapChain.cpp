@@ -4,11 +4,6 @@
 namespace SG
 {
 
-	UInt32 TextureIDAllocator::mCurrId = 1;
-
-	UInt32 TextureIDAllocator::NewID()
-	{
-		return mCurrId++;
-	}
+	IDAllocator<UInt32> TextureIDAllocator::mIdAllocator;
 
 }

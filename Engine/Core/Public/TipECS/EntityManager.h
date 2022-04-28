@@ -4,6 +4,7 @@
 #include "TipECS/Registry.h"
 #include "TipECS/Entity.h"
 #include "Core/Private/TipECS/Components.h"
+#include "TipECS/EntityHooker.h"
 
 #if USE_STL
 #	include <vector>
@@ -25,6 +26,7 @@ namespace TipECS
 		using EntityPrivateAccessor = Impl::EntityPrivateAccessor<Setting>;
 		using SignatureBitSetsStorage = typename Setting::SignatureBitSetsStorage;
 		using ComponentsStorage = typename ComponentsStorage<Setting>;
+		using EntityHookerContainer = typename EntityHookerContainer<Setting>;
 		using ThisType = EntityManager<Setting>;
 	public:
 		using Entity = Entity<Setting>;
@@ -183,13 +185,17 @@ namespace TipECS
 		template <typename TComponent>
 		auto& AddComponent(const Entity& entity) noexcept
 		{
-			return AddComponent<TComponent>(GetEntityID(entity));
+			auto& comp = AddComponent<TComponent>(GetEntityID(entity));
+			GetComponentHooker<TComponent>().OnComponentAdded(entity, comp);
+			return comp;
 		}
 
 		template <typename TComponent, typename... Args>
 		auto& AddComponent(const Entity& entity, Args&&... args) noexcept
 		{
-			return AddComponent<TComponent>(GetEntityID(entity), std::forward<Args>(args)...);
+			auto& comp = AddComponent<TComponent>(GetEntityID(entity), FWD(args)...);
+			GetComponentHooker<TComponent>().OnComponentAdded(entity, comp);
+			return comp;
 		}
 
 		template <typename... Ts>
@@ -204,14 +210,24 @@ namespace TipECS
 			{
 				// we can use structure binding here!
 				auto entityID = GetEntityID(entity);
+#ifdef USE_STL
 				return std::tuple<decltype(GetComponent<Ts>(entityID))...>(GetComponent<Ts>(entityID)...);
+#endif
 			}
 		}
 
 		template <typename TComponent>
 		void RemoveComponent(const Entity& entity) noexcept
 		{
+			auto& comp = GetComponent<TComponent>(entity);
+			GetComponentHooker<TComponent>().OnComponentRemoved(entity, comp);
 			RemoveComponent<TComponent>(GetEntityID(entity));
+		}
+
+		template <typename TComponent>
+		auto& GetComponentHooker() noexcept
+		{
+			return mEntityHookerContainer.GetComponentHooker<TComponent>();
 		}
 
 		template <typename TTag>
@@ -224,12 +240,20 @@ namespace TipECS
 		void AddTag(const Entity& entity) noexcept
 		{
 			AddTag<TTag>(GetEntityID(entity));
+			GetTagHooker<TTag>().OnTagAdded(entity);
 		}
 
 		template <typename TTag>
 		void RemoveTag(const Entity& entity) noexcept
 		{
+			GetTagHooker<TTag>().OnTagRemoved(entity);
 			RemoveTag<TTag>(GetEntityID(entity));
+		}
+
+		template <typename TComponent>
+		auto& GetTagHooker() noexcept
+		{
+			return mEntityHookerContainer.GetTagHooker<TComponent>();
 		}
 
 		//! Clear all the entities and reset the status.
@@ -654,6 +678,8 @@ private:
 		ComponentsStorage mComponentsStorage;
 		//! Used to access entity private member data.
 		EntityPrivateAccessor mEntityPrivateAccessor;
+		//! Used to hook some user custom callback events.
+		EntityHookerContainer mEntityHookerContainer;
 		//! Used to do some optimization.
 		bool mbCurrentFrameModified;
 	};

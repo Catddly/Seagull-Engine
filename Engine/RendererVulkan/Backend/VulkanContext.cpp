@@ -90,9 +90,7 @@ namespace SG
 		// create command buffer
 		commandBuffers.resize(pSwapchain->imageCount);
 		for (auto& pCmdBuf : commandBuffers)
-			graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
-
-		//computeCommandPool->AllocateCommandBuffer(computeCmdBuffer);
+			pGraphicCommandPool->AllocateCommandBuffer(pCmdBuf);
 	}
 
 	VulkanContext::~VulkanContext()
@@ -135,35 +133,35 @@ namespace SG
 
 		for (auto& pCmdBuf : commandBuffers)
 		{
-			graphicCommandPool->FreeCommandBuffer(pCmdBuf);
-			graphicCommandPool->AllocateCommandBuffer(pCmdBuf);
+			pGraphicCommandPool->FreeCommandBuffer(pCmdBuf);
+			pGraphicCommandPool->AllocateCommandBuffer(pCmdBuf);
 		}
 	}
 
 	void VulkanContext::CreateDefaultResource()
 	{
 		// create a default command pool to allocate commands to graphic queue.
-		graphicCommandPool = VulkanCommandPool::Create(device, VK_QUEUE_GRAPHICS_BIT);
-		if (!graphicCommandPool)
+		pGraphicCommandPool = VulkanCommandPool::Create(device, VK_QUEUE_GRAPHICS_BIT);
+		if (!pGraphicCommandPool)
 			SG_LOG_ERROR("Failed to create default graphic command pool!");
 
 		// create a default command pool to allocate commands to transfer queue.
 		if (device.queueFamilyIndices.transfer == device.queueFamilyIndices.graphics)
-			transferCommandPool = graphicCommandPool;
+			pTransferCommandPool = pGraphicCommandPool;
 		else
 		{
-			transferCommandPool = VulkanCommandPool::Create(device, VK_QUEUE_TRANSFER_BIT);
-			if (!transferCommandPool)
+			pTransferCommandPool = VulkanCommandPool::Create(device, VK_QUEUE_TRANSFER_BIT);
+			if (!pTransferCommandPool)
 				SG_LOG_ERROR("Failed to create default transfer command pool!");
 		}
 
 		// create a default command pool to allocate commands to compute queue.
 		if (device.queueFamilyIndices.compute == device.queueFamilyIndices.graphics)
-			computeCommandPool = graphicCommandPool;
+			pComputeCommandPool = pGraphicCommandPool;
 		else
 		{
-			computeCommandPool = VulkanCommandPool::Create(device, VK_QUEUE_COMPUTE_BIT);
-			if (!computeCommandPool)
+			pComputeCommandPool = VulkanCommandPool::Create(device, VK_QUEUE_COMPUTE_BIT);
+			if (!pComputeCommandPool)
 				SG_LOG_ERROR("Failed to create default compute command pool!");
 		}
 
@@ -227,12 +225,12 @@ namespace SG
 			Delete(pFence);
 
 		Delete(pDefaultDescriptorPool);
-		if (computeCommandPool && device.queueFamilyIndices.graphics != device.queueFamilyIndices.compute)
-			Delete(computeCommandPool);
-		if (transferCommandPool && device.queueFamilyIndices.graphics != device.queueFamilyIndices.transfer)
-			Delete(transferCommandPool);
-		if (graphicCommandPool)
-			Delete(graphicCommandPool);
+		if (pComputeCommandPool && device.queueFamilyIndices.graphics != device.queueFamilyIndices.compute)
+			Delete(pComputeCommandPool);
+		if (pTransferCommandPool && device.queueFamilyIndices.graphics != device.queueFamilyIndices.transfer)
+			Delete(pTransferCommandPool);
+		if (pGraphicCommandPool)
+			Delete(pGraphicCommandPool);
 	}
 
 }

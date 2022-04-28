@@ -105,13 +105,13 @@ namespace SG
 
 		mResetCommands.resize(mpContext->pSwapchain->imageCount);
 		for (auto& cmd : mResetCommands)
-			mpContext->computeCommandPool->AllocateCommandBuffer(cmd);
+			mpContext->pComputeCommandPool->AllocateCommandBuffer(cmd);
 		mCullingCommands.resize(mpContext->pSwapchain->imageCount);
 		for (auto& cmd : mCullingCommands)
-			mpContext->computeCommandPool->AllocateCommandBuffer(cmd);
+			mpContext->pComputeCommandPool->AllocateCommandBuffer(cmd);
 		mTransferCommands.resize(mpContext->pSwapchain->imageCount);
 		for (auto& cmd : mTransferCommands)
-			mpContext->transferCommandPool->AllocateCommandBuffer(cmd);
+			mpContext->pTransferCommandPool->AllocateCommandBuffer(cmd);
 
 		//pComputeResetQueryPool = VulkanQueryPool::Create(mpContext->device, ERenderQueryType::ePipeline_Statistics, EPipelineStageQueryType::efCompute_Shader_Invocations);
 		//pComputeCullingQueryPool = VulkanQueryPool::Create(mpContext->device, ERenderQueryType::ePipeline_Statistics, EPipelineStageQueryType::efCompute_Shader_Invocations);
@@ -140,11 +140,11 @@ namespace SG
 		for (auto* pFence : mTransferFences)
 			Delete(pFence);
 		for (auto& cmd : mTransferCommands)
-			mpContext->transferCommandPool->FreeCommandBuffer(cmd);
+			mpContext->pTransferCommandPool->FreeCommandBuffer(cmd);
 		for (auto& cmd : mResetCommands)
-			mpContext->computeCommandPool->FreeCommandBuffer(cmd);
+			mpContext->pComputeCommandPool->FreeCommandBuffer(cmd);
 		for (auto& cmd : mCullingCommands)
-			mpContext->computeCommandPool->FreeCommandBuffer(cmd);
+			mpContext->pComputeCommandPool->FreeCommandBuffer(cmd);
 		Delete(mpWaitResetSemaphore);
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer");
 

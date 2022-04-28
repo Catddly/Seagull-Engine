@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "Scene/Scene.h"
 
+#include "Archive/IDAllocator.h"
+
 #include "Platform/OS.h"
 #include "Scene/Camera/FirstPersonCamera.h"
 #include "Scene/Mesh/MeshDataArchive.h"
@@ -9,7 +11,27 @@
 namespace SG
 {
 
-	UInt32 Scene::gCurrObjectID = 0;
+	namespace // anonymous namespace
+	{
+		IDAllocator<UInt32> gObjectIdAllocator;
+	}
+
+	static void _OnMeshComponentAdded(const Scene::Entity& entity, MeshComponent& comp)
+	{
+		comp.objectId = gObjectIdAllocator.Allocate();
+	}
+
+	static void _OnMeshComponentRemoved(const Scene::Entity& entity, MeshComponent& comp)
+	{
+		gObjectIdAllocator.Restore(comp.objectId);
+	}
+
+	Scene::Scene()
+		:mpMainCamera(nullptr)
+	{
+		mEntityManager.GetComponentHooker<MeshComponent>().HookOnAdded(_OnMeshComponentAdded);
+		mEntityManager.GetComponentHooker<MeshComponent>().HookOnRemoved(_OnMeshComponentRemoved);
+	}
 
 	void Scene::OnSceneLoad()
 	{
@@ -22,7 +44,6 @@ namespace SG
 		mSkyboxEntity.AddComponent<TagComponent>("skybox");
 		auto& mesh = mSkyboxEntity.AddComponent<MeshComponent>();
 		LoadMesh(EGennerateMeshType::eSkybox, mesh);
-		mesh.objectId = NewObjectID();
 
 		auto* pEntity = CreateEntity("directional_light_0", Vector3f{ 8.0f, 12.0f, 0.0f }, Vector3f(1.0f), Vector3f(40.0f, -40.0f, 0.0f));
 		pEntity->AddTag<LightTag>();
@@ -148,19 +169,16 @@ namespace SG
 		auto* pEntity = CreateEntity("model");
 		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.2f, 0.8f);
 		auto& mesh = pEntity->AddComponent<MeshComponent>();
-		mesh.objectId = NewObjectID();
 		LoadMesh("model", EMeshType::eOBJ, mesh);
 
 		pEntity = CreateEntity("model_1", { 0.0f, 0.0f, -1.5f }, { 0.6f, 0.6f, 0.6f }, Vector3f(0.0f));
 		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.8f, 0.35f);
 		auto& mesh1 = pEntity->AddComponent<MeshComponent>();
-		mesh1.objectId = NewObjectID();
 		CopyMesh(GetEntityByName("model")->GetComponent<MeshComponent>(), mesh1);
 
 		pEntity = CreateEntity("grid", Vector3f(0.0f), { 8.0f, 1.0f, 8.0f }, Vector3f(0.0f));
 		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.05f, 0.76f);
 		auto& mesh2 = pEntity->AddComponent<MeshComponent>();
-		mesh2.objectId = NewObjectID();
 		LoadMesh(EGennerateMeshType::eGrid, mesh2);
 	}
 
@@ -179,7 +197,6 @@ namespace SG
 				{
 					auto* pEntity = CreateEntity(name, { -7.0f + i * INTERVAL, -7.0f + j * INTERVAL, zPos }, { 0.7f, 0.7f, 0.7f }, Vector3f(0.0f));
 					auto& mesh = pEntity->AddComponent<MeshComponent>();
-					mesh.objectId = NewObjectID();
 					LoadMesh("sphere", EMeshType::eOBJ, mesh);
 
 					pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), (i + 1) * 0.1f, (10 - j) * 0.1f);
@@ -188,7 +205,6 @@ namespace SG
 				{
 					auto* pEntity = CreateEntity(name, { -7.0f + i * INTERVAL, -7.0f + j * INTERVAL, zPos }, { 0.7f, 0.7f, 0.7f }, Vector3f(0.0f));
 					auto& mesh = pEntity->AddComponent<MeshComponent>();
-					mesh.objectId = NewObjectID();
 
 					auto* pCopyEntity = GetEntityByName("sphere0_0");
 					auto& srcMesh = pCopyEntity->GetComponent<MeshComponent>();
@@ -210,7 +226,6 @@ namespace SG
 		trans.scale = { 3.0f, 3.0f, 3.0f };
 		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.05f, 0.9f);
 		auto& mesh = pEntity->AddComponent<MeshComponent>();
-		mesh.objectId = NewObjectID();
 		LoadMesh("cerberus", EMeshType::eOBJ, mesh);
 	}
 

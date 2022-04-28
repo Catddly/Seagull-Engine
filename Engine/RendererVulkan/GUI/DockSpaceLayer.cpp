@@ -181,13 +181,12 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		mElapsedTime += deltaTime;
-		mAvgDeltaTime = mElapsedTime / (float)mCounter;
-		mCounter++;
+		mFrameCounter++;
 		if (mElapsedTime >= 1.0f)
 		{
-			mLastFps = UInt32(1.0f / mAvgDeltaTime);
-			mElapsedTime -= 1.0f;
-			mCounter = 1;
+			mLastFps = static_cast<UInt32>((float)mFrameCounter / mElapsedTime);
+			mElapsedTime = 0.0f;
+			mFrameCounter = 1;
 		}
 
 		Size cullMeshCnt = SSystem()->GetMainScene()->GetMeshEntityCount();

@@ -57,13 +57,13 @@ namespace SG
 		//! So this is for consistency of the architecture.
 		//! Two ways, both are OK.
 		VulkanCommandBuffer pCmd;
-		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
+		mContext.pGraphicCommandPool->AllocateCommandBuffer(pCmd);
 		pCmd.BeginRecord();
 		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("shadow map"), EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil_Read_Only);
 		pCmd.EndRecord();
 		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&pCmd, nullptr, nullptr, nullptr, nullptr);
 		mContext.pGraphicQueue->WaitIdle();
-		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+		mContext.pGraphicCommandPool->FreeCommandBuffer(pCmd);
 
 		SamplerCreateDesc samplerCI = {};
 		samplerCI.name = "shadow_sampler";

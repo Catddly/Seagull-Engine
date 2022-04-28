@@ -2,6 +2,7 @@
 
 #include "Base/BasicTypes.h"
 #include "Render/GPUMemory.h"
+#include "Archive/IDAllocator.h"
 
 #include "Platform/OS.h"
 
@@ -565,9 +566,9 @@ namespace SG
 		SG_NULLABLE void* pUserData;
 	};
 
-	interface RenderTarget
+	interface IRenderTarget
 	{
-		virtual ~RenderTarget() = default;
+		virtual ~IRenderTarget() = default;
 
 		virtual UInt32 GetWidth()     const = 0;
 		virtual UInt32 GetHeight()    const = 0;
@@ -586,9 +587,17 @@ namespace SG
 	class TextureIDAllocator final
 	{
 	public:
-		SG_CORE_API static UInt32 NewID();
+		SG_CORE_API SG_INLINE static UInt32 NewID()
+		{
+			return mIdAllocator.Allocate();
+		}
+
+		SG_CORE_API SG_INLINE static void FreeID(UInt32 id)
+		{
+			return mIdAllocator.Restore(id);
+		}
 	private:
-		static UInt32 mCurrId;
+		static IDAllocator<UInt32> mIdAllocator;
 	};
 
 	// helper function

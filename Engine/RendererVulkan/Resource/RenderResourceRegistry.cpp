@@ -255,7 +255,7 @@ namespace SG
 			pFence->WaitAndReset();
 
 		for (auto& buf : mSubmitedCommandBuffers)
-			mpContext->transferCommandPool->FreeCommandBuffer(buf);
+			mpContext->pTransferCommandPool->FreeCommandBuffer(buf);
 		for (auto* pStagingBuf : mpStagingBuffers)
 			Delete(pStagingBuf);
 		for (auto* pFence : mpBufferUploadFences)
@@ -328,7 +328,7 @@ namespace SG
 			return;
 
 		auto& cmd = mSubmitedCommandBuffers.push_back();
-		mpContext->transferCommandPool->AllocateCommandBuffer(cmd);
+		mpContext->pTransferCommandPool->AllocateCommandBuffer(cmd);
 		mpBufferUploadFences.push_back(VulkanFence::Create(mpContext->device));
 
 		cmd.BeginRecord();
@@ -473,7 +473,7 @@ namespace SG
 			return;
 
 		VulkanCommandBuffer pCmd;
-		mpContext->graphicCommandPool->AllocateCommandBuffer(pCmd);
+		mpContext->pGraphicCommandPool->AllocateCommandBuffer(pCmd);
 
 		pCmd.BeginRecord();
 		vector<VulkanBuffer*> stagingBuffers;
@@ -528,7 +528,7 @@ namespace SG
 		mpContext->pGraphicQueue->SubmitCommands<0, 0, 0>(&pCmd, nullptr, nullptr, nullptr, nullptr);
 		mpContext->pGraphicQueue->WaitIdle(); // [Critical] Huge impact on performance 
 
-		mpContext->graphicCommandPool->FreeCommandBuffer(pCmd);
+		mpContext->pGraphicCommandPool->FreeCommandBuffer(pCmd);
 		for (auto* e : stagingBuffers)
 			Delete(e);
 		mWaitToSubmitTextures.clear();

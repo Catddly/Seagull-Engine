@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Archive/IDAllocator.h"
 #include "Scene/Camera/ICamera.h"
 #include "Scene/Components.h"
 
@@ -24,10 +25,7 @@ namespace SG
 		using EntityManager = typename TipECS::EntityManager<SGECSSetting>;
 		using Entity = typename TipECS::Entity<SGECSSetting>;
 	public:
-		Scene()
-			:mpMainCamera(nullptr)
-		{
-		}
+		Scene();
 
 		//! This function can be dispatched to another thread. 
 		SG_CORE_API void OnSceneLoad();
@@ -63,11 +61,6 @@ namespace SG
 				func(node.second);
 		}
 	private:
-		static UInt32 NewObjectID() noexcept
-		{
-			return gCurrObjectID++;
-		}
-
 		void DefaultScene();
 		void MaterialScene();
 		void MaterialTexturedScene();
@@ -80,7 +73,7 @@ namespace SG
 		unordered_map<string, Entity> mEntities;
 
 		EntityManager mEntityManager;
-		static UInt32 gCurrObjectID;
+		IDAllocator<UInt32> mObjectIdAllocator;
 	};
 
 }

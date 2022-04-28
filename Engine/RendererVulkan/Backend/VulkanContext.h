@@ -34,13 +34,13 @@ namespace SG
 
 		VulkanInstance  instance;
 		VulkanDevice    device;
+
 		VulkanSwapchain* pSwapchain;
 
-		VulkanCommandPool* graphicCommandPool;
-		VulkanCommandPool* computeCommandPool;
-		VulkanCommandPool* transferCommandPool;
+		VulkanCommandPool* pGraphicCommandPool;
+		VulkanCommandPool* pComputeCommandPool;
+		VulkanCommandPool* pTransferCommandPool;
 
-		//VulkanCommandBuffer computeCmdBuffer;
 		vector<VulkanCommandBuffer> commandBuffers;
 
 		VulkanQueue* pGraphicQueue;

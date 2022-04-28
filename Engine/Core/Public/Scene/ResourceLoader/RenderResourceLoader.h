@@ -2,7 +2,7 @@
 
 #include "System/Logger.h"
 #include "Memory/Memory.h"
-#include "Archive/ResourceLoader/ResourceDefs.h"
+#include "Scene/ResourceLoader/ResourceDefs.h"
 
 #include "Stl/string.h"
 #include "Stl/vector.h"

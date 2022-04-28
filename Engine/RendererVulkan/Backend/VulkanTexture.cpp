@@ -166,6 +166,7 @@ namespace SG
 			vkFreeMemory(context.device.logicalDevice, memory, nullptr);
 		}
 #endif
+		TextureIDAllocator::FreeID(id);
 	}
 
 	VulkanTexture* VulkanTexture::Create(VulkanContext& c, const TextureCreateDesc& CI, bool bLocal)

@@ -3,9 +3,9 @@
 #include "Math/MathBasic.h"
 
 #include "Scene/Mesh/MeshDataArchive.h"
+#include "Scene/ResourceLoader/RenderResourceLoader.h"
+#include "Scene/ResourceLoader/ResourceDefs.h"
 #include "Render/MeshGenerate/MeshGenerator.h"
-#include "Archive/ResourceLoader/RenderResourceLoader.h"
-#include "Archive/ResourceLoader/ResourceDefs.h"
 #include "Profile/Profile.h"
 
 #include "TipECS/Registry.h"

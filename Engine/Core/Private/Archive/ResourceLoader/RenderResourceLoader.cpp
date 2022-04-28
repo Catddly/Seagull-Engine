@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "Archive/ResourceLoader/RenderResourceLoader.h"
+#include "Scene/ResourceLoader/RenderResourceLoader.h"
 
 #include "Render/SwapChain.h"
 #include "System/FileSystem.h"

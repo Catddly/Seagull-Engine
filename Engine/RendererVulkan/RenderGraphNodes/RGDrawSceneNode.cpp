@@ -5,7 +5,7 @@
 #include "System/Logger.h"
 #include "Render/Shader/ShaderComiler.h"
 #include "Render/CommonRenderData.h"
-#include "Archive/ResourceLoader/RenderResourceLoader.h"
+#include "Scene/ResourceLoader/RenderResourceLoader.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
@@ -86,13 +86,13 @@ namespace SG
 		compiler.CompileGLSLShader("skybox", mpSkyboxShader.get());
 
 		VulkanCommandBuffer pCmd;
-		mContext.graphicCommandPool->AllocateCommandBuffer(pCmd);
+		mContext.pGraphicCommandPool->AllocateCommandBuffer(pCmd);
 		pCmd.BeginRecord();
 		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("shadow map"), EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil_Read_Only);
 		pCmd.EndRecord();
 		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&pCmd, nullptr, nullptr, nullptr, nullptr);
 		mContext.pGraphicQueue->WaitIdle();
-		mContext.graphicCommandPool->FreeCommandBuffer(pCmd);
+		mContext.pGraphicCommandPool->FreeCommandBuffer(pCmd);
 
 		mpSkyboxPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpSkyboxShader)
 			.AddCombindSamplerImage("cubemap_sampler", "cubemap")
