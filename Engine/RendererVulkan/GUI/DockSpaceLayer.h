@@ -6,12 +6,12 @@
 #include "Scene/Scene.h"
 //#include "Event/MessageBus/MessageBus.h"
 
-#include "RendererVulkan/Backend/VulkanDescriptor.h"
-
 #include "Math/MathBasic.h"
 
 namespace SG
 {
+
+	class VulkanDescriptorSet;
 
 	class DockSpaceLayer : public ILayer, private IInputListener
 	{
@@ -43,7 +43,7 @@ namespace SG
 
 		Vector2f mLastViewportSize = { 0.0f, 0.0f };
 
-		Handle<VulkanDescriptorSet>* mpViewportTexHandle;
+		Handle<VulkanDescriptorSet*> mViewportTexHandle;
 		Scene::Entity mSelectedEntity;
 
 		bool mbViewportCanUpdateMouse = false;

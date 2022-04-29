@@ -131,8 +131,8 @@ namespace SG
 			Delete(beg->second);
 		for (auto beg = mDescriptorSets.begin(); beg != mDescriptorSets.end(); ++beg)
 			Delete(beg->second);
-		for (auto beg = mDescriptorSetHandles.begin(); beg != mDescriptorSetHandles.end(); ++beg)
-			Delete(beg->second);
+		//for (auto beg = mDescriptorSetHandles.begin(); beg != mDescriptorSetHandles.end(); ++beg)
+		//	Delete(beg->second);
 		for (auto beg = mRenderTargets.begin(); beg != mRenderTargets.end(); ++beg)
 			Delete(beg->second);
 		for (auto beg = mSamplers.begin(); beg != mSamplers.end(); ++beg)
@@ -549,21 +549,24 @@ namespace SG
 			return;
 		}
 		mDescriptorSets[name] = pSet;
+
 		if (bCreateHandle)
-			mDescriptorSetHandles[name] = New(Handle<VulkanDescriptorSet>, pSet, nullptr);
+			AddDescriptorSetHandle(name, pSet);
 	}
 
 	void VulkanResourceRegistry::AddDescriptorSetHandle(const string& name, VulkanDescriptorSet* pSet)
 	{
 		SG_PROFILE_FUNCTION();
 
-		auto node = mDescriptorSets.find(name);
-		if (node != mDescriptorSets.end())
+		SG_LOG_DEBUG("Size of handle: %zu", mDescriptorSetHandles.size());
+
+		auto node = mDescriptorSetHandles.find(name);
+		if (node != mDescriptorSetHandles.end())
 		{
 			SG_LOG_ERROR("Already have a descriptor set handle named: %s", name.c_str());
 			return;
 		}
-		mDescriptorSetHandles[name] = New(Handle<VulkanDescriptorSet>, pSet, nullptr);
+		mDescriptorSetHandles[name] = Handle<VulkanDescriptorSet*>(pSet, nullptr);
 	}
 
 	void VulkanResourceRegistry::RemoveDescriptorSet(const string& name)
@@ -580,13 +583,13 @@ namespace SG
 		Delete(node->second);
 		mDescriptorSets.erase(node);
 
+		// because the data had been destroyed, the handle must be invalid.
 		auto nodeHandle = mDescriptorSetHandles.find(name);
 		if (nodeHandle != mDescriptorSetHandles.end())
 		{
-			auto* pHandle = nodeHandle->second;
-			pHandle->Invalidate();
+			auto& handle = nodeHandle->second;
+			handle.Invalidate();
 			mDescriptorSetHandles.erase(nodeHandle);
-			Delete(pHandle);
 		}
 	}
 
@@ -601,12 +604,11 @@ namespace SG
 				mDescriptorSets.erase(node.first);
 				for (auto nodeHandle : mDescriptorSetHandles)
 				{
-					if (nodeHandle.second->GetData() == pSet)
+					if (nodeHandle.second.GetData() == pSet)
 					{
-						auto* pHandle = nodeHandle.second;
-						pHandle->Invalidate();
+						auto& handle = nodeHandle.second;
+						handle.Invalidate();
 						mDescriptorSetHandles.erase(nodeHandle.first);
-						Delete(pHandle);
 					}
 					return;
 				}
@@ -629,7 +631,7 @@ namespace SG
 		return node->second;
 	}
 
-	Handle<VulkanDescriptorSet>* VulkanResourceRegistry::GetDescriptorSetHandle(const string& name)
+	Handle<VulkanDescriptorSet*> VulkanResourceRegistry::GetDescriptorSetHandle(const string& name)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -637,7 +639,7 @@ namespace SG
 		if (node == mDescriptorSetHandles.end())
 		{
 			SG_LOG_ERROR("No descritor set handle named: %s", name.c_str());
-			return nullptr;
+			return Handle<VulkanDescriptorSet*>(nullptr, nullptr);
 		}
 		return node->second;
 	}

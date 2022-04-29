@@ -20,6 +20,8 @@ namespace SG
 
 	class DockSpaceLayer;
 
+	class RenderDataBuilder;
+
 	class VulkanRenderDevice : public IRenderDevice, protected ISystemMessageListener
 	{
 	public:
@@ -37,6 +39,8 @@ namespace SG
 		virtual bool OnSystemMessage(ESystemMessage msg) override;
 		void BuildRenderGraph();
 		void WindowResize();
+
+		void CreateVKResourceFromAsset(RefPtr<RenderDataBuilder> pRenderDataBuilder);
 	private:
 		VulkanContext* mpContext = nullptr;
 

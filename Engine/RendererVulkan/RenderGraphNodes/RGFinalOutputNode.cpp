@@ -104,7 +104,7 @@ namespace SG
 				.Build();
 
 			VK_RESOURCE()->AddDescriptorSetHandle("_imgui_font_tex", &mpGUIPipelineSignature->GetDescriptorSet(0, "_imgui_font"));
-			io.Fonts->SetTexID((ImTextureID)VK_RESOURCE()->GetDescriptorSetHandle("_imgui_font_tex"));
+			io.Fonts->SetTexID((ImTextureID)VK_RESOURCE()->GetDescriptorSetHandle("_imgui_font_tex").GetData());
 
 			VulkanDescriptorSet* pViewportSet = New(VulkanDescriptorSet);
 			VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
@@ -119,7 +119,7 @@ namespace SG
 			VK_RESOURCE()->AddDescriptorSet("ViewportTex", pViewportSet, true);
 			VK_RESOURCE()->AddDescriptorSet("logo", pLogoSet);
 
-			VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetFallBackData(pLogoSet);
+			VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex").SetFallBackData(pLogoSet);
 		}
 
 		ClearValue cv = {};
@@ -150,8 +150,10 @@ namespace SG
 			.AddCombindSamplerImage(0, "comp_sampler", "HDRColor")
 			.Bind(*pViewportSet);
 		VK_RESOURCE()->AddDescriptorSet("ViewportTex", pViewportSet, true);
-		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetData(VK_RESOURCE()->GetDescriptorSet("ViewportTex"));
-		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex")->SetFallBackData(VK_RESOURCE()->GetDescriptorSet("logo"));
+		auto* pViewportTexDescSet = VK_RESOURCE()->GetDescriptorSet("ViewportTex");
+		auto* pLogoTexDescSet = VK_RESOURCE()->GetDescriptorSet("logo");
+		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex").SetData(pViewportTexDescSet);
+		VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex").SetFallBackData(pLogoTexDescSet);
 
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
@@ -338,8 +340,8 @@ namespace SG
 					scissor.bottom = (Int32)(clipMax.y);
 					pBuf.SetScissor(scissor);
 
-					auto pDescriptor = reinterpret_cast<Handle<VulkanDescriptorSet>*>(pCmd->TextureId);
-					pBuf.BindDescriptorSet(mpGUIPipelineSignature.get(), 0, pDescriptor->GetData());
+					auto* pDescriptor = reinterpret_cast<VulkanDescriptorSet*>(pCmd->TextureId);
+					pBuf.BindDescriptorSet(mpGUIPipelineSignature.get(), 0, pDescriptor);
 
 					pBuf.DrawIndexed(pCmd->ElemCount, 1, pCmd->IdxOffset + idxOffest, pCmd->VtxOffset + vtxOffest, 0);
 				}

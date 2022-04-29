@@ -7,6 +7,7 @@
 #include "Stl/Utility.h"
 #include "Scene/Components.h"
 
+#include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 #include "RendererVulkan/GUI/Utility.h"
 
@@ -33,14 +34,12 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		mpViewportTexHandle = VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex");
+		mViewportTexHandle = VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex");
 	}
 
 	void DockSpaceLayer::OnDetach()
 	{
 		SG_PROFILE_FUNCTION();
-
-		mpViewportTexHandle = nullptr;
 	}
 
 	void DockSpaceLayer::OnUpdate(float deltaTime)
@@ -154,7 +153,7 @@ namespace SG
 			//mMessageBusMember.PushEvent<Vector2f>("ViewportResizeEvent", mLastViewportSize);
 		}
 
-		ImGui::Image(mpViewportTexHandle, viewportSize);
+		ImGui::Image(mViewportTexHandle.GetData(), viewportSize);
 		ImGui::End();
 
 		ImGui::PopStyleVar();

@@ -41,5 +41,42 @@ namespace SG
 		eSaveData,
 	};
 
+	//! Transient raw 2D texture data, will automatically free its memory when unused.
+	SG_CORE_API struct Raw2DTexture
+	{
+		UInt32 width;
+		UInt32 height;
+		UInt32 array;
+		UInt32 mipLevel;
+		UInt32 sizeInByte;
+		UInt32 dimention;
+
+		ETextureType   type;
+		unsigned char* pData = nullptr;
+		void* pUserData = nullptr;
+
+		SG_INLINE bool IsValid() const noexcept
+		{
+			return pData != nullptr;
+		}
+
+		SG_INLINE void FreeMemory() noexcept
+		{
+			free(pData);
+			pData = nullptr;
+		}
+
+		Raw2DTexture() = default;
+		Raw2DTexture(UInt32 w, UInt32 h, UInt32 arr, UInt32 mip, UInt32 dim)
+			: width(w), height(h), array(arr), mipLevel(mip), dimention(dim), type(ETextureType::eUnknown), pData(nullptr)
+		{}
+
+		~Raw2DTexture()
+		{
+			//! Warning!! this is dangerous. Figure out a better way to do this.
+			if (pData && !pUserData)
+				FreeMemory();
+		}
+	};
 
 }

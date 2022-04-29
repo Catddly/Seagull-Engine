@@ -84,6 +84,8 @@ namespace SG
 		VK_RESOURCE()->CreateTexture(textureCI, true);
 		VK_RESOURCE()->FlushTextures();
 
+		CreateVKResourceFromAsset(SSystem()->GetRenderDataBuilder());
+
 		// create all the mesh resource
 		IndirectRenderer::OnInit(*mpContext);
 		IndirectRenderer::CollectRenderData(SSystem()->GetRenderDataBuilder());
@@ -134,6 +136,7 @@ namespace SG
 				mpContext->pTimeStampQueryPool->Sleep();
 			}
 		}
+
 		mpRenderGraph->Update();
 		VK_RESOURCE()->OnUpdate();
 	}
@@ -261,6 +264,69 @@ namespace SG
 		// pop and push again to attach and detach the layer.
 		mpGUIDriver->PopUserLayer(mpDockSpaceGUILayer);
 		mpGUIDriver->PushUserLayer(mpDockSpaceGUILayer);
+	}
+
+	void VulkanRenderDevice::CreateVKResourceFromAsset(RefPtr<RenderDataBuilder> pRenderDataBuilder)
+	{
+		SG_PROFILE_FUNCTION();
+
+		bool bHaveTexture = false;
+
+		auto& assets = pRenderDataBuilder->GetAssets();
+		for (auto* pAsset : assets)
+		{
+			if (pAsset->GetAssetType() == EAssetType::eTexture)
+			{
+				TextureAsset* pTextureAsset = static_cast<TextureAsset*>(pAsset);
+				TextureCreateDesc texCI = {};
+				texCI.name = pTextureAsset->GetAssetName().c_str();
+				texCI.width = pTextureAsset->GetWidth();
+				texCI.height = pTextureAsset->GetHeight();
+				texCI.depth = 1;
+				texCI.array = pTextureAsset->GetArray();
+				texCI.mipLevel = pTextureAsset->GetMipmap();
+				if (pTextureAsset->GetDimention() == 1)
+					texCI.format = EImageFormat::eUnorm_R8;
+				else if (pTextureAsset->GetDimention() == 2)
+					texCI.format = EImageFormat::eUnorm_R8G8;
+				else if (pTextureAsset->GetDimention() == 3)
+					texCI.format = EImageFormat::eUnorm_R8G8B8;
+				else if (pTextureAsset->GetDimention() == 4)
+					texCI.format = EImageFormat::eUnorm_R8G8B8A8;
+				texCI.sample = ESampleCount::eSample_1;
+				texCI.usage = EImageUsage::efSample;
+				texCI.type = EImageType::e2D;
+				texCI.pInitData = pTextureAsset->GetRawData();
+				texCI.sizeInByte = pTextureAsset->GetByteSize();
+				texCI.pUserData = pTextureAsset->GetUserData();
+				VK_RESOURCE()->CreateTexture(texCI, true);
+
+				bHaveTexture |= true;
+			}
+		}
+
+		if (bHaveTexture)
+			VK_RESOURCE()->FlushTextures();
+
+		for (auto* pAsset : assets)
+		{
+			if (pAsset->GetAssetType() == EAssetType::eTexture)
+			{
+				TextureAsset* pTextureAsset = static_cast<TextureAsset*>(pAsset);
+				pTextureAsset->FreeMemory();
+			}
+		}
+
+		SamplerCreateDesc samplerCI = {};
+		samplerCI.name = "texture_2k_mipmap_sampler";
+		samplerCI.filterMode = EFilterMode::eLinear;
+		samplerCI.mipmapMode = EFilterMode::eLinear;
+		samplerCI.addressMode = EAddressMode::eRepeat;
+		samplerCI.lodBias = 0.0f;
+		samplerCI.minLod = 0.0f;
+		samplerCI.maxLod = (float)CalcMipmapLevel(2048, 2048);
+		samplerCI.enableAnisotropy = true;
+		VK_RESOURCE()->CreateSampler(samplerCI);
 	}
 
 }

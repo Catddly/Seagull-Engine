@@ -18,20 +18,26 @@ namespace SG
 		vector<PerInstanceData> perInstanceData = {};
 	};
 
+	interface IAsset;
+
 	class RenderDataBuilder
 	{
 	public:
 		RenderDataBuilder() = default;
-		RenderDataBuilder(RefPtr<Scene> pScene);
+		RenderDataBuilder(WeakRefPtr<Scene> pScene);
 
 		void SetScene(WeakRefPtr<Scene> pScene);
-		void BuildData();
+		void LoadInNeccessaryDataFromDisk();
+		void ResolveRenderData();
+
+		const vector<IAsset*>& GetAssets() const noexcept { return mAssets; }
 
 		template <typename Func>
 		void TraverseRenderData(Func&& func);
 	private:
 		WeakRefPtr<Scene> mpScene;
 		eastl::unordered_map<UInt32, RenderMeshBuildData> mRenderMeshBuildDataMap; // meshId -> RenderMeshBuildData
+		vector<IAsset*> mAssets;
 
 		bool mbIsRenderDataReady = false;
 	};

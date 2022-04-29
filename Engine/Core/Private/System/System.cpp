@@ -56,7 +56,8 @@ namespace SG
 
 		mpRenderDataBuilder = MakeRef<RenderDataBuilder>();
 		mpRenderDataBuilder->SetScene(mp3DScene);
-		mpRenderDataBuilder->BuildData();
+		mpRenderDataBuilder->LoadInNeccessaryDataFromDisk();
+		mpRenderDataBuilder->ResolveRenderData();
 
 		ShaderLibrary::GetInstance()->OnInit();
 	}

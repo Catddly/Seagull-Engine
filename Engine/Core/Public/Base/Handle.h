@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Defs/Defs.h"
-//#include "System/Logger.h"
 #include "Memory/Memory.h"
 
 #include "eastl/type_traits.h"
@@ -21,7 +20,8 @@ namespace SG
 	class ReadOnlyHandle final
 	{
 	private:
-		using DataType = eastl::conditional_t<eastl::is_pointer_v<T> && !eastl::is_void_v<T>, T, typename eastl::decay<T>::type>;
+		static_assert(eastl::is_pointer_v<T>, "T is not a pointer!");
+		using DataType = T;
 		using ThisType = ReadOnlyHandle<T>;
 	public:
 		ReadOnlyHandle();
@@ -31,8 +31,8 @@ namespace SG
 		ReadOnlyHandle(ThisType&&) noexcept;
 		ThisType& operator=(ThisType&&) noexcept;
 
-		bool IsValid() const noexcept;
-		DataType* GetData() const noexcept;
+		bool     IsValid() const noexcept;
+		DataType GetData() const noexcept;
 	private:
 		friend class Handle<T>;
 
@@ -40,9 +40,9 @@ namespace SG
 	private:
 		DataType* mpData;
 		DataType* mpFallBackData;
-		int  mMyVersionNumber;
 		int* mpVersionNumber;
 		int* mpRefCount;
+		int  mMyVersionNumber;
 	};
 
 	template <typename T>
@@ -57,14 +57,14 @@ namespace SG
 		other.mpFallBackData = nullptr;
 		other.mpRefCount = nullptr;
 		other.mpVersionNumber = nullptr;
-		other.mMyVersionNumber = int(-1);
+		other.mMyVersionNumber = -1;
 
-		this->mMyVersionNumber = *(this->mpVersionNumber);
+		this->mMyVersionNumber = 0;
 		//SG_LOG_DEBUG("ReadOnlyHandle move ctor!");
 	}
 
 	template <typename T>
-	typename ReadOnlyHandle<T>::ThisType& SG::ReadOnlyHandle<T>::operator=(ThisType&& other) noexcept
+	typename ReadOnlyHandle<T>::ThisType& ReadOnlyHandle<T>::operator=(ThisType&& other) noexcept
 	{
 		if (&other != this)
 		{
@@ -73,8 +73,10 @@ namespace SG
 				(*mpRefCount) -= 1;
 				if (*mpRefCount == 0)
 				{
-					Memory::Delete(mpRefCount);
-					Memory::Delete(mpVersionNumber);
+					Delete(mpRefCount);
+					Delete(mpVersionNumber);
+					Delete(mpData);
+					Delete(mpFallBackData);
 					//SG_LOG_DEBUG("Move Self destroyed!");
 				}
 			}
@@ -88,9 +90,9 @@ namespace SG
 			other.mpFallBackData = nullptr;
 			other.mpRefCount = nullptr;
 			other.mpVersionNumber = nullptr;
-			other.mMyVersionNumber = int(-1);
+			other.mMyVersionNumber = -1;
 
-			this->mMyVersionNumber = *(this->mpVersionNumber);
+			this->mMyVersionNumber = 0;
 			//SG_LOG_DEBUG("Handle move assignment operator!");
 		}
 		return *this;
@@ -110,20 +112,20 @@ namespace SG
 	}
 
 	template <typename T>
-	typename ReadOnlyHandle<T>::DataType* ReadOnlyHandle<T>::GetData() const noexcept
+	typename ReadOnlyHandle<T>::DataType ReadOnlyHandle<T>::GetData() const noexcept
 	{
 		if (!IsValid())
-			return mpFallBackData;
+			return *mpFallBackData;
 		else
-			return mpData;
+			return *mpData;
 	}
 
 	template <typename T>
 	ReadOnlyHandle<T>::ReadOnlyHandle(DataType* pData, DataType* pFallbackData,
 		int* pVersionNumber, int* pRefCount)
-		:mpData(pData), mpFallBackData(pFallbackData), mpVersionNumber(pVersionNumber), mpRefCount(pRefCount)
+		:mpData(pData), mpFallBackData(pFallbackData), mpVersionNumber(pVersionNumber), mpRefCount(pRefCount),
+		mMyVersionNumber(0)
 	{
-		mMyVersionNumber = *mpVersionNumber;
 		(*mpRefCount) += 1;
 		//SG_LOG_DEBUG("ReadOnlyHandle created with ref count: %d", *mpRefCount);
 	}
@@ -138,6 +140,8 @@ namespace SG
 			{
 				Delete(mpVersionNumber);
 				Delete(mpRefCount);
+				Delete(mpData);
+				Delete(mpFallBackData);
 				//SG_LOG_DEBUG("ReadOnlyHandle destroyed!");
 			}
 		}
@@ -152,11 +156,12 @@ namespace SG
 	class Handle final
 	{
 	private:
-		using DataType = eastl::conditional_t<eastl::is_pointer_v<T> && !eastl::is_void_v<T>, T, typename eastl::decay<T>::type>;
+		static_assert(eastl::is_pointer_v<T>, "T is not a pointer!");
+		using DataType = T;
 		using ThisType = Handle<T>;
 	public:
 		Handle();
-		Handle(DataType* pData, DataType* pFallbackData);
+		Handle(DataType pData, DataType pFallbackData);
 		~Handle();
 
 		ReadOnlyHandle<T> ReadOnly() const noexcept;
@@ -171,48 +176,56 @@ namespace SG
 
 		bool IsValid() const noexcept;
 		
-		void      SetData(DataType* pData) noexcept;
-		void      SetFallBackData(DataType* pData) noexcept;
-		DataType* GetData() const noexcept;
-		DataType* GetFallBackData() const noexcept;
+		void      SetData(DataType pData) noexcept;
+		void      SetFallBackData(DataType pData) noexcept;
+		DataType  GetData() const noexcept;
+		DataType  GetFallBackData() const noexcept;
 	private:
 		DataType* mpData;
 		DataType* mpFallBackData;
-		int  mMyVersionNumber;
 		int* mpVersionNumber;
 		int* mpRefCount;
+		int  mMyVersionNumber;
 	};
 
 	template <typename T>
 	Handle<T>::Handle()
-		:mpData(nullptr), mpFallBackData(nullptr)
+		:mMyVersionNumber(0)
 	{
 		mpVersionNumber = New(int, 0);
 		mpRefCount = New(int, 0);
+		mpData = New(DataType, nullptr);
+		mpFallBackData = New(DataType, nullptr);
+		SG_ASSERT(mpVersionNumber && mpRefCount && mpData && mpFallBackData);
 		(*mpRefCount) += 1;
 		//SG_LOG_DEBUG("Handle created with ref count: %d", *mpRefCount);
 	}
 
 	template <typename T>
-	Handle<T>::Handle(DataType* pData, DataType* pFallbackData)
-		:mpData(pData), mpFallBackData(pFallbackData), mMyVersionNumber(0)
+	Handle<T>::Handle(DataType pData, DataType pFallbackData)
+		:mMyVersionNumber(0)
 	{
 		mpVersionNumber = New(int, 0);
 		mpRefCount = New(int, 0);
+		mpData = New(DataType, nullptr);
+		mpFallBackData = New(DataType, nullptr);
+		SG_ASSERT(mpVersionNumber && mpRefCount && mpData && mpFallBackData);
+		*mpData = pData;
+		*mpFallBackData = pFallbackData;
 		(*mpRefCount) += 1;
 		//SG_LOG_DEBUG("Handle created with ref count: %d", *mpRefCount);
 	}
 
 	template <typename T>
-	void Handle<T>::SetData(DataType* pData) noexcept
+	void Handle<T>::SetData(DataType pData) noexcept
 	{
-		mpData = pData;
+		*mpData = pData;
 	}
 
 	template <typename T>
-	void Handle<T>::SetFallBackData(DataType* pData) noexcept
+	void Handle<T>::SetFallBackData(DataType pData) noexcept
 	{
-		mpFallBackData = pData;
+		*mpFallBackData = pData;
 	}
 
 	template <typename T>
@@ -222,9 +235,18 @@ namespace SG
 	}
 
 	template <typename T>
-	typename Handle<T>::DataType* Handle<T>::GetFallBackData() const noexcept
+	typename Handle<T>::DataType Handle<T>::GetData() const noexcept
 	{
-		return mpFallBackData;
+		if (!IsValid())
+			return *mpFallBackData;
+		else
+			return *mpData;
+	}
+
+	template <typename T>
+	typename Handle<T>::DataType Handle<T>::GetFallBackData() const noexcept
+	{
+		return *mpFallBackData;
 	}
 
 	template <typename T>
@@ -237,6 +259,8 @@ namespace SG
 			{
 				Delete(mpVersionNumber);
 				Delete(mpRefCount);
+				Delete(mpData);
+				Delete(mpFallBackData);
 				//SG_LOG_DEBUG("Handle destroyed!");
 			}
 		}
@@ -249,7 +273,7 @@ namespace SG
 		this->mpFallBackData = other.mpFallBackData;
 		this->mpVersionNumber = other.mpVersionNumber;
 		this->mpRefCount = other.mpRefCount;
-		this->mMyVersionNumber = *(this->mpVersionNumber);
+		this->mMyVersionNumber = 0;
 		(*mpRefCount) += 1;
 		//SG_LOG_DEBUG("Handle copy ctor!");
 	}
@@ -266,9 +290,9 @@ namespace SG
 		other.mpFallBackData = nullptr;
 		other.mpRefCount = nullptr;
 		other.mpVersionNumber = nullptr;
-		other.mMyVersionNumber = int(-1);
+		other.mMyVersionNumber = -1;
 
-		this->mMyVersionNumber = *(this->mpVersionNumber);
+		this->mMyVersionNumber = 0;
 		//SG_LOG_DEBUG("Handle move ctor!");
 	}
 
@@ -282,6 +306,8 @@ namespace SG
 			{
 				Delete(mpRefCount);
 				Delete(mpVersionNumber);
+				Delete(mpData);
+				Delete(mpFallBackData);
 				//SG_LOG_DEBUG("Copy Self destroyed!");
 			}
 
@@ -289,7 +315,7 @@ namespace SG
 			this->mpFallBackData = other.mpFallBackData;
 			this->mpVersionNumber = other.mpVersionNumber;
 			this->mpRefCount = other.mpRefCount;
-			this->mMyVersionNumber = *(this->mpVersionNumber);
+			this->mMyVersionNumber = 0;
 			(*mpRefCount) += 1;
 			//SG_LOG_DEBUG("Handle copy assignment operator!");
 		}
@@ -306,6 +332,8 @@ namespace SG
 			{
 				Delete(mpRefCount);
 				Delete(mpVersionNumber);
+				Delete(mpData);
+				Delete(mpFallBackData);
 				//SG_LOG_DEBUG("Move Self destroyed!");
 			}
 
@@ -318,9 +346,9 @@ namespace SG
 			other.mpFallBackData = nullptr;
 			other.mpRefCount = nullptr;
 			other.mpVersionNumber = nullptr;
-			other.mMyVersionNumber = int(-1);
+			other.mMyVersionNumber = -1;
 
-			this->mMyVersionNumber = *(this->mpVersionNumber);
+			this->mMyVersionNumber = 0;
 			//SG_LOG_DEBUG("Handle move assignment operator!");
 		}
 		return *this;
@@ -335,22 +363,13 @@ namespace SG
 	template <typename T>
 	void Handle<T>::Validate() noexcept
 	{
-		*mpVersionNumber = mMyVersionNumber;
+		*mpVersionNumber = 0;
 	}
 
 	template <typename T>
 	bool Handle<T>::IsValid() const noexcept
 	{
 		return mMyVersionNumber == *mpVersionNumber;
-	}
-
-	template <typename T>
-	typename Handle<T>::DataType* Handle<T>::GetData() const noexcept
-	{
-		if (!IsValid())
-			return mpFallBackData;
-		else
-			return mpData;
 	}
 
 }

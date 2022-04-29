@@ -114,8 +114,13 @@ namespace SG
 		DrawComponent<MaterialComponent>(entity, [&tag](MaterialComponent& comp)
 			{
 				tag.bDirty |= DrawGUIColorEdit3("Color", comp.albedo);
+				ImGui::Text("Albedo Map: %s", comp.albedoMap ? comp.albedoMap->GetFileName() : "Null");
 				tag.bDirty |= DrawGUIDragFloat("Metallic", comp.metallic, 0.35f, 0.05f, 0.0f, 1.0f);
+				ImGui::Text("Metallic Map: %s", comp.metallicMap ? comp.metallicMap->GetFileName() : "Null");
 				tag.bDirty |= DrawGUIDragFloat("Roughness", comp.roughness, 0.75f, 0.05f, 0.0f, 1.0f);
+				ImGui::Text("Roughness Map: %s", comp.roughnessMap ? comp.roughnessMap->GetFileName() : "Null");
+				ImGui::Text("AO Map: %s", comp.AOMap ? comp.AOMap->GetFileName() : "Null");
+				ImGui::Text("Normal Map: %s", comp.normalMap ? comp.normalMap->GetFileName() : "Null");
 			});
 		DrawComponent<MeshComponent>(entity, [&tag](MeshComponent& comp)
 			{

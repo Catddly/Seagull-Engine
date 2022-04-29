@@ -6,9 +6,12 @@
 #include "Scene/ResourceLoader/RenderResourceLoader.h"
 #include "Scene/ResourceLoader/ResourceDefs.h"
 #include "Render/MeshGenerate/MeshGenerator.h"
+#include "Asset/Asset.h"
 #include "Profile/Profile.h"
 
 #include "TipECS/Registry.h"
+
+#include "Stl/SmartPtr.h"
 
 namespace SG
 {
@@ -115,11 +118,13 @@ namespace SG
 	struct MaterialComponent
 	{
 		Vector3f albedo = { 1.0f, 1.0f, 1.0f };
-		// TODO: temporary: should be replace by the actual handle
-		const string& albedoTexture = "";
-
+		RefPtr<TextureAsset> albedoMap = nullptr;
 		float    metallic = 0.7f;
+		RefPtr<TextureAsset> metallicMap = nullptr;
 		float    roughness = 0.35f;
+		RefPtr<TextureAsset> roughnessMap = nullptr;
+		RefPtr<TextureAsset> normalMap = nullptr;
+		RefPtr<TextureAsset> AOMap = nullptr;
 
 		MaterialComponent() = default;
 		MaterialComponent(const Vector3f& c, float m, float r)

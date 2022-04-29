@@ -34,18 +34,6 @@
 namespace SG
 {
 
-	Raw2DTexture::Raw2DTexture(UInt32 w, UInt32 h, UInt32 arr, UInt32 mip)
-		: width(w), height(h), array(arr), mipLevel(mip), type(ETextureType::eUnknown), pData(nullptr)
-	{
-	}
-
-	Raw2DTexture::~Raw2DTexture()
-	{
-		//! Warning!! this is dangerous. Figure out a better way to do this.
-		if (!pUserData)
-			free(pData);
-	}
-
 	bool TextureResourceLoader::LoadFromFile(const char* name, Raw2DTexture& outRaw, bool bNeedMipMap, bool bIsCubeMap)
 	{
 		SG_PROFILE_FUNCTION();
@@ -72,6 +60,15 @@ namespace SG
 			outRaw.type = ETextureType::eKTX;
 			outRaw.sizeInByte = static_cast<UInt32>(pTexture->dataSize);
 			outRaw.pUserData = pTexture;
+
+			if (pTexture->glInternalformat == 0x8229) // GL_R8
+				outRaw.dimention = 1;
+			else if (pTexture->glInternalformat == 0x822B) // GL_RG8
+				outRaw.dimention = 2;
+			else if (pTexture->glInternalformat == 0x8051) // GL_RGB8
+				outRaw.dimention = 3;
+			else if (pTexture->glInternalformat == 0x8058) // GL_RGBA8
+				outRaw.dimention = 4;
 		}
 		else
 		{
@@ -83,6 +80,7 @@ namespace SG
 			outRaw.array = bIsCubeMap ? 6 : 1;
 			outRaw.mipLevel = CalcMipmapLevel(outRaw.width, outRaw.height);
 			outRaw.sizeInByte = width * height * numChannels;
+			outRaw.dimention = numChannels;
 
 			if (type == ETextureType::eUnknown)
 				return false;

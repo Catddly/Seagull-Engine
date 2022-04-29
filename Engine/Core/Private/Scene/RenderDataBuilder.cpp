@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "Scene/RenderDataBuilder.h"
 
+#include "Scene/Components.h"
 #include "Scene/Mesh/MeshDataArchive.h"
 #include "Profile/Profile.h"
 #include "TipECS/Entity.h"
@@ -10,7 +11,7 @@
 namespace SG
 {
 
-	RenderDataBuilder::RenderDataBuilder(RefPtr<Scene> pScene)
+	RenderDataBuilder::RenderDataBuilder(WeakRefPtr<Scene> pScene)
 		:mpScene(pScene)
 	{
 	}
@@ -23,7 +24,35 @@ namespace SG
 		mbIsRenderDataReady = false;
 	}
 
-	void RenderDataBuilder::BuildData()
+	void RenderDataBuilder::LoadInNeccessaryDataFromDisk()
+	{
+		SG_PROFILE_FUNCTION();
+
+		auto pScene = mpScene.lock();
+		if (!pScene)
+			SG_LOG_ERROR("No scene is set to build the render data!");
+
+		pScene->TraverseEntity([this](auto& entity)
+			{
+				// for now, only material component have asset that need to be load in.
+				if (entity.HasComponent<MaterialComponent>())
+				{
+					MaterialComponent& mat = entity.GetComponent<MaterialComponent>();
+
+					// TODO: may be there is a more automatic and smarter way to load asset.
+					if (mat.albedoMap) mAssets.push_back(mat.albedoMap.get());
+					if (mat.normalMap) mAssets.push_back(mat.normalMap.get());
+					if (mat.metallicMap) mAssets.push_back(mat.metallicMap.get());
+					if (mat.roughnessMap) mAssets.push_back(mat.roughnessMap.get());
+					if (mat.AOMap) mAssets.push_back(mat.AOMap.get());
+				}
+			});
+
+		for (auto* pAsset : mAssets)
+			pAsset->LoadDataFromDisk();
+	}
+
+	void RenderDataBuilder::ResolveRenderData()
 	{
 		SG_PROFILE_FUNCTION();
 

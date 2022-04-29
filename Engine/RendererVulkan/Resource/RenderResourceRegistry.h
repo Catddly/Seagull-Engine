@@ -73,8 +73,8 @@ namespace SG
 		void AddDescriptorSetHandle(const string& name, VulkanDescriptorSet* pSet);
 		void RemoveDescriptorSet(const string& name);
 		void RemoveDescriptorSet(VulkanDescriptorSet* pSet);
-		VulkanDescriptorSet* GetDescriptorSet(const string& name) const;
-		Handle<VulkanDescriptorSet>* GetDescriptorSetHandle(const string& name);
+		VulkanDescriptorSet*         GetDescriptorSet(const string& name) const;
+		Handle<VulkanDescriptorSet*> GetDescriptorSetHandle(const string& name);
 		//ReadOnlyHandle<VulkanDescriptorSet> GetDescriptorSetReadOnlyHandle(const string& name);
 		/// DescriptorSet End
 
@@ -97,7 +97,7 @@ namespace SG
 		mutable eastl::unordered_map<string, VulkanBuffer*>  mBuffers;
 		mutable eastl::unordered_map<string, VulkanTexture*> mTextures;
 		mutable eastl::unordered_map<string, VulkanDescriptorSet*> mDescriptorSets;
-		mutable eastl::unordered_map<string, Handle<VulkanDescriptorSet>*> mDescriptorSetHandles;
+		mutable eastl::unordered_map<string, Handle<VulkanDescriptorSet*>> mDescriptorSetHandles;
 		mutable eastl::unordered_map<string, VulkanRenderTarget*> mRenderTargets;
 		mutable eastl::unordered_map<string, VulkanSampler*> mSamplers;
 

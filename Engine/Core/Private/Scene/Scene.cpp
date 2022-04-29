@@ -224,7 +224,12 @@ namespace SG
 		trans.position.y = 3.0f;
 		trans.rotation.y = 90.0f;
 		trans.scale = { 3.0f, 3.0f, 3.0f };
-		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.05f, 0.9f);
+		auto& mat = pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.05f, 0.9f);
+		mat.albedoMap = MakeRef<TextureAsset>("cerberus_albedo", "cerberus/albedo.ktx", true);
+		mat.normalMap = MakeRef<TextureAsset>("cerberus_normal", "cerberus/normal.ktx", true);
+		mat.metallicMap = MakeRef<TextureAsset>("cerberus_metallic", "cerberus/metallic.ktx", true);
+		mat.roughnessMap = MakeRef<TextureAsset>("cerberus_roughness", "cerberus/roughness.ktx", true);
+		mat.AOMap = MakeRef<TextureAsset>("cerberus_ao", "cerberus/ao.ktx", true);
 		auto& mesh = pEntity->AddComponent<MeshComponent>();
 		LoadMesh("cerberus", EMeshType::eOBJ, mesh);
 	}

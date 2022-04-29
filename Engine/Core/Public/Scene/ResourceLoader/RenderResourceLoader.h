@@ -10,26 +10,6 @@
 namespace SG
 {
 
-	//! Transient raw 2D texture data, will automatically free its memory when unused.
-	class SG_CORE_API Raw2DTexture
-	{
-	public:
-		UInt32         width;
-		UInt32         height;
-		UInt32         array;
-		UInt32         mipLevel;
-		UInt32         sizeInByte;
-
-		ETextureType   type;
-		unsigned char* pData;
-		void* pUserData;
-
-		Raw2DTexture() = default;
-		Raw2DTexture(UInt32 w, UInt32 h, UInt32 arr, UInt32 mip);
-
-		~Raw2DTexture();
-	};
-
 	template <EResourceTypeCategory type>
 	class ResourceLoaderBase
 	{
