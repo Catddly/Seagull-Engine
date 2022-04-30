@@ -144,9 +144,9 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		IndirectRenderer::Begin(context);
-		IndirectRenderer::CullingReset();
-		IndirectRenderer::DoCulling();
-		IndirectRenderer::CopyStatisticsData();
+		//IndirectRenderer::CullingReset();
+		//IndirectRenderer::DoCulling();
+		//IndirectRenderer::CopyStatisticsData();
 
 		auto& pBuf = *context.pCmd;
 		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efTop_Of_Pipeline, 0);
@@ -167,9 +167,10 @@ namespace SG
 			pBuf.BindPipeline(mpShadowInstancePipeline);
 			pBuf.BindPipelineSignatureNonDynamic(mpShadowInstancePipelineSignature.get());
 			IndirectRenderer::Draw(EMeshPass::eForwardInstanced);
-			IndirectRenderer::End();
 		}
 		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efBottom_Of_Pipeline, 1);
+
+		IndirectRenderer::End();
 	}
 
 }

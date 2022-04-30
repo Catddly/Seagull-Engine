@@ -1,5 +1,7 @@
 #version 460
 
+// #extension GL_EXT_gpu_shader4 : enable // for bitwise operand
+
 layout (location = 0) in vec3 inNormalWS;
 layout (location = 1) in vec3 inPosWS;
 layout (location = 2) in vec2 inUV;
@@ -34,7 +36,7 @@ struct ObjectRenderData
 	vec3 mrif;
     int meshId;
 	vec3 albedo;
-	float pad;
+	uint texFlag;
 };
 
 // all object matrices
@@ -57,11 +59,17 @@ layout(set = 1, binding = 5) uniform sampler2D sNormalMap;
 layout (location = 0) out vec4 outColor;
 
 #define PI 3.1415926535897932384626433832795
-#define ALBEDO pow(texture(sAlbedoMap, inUV).rgb, vec3(2.2)) // gamma correction to the texture
+//#define ALBEDO pow(texture(sAlbedoMap, inUV).rgb, vec3(2.2)) // gamma correction to the texture
 //#define ALBEDO perObjectBuffer.objects[inId].albedo
 //#define ALBEDO vec3(1.0, 1.0, 1.0)
 //#define ALBEDO cullingOutputData.objects[inId].albedo
 #define SHADOW_COLOR vec3(0.003, 0.003, 0.003)
+
+#define ALBEDO_TEX_MASK 0x01
+#define METALLIC_TEX_MASK 0x02
+#define ROUGHNESS_TEX_MASK 0x04
+#define NORMAL_TEX_MASK 0x08
+#define AO_TEX_MASK 0x10
 
 float SampleShadowMap(vec4 shadowMapPos)
 {
@@ -165,7 +173,7 @@ vec3 prefilteredReflection(vec3 R, float roughness)
 	return mix(a, b, lod - lodf);
 }
 
-vec3 directLight(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness, vec3 lightColor)
+vec3 directLight(vec3 albedo, vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness, vec3 lightColor)
 {
 	// Precalculate vectors and dot products	
 	vec3 H = normalize(V + L);
@@ -186,7 +194,7 @@ vec3 directLight(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughnes
 		vec3 kS = F;
 		vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
 
-        vec3 diffuse = kD * ALBEDO / PI; // diffuse part (kD * f(lambert)) * ao
+        vec3 diffuse = kD * albedo / PI; // diffuse part (kD * f(lambert)) * ao
 		vec3 specular = (D * G) * F / (4.0 * dotNL * dotNV + 0.0001); // specular part (kS * f(cook-torrance))
 
 		color += (diffuse + specular) * lightColor * dotNL;
@@ -207,25 +215,36 @@ vec3 CalculateNormal()
 
 void main()
 {		
-	vec3 N = CalculateNormal();
+	vec3 albedo = perObjectBuffer.objects[inId].albedo;
+	if ((perObjectBuffer.objects[inId].texFlag & ALBEDO_TEX_MASK) != 0)
+		albedo = pow(texture(sAlbedoMap, inUV).rgb, vec3(2.2));
+
+	vec3 N = normalize(inNormalWS);
+	if ((perObjectBuffer.objects[inId].texFlag & NORMAL_TEX_MASK) != 0)
+		N = CalculateNormal();
+		
 	vec3 V = normalize(inViewPosWS - inPosWS);
 	vec3 R = reflect(-V, N); 
 
-	float metallic = texture(sMetallicMap, inUV).r;
-	float roughness = texture(sRoughnessMap, inUV).r;
+	float metallic = perObjectBuffer.objects[inId].mrif.r;
+	float roughness = perObjectBuffer.objects[inId].mrif.g;
+	if ((perObjectBuffer.objects[inId].texFlag & METALLIC_TEX_MASK) != 0)
+		metallic = texture(sMetallicMap, inUV).r;
+	if ((perObjectBuffer.objects[inId].texFlag & ROUGHNESS_TEX_MASK) != 0)
+		roughness = texture(sRoughnessMap, inUV).r;
 
 	vec3 F0 = vec3(0.04);
-	F0 = mix(F0, ALBEDO, metallic);
+	F0 = mix(F0, albedo, metallic);
 
 	vec3 directLighting = vec3(0.0);
 	{
 		// point light
 		vec3 pointLightRadiance = CalcPointLightRadiance(normalize(lightUbo.pointLightPos - inPosWS), lightUbo.pointLightColor, lightUbo.pointLightRadius);
-		directLighting += directLight(normalize(lightUbo.pointLightPos - inPosWS), V, N, F0, metallic, roughness, pointLightRadiance);
+		directLighting += directLight(albedo, normalize(lightUbo.pointLightPos - inPosWS), V, N, F0, metallic, roughness, pointLightRadiance);
 
 		// directional light
 		float shadow = SampleShadowMapPCF(inShadowMapPos); // only affect directional light
-		directLighting += mix(directLight(-lightUbo.viewDirection, V, N, F0, metallic, roughness, lightUbo.directionalColor.rgb), SHADOW_COLOR, shadow); // blend with shadow color
+		directLighting += mix(directLight(albedo, -lightUbo.viewDirection, V, N, F0, metallic, roughness, lightUbo.directionalColor.rgb), SHADOW_COLOR, shadow); // blend with shadow color
 	}
 	
 	vec3 indirectLighting = vec3(0.0);
@@ -238,10 +257,12 @@ void main()
 		vec3 kD = vec3(1.0) - kS;
 		kD *= 1.0 - metallic;
 
-		vec3 diffuseIBL = kD * irradiance * ALBEDO;
+		vec3 diffuseIBL = kD * irradiance * albedo;
 		vec3 specularIBL = reflectionColor * (kS * brdf.x + brdf.y);
 
-		vec3 ao = texture(sAOMap, inUV).rrr;
+		vec3 ao = vec3(1.0);
+		if ((perObjectBuffer.objects[inId].texFlag & AO_TEX_MASK) != 0)
+			ao = texture(sAOMap, inUV).rrr;
 		indirectLighting = (diffuseIBL + specularIBL) * ao;  // * ao
 	}
 

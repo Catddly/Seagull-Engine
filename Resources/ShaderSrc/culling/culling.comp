@@ -19,7 +19,7 @@ struct ObjectRenderData
 	vec3 mrif;
     int meshId;
 	vec3 albedo;
-	float pad;
+	uint texFlag;
 };
 
 // all object matrices

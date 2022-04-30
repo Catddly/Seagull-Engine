@@ -131,8 +131,6 @@ namespace SG
 			Delete(beg->second);
 		for (auto beg = mDescriptorSets.begin(); beg != mDescriptorSets.end(); ++beg)
 			Delete(beg->second);
-		//for (auto beg = mDescriptorSetHandles.begin(); beg != mDescriptorSetHandles.end(); ++beg)
-		//	Delete(beg->second);
 		for (auto beg = mRenderTargets.begin(); beg != mRenderTargets.end(); ++beg)
 			Delete(beg->second);
 		for (auto beg = mSamplers.begin(); beg != mSamplers.end(); ++beg)
@@ -224,6 +222,7 @@ namespace SG
 						renderData.meshId = mesh.meshId;
 						renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
 						renderData.albedo = mat.albedo;
+						renderData.texFlag = ALBEDO_TEX_MASK | METALLIC_TEX_MASK | ROUGHNESS_TEX_MASK | AO_TEX_MASK | NORMAL_TEX_MASK;
 						pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
 					}
 					tag.bDirty = false;
@@ -557,8 +556,6 @@ namespace SG
 	void VulkanResourceRegistry::AddDescriptorSetHandle(const string& name, VulkanDescriptorSet* pSet)
 	{
 		SG_PROFILE_FUNCTION();
-
-		SG_LOG_DEBUG("Size of handle: %zu", mDescriptorSetHandles.size());
 
 		auto node = mDescriptorSetHandles.find(name);
 		if (node != mDescriptorSetHandles.end())

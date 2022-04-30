@@ -115,6 +115,12 @@ namespace SG
 	/// MaterialComponent
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	static constexpr UInt32 ALBEDO_TEX_MASK = BIT(0);
+	static constexpr UInt32 METALLIC_TEX_MASK = BIT(1);
+	static constexpr UInt32 ROUGHNESS_TEX_MASK = BIT(2);
+	static constexpr UInt32 NORMAL_TEX_MASK = BIT(3);
+	static constexpr UInt32 AO_TEX_MASK = BIT(4);
+	
 	struct MaterialComponent
 	{
 		Vector3f albedo = { 1.0f, 1.0f, 1.0f };
@@ -154,7 +160,7 @@ namespace SG
 	struct DirectionalLightComponent
 	{
 		Vector3f color = Vector3f(1.0f);
-
+		              
 		DirectionalLightComponent() = default;
 		DirectionalLightComponent(const Vector3f& c)
 			:color(c)

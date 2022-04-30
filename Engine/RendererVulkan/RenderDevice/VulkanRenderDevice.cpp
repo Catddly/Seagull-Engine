@@ -158,13 +158,12 @@ namespace SG
 			SG_PROFILE_SCOPE("Fence Waiting");
 
 			mpContext->pFences[mCurrentFrame]->WaitAndReset(); // wait for the render commands running on the GPU side to finish
-			mpContext->pComputeSyncFences[mCurrentFrame]->WaitAndReset(); // wait for the compute command buffer to finish
+			//mpContext->pComputeSyncFences[mCurrentFrame]->WaitAndReset(); // wait for the compute command buffer to finish
 		}
 
 		{
 			SG_PROFILE_SCOPE("Render Command Reset");
 
-			//mpContext->computeCmdBuffer.Reset();
 			mpContext->commandBuffers[mCurrentFrame].Reset();
 		}
 
@@ -175,9 +174,11 @@ namespace SG
 
 			// submit graphic commands
 			VulkanSemaphore* signalSemaphores[1] = { mpContext->pRenderCompleteSemaphore };
-			VulkanSemaphore* waitSemaphores[2] = { mpContext->pPresentCompleteSemaphore, mpContext->pComputeCompleteSemaphore };
-			EPipelineStage   waitStages[2] = { EPipelineStage::efColor_Attachment_Output, EPipelineStage::efCompute_Shader };
-			mpContext->pGraphicQueue->SubmitCommands<2, 1, 2>(&mpContext->commandBuffers[mCurrentFrame],
+			VulkanSemaphore* waitSemaphores[1] = { mpContext->pPresentCompleteSemaphore };
+			//VulkanSemaphore* waitSemaphores[2] = { mpContext->pPresentCompleteSemaphore, mpContext->pComputeCompleteSemaphore };
+			EPipelineStage   waitStages[1] = { EPipelineStage::efColor_Attachment_Output };
+			//EPipelineStage   waitStages[2] = { EPipelineStage::efColor_Attachment_Output, EPipelineStage::efCompute_Shader };
+			mpContext->pGraphicQueue->SubmitCommands<1, 1, 1>(&mpContext->commandBuffers[mCurrentFrame],
 				waitStages, signalSemaphores, waitSemaphores,
 				mpContext->pFences[mCurrentFrame]);
 			// once submit the commands to GPU, pRenderCompleteSemaphore will be locked, and will be unlocked after the GPU finished the commands.
@@ -194,20 +195,20 @@ namespace SG
 		{
 			SG_PROFILE_SCOPE("Copy Statistics");
 
-			DrawInfo info;
-			info.frameIndex = mCurrentFrame;
-			IndirectRenderer::Begin(info);
-			IndirectRenderer::WaitForStatisticsCopyed();
-			IndirectRenderer::End();
+			//DrawInfo info;
+			//info.frameIndex = mCurrentFrame;
+			//IndirectRenderer::Begin(info);
+			//IndirectRenderer::WaitForStatisticsCopyed();
+			//IndirectRenderer::End();
 
-			// copy statistic data
+			//// copy statistic data
 			auto& statisticData = GetStatisticData();
-			statisticData.cullSceneObjects = 0;
-			auto* pIndirectReadBackBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer_read_back");
-			auto* pIndirectCommands = pIndirectReadBackBuffer->MapMemory<DrawIndexedIndirectCommand>();
-			for (UInt32 i = 0; i < MeshDataArchive::GetInstance()->GetNumMeshData(); ++i)
-				statisticData.cullSceneObjects += (pIndirectCommands + i)->instanceCount;
-			pIndirectReadBackBuffer->UnmapMemory();
+			//statisticData.cullSceneObjects = 0;
+			//auto* pIndirectReadBackBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer_read_back");
+			//auto* pIndirectCommands = pIndirectReadBackBuffer->MapMemory<DrawIndexedIndirectCommand>();
+			//for (UInt32 i = 0; i < MeshDataArchive::GetInstance()->GetNumMeshData(); ++i)
+			//	statisticData.cullSceneObjects += (pIndirectCommands + i)->instanceCount;
+			//pIndirectReadBackBuffer->UnmapMemory();
 
 			// copy the query result
 			if (!mpContext->pPipelineStatisticsQueryPool->IsSleep())

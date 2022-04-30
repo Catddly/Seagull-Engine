@@ -73,7 +73,7 @@ namespace SG
 		Vector3f MRIF = { 0.2f, 0.85f, 0.0f };
 		Int32    meshId;
 		Vector3f albedo;
-		float    pad;
+		UInt32   texFlag; //! Used to determined which texture map should be use.
 	};
 
 	struct CullingOutputData
