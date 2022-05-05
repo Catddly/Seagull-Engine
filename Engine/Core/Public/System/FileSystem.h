@@ -26,6 +26,7 @@ namespace SG
 		eTextures,
 		eFonts,
 		eLog,
+		eScenes,
 		eScripts,
 		eVendor,
 		eTemplate,
@@ -129,7 +130,7 @@ namespace SG
 		//! This include the last read from, written to, or for executable files, run.
 		SG_CORE_API static TimePoint GetFileLastReadTime(EResourceDirectory directory, const char* filename, UInt32 baseOffset = 0);
 
-		SG_CORE_API static bool CreateFolder(const EResourceDirectory directory, const char* folderName);
+		SG_CORE_API static bool CreateFolder(const EResourceDirectory directory, const char* folderName, Size rootFolderOffset);
 	private:
 		friend class System;
 

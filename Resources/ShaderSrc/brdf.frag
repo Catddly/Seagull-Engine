@@ -63,7 +63,7 @@ layout (location = 0) out vec4 outColor;
 //#define ALBEDO perObjectBuffer.objects[inId].albedo
 //#define ALBEDO vec3(1.0, 1.0, 1.0)
 //#define ALBEDO cullingOutputData.objects[inId].albedo
-#define SHADOW_COLOR vec3(0.003, 0.003, 0.003)
+#define SHADOW_COLOR vec3(0.0, 0.0, 0.0)
 
 #define ALBEDO_TEX_MASK 0x01
 #define METALLIC_TEX_MASK 0x02
@@ -243,9 +243,11 @@ void main()
 		directLighting += directLight(albedo, normalize(lightUbo.pointLightPos - inPosWS), V, N, F0, metallic, roughness, pointLightRadiance);
 
 		// directional light
-		float shadow = SampleShadowMapPCF(inShadowMapPos); // only affect directional light
-		directLighting += mix(directLight(albedo, -lightUbo.viewDirection, V, N, F0, metallic, roughness, lightUbo.directionalColor.rgb), SHADOW_COLOR, shadow); // blend with shadow color
+		directLighting += directLight(albedo, -lightUbo.viewDirection, V, N, F0, metallic, roughness, lightUbo.directionalColor.rgb);
 	}
+
+	float shadow = SampleShadowMapPCF(inShadowMapPos);
+	directLighting = mix(directLighting, SHADOW_COLOR, shadow);
 	
 	vec3 indirectLighting = vec3(0.0);
 	{
@@ -263,7 +265,7 @@ void main()
 		vec3 ao = vec3(1.0);
 		if ((perObjectBuffer.objects[inId].texFlag & AO_TEX_MASK) != 0)
 			ao = texture(sAOMap, inUV).rrr;
-		indirectLighting = (diffuseIBL + specularIBL) * ao;  // * ao
+		indirectLighting = (diffuseIBL + specularIBL) * ao;
 	}
 
 	vec3 color = directLighting + indirectLighting;

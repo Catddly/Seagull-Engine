@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Archive/IDAllocator.h"
+#include "Archive/ISerializable.h"
 #include "Scene/Camera/ICamera.h"
 #include "Scene/Components.h"
 
@@ -19,7 +20,7 @@ namespace SG
 	// so, 10 point light is enough.
 #define SG_MAX_NUM_POINT_LIGHT 10
 
-	class Scene
+	class Scene final : public ISerializable
 	{
 	public:
 		using EntityManager = typename TipECS::EntityManager<SGECSSetting>;
@@ -64,6 +65,9 @@ namespace SG
 		void DefaultScene();
 		void MaterialScene();
 		void MaterialTexturedScene();
+
+		virtual void Serialize(YAML::Emitter& outStream) override;
+		virtual void Deserialize(YAML::Node& node) override;
 	private:
 		Entity mSkyboxEntity;
 		RefPtr<ICamera> mpMainCamera; // TODO: support multiply switchable camera

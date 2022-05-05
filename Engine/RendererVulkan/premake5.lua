@@ -20,6 +20,8 @@ project "SRendererVulkan"
     defines
     {
         "SG_MODULE",
+
+        "YAML_CPP_STATIC_DEFINE", -- yaml-cpp
     }
 
     includedirs
@@ -34,6 +36,7 @@ project "SRendererVulkan"
         "../../Libs/glm/",  -- glm
         "../../Libs/ktx/include/",
         "../../Libs/vulkan_memory_allocator/",
+        "../../Libs/yaml/include/",
     }
 
     links

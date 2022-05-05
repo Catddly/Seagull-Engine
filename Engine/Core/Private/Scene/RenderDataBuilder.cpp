@@ -40,16 +40,19 @@ namespace SG
 					MaterialComponent& mat = entity.GetComponent<MaterialComponent>();
 
 					// TODO: may be there is a more automatic and smarter way to load asset.
-					if (mat.albedoMap) mAssets.push_back(mat.albedoMap.get());
-					if (mat.normalMap) mAssets.push_back(mat.normalMap.get());
-					if (mat.metallicMap) mAssets.push_back(mat.metallicMap.get());
-					if (mat.roughnessMap) mAssets.push_back(mat.roughnessMap.get());
-					if (mat.AOMap) mAssets.push_back(mat.AOMap.get());
+					if (mat.albedoTex) mAssets[mat.albedoTex->GetAssetID()] = mat.albedoTex;
+					if (mat.normalTex) mAssets[mat.normalTex->GetAssetID()] = mat.normalTex;
+					if (mat.metallicTex) mAssets[mat.metallicTex->GetAssetID()] = mat.metallicTex;
+					if (mat.roughnessTex) mAssets[mat.roughnessTex->GetAssetID()] = mat.roughnessTex;
+					if (mat.AOTex) mAssets[mat.AOTex->GetAssetID()] = mat.AOTex;
 				}
 			});
 
-		for (auto* pAsset : mAssets)
-			pAsset->LoadDataFromDisk();
+		for (auto& node : mAssets)
+		{
+			auto pLock = node.second.lock();
+			pLock->LoadDataFromDisk();
+		}
 	}
 
 	void RenderDataBuilder::ResolveRenderData()

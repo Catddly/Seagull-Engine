@@ -6,6 +6,7 @@
 #include "Math/MathBasic.h"
 #include "Stl/Utility.h"
 #include "Scene/Components.h"
+#include "Archive/Serialization.h"
 
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
@@ -112,6 +113,11 @@ namespace SG
 		{
 			if (ImGui::BeginMenu("File"))
 			{
+				if (ImGui::MenuItem("Save Scene"))
+				{
+					Serializer::Serialize(SSystem()->GetMainScene());
+				}
+				ImGui::Separator();
 				if (ImGui::MenuItem("Exit"))
 					SSystem()->Terminate();
 				ImGui::EndMenu();

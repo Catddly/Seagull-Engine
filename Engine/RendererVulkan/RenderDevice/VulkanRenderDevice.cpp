@@ -274,11 +274,12 @@ namespace SG
 		bool bHaveTexture = false;
 
 		auto& assets = pRenderDataBuilder->GetAssets();
-		for (auto* pAsset : assets)
+		for (auto& pWeakRef : assets)
 		{
+			auto pAsset = pWeakRef.second.lock();
 			if (pAsset->GetAssetType() == EAssetType::eTexture)
 			{
-				TextureAsset* pTextureAsset = static_cast<TextureAsset*>(pAsset);
+				TextureAsset* pTextureAsset = static_cast<TextureAsset*>(pAsset.get());
 				TextureCreateDesc texCI = {};
 				texCI.name = pTextureAsset->GetAssetName().c_str();
 				texCI.width = pTextureAsset->GetWidth();
@@ -309,12 +310,14 @@ namespace SG
 		if (bHaveTexture)
 			VK_RESOURCE()->FlushTextures();
 
-		for (auto* pAsset : assets)
+		for (auto& pWeakRef : assets)
 		{
+			auto pAsset = pWeakRef.second.lock();
 			if (pAsset->GetAssetType() == EAssetType::eTexture)
 			{
-				TextureAsset* pTextureAsset = static_cast<TextureAsset*>(pAsset);
+				TextureAsset* pTextureAsset = static_cast<TextureAsset*>(pAsset.get());
 				pTextureAsset->FreeMemory();
+				SG_ASSERT(!pTextureAsset->IsDiskResourceLoaded());
 			}
 		}
 

@@ -20,6 +20,8 @@ namespace SG
 
 		virtual UInt32 GetAssetID() const = 0;
 		virtual EAssetType GetAssetType() const = 0;
+
+		virtual void SetAssetName(const string& name) = 0;
 		virtual string GetAssetName() const = 0;
 	};
 

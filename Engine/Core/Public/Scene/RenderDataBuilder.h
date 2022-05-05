@@ -30,14 +30,14 @@ namespace SG
 		void LoadInNeccessaryDataFromDisk();
 		void ResolveRenderData();
 
-		const vector<IAsset*>& GetAssets() const noexcept { return mAssets; }
+		const eastl::unordered_map<UInt32, WeakRefPtr<IAsset>>& GetAssets() const noexcept { return mAssets; }
 
 		template <typename Func>
 		void TraverseRenderData(Func&& func);
 	private:
 		WeakRefPtr<Scene> mpScene;
 		eastl::unordered_map<UInt32, RenderMeshBuildData> mRenderMeshBuildDataMap; // meshId -> RenderMeshBuildData
-		vector<IAsset*> mAssets;
+		eastl::unordered_map<UInt32, WeakRefPtr<IAsset>> mAssets; // assetId -> IAsset
 
 		bool mbIsRenderDataReady = false;
 	};

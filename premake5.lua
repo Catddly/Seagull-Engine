@@ -41,6 +41,7 @@ group "Libs"
     include "Libs/imgui/"
     include "Libs/spirv-cross/"
     include "Libs/tracy/"
+    include "Libs/yaml/"
 
 group ""
 
@@ -70,6 +71,11 @@ group "Runtime"
             "User/Sandbox/**.cpp"
         }
 
+        defines
+        {
+            "YAML_CPP_STATIC_DEFINE", -- yaml-cpp
+        }
+
         includedirs
         {
             "Engine/",
@@ -77,6 +83,7 @@ group "Runtime"
             "Libs/",
             "Libs/eastl/include/",
             "Libs/glm/",
+            "Libs/yaml/include/",
         }
 
         links

@@ -33,6 +33,11 @@ namespace SG
 		:AssetBase(name, EAssetType::eTexture), mFilename(filename), mbNeedMipmap(needMipmap), mbIsCubeMap(isCubeMap)
 	{}
 
+	TextureAsset::TextureAsset()
+		:AssetBase("", EAssetType::eTexture), mFilename(""), mbNeedMipmap(false), mbIsCubeMap(false)
+	{
+	}
+
 	void TextureAsset::LoadDataFromDisk() noexcept
 	{
 		SG_ASSERT(!mTextureData.IsValid());
@@ -49,6 +54,22 @@ namespace SG
 		string path = FileSystem::GetResourceFolderPath(EResourceDirectory::eTextures, SG_ENGINE_DEBUG_BASE_OFFSET);
 		path += mFilename;
 		return eastl::move(path);
+	}
+
+	void TextureAsset::Serialize(YAML::Emitter& outStream)
+	{
+		outStream << YAML::Key << "Name" << YAML::Value << GetAssetName().c_str();
+		outStream << YAML::Key << "Filename" << YAML::Value << GetFileName().c_str();
+		outStream << YAML::Key << "NeedMipmap" << YAML::Value << mbNeedMipmap;
+		outStream << YAML::Key << "IsCubeMap" << YAML::Value << mbIsCubeMap;
+	}
+
+	void TextureAsset::Deserialize(YAML::Node& node)
+	{
+		SetAssetName(node["Name"].as<std::string>().c_str());
+		mFilename = node["Filename"].as<std::string>().c_str();
+		mbNeedMipmap = node["NeedMipmap"].as<bool>();
+		mbIsCubeMap = node["IsCubeMap"].as<bool>();
 	}
 
 }

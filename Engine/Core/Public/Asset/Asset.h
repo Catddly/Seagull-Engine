@@ -20,6 +20,8 @@ namespace SG
 
 		virtual UInt32 GetAssetID() const override { return mAssetId; }
 		EAssetType GetAssetType() const override { return mAssetType; }
+
+		virtual void SetAssetName(const string& name) override { mAssetName = name; };
 		virtual string GetAssetName() const override { return mAssetName; }
 	private:
 		static IDAllocator<UInt32> msAssetIdAllocator;
@@ -31,6 +33,7 @@ namespace SG
 	class TextureAsset final : public AssetBase, public ISerializable
 	{
 	public:
+		TextureAsset();
 		TextureAsset(const string& name, const string& filename, bool needMipmap = false, bool isCubeMap = false);
 
 		virtual string GetFileName() const noexcept { return mFilename; }
@@ -52,11 +55,12 @@ namespace SG
 		SG_INLINE bool IsValid() const noexcept { return mTextureData.IsValid(); }
 		SG_INLINE void FreeMemory() noexcept { SG_ASSERT(mTextureData.IsValid()); mTextureData.FreeMemory(); }
 
-		virtual void Serialize() override { SG_NOT_IMPLEMENTED(); }
-		virtual void DeSerialize() override { SG_NOT_IMPLEMENTED(); }
-	private:
+		virtual void Serialize(YAML::Emitter& outStream) override;
+		virtual void Deserialize(YAML::Node& node) override;
+		
 		virtual string GetAssetFilePath() const noexcept override { return mFilename; }
-		virtual void LoadDataFromDisk() noexcept override;
+		virtual void   LoadDataFromDisk() noexcept override;
+		virtual bool   IsDiskResourceLoaded() const noexcept { return mTextureData.IsValid(); };
 	private:
 		string       mFilename;
 		Raw2DTexture mTextureData; //! For now, TextureAsset only refs to 2d textures.

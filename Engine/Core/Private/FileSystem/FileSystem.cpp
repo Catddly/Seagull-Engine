@@ -24,6 +24,7 @@ namespace SG
 		"Texture",
 		"Font",
 		"Log",
+		"Scene",
 		"Script",
 		"Vendor",
 		"Template",
@@ -254,11 +255,11 @@ namespace SG
 		return std::filesystem::exists(filepath.c_str());
 	}
 
-	bool FileSystem::CreateFolder(const EResourceDirectory directory, const char* folderName)
+	bool FileSystem::CreateFolder(const EResourceDirectory directory, const char* folderName, Size rootFolderOffset)
 	{
 		SG_PROFILE_FUNCTION();
 
-		string path = GetResourceFolderName(directory) + "/";
+		string path = GetResourceFolderPath(directory, rootFolderOffset);
 		path += folderName;
 		return std::filesystem::create_directory(path.c_str());
 	}
@@ -279,7 +280,7 @@ namespace SG
 					folder += path;
 
 				if (!Exist(directory, folder.c_str(), rootFolderOffset))
-					bSuccess &= CreateFolder(directory, folder.c_str());
+					bSuccess &= CreateFolder(directory, folder.c_str(), rootFolderOffset);
 				break;
 			}
 			else
@@ -290,7 +291,7 @@ namespace SG
 				folder += path.substr(0, nextFolderPos);
 				path = path.substr(nextFolderPos, path.size() - nextFolderPos);
 				if (!Exist(directory, folder.c_str(), rootFolderOffset))
-					bSuccess &= CreateFolder(directory, folder.c_str());
+					bSuccess &= CreateFolder(directory, folder.c_str(), rootFolderOffset);
 			}
 		}
 		return bSuccess;

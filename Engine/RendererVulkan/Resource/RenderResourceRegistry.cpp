@@ -116,6 +116,7 @@ namespace SG
 			renderData.meshId = mesh.meshId;
 			renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
 			renderData.albedo = mat.albedo;
+			renderData.texFlag = GetMaterialTexMask(mat);
 			pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
 		}
 	}
@@ -222,7 +223,7 @@ namespace SG
 						renderData.meshId = mesh.meshId;
 						renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
 						renderData.albedo = mat.albedo;
-						renderData.texFlag = ALBEDO_TEX_MASK | METALLIC_TEX_MASK | ROUGHNESS_TEX_MASK | AO_TEX_MASK | NORMAL_TEX_MASK;
+						renderData.texFlag = GetMaterialTexMask(mat);
 						pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
 					}
 					tag.bDirty = false;

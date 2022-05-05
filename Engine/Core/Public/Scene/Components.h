@@ -81,10 +81,18 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		MeshData meshData = {};
+		meshData.bIsProceduralMesh = true;
 		if (type == EGennerateMeshType::eGrid)
+		{
 			MeshGenerator::GenGrid(meshData.vertices, meshData.indices);
+			meshData.filename = "_generated_grid";
+		}
 		else if (type == EGennerateMeshType::eSkybox)
+		{
 			MeshGenerator::GenSkybox(meshData.vertices);
+			meshData.filename = "_generated_skybox";
+		}
+		comp.meshType = EMeshType::eUnknown;
 		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
 	}
 
@@ -96,6 +104,8 @@ namespace SG
 		fullName += MeshTypeToExtString(type);
 
 		MeshData meshData = {};
+		meshData.filename = filename;
+		meshData.bIsProceduralMesh = false;
 		MeshResourceLoader loader;
 		if (!loader.LoadFromFile(fullName.c_str(), meshData.vertices, meshData.indices))
 			SG_LOG_WARN("Mesh %s load failure!", fullName);
@@ -124,19 +134,30 @@ namespace SG
 	struct MaterialComponent
 	{
 		Vector3f albedo = { 1.0f, 1.0f, 1.0f };
-		RefPtr<TextureAsset> albedoMap = nullptr;
+		RefPtr<TextureAsset> albedoTex = nullptr;
 		float    metallic = 0.7f;
-		RefPtr<TextureAsset> metallicMap = nullptr;
+		RefPtr<TextureAsset> metallicTex = nullptr;
 		float    roughness = 0.35f;
-		RefPtr<TextureAsset> roughnessMap = nullptr;
-		RefPtr<TextureAsset> normalMap = nullptr;
-		RefPtr<TextureAsset> AOMap = nullptr;
+		RefPtr<TextureAsset> roughnessTex = nullptr;
+		RefPtr<TextureAsset> normalTex = nullptr;
+		RefPtr<TextureAsset> AOTex = nullptr;
 
 		MaterialComponent() = default;
 		MaterialComponent(const Vector3f& c, float m, float r)
 			:albedo(c), metallic(m), roughness(r)
 		{}
 	};
+
+	SG_INLINE UInt32 GetMaterialTexMask(const MaterialComponent& mat)
+	{
+		UInt32 flag = 0;
+		flag |= mat.albedoTex ? ALBEDO_TEX_MASK : 0;
+		flag |= mat.metallicTex ? METALLIC_TEX_MASK : 0;
+		flag |= mat.roughnessTex ? ROUGHNESS_TEX_MASK : 0;
+		flag |= mat.normalTex ? NORMAL_TEX_MASK : 0;
+		flag |= mat.AOTex ? AO_TEX_MASK : 0;
+		return flag;
+	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// PointLightComponent

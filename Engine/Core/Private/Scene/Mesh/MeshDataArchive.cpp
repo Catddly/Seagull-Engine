@@ -29,6 +29,17 @@ namespace SG
 		return &node->second.first;
 	}
 
+	UInt32 MeshDataArchive::GetMeshID(const string& filename) const
+	{
+		// TODO: modified it, this is too slow.
+		for (auto& node : mMeshDatas)
+		{
+			if (node.second.first.filename == filename)
+				return node.first;
+		}
+		return UInt32(-1);
+	}
+
 	bool MeshDataArchive::HaveInstance(UInt32 meshId) const
 	{
 		auto node = mMeshDatas.find(meshId);
@@ -38,6 +49,17 @@ namespace SG
 			return false;
 		}
 		return node->second.second;
+	}
+
+	bool MeshDataArchive::HaveMeshData(const string& filename)
+	{
+		// TODO: modified it, this is too slow.
+		for (auto& node : mMeshDatas)
+		{
+			if (node.second.first.filename == filename)
+				return true;
+		}
+		return false;
 	}
 
 	MeshDataArchive* MeshDataArchive::GetInstance()

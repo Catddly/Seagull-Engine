@@ -6,6 +6,7 @@
 #include "System/Input.h"
 #include "User/IApp.h"
 #include "Event/MessageBus/MessageBus.h"
+#include "Archive/Serialization.h"
 
 #include "Render/Shader/ShaderLibrary.h"
 
@@ -53,6 +54,8 @@ namespace SG
 
 		mp3DScene = MakeRef<Scene>();
 		mp3DScene->OnSceneLoad();
+
+		Deserializer::Deserialize(mp3DScene);
 
 		mpRenderDataBuilder = MakeRef<RenderDataBuilder>();
 		mpRenderDataBuilder->SetScene(mp3DScene);

@@ -22,6 +22,8 @@ project "SCore"
         "SG_MODULE",
 
         "_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING", -- hash<Vector3f>
+
+        "YAML_CPP_STATIC_DEFINE", -- yaml-cpp
     }
 
     includedirs
@@ -35,6 +37,7 @@ project "SCore"
         "../../Libs/glm/",
         "../../Libs/ktx/include/",
         "../../Libs/tracy/",
+        "../../Libs/yaml/include/",
     }
 
     links
@@ -45,6 +48,7 @@ project "SCore"
         "ktx",
         "spirv-cross",
         "tracy_server",
+        "yaml",
     }
 
     filter "system:windows"
