@@ -74,7 +74,7 @@ namespace SG
 			textureCI.sample = ESampleCount::eSample_1;
 			textureCI.usage = EImageUsage::efSample;
 			textureCI.type = EImageType::e2D;
-			if (!VK_RESOURCE()->CreateTexture(textureCI, true))
+			if (!VK_RESOURCE()->CreateTexture(textureCI))
 			{
 				SG_LOG_ERROR("Failed to create texture!");
 				SG_ASSERT(false);

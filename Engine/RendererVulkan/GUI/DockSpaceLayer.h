@@ -34,6 +34,8 @@ namespace SG
 		void DrawStatistics(float deltaTime);
 		void DrawSceneHirerchy();
 		void DrawSelectedEntityProperty();
+
+		void DrawSaveSceneProgressBar();
 	private:
 		//MessageBusMember mMessageBusMember;
 
@@ -41,13 +43,15 @@ namespace SG
 		UInt32 mFrameCounter = 1;
 		float mElapsedTime = 0.0f;
 
+		Vector2f mViewportPos = { 0.0f, 0.0f };
 		Vector2f mLastViewportSize = { 0.0f, 0.0f };
 
-		Handle<VulkanDescriptorSet*> mViewportTexHandle;
+		ReadOnlyHandle<VulkanDescriptorSet*> mViewportTexHandle;
 		Scene::Entity mSelectedEntity;
 
 		bool mbViewportCanUpdateMouse = false;
 		bool mbShowStatisticsDetail = true;
+		bool mbShowSaveSceneProgressBar = false;
 	};
 
 }

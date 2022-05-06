@@ -13,12 +13,12 @@ namespace SG
 	public:
 		SG_CORE_API BasicCamera(const Vector3f& position, const Vector3f& rotation);
 		SG_CORE_API ~BasicCamera();
-		SG_CLASS_NO_COPY_ASSIGNABLE(BasicCamera);
+		SG_CLASS_NO_COPY_MOVE_ASSIGNABLE(BasicCamera);
 
 		SG_CORE_API virtual Matrix4f GetViewMatrix() const override { return mViewMatrix; }
 		SG_CORE_API virtual Matrix4f GetProjMatrix() const override { return mProjectionMatrix; }
 
-		SG_CORE_API virtual void SetPerspective(float fovyInDegrees, float aspect, float zNear, float zFar) override;
+		SG_CORE_API virtual void SetPerspective(float fovyInDegrees, float aspect, float zNear = 0.01f, float zFar = 256.0f) override;
 		SG_CORE_API virtual void SetOrthographic(float left, float right, float top, float bottom, float zNear, float zfar) override;
 
 		SG_CORE_API virtual void     SetPosition(const Vector3f& pos) override { mbIsViewDirty = true; mPosition = pos; UpdateViewMatrix(); }

@@ -18,11 +18,12 @@ namespace SG
 
 		virtual string GetAssetFilePath() const noexcept = 0;
 
-		virtual UInt32 GetAssetID() const override { return mAssetId; }
+		UInt32 GetAssetID() const override { return mAssetId; }
 		EAssetType GetAssetType() const override { return mAssetType; }
 
-		virtual void SetAssetName(const string& name) override { mAssetName = name; };
-		virtual string GetAssetName() const override { return mAssetName; }
+		string GetAssetName() const override { return mAssetName; }
+	protected:
+		void SetAssetName(const string& name) override { mAssetName = name; };
 	private:
 		static IDAllocator<UInt32> msAssetIdAllocator;
 		string mAssetName = "";

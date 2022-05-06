@@ -55,7 +55,7 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		return glm::translate(Matrix4f(1.0f), comp.position) *
-			glm::toMat4(Quternion(glm::radians(comp.rotation))) *
+			glm::toMat4(Quaternion(glm::radians(comp.rotation))) *
 			glm::scale(Matrix4f(1.0f), comp.scale);
 	}
 
@@ -192,7 +192,7 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		Vector3f rotatedVec = Vector4f(SG_ENGINE_FRONT_VEC(), 0.0f) * glm::toMat4(Quternion(glm::radians(trans.rotation)));
+		Vector3f rotatedVec = Vector4f(SG_ENGINE_FRONT_VEC(), 0.0f) * glm::toMat4(Quaternion(glm::radians(trans.rotation)));
 		return glm::normalize(rotatedVec);
 	}
 
@@ -204,12 +204,26 @@ namespace SG
 			BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
 	}
 
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// CameraComponent
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	// TODO: add a scripts component to control the camera
+	struct CameraComponent
+	{
+		ECameraType     type = ECameraType::eFirstPerson;
+		RefPtr<ICamera> pCamera;
+
+		CameraComponent() = default;
+	};
+
 #define COMPONENTS(F, END) \
 F(TagComponent) \
 F(MeshComponent) \
 F(PointLightComponent) \
 F(DirectionalLightComponent) \
 F(MaterialComponent) \
+F(CameraComponent) \
 END(TransformComponent)
 
 	struct LightTag {};
@@ -220,6 +234,7 @@ END(LightTag)
 	using Signature1 = TipECS::Signature<TransformComponent, MeshComponent, MaterialComponent>;
 	using Signature2 = TipECS::Signature<TagComponent, PointLightComponent>;
 	using Signature3 = TipECS::Signature<LightTag>;
+	using Signature4 = TipECS::Signature<TransformComponent, CameraComponent>;
 
 #define SIGNATURES(F, END) \
 F(Signature1) \

@@ -9,6 +9,7 @@ namespace SG
 	void Serializer::Serialize(RefPtr<Scene> pScene)
 	{
 		YAML::Emitter out;
+		SG_COMPILE_ASSERT(eastl::is_base_of<ISerializable, Scene>::value);
 		ISerializable* pSerializable = pScene.get();
 		pSerializable->Serialize(out);
 
@@ -32,6 +33,7 @@ namespace SG
 		SG_ASSERT(!readBuf.empty());
 
 		YAML::Node data = YAML::Load(readBuf.c_str());
+		SG_COMPILE_ASSERT(eastl::is_base_of<ISerializable, Scene>::value);
 		ISerializable* pSerializable = pScene.get();
 		pSerializable->Deserialize(data);
 	}

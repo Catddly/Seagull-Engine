@@ -44,7 +44,7 @@ namespace SG
 
 		SG_CORE_API Entity  GetSkyboxEntity() { return mSkyboxEntity; }
 
-		ICamera* GetMainCamera() { return mpMainCamera.get(); }
+		Entity& GetMainCamera() { return *mpCameraEntity; }
 
 		SG_CORE_API Size GetMeshEntityCount() const { return mMeshEntityCount; }
 		SG_CORE_API Size GetEntityCount()     const { return mEntities.size(); }
@@ -70,7 +70,8 @@ namespace SG
 		virtual void Deserialize(YAML::Node& node) override;
 	private:
 		Entity mSkyboxEntity;
-		RefPtr<ICamera> mpMainCamera; // TODO: support multiply switchable camera
+		Entity* mpCameraEntity;
+		//RefPtr<ICamera> mpMainCamera; // TODO: support multiply switchable camera
 
 		// TODO: use tree structure to store the meshes (for now there are no many meshes in the scene, map is ok)
 		Size mMeshEntityCount = 0;

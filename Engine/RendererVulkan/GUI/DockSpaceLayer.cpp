@@ -35,7 +35,7 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		mViewportTexHandle = VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex");
+		mViewportTexHandle = VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex").ReadOnly();
 	}
 
 	void DockSpaceLayer::OnDetach()
@@ -54,6 +54,19 @@ namespace SG
 		DrawSelectedEntityProperty();
 		DrawStatistics(deltaTime);
 		DrawSettingPanel();
+
+		static float showProgressWindowTime = 0.0f;
+		if (mbShowSaveSceneProgressBar)
+		{
+			showProgressWindowTime += deltaTime;
+			if (showProgressWindowTime >= 2.5f)
+			{
+				showProgressWindowTime = 0.0f;
+				mbShowSaveSceneProgressBar = false;
+			}
+			else
+				DrawSaveSceneProgressBar();
+		}
 	}
 
 	bool DockSpaceLayer::OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos)
@@ -116,6 +129,7 @@ namespace SG
 				if (ImGui::MenuItem("Save Scene"))
 				{
 					Serializer::Serialize(SSystem()->GetMainScene());
+					mbShowSaveSceneProgressBar = true;
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit"))
@@ -146,6 +160,9 @@ namespace SG
 		static ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse;
 
 		ImGui::Begin("MainViewport", &sbOpen, windowFlags);
+		auto windowPos = ImGui::GetWindowPos();
+		mViewportPos.x = windowPos.x;
+		mViewportPos.y = windowPos.y;
 
 		mbViewportCanUpdateMouse = ImGui::IsWindowFocused() && ImGui::IsWindowHovered();
 
@@ -155,7 +172,8 @@ namespace SG
 			mLastViewportSize.x = viewportSize.x;
 			mLastViewportSize.y = viewportSize.y;
 
-			SSystem()->GetMainScene()->GetMainCamera()->SetPerspective(60.0f, mLastViewportSize.x / mLastViewportSize.y);
+			auto& cam = SSystem()->GetMainScene()->GetMainCamera();
+			cam.GetComponent<CameraComponent>().pCamera->SetPerspective(60.0f, mLastViewportSize.x / mLastViewportSize.y);
 			//mMessageBusMember.PushEvent<Vector2f>("ViewportResizeEvent", mLastViewportSize);
 		}
 
@@ -168,6 +186,9 @@ namespace SG
 	void DockSpaceLayer::DrawSettingPanel()
 	{
 		SG_PROFILE_FUNCTION();
+
+		bool bShow = true;
+		ImGui::ShowDemoWindow(&bShow);
 
 		ImGui::Begin("Global Settings");
 
@@ -261,6 +282,40 @@ namespace SG
 		if (mSelectedEntity.IsValid())
 			DrawEntityProperty(mSelectedEntity);
 
+		ImGui::End();
+	}
+
+	void DockSpaceLayer::DrawSaveSceneProgressBar()
+	{
+		enum ECORNER { TOP_LEFT = 0, TOP_RIGHT = 1, BOTTOM_LEFT = 2, BOTTOM_RIGHT = 3 };
+
+		static int corner = TOP_LEFT;
+		ImGuiIO& io = ImGui::GetIO();
+
+		const float PAD = 10.0f;
+		ImVec2 pos = { mViewportPos.x, mViewportPos.y };
+		ImVec2 size = { mLastViewportSize.x, mLastViewportSize.y };
+		ImVec2 windowPos, windowPosPivot;
+		windowPos.x = (corner & 1) ? (pos.x + size.x - PAD) : (pos.x + PAD);
+		windowPos.y = (corner & 2) ? (pos.y + size.y - PAD) : (pos.y + PAD);
+		windowPosPivot.x = (corner & 1) ? 1.0f : 0.0f;
+		windowPosPivot.y = (corner & 2) ? 1.0f : 0.0f;
+
+		ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always, windowPosPivot);
+		ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
+
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize |
+			ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
+
+		// show progress bar window
+		if (ImGui::Begin("Save Scene Progress Bar", &mbShowSaveSceneProgressBar, flags))
+		{
+			//ImGui::Text("Saving Scene...");
+			// Typically we would use ImVec2(-1.0f,0.0f) or ImVec2(-FLT_MIN,0.0f) to use all available width,
+			// or ImVec2(width,0.0f) for a specified width. ImVec2(0.0f,0.0f) uses ItemWidth.
+			//ImGui::ProgressBar(0.65f, ImVec2(0.0f, 0.0f));
+			ImGui::Text("Scene Saved to Scene/default.scene.");
+		}
 		ImGui::End();
 	}
 

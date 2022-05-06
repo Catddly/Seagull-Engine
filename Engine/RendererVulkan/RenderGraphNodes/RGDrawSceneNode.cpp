@@ -65,7 +65,7 @@ namespace SG
 		texCI.pInitData = texData.pData;
 		texCI.sizeInByte = texData.sizeInByte;
 		texCI.pUserData = texData.pUserData;
-		VK_RESOURCE()->CreateTexture(texCI, true);
+		VK_RESOURCE()->CreateTexture(texCI);
 		VK_RESOURCE()->FlushTextures();
 
 		SamplerCreateDesc samplerCI = {};

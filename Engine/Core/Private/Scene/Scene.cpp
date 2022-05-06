@@ -37,7 +37,6 @@ namespace SG
 		{
 			auto& tag = entity.GetComponent<TagComponent>();
 			outStream << YAML::Key << "Name" << YAML::Value << tag.name.c_str();
-			outStream << YAML::Key << "Dirty" << YAML::Value << tag.bDirty;
 		}
 		outStream << YAML::EndMap;
 
@@ -136,11 +135,28 @@ namespace SG
 			outStream << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<CameraComponent>())
+		{
+			outStream << YAML::Key << "CameraComponent";
+			outStream << YAML::BeginMap;
+			{
+				auto& cam = entity.GetComponent<CameraComponent>();
+				outStream << YAML::Key << "CameraPos" << YAML::Value << cam.pCamera->GetPosition();
+				if (cam.type == ECameraType::eFirstPerson)
+				{
+					auto* pFPSCam = static_cast<FirstPersonCamera*>(cam.pCamera.get());
+					outStream << YAML::Key << "UpVector" << YAML::Value << pFPSCam->GetUpVector();
+					outStream << YAML::Key << "RightVector" << YAML::Value << pFPSCam->GetRightVector();
+					outStream << YAML::Key << "FrontVector" << YAML::Value << pFPSCam->GetFrontVector();
+				}
+			}
+			outStream << YAML::EndMap;
+		}
+
 		outStream << YAML::EndMap;
 	}
 
 	Scene::Scene()
-		:mpMainCamera(nullptr)
 	{
 		mEntityManager.GetComponentHooker<MeshComponent>().HookOnAdded(_OnMeshComponentAdded);
 		mEntityManager.GetComponentHooker<MeshComponent>().HookOnRemoved(_OnMeshComponentRemoved);
@@ -150,8 +166,19 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 3.0f, 7.0f));
-		mpMainCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
+		//mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 3.0f, 7.0f));
+		//mpMainCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
+
+		//const auto camPos = Vector3f(0.0f, 3.0f, 7.0f);
+
+		//mpCameraEntity = CreateEntity("main_camera", camPos, Vector3f(1.0f), Vector3f(0.0f));
+		//auto& cam = mpCameraEntity->AddComponent<CameraComponent>();
+		//cam.pCamera = MakeRef<FirstPersonCamera>(camPos);
+		//cam.pCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
+
+		//mCameraEntity = mEntityManager.CreateEntity();
+		//mCameraEntity.AddComponent<TagComponent>("main_camera");
+		//mCameraEntity.AddComponent<TransformComponent>(camPos, Vector3f(1.0f), Vector3f(0.0f));
 
 		mSkyboxEntity = mEntityManager.CreateEntity();
 		mSkyboxEntity.AddComponent<TagComponent>("skybox");
@@ -192,7 +219,7 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		mpMainCamera->OnUpdate(deltaTime);
+		mpCameraEntity->GetComponent<CameraComponent>().pCamera->OnUpdate(deltaTime);
 
 		//static float totalTime = 0.0f;
 		//static float speed = 2.5f;
@@ -384,7 +411,6 @@ namespace SG
 			{
 				auto tagComp = entity["TagComponent"];
 				string name = tagComp["Name"].as<std::string>().c_str();
-				bool bDirty = tagComp["Dirty"].as<bool>();
 
 				auto transComp = entity["TransformComponent"];
 				auto* pEntity = CreateEntity(name, transComp["Position"].as<Vector3f>(), transComp["Scale"].as<Vector3f>(), transComp["Rotation"].as<Vector3f>());
@@ -428,16 +454,11 @@ namespace SG
 					mat.albedo = matComp["Albedo"].as<Vector3f>();
 					if (matComp["AlbedoTextureAsset"])
 					{
-						mat.albedoTex = MakeRef<TextureAsset>();
 						auto node = matComp["AlbedoTextureAsset"];
-
-						string name = node["Name"].as<std::string>().c_str();
 						string filename = node["Filename"].as<std::string>().c_str();
-						bool bNeedMipmap = node["NeedMipmap"].as<bool>();
-						bool bIsCubeMap = node["IsCubeMap"].as<bool>();
 
-						mat.albedoTex = TextureAssetArchive::GetInstance()->NewTextureAsset(name, filename, bNeedMipmap, bIsCubeMap);
-						//mat.albedoTex->Deserialize(matComp["AlbedoTextureAsset"]);
+						mat.albedoTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
+						mat.albedoTex->Deserialize(node);
 					}
 					else
 						mat.albedoTex = nullptr;
@@ -445,16 +466,11 @@ namespace SG
 					mat.metallic = matComp["Metallic"].as<float>();
 					if (matComp["MetallicTextureAsset"])
 					{
-						mat.metallicTex = MakeRef<TextureAsset>();
 						auto node = matComp["MetallicTextureAsset"];
-
-						string name = node["Name"].as<std::string>().c_str();
 						string filename = node["Filename"].as<std::string>().c_str();
-						bool bNeedMipmap = node["NeedMipmap"].as<bool>();
-						bool bIsCubeMap = node["IsCubeMap"].as<bool>();
 
-						mat.metallicTex = TextureAssetArchive::GetInstance()->NewTextureAsset(name, filename, bNeedMipmap, bIsCubeMap);
-						//mat.metallicTex->Deserialize(matComp["MetallicTextureAsset"]);
+						mat.metallicTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
+						mat.metallicTex->Deserialize(node);
 					}
 					else
 						mat.metallicTex = nullptr;
@@ -462,48 +478,33 @@ namespace SG
 					mat.roughness = matComp["Roughness"].as<float>();
 					if (matComp["RoughnessTextureAsset"])
 					{
-						mat.roughnessTex = MakeRef<TextureAsset>();
 						auto node = matComp["RoughnessTextureAsset"];
-
-						string name = node["Name"].as<std::string>().c_str();
 						string filename = node["Filename"].as<std::string>().c_str();
-						bool bNeedMipmap = node["NeedMipmap"].as<bool>();
-						bool bIsCubeMap = node["IsCubeMap"].as<bool>();
 
-						//mat.roughnessTex->Deserialize(matComp["RoughnessTextureAsset"]);
-						mat.roughnessTex = TextureAssetArchive::GetInstance()->NewTextureAsset(name, filename, bNeedMipmap, bIsCubeMap);
+						mat.roughnessTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
+						mat.roughnessTex->Deserialize(node);
 					}
 					else
 						mat.roughnessTex = nullptr;
 
 					if (matComp["NormalTextureAsset"])
 					{
-						mat.normalTex = MakeRef<TextureAsset>();
 						auto node = matComp["NormalTextureAsset"];
-
-						string name = node["Name"].as<std::string>().c_str();
 						string filename = node["Filename"].as<std::string>().c_str();
-						bool bNeedMipmap = node["NeedMipmap"].as<bool>();
-						bool bIsCubeMap = node["IsCubeMap"].as<bool>();
 
-						mat.normalTex = TextureAssetArchive::GetInstance()->NewTextureAsset(name, filename, bNeedMipmap, bIsCubeMap);
-						//mat.normalTex->Deserialize(matComp["NormalTextureAsset"]);
+						mat.normalTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
+						mat.normalTex->Deserialize(node);
 					}
 					else
 						mat.normalTex = nullptr;
 
 					if (matComp["AOTextureAsset"])
 					{
-						mat.AOTex = MakeRef<TextureAsset>();
 						auto node = matComp["AOTextureAsset"];
-
-						string name = node["Name"].as<std::string>().c_str();
 						string filename = node["Filename"].as<std::string>().c_str();
-						bool bNeedMipmap = node["NeedMipmap"].as<bool>();
-						bool bIsCubeMap = node["IsCubeMap"].as<bool>();
 
-						mat.AOTex = TextureAssetArchive::GetInstance()->NewTextureAsset(name, filename, bNeedMipmap, bIsCubeMap);
-						//mat.AOTex->Deserialize(matComp["AOTextureAsset"]);
+						mat.AOTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
+						mat.AOTex->Deserialize(node);
 					}
 					else
 						mat.AOTex = nullptr;
@@ -523,7 +524,30 @@ namespace SG
 					auto& light = pEntity->AddComponent<DirectionalLightComponent>();
 					light.color = directionalLightComp["Color"].as<Vector3f>();
 				}
+
+				auto cameraComp = entity["CameraComponent"];
+				if (cameraComp)
+				{
+					auto& cam = pEntity->AddComponent<CameraComponent>();
+					cam.type = ECameraType::eFirstPerson;
+					auto FPSCam = MakeRef<FirstPersonCamera>(cameraComp["CameraPos"].as<Vector3f>());
+					FPSCam->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
+					FPSCam->SetUpVector(cameraComp["UpVector"].as<Vector3f>());
+					FPSCam->SetRightVector(cameraComp["RightVector"].as<Vector3f>());
+					FPSCam->SetFrontVector(cameraComp["FrontVector"].as<Vector3f>());
+					cam.pCamera = FPSCam;
+					mpCameraEntity = pEntity;
+				}
 			}
+		}
+
+		mEntityManager.ReFresh();
+
+		for (auto node : mEntities)
+		{
+			auto& entity = node.second;
+			if (entity.HasComponent<MeshComponent>())
+				++mMeshEntityCount;
 		}
 	}
 

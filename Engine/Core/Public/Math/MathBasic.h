@@ -30,7 +30,7 @@ namespace SG
 	typedef glm::mat<3, 3, int, glm::defaultp> Matrix3i;
 	typedef glm::mat<4, 4, int, glm::defaultp> Matrix4i;
 
-	typedef glm::quat Quternion;
+	typedef glm::quat Quaternion;
 
 #define PI 3.141592653589793238462643383279f
 
@@ -80,6 +80,20 @@ namespace SG
 	SG_INLINE Size   MinValueAlignTo(Size v, Size align) { return ((v + align - 1) / align) * align; }
 
 	SG_INLINE float Clamp(float& v, float min, float max) { return v < min ? min : (v > max ? max : v); }
+
+	SG_INLINE Quaternion RotationBetweenVector(const Vector3f& v1, const Vector3f& v2)
+	{
+		if (glm::dot(v1, v2) > 0.999999f || glm::dot(v1, v2) < -0.999999f)
+			return Quaternion();
+
+		Quaternion q;
+		Vector3f cross = glm::cross(v1, v2);
+		q.x = cross.x;
+		q.y = cross.y;
+		q.z = cross.z;
+		q.w = Sqrt(glm::length(v1) * glm::length(v1) * glm::length(v2) * glm::length(v2)) + glm::dot(v1, v2);
+		return q;
+	}
 
 #ifdef SG_GRAPHICS_API_VULKAN
 

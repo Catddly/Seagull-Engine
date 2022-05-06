@@ -9,7 +9,13 @@
 namespace SG
 {
 
-	interface SG_CORE_API ICamera
+	enum class ECameraType
+	{
+		eFirstPerson = 0,
+		ePointOriented,
+	};
+
+	interface ICamera
 	{
 		virtual ~ICamera() = default;
 

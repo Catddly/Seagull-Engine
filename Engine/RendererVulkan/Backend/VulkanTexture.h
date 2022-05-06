@@ -2,6 +2,7 @@
 
 #include "Base/BasicTypes.h"
 #include "Render/SwapChain.h"
+#include "Archive/IDAllocator.h"
 
 #include "VulkanAllocator.h"
 
@@ -32,10 +33,10 @@ namespace SG
 	{
 	public:
 		VulkanTexture(VulkanContext& c) : context(c) {}
-		VulkanTexture(VulkanContext& c, const TextureCreateDesc& CI, bool bLocal = false);
+		VulkanTexture(VulkanContext& c, const TextureCreateDesc& CI);
 		~VulkanTexture();
 
-		static VulkanTexture* Create(VulkanContext& c, const TextureCreateDesc& CI, bool bLocal = false);
+		static VulkanTexture* Create(VulkanContext& c, const TextureCreateDesc& CI);
 
 		UInt32 GetWidth()  const { return width; }
 		UInt32 GetHeight() const { return height; }
@@ -79,6 +80,8 @@ namespace SG
 
 		UInt32 id;
 		void* pUserData;
+
+		static IDAllocator<UInt32> msIdAllocator;
 	};
 
 	// TODO: abstract to IResource
@@ -89,7 +92,7 @@ namespace SG
 			: VulkanTexture(c), mbIsDepth(isDepth)
 		{}
 		VulkanRenderTarget(VulkanContext& c, const TextureCreateDesc& CI, bool isDepth = false)
-			: VulkanTexture(c, CI, true), mbIsDepth(isDepth)
+			: VulkanTexture(c, CI), mbIsDepth(isDepth)
 		{}
 
 		bool IsDepth() const { return mbIsDepth; }

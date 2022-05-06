@@ -81,7 +81,7 @@ namespace SG
 		textureCI.initLayout = EImageLayout::eUndefined;
 		textureCI.pInitData = texture.pData;
 		textureCI.sizeInByte = texture.sizeInByte;
-		VK_RESOURCE()->CreateTexture(textureCI, true);
+		VK_RESOURCE()->CreateTexture(textureCI);
 		VK_RESOURCE()->FlushTextures();
 
 		CreateVKResourceFromAsset(SSystem()->GetRenderDataBuilder());
@@ -301,7 +301,7 @@ namespace SG
 				texCI.pInitData = pTextureAsset->GetRawData();
 				texCI.sizeInByte = pTextureAsset->GetByteSize();
 				texCI.pUserData = pTextureAsset->GetUserData();
-				VK_RESOURCE()->CreateTexture(texCI, true);
+				VK_RESOURCE()->CreateTexture(texCI);
 
 				bHaveTexture |= true;
 			}

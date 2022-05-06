@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Config.h"
 #include "Base/BasicTypes.h"
 
 #include "eastl/queue.h"

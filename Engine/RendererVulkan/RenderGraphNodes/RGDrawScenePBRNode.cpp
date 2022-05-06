@@ -64,7 +64,7 @@ namespace SG
 		texCI.pInitData = texData.pData;
 		texCI.sizeInByte = texData.sizeInByte;
 		texCI.pUserData = texData.pUserData;
-		VK_RESOURCE()->CreateTexture(texCI, true);
+		VK_RESOURCE()->CreateTexture(texCI);
 		VK_RESOURCE()->FlushTextures();
 
 		SamplerCreateDesc samplerCI = {};
@@ -352,7 +352,7 @@ namespace SG
 		texCI.type = EImageType::e2D;
 		texCI.pInitData = nullptr;
 		texCI.initLayout = EImageLayout::eUndefined;
-		VK_RESOURCE()->CreateTexture(texCI, true);
+		VK_RESOURCE()->CreateTexture(texCI);
 
 		// create for drawing and copying
 		texCI.name = "cubemap_irradiance_rt";
@@ -406,17 +406,17 @@ namespace SG
 		// matrixs to rotate the corresponding faces of the cube to the right place.
 		eastl::array<Matrix4f, 6> directionMats = {
 			// +X
-			glm::toMat4(Quternion(Vector3f(glm::radians(180.0f), glm::radians(90.0f), 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), glm::radians(90.0f), 0.0f))),
 			// -X
-			glm::toMat4(Quternion(Vector3f(glm::radians(180.0f), glm::radians(-90.0f), 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), glm::radians(-90.0f), 0.0f))),
 			// +Y
-			glm::toMat4(Quternion(Vector3f(glm::radians(-90.0f), 0.0f, 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(-90.0f), 0.0f, 0.0f))),
 			// -Y
-			glm::toMat4(Quternion(Vector3f(glm::radians(90.0f), 0.0f, 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(90.0f), 0.0f, 0.0f))),
 			// +Z
-			glm::toMat4(Quternion(Vector3f(glm::radians(180.0f), 0.0f, 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), 0.0f, 0.0f))),
 			// -Z
-			glm::toMat4(Quternion(Vector3f(0.0f, 0.0f, glm::radians(180.0f))))
+			glm::toMat4(Quaternion(Vector3f(0.0f, 0.0f, glm::radians(180.0f))))
 		};
 
 		struct PushConstant
@@ -515,7 +515,7 @@ namespace SG
 		texCI.type = EImageType::e2D;
 		texCI.pInitData = nullptr;
 		texCI.initLayout = EImageLayout::eUndefined;
-		VK_RESOURCE()->CreateTexture(texCI, true);
+		VK_RESOURCE()->CreateTexture(texCI);
 
 		// create for drawing and copying
 		texCI.name = "cubemap_prefilter_rt";
@@ -569,17 +569,17 @@ namespace SG
 		// matrixs to rotate the corresponding faces of the cube to the right place.
 		eastl::array<Matrix4f, 6> directionMats = {
 			// +X
-			glm::toMat4(Quternion(Vector3f(glm::radians(180.0f), glm::radians(90.0f), 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), glm::radians(90.0f), 0.0f))),
 			// -X
-			glm::toMat4(Quternion(Vector3f(glm::radians(180.0f), glm::radians(-90.0f), 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), glm::radians(-90.0f), 0.0f))),
 			// +Y
-			glm::toMat4(Quternion(Vector3f(glm::radians(-90.0f), 0.0f, 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(-90.0f), 0.0f, 0.0f))),
 			// -Y
-			glm::toMat4(Quternion(Vector3f(glm::radians(90.0f), 0.0f, 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(90.0f), 0.0f, 0.0f))),
 			// +Z
-			glm::toMat4(Quternion(Vector3f(glm::radians(180.0f), 0.0f, 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), 0.0f, 0.0f))),
 			// -Z
-			glm::toMat4(Quternion(Vector3f(0.0f, 0.0f, glm::radians(180.0f))))
+			glm::toMat4(Quaternion(Vector3f(0.0f, 0.0f, glm::radians(180.0f))))
 		};
 
 		struct PushConstant

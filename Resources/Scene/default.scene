@@ -3,7 +3,6 @@ Entities:
   - Entity: 9468552411547745
     TagComponent:
       Name: point_light_0
-      Dirty: false
     TransformComponent:
       Position: [1.25, 0.75, -0.300000012]
       Rotation: [0, 0, 0]
@@ -14,7 +13,6 @@ Entities:
   - Entity: 9468552411547745
     TagComponent:
       Name: cerberus_1
-      Dirty: false
     TransformComponent:
       Position: [2.45000005, 1.85000002, -2.29999995]
       Rotation: [0, 90, 0]
@@ -23,9 +21,9 @@ Entities:
       Filename: cerberus
       IsProceduralMesh: false
     MaterialComponent:
-      Albedo: [1, 1, 1]
-      Metallic: 0.0500000007
-      Roughness: 0.899999976
+      Albedo: [0.0213522911, 1, 0.926862478]
+      Metallic: 0.100000001
+      Roughness: 0.349999994
       AOTextureAsset:
         Name: cerberus_ao
         Filename: cerberus/ao.ktx
@@ -34,7 +32,6 @@ Entities:
   - Entity: 9468552411547745
     TagComponent:
       Name: cerberus
-      Dirty: false
     TransformComponent:
       Position: [2.70000005, 3, 0]
       Rotation: [0, 90, 0]
@@ -73,8 +70,19 @@ Entities:
         IsCubeMap: false
   - Entity: 9468552411547745
     TagComponent:
+      Name: main_camera
+    TransformComponent:
+      Position: [0, 3, 7]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      CameraPos: [6.10348988, 4.63925409, 2.29182172]
+      UpVector: [-0.38275364, 0.875696421, -0.294373274]
+      RightVector: [0.60964644, 0, -0.792673528]
+      FrontVector: [-0.694142342, -0.482862741, -0.533863246]
+  - Entity: 9468552411547745
+    TagComponent:
       Name: directional_light_0
-      Dirty: false
     TransformComponent:
       Position: [8, 12, 0]
       Rotation: [40, -40, 0]

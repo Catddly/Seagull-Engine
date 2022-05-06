@@ -63,7 +63,9 @@ namespace SG
 	/// VulkanTexture
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanTexture::VulkanTexture(VulkanContext& c, const TextureCreateDesc& CI, bool bLocal)
+	IDAllocator<UInt32> VulkanTexture::msIdAllocator;
+
+	VulkanTexture::VulkanTexture(VulkanContext& c, const TextureCreateDesc& CI)
 		:context(c)
 	{
 		if (!IsValidImageFormat(CI.format))
@@ -147,7 +149,7 @@ namespace SG
 		VK_CHECK(vkCreateImageView(context.device.logicalDevice, &imageViewCI, nullptr, &imageView),
 			SG_LOG_ERROR("Failed to create vulkan texture image view!"););
 
-		id = TextureIDAllocator::NewID();
+		id = msIdAllocator.Allocate();
 	}
 
 	VulkanTexture::~VulkanTexture()
@@ -166,10 +168,10 @@ namespace SG
 			vkFreeMemory(context.device.logicalDevice, memory, nullptr);
 		}
 #endif
-		TextureIDAllocator::FreeID(id);
+		msIdAllocator.Restore(id);
 	}
 
-	VulkanTexture* VulkanTexture::Create(VulkanContext& c, const TextureCreateDesc& CI, bool bLocal)
+	VulkanTexture* VulkanTexture::Create(VulkanContext& c, const TextureCreateDesc& CI)
 	{
 		if (!IsPowerOfTwo(CI.width) || !IsPowerOfTwo(CI.height))
 		{
@@ -177,7 +179,7 @@ namespace SG
 			return nullptr;
 		}
 
-		return New(VulkanTexture, c, CI, bLocal);
+		return New(VulkanTexture, c, CI);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -19,9 +19,9 @@
 namespace SG
 {
 
-#define SG_MAX_PACKED_VERTEX_BUFFER_SIZE 1024 * 1024 * 8   // 8mb
-#define SG_MAX_PACKED_INSTANCE_BUFFER_SIZE 1024 * 1024 * 2 // 2mb
-#define SG_MAX_PACKED_INDEX_BUFFER_SIZE  1024 * 1024 * 8   // 8mb
+#define SG_MAX_PACKED_VERTEX_BUFFER_SIZE 1024 * 1024 * 64   // 8mb
+#define SG_MAX_PACKED_INSTANCE_BUFFER_SIZE 1024 * 1024 * 32 // 2mb
+#define SG_MAX_PACKED_INDEX_BUFFER_SIZE  1024 * 1024 * 64   // 8mb
 
 #define SG_MAX_NUM_OBJECT 250
 
@@ -63,7 +63,7 @@ namespace SG
 		/// Buffer End
 
 		/// Texture Begin
-		bool CreateTexture(const TextureCreateDesc& textureCI, bool bLocal = false);
+		bool CreateTexture(const TextureCreateDesc& textureCI);
 		VulkanTexture* GetTexture(const string& name) const;
 		void FlushTextures() const;
 		/// Texture End

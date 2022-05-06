@@ -64,7 +64,9 @@ namespace SG
 		FlushBuffers();
 
 		// eliminate the translation part of the matrix
-		ObjcetRenderData renderData = { Matrix4f(Matrix3f(SSystem()->GetMainScene()->GetMainCamera()->GetViewMatrix())) };
+		auto& cam = SSystem()->GetMainScene()->GetMainCamera();
+		auto pCamera = cam.GetComponent<CameraComponent>().pCamera;
+		ObjcetRenderData renderData = { Matrix4f(Matrix3f(pCamera->GetViewMatrix())) };
 		DrawCall renderMesh = {};
 		mSkyboxDrawCall.drawMesh.vBSize = vbSize;
 		mSkyboxDrawCall.drawMesh.iBSize = 0;
@@ -80,7 +82,6 @@ namespace SG
 		auto pScene = SSystem()->GetMainScene();
 
 		auto& cameraUbo = GetCameraUBO();
-		auto* pCamera = pScene->GetMainCamera();
 		cameraUbo.proj = pCamera->GetProjMatrix();
 
 		Frustum cameraFrustum = pCamera->GetFrustum();
@@ -145,7 +146,8 @@ namespace SG
 		auto pScene = SSystem()->GetMainScene();
 
 		// update camera data
-		auto* pCamera = pScene->GetMainCamera();
+		auto& cam = pScene->GetMainCamera();
+		auto pCamera = cam.GetComponent<CameraComponent>().pCamera;
 		auto& skyboxUbo = GetSkyboxUBO();
 		auto& cameraUbo = GetCameraUBO();
 
@@ -412,7 +414,7 @@ namespace SG
 	/// Textures
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool VulkanResourceRegistry::CreateTexture(const TextureCreateDesc& textureCI, bool bLocal)
+	bool VulkanResourceRegistry::CreateTexture(const TextureCreateDesc& textureCI)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -423,9 +425,9 @@ namespace SG
 		}
 
 		auto& texCI = const_cast<TextureCreateDesc&>(textureCI);
-		if (bLocal && !SG_HAS_ENUM_FLAG(textureCI.usage, EImageUsage::efTransfer_Dst))
+		if (!SG_HAS_ENUM_FLAG(textureCI.usage, EImageUsage::efTransfer_Dst))
 			texCI.usage = texCI.usage | EImageUsage::efTransfer_Dst;
-		mTextures[texCI.name] = VulkanTexture::Create(*mpContext, textureCI, bLocal);
+		mTextures[texCI.name] = VulkanTexture::Create(*mpContext, textureCI);
 		VulkanTexture* pTex = mTextures[texCI.name];
 		if (!pTex)
 		{
@@ -433,7 +435,7 @@ namespace SG
 			return false;
 		}
 
-		if (bLocal && textureCI.pInitData)
+		if (textureCI.pInitData)
 		{
 			//if (!textureCI.pInitData)
 			//{

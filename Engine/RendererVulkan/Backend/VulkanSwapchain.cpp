@@ -205,7 +205,7 @@ namespace SG
 #endif
 			mpRts[i]->mbIsDepth = false;
 
-			mpRts[i]->id = TextureIDAllocator::NewID();
+			mpRts[i]->id = VulkanTexture::msIdAllocator.Allocate();
 		}
 
 		return true;

@@ -2,7 +2,6 @@
 
 #include "Base/BasicTypes.h"
 #include "Render/GPUMemory.h"
-#include "Archive/IDAllocator.h"
 
 #include "Platform/OS.h"
 
@@ -582,22 +581,6 @@ namespace SG
 		virtual EImageUsage  GetUsage()  const = 0;
 
 		virtual UInt32 GetID() const = 0;
-	};
-
-	class TextureIDAllocator final
-	{
-	public:
-		SG_CORE_API SG_INLINE static UInt32 NewID()
-		{
-			return mIdAllocator.Allocate();
-		}
-
-		SG_CORE_API SG_INLINE static void FreeID(UInt32 id)
-		{
-			return mIdAllocator.Restore(id);
-		}
-	private:
-		static IDAllocator<UInt32> mIdAllocator;
 	};
 
 	// helper function

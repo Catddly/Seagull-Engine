@@ -42,7 +42,7 @@ namespace SG
 	};
 
 	//! Transient raw 2D texture data, will automatically free its memory when unused.
-	SG_CORE_API struct Raw2DTexture
+	struct SG_CORE_API Raw2DTexture
 	{
 		UInt32 width;
 		UInt32 height;

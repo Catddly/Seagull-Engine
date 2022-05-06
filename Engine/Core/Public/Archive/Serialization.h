@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Config.h"
 #include "Scene/Scene.h"
 #include "Archive/ISerializable.h"
 
@@ -11,7 +12,7 @@ namespace SG
 	class Serializer
 	{
 	public:
-		static void Serialize(RefPtr<Scene> pScene);
+		SG_CORE_API static void Serialize(RefPtr<Scene> pScene);
 	private:
 
 	};
@@ -19,7 +20,7 @@ namespace SG
 	class Deserializer
 	{
 	public:
-		static void Deserialize(RefPtr<Scene> pScene);
+		SG_CORE_API static void Deserialize(RefPtr<Scene> pScene);
 	private:
 
 	};
