@@ -46,6 +46,7 @@ namespace SG
 	};
 
 	class VulkanShader;
+	class VulkanPipelineSignature;
 
 	class VulkanPipeline
 	{
@@ -66,8 +67,8 @@ namespace SG
 			VkPipelineDynamicStateCreateInfo       dynamicStateCI;
 		};
 
-		VulkanPipeline(VulkanDevice& d, const GraphicPipelineCreateInfo& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, VulkanShader* pShader);
-		VulkanPipeline(VulkanDevice& d, VulkanPipelineLayout* pLayout, VulkanShader* pShader);
+		VulkanPipeline(VulkanDevice& d, const GraphicPipelineCreateInfo& CI, RefPtr<VulkanPipelineLayout> pLayout, VulkanRenderPass* pRenderPass, RefPtr<VulkanShader> pShader);
+		VulkanPipeline(VulkanDevice& d, RefPtr<VulkanPipelineLayout> pLayout, RefPtr<VulkanShader> pShader);
 		~VulkanPipeline();
 
 		class Builder
@@ -90,18 +91,18 @@ namespace SG
 			Builder& SetMultiSample(ESampleCount sample);
 
 			Builder& BindRenderPass(VulkanRenderPass* pRenderPass) { this->pRenderPass = pRenderPass; return *this; }
-			Builder& BindSignature(VulkanPipelineSignature* pSignature) { this->pLayout = pSignature->mpPipelineLayout.get(); return *this; }
-			Builder& BindShader(VulkanShader* pShader);
+			Builder& BindSignature(RefPtr<VulkanPipelineSignature> pSignature, bool bWithDifferentShader = false);
+			Builder& BindShader(RefPtr<VulkanShader> pShader);
 
 			VulkanPipeline* Build();
 		private:
 			Builder& SetVertexLayout(const ShaderAttributesLayout& layout);
 		private:
-			VulkanDevice&         device;
-			GraphicPipelineCreateInfo   createInfos;
-			VulkanPipelineLayout* pLayout;
+			VulkanDevice& device;
+			GraphicPipelineCreateInfo createInfos;
+			RefPtr<VulkanPipelineLayout> pLayout = nullptr;
 			VulkanRenderPass*     pRenderPass;
-			VulkanShader*         pShader;
+			RefPtr<VulkanShader>  pShader = nullptr;
 			EPipelineType         pipelineType;
 		};
 	private:

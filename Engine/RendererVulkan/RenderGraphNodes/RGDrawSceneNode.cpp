@@ -82,8 +82,8 @@ namespace SG
 		mpShader = VulkanShader::Create(mContext.device);
 		mpSkyboxShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("phone", mpShader.get());
-		compiler.CompileGLSLShader("skybox", mpSkyboxShader.get());
+		compiler.CompileGLSLShader("phone", mpShader);
+		compiler.CompileGLSLShader("skybox", mpSkyboxShader);
 
 		VulkanCommandBuffer pCmd;
 		mContext.pGraphicCommandPool->AllocateCommandBuffer(pCmd);
@@ -145,17 +145,15 @@ namespace SG
 	{
 		mpSkyboxPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetRasterizer(ECullMode::eFront)
-			.BindSignature(mpSkyboxPipelineSignature.get())
+			.BindSignature(mpSkyboxPipelineSignature)
 			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
-			.BindShader(mpSkyboxShader.get())
 			.Build();
 
 		mpPipeline = VulkanPipeline::Builder(mContext.device)
-			.BindSignature(mpPipelineSignature.get())
+			.BindSignature(mpPipelineSignature)
 			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
-			.BindShader(mpShader.get())
 			.Build();
 	}
 

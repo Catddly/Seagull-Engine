@@ -27,134 +27,130 @@ namespace SG
 		gObjectIdAllocator.Restore(comp.objectId);
 	}
 
-	static void _SerializeEntity(Scene::Entity& entity, YAML::Emitter& outStream)
-	{
-		outStream << YAML::BeginMap;
-		outStream << YAML::Key << "Entity" << YAML::Value << "9468552411547745"; // entity id goes here
+	//static void _SerializeEntity(Scene::Entity& entity, YAML::Emitter& outStream)
+	//{
+	//	outStream << YAML::BeginMap;
+	//	outStream << YAML::Key << "Entity" << YAML::Value << "9468552411547745"; // entity id goes here
 
-		outStream << YAML::Key << "TagComponent";
-		outStream << YAML::BeginMap;
-		{
-			auto& tag = entity.GetComponent<TagComponent>();
-			outStream << YAML::Key << "Name" << YAML::Value << tag.name.c_str();
-		}
-		outStream << YAML::EndMap;
+	//	outStream << YAML::Key << "TagComponent";
+	//	outStream << YAML::BeginMap;
+	//	{
+	//		auto& tag = entity.GetComponent<TagComponent>();
+	//		outStream << YAML::Key << "Name" << YAML::Value << tag.name.c_str();
+	//	}
+	//	outStream << YAML::EndMap;
 
-		outStream << YAML::Key << "TransformComponent";
-		outStream << YAML::BeginMap;
-		{
-			auto& trans = entity.GetComponent<TransformComponent>();
-			outStream << YAML::Key << "Position" << YAML::Value << trans.position;
-			outStream << YAML::Key << "Rotation" << YAML::Value << trans.rotation;
-			outStream << YAML::Key << "Scale" << YAML::Value << trans.scale;
-		}
-		outStream << YAML::EndMap;
+	//	outStream << YAML::Key << "TransformComponent";
+	//	outStream << YAML::BeginMap;
+	//	{
+	//		auto& trans = entity.GetComponent<TransformComponent>();
+	//		outStream << YAML::Key << "Position" << YAML::Value << trans.position;
+	//		outStream << YAML::Key << "Rotation" << YAML::Value << trans.rotation;
+	//		outStream << YAML::Key << "Scale" << YAML::Value << trans.scale;
+	//	}
+	//	outStream << YAML::EndMap;
 
-		if (entity.HasComponent<MeshComponent>())
-		{
-			outStream << YAML::Key << "MeshComponent";
-			outStream << YAML::BeginMap;
-			{
-				auto& mesh = entity.GetComponent<MeshComponent>();
-				auto* pMeshData = MeshDataArchive::GetInstance()->GetData(mesh.meshId);
-				outStream << YAML::Key << "Filename" << YAML::Value << pMeshData->filename.c_str();
-				outStream << YAML::Key << "IsProceduralMesh" << YAML::Value << pMeshData->bIsProceduralMesh;
-			}
-			outStream << YAML::EndMap;
-		}
+	//	if (entity.HasComponent<MeshComponent>())
+	//	{
+	//		outStream << YAML::Key << "MeshComponent";
+	//		outStream << YAML::BeginMap;
+	//		{
+	//			auto& mesh = entity.GetComponent<MeshComponent>();
+	//			auto* pMeshData = MeshDataArchive::GetInstance()->GetData(mesh.meshId);
+	//			outStream << YAML::Key << "Filename" << YAML::Value << pMeshData->filename.c_str();
+	//			outStream << YAML::Key << "IsProceduralMesh" << YAML::Value << pMeshData->bIsProceduralMesh;
+	//		}
+	//		outStream << YAML::EndMap;
+	//	}
 
-		if (entity.HasComponent<MaterialComponent>())
-		{
-			outStream << YAML::Key << "MaterialComponent";
-			outStream << YAML::BeginMap;
-			{
-				auto& mat = entity.GetComponent<MaterialComponent>();
-				outStream << YAML::Key << "Albedo" << YAML::Value << mat.albedo;
-				if (mat.albedoTex)
-				{
-					outStream << YAML::Key << "AlbedoTextureAsset";
-					outStream << YAML::BeginMap;
-					mat.albedoTex->Serialize(outStream);
-					outStream << YAML::EndMap;
-				}
-				outStream << YAML::Key << "Metallic" << YAML::Value << mat.metallic;
-				if (mat.metallicTex)
-				{
-					outStream << YAML::Key << "MetallicTextureAsset";
-					outStream << YAML::BeginMap;
-					mat.metallicTex->Serialize(outStream);
-					outStream << YAML::EndMap;
-				}
-				outStream << YAML::Key << "Roughness" << YAML::Value << mat.roughness;
-				if (mat.roughnessTex)
-				{
-					outStream << YAML::Key << "RoughnessTextureAsset";
-					outStream << YAML::BeginMap;
-					mat.roughnessTex->Serialize(outStream);
-					outStream << YAML::EndMap;
-				}
-				if (mat.normalTex)
-				{
-					outStream << YAML::Key << "NormalTextureAsset";
-					outStream << YAML::BeginMap;
-					mat.normalTex->Serialize(outStream);
-					outStream << YAML::EndMap;
-				}
-				if (mat.AOTex)
-				{
-					outStream << YAML::Key << "AOTextureAsset";
-					outStream << YAML::BeginMap;
-					mat.AOTex->Serialize(outStream);
-					outStream << YAML::EndMap;
-				}
+	//	if (entity.HasComponent<MaterialComponent>())
+	//	{
+	//		outStream << YAML::Key << "MaterialComponent";
+	//		outStream << YAML::BeginMap;
+	//		{
+	//			auto& mat = entity.GetComponent<MaterialComponent>();
 
-			}
-			outStream << YAML::EndMap;
-		}
+	//			outStream << YAML::Key << "Albedo" << YAML::Value << mat.albedo;
+	//			outStream << YAML::Key << "Metallic" << YAML::Value << mat.metallic;
+	//			outStream << YAML::Key << "Roughness" << YAML::Value << mat.roughness;
+	//			if (mat.albedoTex)
+	//			{
+	//				outStream << YAML::Key << "AlbedoTextureAsset" << YAML::BeginMap;
+	//				mat.albedoTex->Serialize(outStream);
+	//				outStream << YAML::EndMap;
+	//			}
+	//			if (mat.metallicTex)
+	//			{
+	//				outStream << YAML::Key << "MetallicTextureAsset" << YAML::BeginMap;
+	//				mat.metallicTex->Serialize(outStream);
+	//				outStream << YAML::EndMap;
+	//			}
+	//			if (mat.roughnessTex)
+	//			{
+	//				outStream << YAML::Key << "RoughnessTextureAsset" << YAML::BeginMap;
+	//				mat.roughnessTex->Serialize(outStream);
+	//				outStream << YAML::EndMap;
+	//			}
+	//			if (mat.normalTex)
+	//			{
+	//				outStream << YAML::Key << "NormalTextureAsset" << YAML::BeginMap;
+	//				mat.normalTex->Serialize(outStream);
+	//				outStream << YAML::EndMap;
+	//			}
+	//			if (mat.AOTex)
+	//			{
+	//				outStream << YAML::Key << "AOTextureAsset" << YAML::BeginMap;
+	//				mat.AOTex->Serialize(outStream);
+	//				outStream << YAML::EndMap;
+	//			}
 
-		if (entity.HasComponent<PointLightComponent>())
-		{
-			outStream << YAML::Key << "PointLightComponent";
-			outStream << YAML::BeginMap;
-			{
-				auto& light = entity.GetComponent<PointLightComponent>();
-				outStream << YAML::Key << "Color" << YAML::Value << light.color;
-				outStream << YAML::Key << "Radius" << YAML::Value << light.radius;
-			}
-			outStream << YAML::EndMap;
-		}
+	//		}
+	//		outStream << YAML::EndMap;
+	//	}
 
-		if (entity.HasComponent<DirectionalLightComponent>())
-		{
-			outStream << YAML::Key << "DirectionalLightComponent";
-			outStream << YAML::BeginMap;
-			{
-				auto& mat = entity.GetComponent<DirectionalLightComponent>();
-				outStream << YAML::Key << "Color" << YAML::Value << mat.color;
-			}
-			outStream << YAML::EndMap;
-		}
+	//	if (entity.HasComponent<PointLightComponent>())
+	//	{
+	//		outStream << YAML::Key << "PointLightComponent";
+	//		outStream << YAML::BeginMap;
+	//		{
+	//			auto& light = entity.GetComponent<PointLightComponent>();
+	//			outStream << YAML::Key << "Color" << YAML::Value << light.color;
+	//			outStream << YAML::Key << "Radius" << YAML::Value << light.radius;
+	//		}
+	//		outStream << YAML::EndMap;
+	//	}
 
-		if (entity.HasComponent<CameraComponent>())
-		{
-			outStream << YAML::Key << "CameraComponent";
-			outStream << YAML::BeginMap;
-			{
-				auto& cam = entity.GetComponent<CameraComponent>();
-				outStream << YAML::Key << "CameraPos" << YAML::Value << cam.pCamera->GetPosition();
-				if (cam.type == ECameraType::eFirstPerson)
-				{
-					auto* pFPSCam = static_cast<FirstPersonCamera*>(cam.pCamera.get());
-					outStream << YAML::Key << "UpVector" << YAML::Value << pFPSCam->GetUpVector();
-					outStream << YAML::Key << "RightVector" << YAML::Value << pFPSCam->GetRightVector();
-					outStream << YAML::Key << "FrontVector" << YAML::Value << pFPSCam->GetFrontVector();
-				}
-			}
-			outStream << YAML::EndMap;
-		}
+	//	if (entity.HasComponent<DirectionalLightComponent>())
+	//	{
+	//		outStream << YAML::Key << "DirectionalLightComponent";
+	//		outStream << YAML::BeginMap;
+	//		{
+	//			auto& mat = entity.GetComponent<DirectionalLightComponent>();
+	//			outStream << YAML::Key << "Color" << YAML::Value << mat.color;
+	//		}
+	//		outStream << YAML::EndMap;
+	//	}
 
-		outStream << YAML::EndMap;
-	}
+	//	if (entity.HasComponent<CameraComponent>())
+	//	{
+	//		outStream << YAML::Key << "CameraComponent";
+	//		outStream << YAML::BeginMap;
+	//		{
+	//			auto& cam = entity.GetComponent<CameraComponent>();
+	//			outStream << YAML::Key << "CameraPos" << YAML::Value << cam.pCamera->GetPosition();
+	//			if (cam.type == ECameraType::eFirstPerson)
+	//			{
+	//				auto* pFPSCam = static_cast<FirstPersonCamera*>(cam.pCamera.get());
+	//				outStream << YAML::Key << "UpVector" << YAML::Value << pFPSCam->GetUpVector();
+	//				outStream << YAML::Key << "RightVector" << YAML::Value << pFPSCam->GetRightVector();
+	//				outStream << YAML::Key << "FrontVector" << YAML::Value << pFPSCam->GetFrontVector();
+	//			}
+	//		}
+	//		outStream << YAML::EndMap;
+	//	}
+
+	//	outStream << YAML::EndMap;
+	//}
 
 	Scene::Scene()
 	{
@@ -166,42 +162,35 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		//mpMainCamera = MakeRef<FirstPersonCamera>(Vector3f(0.0f, 3.0f, 7.0f));
-		//mpMainCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
-
-		//const auto camPos = Vector3f(0.0f, 3.0f, 7.0f);
-
-		//mpCameraEntity = CreateEntity("main_camera", camPos, Vector3f(1.0f), Vector3f(0.0f));
-		//auto& cam = mpCameraEntity->AddComponent<CameraComponent>();
-		//cam.pCamera = MakeRef<FirstPersonCamera>(camPos);
-		//cam.pCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
-
-		//mCameraEntity = mEntityManager.CreateEntity();
-		//mCameraEntity.AddComponent<TagComponent>("main_camera");
-		//mCameraEntity.AddComponent<TransformComponent>(camPos, Vector3f(1.0f), Vector3f(0.0f));
-
 		mSkyboxEntity = mEntityManager.CreateEntity();
-		mSkyboxEntity.AddComponent<TagComponent>("skybox");
+		mSkyboxEntity.AddComponent<TagComponent>("__skybox");
 		auto& mesh = mSkyboxEntity.AddComponent<MeshComponent>();
 		LoadMesh(EGennerateMeshType::eSkybox, mesh);
 
-		//auto* pEntity = CreateEntity("directional_light_0", Vector3f{ 8.0f, 12.0f, 0.0f }, Vector3f(1.0f), Vector3f(40.0f, -40.0f, 0.0f));
-		//pEntity->AddTag<LightTag>();
-		//pEntity->AddComponent<DirectionalLightComponent>();
+		const auto camPos = Vector3f(0.0f, 3.0f, 7.0f);
 
-		//pEntity = CreateEntity("point_light_0", { 1.25f, 0.75f, -0.3f }, Vector3f(1.0f), Vector3f(0.0f));
-		//pEntity->AddTag<LightTag>();
-		//auto& pointLight = pEntity->AddComponent<PointLightComponent>();
-		//pointLight.radius = 3.0f;
-		//pointLight.color = { 0.0f, 1.0f, 0.705f };
-		//pEntity->GetComponent<TagComponent>().bDirty = true;
+		mpCameraEntity = CreateEntity("main_camera", camPos, Vector3f(1.0f), Vector3f(0.0f));
+		auto& cam = mpCameraEntity->AddComponent<CameraComponent>();
+		cam.pCamera = MakeRef<FirstPersonCamera>(camPos);
+		cam.pCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
 
-		//DefaultScene();
+		auto* pEntity = CreateEntity("directional_light_0", Vector3f{ 8.0f, 12.0f, 0.0f }, Vector3f(1.0f), Vector3f(40.0f, -40.0f, 0.0f));
+		pEntity->AddTag<LightTag>();
+		pEntity->AddComponent<DirectionalLightComponent>();
+
+		pEntity = CreateEntity("point_light_0", { 1.25f, 0.75f, -0.3f }, Vector3f(1.0f), Vector3f(0.0f));
+		pEntity->AddTag<LightTag>();
+		auto& pointLight = pEntity->AddComponent<PointLightComponent>();
+		pointLight.radius = 3.0f;
+		pointLight.color = { 0.0f, 1.0f, 0.705f };
+
 		//MaterialScene();
-		//MaterialTexturedScene();
+		MaterialTexturedScene();
+		//DefaultScene();
 
 		mEntityManager.ReFresh();
-
+		
+		mMeshEntityCount = 0;
 		for (auto node : mEntities)
 		{
 			auto& entity = node.second;
@@ -317,7 +306,8 @@ namespace SG
 		CopyMesh(GetEntityByName("model")->GetComponent<MeshComponent>(), mesh1);
 
 		pEntity = CreateEntity("grid", Vector3f(0.0f), { 8.0f, 1.0f, 8.0f }, Vector3f(0.0f));
-		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.05f, 0.76f);
+		auto& mat = pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.05f, 0.76f);
+		mat.normalTex = TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_normal", "cerberus/normal.ktx", true);
 		auto& mesh2 = pEntity->AddComponent<MeshComponent>();
 		LoadMesh(EGennerateMeshType::eGrid, mesh2);
 	}
@@ -386,24 +376,42 @@ namespace SG
 		CopyMesh(GetEntityByName("cerberus")->GetComponent<MeshComponent>(), mesh1);
 	}
 
-	void Scene::Serialize(YAML::Emitter& outStream)
+	void Scene::Serialize()
 	{
-		outStream << YAML::BeginMap;
-		outStream << YAML::Key << "Scene" << YAML::Value << "My Test Scene";
-		outStream << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
-		{
-			TraverseEntity([&](auto& entity)
-				{
-					_SerializeEntity(entity, outStream);
-				});
-		}
-		outStream << YAML::EndSeq;
-		outStream << YAML::EndMap;
+		SG_PROFILE_FUNCTION();
+
+		//static UInt32 sCurrentSerializedEntity = 0;
+		//static unordered_map<string, Entity>::iterator sCurrentEntity = mEntities.begin();
+
+		//outStream << YAML::BeginMap;
+		//outStream << YAML::Key << "Scene" << YAML::Value << "My Test Scene";
+		//outStream << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+
+		//// one batch contain 50 entities.
+		//while (sCurrentSerializedEntity < 50 && sCurrentEntity != mEntities.end())
+		//{
+		//	_SerializeEntity(sCurrentEntity->second, outStream);
+		//	++sCurrentSerializedEntity;
+		//	++sCurrentEntity;
+		//}
+
+		//outStream << YAML::EndSeq;
+		//outStream << YAML::EndMap;
+
+		//sCurrentSerializedEntity = 0;
+		//if (sCurrentEntity == mEntities.end())
+		//{
+		//	sCurrentEntity = mEntities.begin();
+		//	return true;
+		//}
+		//return false;
 	}
 
-	void Scene::Deserialize(YAML::Node& node)
+	void Scene::Deserialize()
 	{
-		string sceneName = node["Scene"].as<std::string>().c_str();
+		SG_PROFILE_FUNCTION();
+
+		/*string sceneName = node["Scene"].as<std::string>().c_str();
 		auto entities = node["Entities"];
 		if (entities)
 		{
@@ -543,12 +551,13 @@ namespace SG
 
 		mEntityManager.ReFresh();
 
+		mMeshEntityCount = 0;
 		for (auto node : mEntities)
 		{
 			auto& entity = node.second;
 			if (entity.HasComponent<MeshComponent>())
 				++mMeshEntityCount;
-		}
+		}*/
 	}
 
 }

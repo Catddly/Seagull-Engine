@@ -47,7 +47,7 @@ namespace SG
 		return MakeRef<VulkanPipelineSignature>(context, pShader, combineImages, overrides);
 	}
 
-	VulkanPipelineSignature::VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, 
+	VulkanPipelineSignature::VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader> pShader, 
 		const vector<eastl::pair<const char*, const char*>>& combineImages, const unordered_map<string, EDescriptorType>& overrides)
 		:mContext(context), mpShader(pShader)
 	{
@@ -207,12 +207,25 @@ namespace SG
 				{
 					if (GetSet(imageData.second) != setIndex)
 						continue;
+
+					// if there s no sampler or texture that had been created, do not bind it.
+					// leave this slot in the shader as empty.
+					VulkanSampler* pSampler = VK_RESOURCE()->GetSampler(combineImages[imageIndex].first);
 					VulkanTexture* pTex = VK_RESOURCE()->GetTexture(combineImages[imageIndex].second);
-					if (pTex)
-						setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first), pTex);
+					if (pTex && pSampler)
+					{
+						setDataBinder.BindImage(GetBinding(imageData.second), pSampler, pTex);
+					}
 					else
-						setDataBinder.BindImage(GetBinding(imageData.second), VK_RESOURCE()->GetSampler(combineImages[imageIndex].first),
-							VK_RESOURCE()->GetRenderTarget(combineImages[imageIndex].second));
+					{
+						VulkanRenderTarget* pRenderTarget = VK_RESOURCE()->GetRenderTarget(combineImages[imageIndex].second);
+						if (pRenderTarget)
+							setDataBinder.BindImage(GetBinding(imageData.second), pSampler, pRenderTarget);
+						else // bind the default texture (logo)
+						{
+							setDataBinder.BindImage(GetBinding(imageData.second), pSampler, VK_RESOURCE()->GetTexture("logo"));
+						}
+					}
 					++imageIndex;
 				}
 

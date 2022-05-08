@@ -1,0 +1,698 @@
+Scene: My Test Scene
+Entities:
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere8_3
+    TransformComponent:
+      Position: [5, -2.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.900000036
+      Roughness: 0.699999988
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere8_2
+    TransformComponent:
+      Position: [5, -4, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.900000036
+      Roughness: 0.800000012
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere8_1
+    TransformComponent:
+      Position: [5, -5.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.900000036
+      Roughness: 0.900000036
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere8_0
+    TransformComponent:
+      Position: [5, -7, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.900000036
+      Roughness: 1
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: point_light_0
+    TransformComponent:
+      Position: [1.25, 0.75, -0.300000012]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [0, 1, 0.704999983]
+      Radius: 3
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere8_7
+    TransformComponent:
+      Position: [5, 3.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.900000036
+      Roughness: 0.300000012
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere8_6
+    TransformComponent:
+      Position: [5, 2, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.900000036
+      Roughness: 0.400000006
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere8_5
+    TransformComponent:
+      Position: [5, 0.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.900000036
+      Roughness: 0.5
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere8_4
+    TransformComponent:
+      Position: [5, -1, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.900000036
+      Roughness: 0.600000024
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere0_3
+    TransformComponent:
+      Position: [-7, -2.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.100000001
+      Roughness: 0.699999988
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere0_2
+    TransformComponent:
+      Position: [-7, -4, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.100000001
+      Roughness: 0.800000012
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere0_1
+    TransformComponent:
+      Position: [-7, -5.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.100000001
+      Roughness: 0.900000036
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere0_0
+    TransformComponent:
+      Position: [-7, -7, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.100000001
+      Roughness: 1
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere0_7
+    TransformComponent:
+      Position: [-7, 3.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.100000001
+      Roughness: 0.300000012
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: directional_light_0
+    TransformComponent:
+      Position: [8, 12, 0]
+      Rotation: [40, -40, 0]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Color: [1, 1, 1]
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere0_6
+    TransformComponent:
+      Position: [-7, 2, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.100000001
+      Roughness: 0.400000006
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere0_5
+    TransformComponent:
+      Position: [-7, 0.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.100000001
+      Roughness: 0.5
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere6_1
+    TransformComponent:
+      Position: [2, -5.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.699999988
+      Roughness: 0.900000036
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere0_4
+    TransformComponent:
+      Position: [-7, -1, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.100000001
+      Roughness: 0.600000024
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere6_0
+    TransformComponent:
+      Position: [2, -7, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.699999988
+      Roughness: 1
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere6_3
+    TransformComponent:
+      Position: [2, -2.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.699999988
+      Roughness: 0.699999988
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere6_2
+    TransformComponent:
+      Position: [2, -4, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.699999988
+      Roughness: 0.800000012
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere0_9
+    TransformComponent:
+      Position: [-7, 6.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.100000001
+      Roughness: 0.100000001
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere6_5
+    TransformComponent:
+      Position: [2, 0.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.699999988
+      Roughness: 0.5
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere0_8
+    TransformComponent:
+      Position: [-7, 5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.100000001
+      Roughness: 0.200000003
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere9_2
+    TransformComponent:
+      Position: [6.5, -4, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 1
+      Roughness: 0.800000012
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere6_4
+    TransformComponent:
+      Position: [2, -1, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.699999988
+      Roughness: 0.600000024
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere9_3
+    TransformComponent:
+      Position: [6.5, -2.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 1
+      Roughness: 0.699999988
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere6_7
+    TransformComponent:
+      Position: [2, 3.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.699999988
+      Roughness: 0.300000012
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere9_0
+    TransformComponent:
+      Position: [6.5, -7, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 1
+      Roughness: 1
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere6_6
+    TransformComponent:
+      Position: [2, 2, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.699999988
+      Roughness: 0.400000006
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere9_1
+    TransformComponent:
+      Position: [6.5, -5.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 1
+      Roughness: 0.900000036
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere9_6
+    TransformComponent:
+      Position: [6.5, 2, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 1
+      Roughness: 0.400000006
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere6_9
+    TransformComponent:
+      Position: [2, 6.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.699999988
+      Roughness: 0.100000001
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere9_7
+    TransformComponent:
+      Position: [6.5, 3.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 1
+      Roughness: 0.300000012
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere6_8
+    TransformComponent:
+      Position: [2, 5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.699999988
+      Roughness: 0.200000003
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere9_4
+    TransformComponent:
+      Position: [6.5, -1, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 1
+      Roughness: 0.600000024
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere9_5
+    TransformComponent:
+      Position: [6.5, 0.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 1
+      Roughness: 0.5
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere9_8
+    TransformComponent:
+      Position: [6.5, 5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 1
+      Roughness: 0.200000003
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: cerberus_1
+    TransformComponent:
+      Position: [2.5999999, 1.85000002, -2.29999995]
+      Rotation: [0, 90, 0]
+      Scale: [3, 3, 3]
+    MeshComponent:
+      Filename: cerberus
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.0500000007
+      Roughness: 0.899999976
+      AOTextureAsset:
+        Name: cerberus_ao
+        Filename: cerberus/ao.ktx
+        NeedMipmap: true
+        IsCubeMap: false
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere9_9
+    TransformComponent:
+      Position: [6.5, 6.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 1
+      Roughness: 0.100000001
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: model
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Filename: model
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.200000003
+      Roughness: 0.800000012
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere1_8
+    TransformComponent:
+      Position: [-5.5, 5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.200000003
+      Roughness: 0.200000003
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere1_9
+    TransformComponent:
+      Position: [-5.5, 6.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.200000003
+      Roughness: 0.100000001
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: model_1
+    TransformComponent:
+      Position: [0, 0, -1.5]
+      Rotation: [0, 0, 0]
+      Scale: [0.600000024, 0.600000024, 0.600000024]
+    MeshComponent:
+      Filename: model
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.800000012
+      Roughness: 0.349999994
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere1_2
+    TransformComponent:
+      Position: [-5.5, -4, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.200000003
+      Roughness: 0.800000012
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere1_3
+    TransformComponent:
+      Position: [-5.5, -2.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.200000003
+      Roughness: 0.699999988
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere1_0
+    TransformComponent:
+      Position: [-5.5, -7, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.200000003
+      Roughness: 1
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere1_1
+    TransformComponent:
+      Position: [-5.5, -5.5, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.200000003
+      Roughness: 0.900000036
+  - Entity: 9468552411547745
+    TagComponent:
+      Name: sphere1_6
+    TransformComponent:
+      Position: [-5.5, 2, -4]
+      Rotation: [0, 0, 0]
+      Scale: [0.699999988, 0.699999988, 0.699999988]
+    MeshComponent:
+      Filename: sphere
+      IsProceduralMesh: false
+    MaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0.200000003
+      Roughness: 0.400000006

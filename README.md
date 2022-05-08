@@ -5,7 +5,8 @@
 ![Code size](https://img.shields.io/github/languages/code-size/CrystaLamb/Seagull-Engine)
 ![Repo size](https://img.shields.io/github/repo-size/CrystaLamb/Seagull-Engine)
 ![GitHub contributors](https://img.shields.io/github/contributors/CrystaLamb/Seagull-Engine)
-![Repo stars](https://img.shields.io/github/stars/CrystaLamb/Seagull-Engine?style=social)
+![Repo stars](https://img.shields.io/github/stars/CrystaLamb/Seagull-Engine?style=social)  
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/10d8e2f590ca4a71abbd6305cd51fe86)](https://www.codacy.com/gh/CrystaLamb/Seagull-Engine/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=CrystaLamb/Seagull-Engine&amp;utm_campaign=Badge_Grade)
 
 ## Brief Introduction
 

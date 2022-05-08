@@ -138,7 +138,7 @@ namespace SG
 		ImGui::Separator();
 		ImGui::Text("DrawCall: %d", drawCallCnt);
 		ImGui::Text("Scene Objects: %d", cullMeshCnt);
-		ImGui::Text("Culled Objects: %d", cullMeshCnt - statisticData.cullSceneObjects);
+		ImGui::Text("Culled Objects: %d", statisticData.culledSceneObjects);
 		ImGui::End();
 	}
 

@@ -57,7 +57,7 @@ namespace SG
 		return EShaderDataType::eUndefined;
 	}
 
-	bool ShaderCompiler::LoadSPIRVShader(const string& binShaderName, Shader* pShader)
+	bool ShaderCompiler::LoadSPIRVShader(const string& binShaderName, RefPtr<Shader> pShader)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -94,7 +94,7 @@ namespace SG
 		return ReflectSPIRV(pShader);
 	}
 
-	bool ShaderCompiler::LoadSPIRVShader(const string& vertShaderName, const string& fragShaderName, Shader* pShader)
+	bool ShaderCompiler::LoadSPIRVShader(const string& vertShaderName, const string& fragShaderName, RefPtr<Shader> pShader)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -130,7 +130,7 @@ namespace SG
 		return ReflectSPIRV(pShader);
 	}
 
-	bool ShaderCompiler::CompileGLSLShader(const string& binShaderName, Shader* pShader)
+	bool ShaderCompiler::CompileGLSLShader(const string& binShaderName, RefPtr<Shader> pShader)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -209,7 +209,7 @@ namespace SG
 		return LoadSPIRVShader(binShaderName, pShader);
 	}
 
-	bool ShaderCompiler::CompileGLSLShader(const string& vertShaderName, const string& fragShaderName, Shader* pShader)
+	bool ShaderCompiler::CompileGLSLShader(const string& vertShaderName, const string& fragShaderName, RefPtr<Shader> pShader)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -300,7 +300,7 @@ namespace SG
 		return LoadSPIRVShader(vertShaderName, fragShaderName, pShader);
 	}
 
-	bool ShaderCompiler::ReadInShaderData(const string& name, UInt32 stage, Shader* pShader, UInt8& checkFlag)
+	bool ShaderCompiler::ReadInShaderData(const string& name, UInt32 stage, RefPtr<Shader> pShader, UInt8& checkFlag)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -391,7 +391,7 @@ namespace SG
 		return bHaveError;
 	}
 
-	bool ShaderCompiler::ReflectSPIRV(Shader* pShader)
+	bool ShaderCompiler::ReflectSPIRV(RefPtr<Shader> pShader)
 	{
 		SG_PROFILE_FUNCTION();
 

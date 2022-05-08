@@ -82,7 +82,7 @@ namespace SG
 	/// VulkanPipeline
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanPipeline::VulkanPipeline(VulkanDevice& d, const GraphicPipelineCreateInfo& CI, VulkanPipelineLayout* pLayout, VulkanRenderPass* pRenderPass, VulkanShader* pShader)
+	VulkanPipeline::VulkanPipeline(VulkanDevice& d, const GraphicPipelineCreateInfo& CI, RefPtr<VulkanPipelineLayout> pLayout, VulkanRenderPass* pRenderPass, RefPtr<VulkanShader> pShader)
 		:device(d), pipelineType(EPipelineType::eGraphic)
 	{
 		if (gCommonPipelineCache == VK_NULL_HANDLE)
@@ -100,6 +100,7 @@ namespace SG
 		graphicPipelineCreateInfo.renderPass = pRenderPass->renderPass;
 
 		pShader->CreatePipelineShader();
+
 		// assign the pipeline states to the pipeline creation info structure
 		graphicPipelineCreateInfo.stageCount = static_cast<UInt32>(pShader->GetShaderStagesCI().size());
 		graphicPipelineCreateInfo.pStages = pShader->GetShaderStagesCI().data();
@@ -120,7 +121,7 @@ namespace SG
 		pShader->DestroyPipelineShader();
 	}
 
-	VulkanPipeline::VulkanPipeline(VulkanDevice& d, VulkanPipelineLayout* pLayout, VulkanShader* pShader)
+	VulkanPipeline::VulkanPipeline(VulkanDevice& d, RefPtr<VulkanPipelineLayout> pLayout, RefPtr<VulkanShader> pShader)
 		:device(d), pipelineType(EPipelineType::eCompute)
 	{
 		if (gCommonPipelineCache == VK_NULL_HANDLE)
@@ -351,9 +352,17 @@ namespace SG
 		return *this;
 	}
 
-	VulkanPipeline::Builder& VulkanPipeline::Builder::BindShader(VulkanShader* pShader)
+	VulkanPipeline::Builder& VulkanPipeline::Builder::BindSignature(RefPtr<VulkanPipelineSignature> pSignature, bool bWithDifferentShader)
 	{
-		this->pShader = pShader; 
+		this->pLayout = pSignature->mpPipelineLayout;
+		if (!bWithDifferentShader)
+			this->pShader = pSignature->mpShader; 
+		return *this;
+	}
+
+	VulkanPipeline::Builder& VulkanPipeline::Builder::BindShader(RefPtr<VulkanShader> pShader)
+	{
+		this->pShader = pShader;
 		return *this;
 	}
 

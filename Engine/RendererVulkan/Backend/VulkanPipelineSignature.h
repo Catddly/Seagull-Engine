@@ -19,7 +19,7 @@ namespace SG
 	class VulkanPipelineSignature
 	{
 	public:
-		VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader>& pShader, const vector<eastl::pair<const char*, const char*>>& combineImages,
+		VulkanPipelineSignature(VulkanContext& context, RefPtr<VulkanShader> pShader, const vector<eastl::pair<const char*, const char*>>& combineImages,
 			const unordered_map<string, EDescriptorType>& overrides);
 		~VulkanPipelineSignature() = default;
 
@@ -72,7 +72,7 @@ namespace SG
 		friend class VulkanPipeline;
 		VulkanContext& mContext;
 
-		RefPtr<VulkanShader>&        mpShader;
+		RefPtr<VulkanShader>         mpShader;
 		RefPtr<VulkanPipelineLayout> mpPipelineLayout;
 		eastl::unordered_map<UInt32, SetDescriptorsData> mDescriptorSetData; // set -> <descriptorSetLayouts, descriptors>
 	};

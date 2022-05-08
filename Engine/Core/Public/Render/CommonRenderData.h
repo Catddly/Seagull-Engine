@@ -100,7 +100,7 @@ namespace SG
 
 	struct StatisticData
 	{
-		UInt32 cullSceneObjects = 0;
+		UInt32 culledSceneObjects = 0;
 		eastl::array<UInt64, 8> pipelineStatistics = {};
 		eastl::array<double, 3> gpuRenderPassTime;
 	};

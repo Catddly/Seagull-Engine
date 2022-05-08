@@ -36,7 +36,8 @@ project "SRendererVulkan"
         "../../Libs/glm/",  -- glm
         "../../Libs/ktx/include/",
         "../../Libs/vulkan_memory_allocator/",
-        "../../Libs/yaml/include/",
+        -- "../../Libs/yaml/include/",
+        "../../Libs/json/single_include/",
     }
 
     links

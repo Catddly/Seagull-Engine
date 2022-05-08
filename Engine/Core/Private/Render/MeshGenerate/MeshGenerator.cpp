@@ -14,6 +14,13 @@ namespace SG
 		outVertices.push_back(0.0f);
 		outVertices.push_back(1.0f);
 		outVertices.push_back(0.0f);
+		// [0] uv
+		outVertices.push_back(0.0f);
+		outVertices.push_back(1.0f);
+		// [0] tangent
+		outVertices.push_back(1.0f);
+		outVertices.push_back(0.0f);
+		outVertices.push_back(0.0f);
 
 		// [1] vertex
 		outVertices.push_back(0.5f);
@@ -23,6 +30,13 @@ namespace SG
 		outVertices.push_back(0.0f);
 		outVertices.push_back(1.0f);
 		outVertices.push_back(0.0f);
+		// [1] uv
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		// [1] tangent
+		outVertices.push_back(0.0f);
+		outVertices.push_back(0.0f);
+		outVertices.push_back(1.0f);
 
 		// [2] vertex
 		outVertices.push_back(0.5f);
@@ -31,6 +45,13 @@ namespace SG
 		// [2] normal
 		outVertices.push_back(0.0f);
 		outVertices.push_back(1.0f);
+		outVertices.push_back(0.0f);
+		// [2] uv
+		outVertices.push_back(1.0f);
+		outVertices.push_back(0.0f);
+		// [2] tangent
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(0.0f);
 		outVertices.push_back(0.0f);
 
 		// [3] vertex
@@ -41,6 +62,13 @@ namespace SG
 		outVertices.push_back(0.0f);
 		outVertices.push_back(1.0f);
 		outVertices.push_back(0.0f);
+		// [3] uv
+		outVertices.push_back(0.0f);
+		outVertices.push_back(0.0f);
+		// [3] tangent
+		outVertices.push_back(0.0f);
+		outVertices.push_back(0.0f);
+		outVertices.push_back(-1.0f);
 		
 		// [0] triangle
 		outIndices.push_back(0);

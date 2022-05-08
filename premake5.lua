@@ -41,7 +41,6 @@ group "Libs"
     include "Libs/imgui/"
     include "Libs/spirv-cross/"
     include "Libs/tracy/"
-    include "Libs/yaml/"
 
 group ""
 
@@ -83,7 +82,7 @@ group "Runtime"
             "Libs/",
             "Libs/eastl/include/",
             "Libs/glm/",
-            "Libs/yaml/include/",
+            "Libs/json/single_include/",
         }
 
         links

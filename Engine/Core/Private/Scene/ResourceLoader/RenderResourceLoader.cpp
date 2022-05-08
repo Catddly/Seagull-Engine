@@ -116,7 +116,7 @@ namespace SG
 				const aiMesh* pMesh = scene->mMeshes[i];
 				const UInt32  meshNumVertices = pMesh->mNumVertices;
 
-				SG_ASSERT(pMesh->HasNormals() && pMesh->HasTextureCoords(0));
+				SG_ASSERT(pMesh->HasNormals());
 
 				for (UInt32 index = 0; index < meshNumVertices; ++index)
 				{
@@ -130,9 +130,17 @@ namespace SG
 					vertices.emplace_back(vertexNormal.y);
 					vertices.emplace_back(vertexNormal.z);
 
-					const aiVector3D& vertexUV = pMesh->mTextureCoords[0][index];
-					vertices.emplace_back(vertexUV.x);
-					vertices.emplace_back(vertexUV.y);
+					if (pMesh->HasTextureCoords(0))
+					{
+						const aiVector3D& vertexUV = pMesh->mTextureCoords[0][index];
+						vertices.emplace_back(vertexUV.x);
+						vertices.emplace_back(vertexUV.y);
+					}
+					else
+					{
+						vertices.emplace_back(0.0f);
+						vertices.emplace_back(0.0f);
+					}
 
 					if (pMesh->HasTangentsAndBitangents())
 					{

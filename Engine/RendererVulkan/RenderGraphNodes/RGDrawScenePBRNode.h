@@ -43,7 +43,6 @@ namespace SG
 		void DrawScene(DrawInfo& drawInfo);
 	private:
 		VulkanContext&        mContext;
-		//MessageBusMember      mMessageBusMember;
 
 		LoadStoreClearOp      mColorRtLoadStoreOp;
 		LoadStoreClearOp      mDepthRtLoadStoreOp;

@@ -80,8 +80,8 @@ namespace SG
 		mpShadowShader = VulkanShader::Create(mContext.device);
 		mpShadowInstanceShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("shadow", mpShadowShader.get());
-		compiler.CompileGLSLShader("shadow_instance", mpShadowInstanceShader.get());
+		compiler.CompileGLSLShader("shadow", mpShadowShader);
+		compiler.CompileGLSLShader("shadow_instance", mpShadowInstanceShader);
 
 		mpShadowPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShadowShader)
 			.Build();
@@ -123,9 +123,8 @@ namespace SG
 			.SetColorBlend(false)
 			.SetRasterizer(ECullMode::eFront)
 			.SetDynamicStates(VK_DYNAMIC_STATE_DEPTH_BIAS)
-			.BindSignature(mpShadowInstancePipelineSignature.get())
+			.BindSignature(mpShadowInstancePipelineSignature)
 			.BindRenderPass(pRenderpass)
-			.BindShader(mpShadowInstanceShader.get())
 			.Build();
 
 		mpShadowPipeline = VulkanPipeline::Builder(mContext.device)
@@ -133,9 +132,8 @@ namespace SG
 			.SetColorBlend(false)
 			.SetRasterizer(ECullMode::eFront)
 			.SetDynamicStates(VK_DYNAMIC_STATE_DEPTH_BIAS)
-			.BindSignature(mpShadowPipelineSignature.get())
+			.BindSignature(mpShadowPipelineSignature)
 			.BindRenderPass(pRenderpass)
-			.BindShader(mpShadowShader.get())
 			.Build();
 	}
 
@@ -144,9 +142,11 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		IndirectRenderer::Begin(context);
-		//IndirectRenderer::CullingReset();
-		//IndirectRenderer::DoCulling();
-		//IndirectRenderer::CopyStatisticsData();
+#if SG_ENABLE_GPU_CULLING
+		IndirectRenderer::CullingReset();
+		IndirectRenderer::DoCulling();
+		IndirectRenderer::CopyStatisticsData();
+#endif
 
 		auto& pBuf = *context.pCmd;
 		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efTop_Of_Pipeline, 0);

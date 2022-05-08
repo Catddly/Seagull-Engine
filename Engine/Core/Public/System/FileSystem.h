@@ -112,7 +112,7 @@ namespace SG
 
 		SG_CORE_API static Size FileSize(const EResourceDirectory directory, const string& filename);
 
-		SG_CORE_API static bool RemoveFile(const EResourceDirectory directory, const string& filename);
+		SG_CORE_API static bool RemoveFile(const EResourceDirectory directory, const string& filename, Size rootFolderOffset = 0);
 
 		SG_CORE_API static string GetResourceFolderPath(EResourceDirectory directory, Size rootFolderOffset = 0);
 		SG_CORE_API static string GetResourceFolderName(EResourceDirectory directory);

@@ -69,12 +69,34 @@ namespace SG
 		}
 	}
 
+	bool DockSpaceLayer::OnKeyInputUpdate(EKeyCode keycode, EKeyState keyState)
+	{
+		SG_PROFILE_FUNCTION();
+
+		if (mbTriggerSave && !Input::IsKeyPressed(KeyCode_LeftControl) || !Input::IsKeyPressed(KeyCode_S))
+			mbTriggerSave = false;
+
+		if (mbViewportOnFocused)
+			return true;
+		else
+		{
+			if (!mbTriggerSave && Input::IsKeyPressed(KeyCode_LeftControl) && Input::IsKeyPressed(KeyCode_S))
+			{
+				Serializer::Serialize(SSystem()->GetMainScene());
+				mbShowSaveSceneProgressBar = true;
+				mbTriggerSave = true;
+			}
+		}
+
+		return false;
+	}
+
 	bool DockSpaceLayer::OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos)
 	{
 		SG_PROFILE_FUNCTION();
 
 		// just block other events, so that the camera do not get the input update message.
-		if (mbViewportCanUpdateMouse)
+		if (mbViewportOnFocused && mbViewportOnHovered)
 			return true;
 		else
 			return false;
@@ -126,14 +148,16 @@ namespace SG
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("Save Scene"))
+				if (ImGui::MenuItem("Save Scene", "CTRL+S"))
 				{
 					Serializer::Serialize(SSystem()->GetMainScene());
 					mbShowSaveSceneProgressBar = true;
 				}
 				ImGui::Separator();
-				if (ImGui::MenuItem("Exit"))
+				if (ImGui::MenuItem("Exit", "ESC"))
+				{
 					SSystem()->Terminate();
+				}
 				ImGui::EndMenu();
 			}
 
@@ -164,7 +188,8 @@ namespace SG
 		mViewportPos.x = windowPos.x;
 		mViewportPos.y = windowPos.y;
 
-		mbViewportCanUpdateMouse = ImGui::IsWindowFocused() && ImGui::IsWindowHovered();
+		mbViewportOnFocused = ImGui::IsWindowFocused();
+		mbViewportOnHovered = ImGui::IsWindowHovered();
 
 		auto viewportSize = ImGui::GetContentRegionAvail();
 		if (viewportSize.x != mLastViewportSize.x || viewportSize.y != mLastViewportSize.y) // resize the viewport render target
@@ -187,8 +212,8 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		bool bShow = true;
-		ImGui::ShowDemoWindow(&bShow);
+		//bool bShow = true;
+		//ImGui::ShowDemoWindow(&bShow);
 
 		ImGui::Begin("Global Settings");
 
@@ -215,15 +240,15 @@ namespace SG
 			mFrameCounter = 1;
 		}
 
-		Size cullMeshCnt = SSystem()->GetMainScene()->GetMeshEntityCount();
+		Size meshCnt = SSystem()->GetMainScene()->GetMeshEntityCount();
 		UInt32 drawCallCnt = MeshDataArchive::GetInstance()->GetNumMeshData();
 		auto& statisticData = GetStatisticData();
 
 		ImGui::Begin("Statistics");
 		ImGui::Text("Avg Fps: %u", mLastFps);
 		ImGui::Text("DrawCall: %d", drawCallCnt);
-		ImGui::Text("Scene Objects: %d", cullMeshCnt);
-		ImGui::Text("Culled Objects: %d", cullMeshCnt - statisticData.cullSceneObjects);
+		ImGui::Text("Scene Objects: %d", meshCnt);
+		ImGui::Text("Culled Objects: %d", statisticData.culledSceneObjects);
 		ImGui::Checkbox("Show Detail", &mbShowStatisticsDetail);
 		if (mbShowStatisticsDetail)
 		{
@@ -287,6 +312,8 @@ namespace SG
 
 	void DockSpaceLayer::DrawSaveSceneProgressBar()
 	{
+		SG_PROFILE_FUNCTION();
+
 		enum ECORNER { TOP_LEFT = 0, TOP_RIGHT = 1, BOTTOM_LEFT = 2, BOTTOM_RIGHT = 3 };
 
 		static int corner = TOP_LEFT;

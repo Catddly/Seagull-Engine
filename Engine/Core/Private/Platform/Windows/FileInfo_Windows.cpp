@@ -9,6 +9,8 @@
 namespace SG
 {
 
+// [Criticle] Huge duplicated code detected.
+
 	TimePoint GetFileCreateTime(const char* filename)
 	{
 		WIN32_FIND_DATAA fd = {};

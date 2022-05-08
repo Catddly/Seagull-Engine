@@ -113,11 +113,11 @@ namespace SG
 		return std::filesystem::file_size(file.c_str());
 	}
 
-	bool FileSystem::RemoveFile(const EResourceDirectory directory, const string& filename)
+	bool FileSystem::RemoveFile(const EResourceDirectory directory, const string& filename, Size rootFolderOffset)
 	{
 		SG_PROFILE_FUNCTION();
 
-		string file = GetResourceFolderPath(directory);
+		string file = GetResourceFolderPath(directory, rootFolderOffset);
 		file += filename;
 		return std::filesystem::remove(file.c_str());
 	}

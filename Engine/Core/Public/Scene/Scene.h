@@ -66,8 +66,8 @@ namespace SG
 		void MaterialScene();
 		void MaterialTexturedScene();
 
-		virtual void Serialize(YAML::Emitter& outStream) override;
-		virtual void Deserialize(YAML::Node& node) override;
+		virtual void Serialize() override;
+		virtual void Deserialize() override;
 	private:
 		Entity mSkyboxEntity;
 		Entity* mpCameraEntity;

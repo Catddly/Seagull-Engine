@@ -82,9 +82,9 @@ namespace SG
 		mpInstanceShader = VulkanShader::Create(mContext.device);
 		mpSkyboxShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("brdf", mpShader.get());
-		compiler.CompileGLSLShader("skybox", mpSkyboxShader.get());
-		compiler.CompileGLSLShader("brdf_instance", "brdf", mpInstanceShader.get());
+		compiler.CompileGLSLShader("brdf", mpShader);
+		compiler.CompileGLSLShader("skybox", mpSkyboxShader);
+		compiler.CompileGLSLShader("brdf_instance", "brdf", mpInstanceShader);
 
 		GenerateBRDFLut();
 		PreCalcIrradianceCubemap();
@@ -157,28 +157,27 @@ namespace SG
 		mpSkyboxPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetRasterizer(ECullMode::eFront)
 			.SetColorBlend(false)
-			.BindSignature(mpSkyboxPipelineSignature.get())
+			.BindSignature(mpSkyboxPipelineSignature)
 			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
-			.BindShader(mpSkyboxShader.get())
 			.Build();
 
 		mpInstancePipeline = VulkanPipeline::Builder(mContext.device)
 			.SetInputVertexRange(sizeof(Vertex), EVertexInputRate::ePerVertex)
 			.SetInputVertexRange(sizeof(PerInstanceData), EVertexInputRate::ePerInstance)
 			.SetColorBlend(false)
-			.BindSignature(mpPipelineSignature.get())
+			.BindSignature(mpPipelineSignature, true)
+			.BindShader(mpInstanceShader)
 			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
-			.BindShader(mpInstanceShader.get())
 			.Build();
 
 		mpPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetColorBlend(false)
-			.BindSignature(mpPipelineSignature.get())
+			.BindSignature(mpPipelineSignature, true)
+			.BindShader(mpShader)
 			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
-			.BindShader(mpShader.get())
 			.Build();
 	}
 
@@ -265,7 +264,7 @@ namespace SG
 
 		auto pBrdfLutShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("composition", "generate_brdf_lut", pBrdfLutShader.get());
+		compiler.CompileGLSLShader("composition", "generate_brdf_lut", pBrdfLutShader);
 
 		auto pBrdfLutPipelineSignature = VulkanPipelineSignature::Builder(mContext, pBrdfLutShader)
 			.Build();
@@ -284,13 +283,12 @@ namespace SG
 			.Build();
 
 		auto* pBrdfLutPipeline = VulkanPipeline::Builder(mContext.device)
-			.BindSignature(pBrdfLutPipelineSignature.get())
+			.BindSignature(pBrdfLutPipelineSignature)
 			.SetRasterizer(ECullMode::eNone)
 			.SetColorBlend(false)
 			.SetDepthStencil(false)
 			.SetDynamicStates()
 			.BindRenderPass(pTempVulkanRenderPass)
-			.BindShader(pBrdfLutShader.get())
 			.Build();
 
 		VulkanFence* pFence = VulkanFence::Create(mContext.device);
@@ -374,7 +372,7 @@ namespace SG
 
 		auto pIrradianceShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("irradiance_cubemap", pIrradianceShader.get());
+		compiler.CompileGLSLShader("irradiance_cubemap", pIrradianceShader);
 
 		auto pIrradiancePipelineSignature = VulkanPipelineSignature::Builder(mContext, pIrradianceShader)
 			.AddCombindSamplerImage("cubemap_sampler", "cubemap")
@@ -394,13 +392,12 @@ namespace SG
 			.Build();
 
 		auto* pIrradiancePipeline = VulkanPipeline::Builder(mContext.device)
-			.BindSignature(pIrradiancePipelineSignature.get())
+			.BindSignature(pIrradiancePipelineSignature)
 			.SetRasterizer(ECullMode::eNone)
 			.SetDepthStencil(false)
 			.SetColorBlend(false)
 			.SetDynamicStates()
 			.BindRenderPass(pTempVulkanRenderPass)
-			.BindShader(pIrradianceShader.get())
 			.Build();
 
 		// matrixs to rotate the corresponding faces of the cube to the right place.
@@ -537,7 +534,7 @@ namespace SG
 
 		auto pPrefilterShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("prefilter_cubemap", pPrefilterShader.get());
+		compiler.CompileGLSLShader("prefilter_cubemap", pPrefilterShader);
 
 		auto pPrefilterPipelineSignature = VulkanPipelineSignature::Builder(mContext, pPrefilterShader)
 			.AddCombindSamplerImage("cubemap_sampler", "cubemap")
@@ -557,16 +554,15 @@ namespace SG
 			.Build();
 
 		auto* pPrefilterPipeline = VulkanPipeline::Builder(mContext.device)
-			.BindSignature(pPrefilterPipelineSignature.get())
+			.BindSignature(pPrefilterPipelineSignature)
 			.SetRasterizer(ECullMode::eNone)
 			.SetDepthStencil(false)
 			.SetColorBlend(false)
 			.SetDynamicStates()
 			.BindRenderPass(pTempVulkanRenderPass)
-			.BindShader(pPrefilterShader.get())
 			.Build();
 
-		// matrixs to rotate the corresponding faces of the cube to the right place.
+		// matrices to rotate the corresponding faces of the cube to the right place.
 		eastl::array<Matrix4f, 6> directionMats = {
 			// +X
 			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), glm::radians(90.0f), 0.0f))),

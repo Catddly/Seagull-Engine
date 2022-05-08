@@ -56,8 +56,8 @@ namespace SG
 		SG_INLINE bool IsValid() const noexcept { return mTextureData.IsValid(); }
 		SG_INLINE void FreeMemory() noexcept { SG_ASSERT(mTextureData.IsValid()); mTextureData.FreeMemory(); }
 
-		virtual void Serialize(YAML::Emitter& outStream) override;
-		virtual void Deserialize(YAML::Node& node) override;
+		virtual void Serialize() override;
+		virtual void Deserialize() override;
 		
 		virtual string GetAssetFilePath() const noexcept override { return mFilename; }
 		virtual void   LoadDataFromDisk() noexcept override;

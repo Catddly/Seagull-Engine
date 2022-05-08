@@ -97,7 +97,7 @@ namespace SG
 
 			mpGUIShader = VulkanShader::Create(mContext.device);
 			ShaderCompiler compiler;
-			compiler.CompileGLSLShader("imgui/_imgui", mpGUIShader.get());
+			compiler.CompileGLSLShader("imgui/_imgui", mpGUIShader);
 
 			mpGUIPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpGUIShader)
 				.AddCombindSamplerImage("_imgui_sampler", "_imgui_font")
@@ -171,16 +171,14 @@ namespace SG
 		//	.SetDepthStencil(false)
 		//	.BindSignature(mpCompPipelineSignature.get())
 		//	.BindRenderPass(pRenderpass)
-		//	.BindShader(mpCompShader.get())
 		//	.Build();
 
 		mpGUIPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetRasterizer(ECullMode::eNone)
 			.SetDynamicStates()
 			.SetDepthStencil(false)
-			.BindSignature(mpGUIPipelineSignature.get())
+			.BindSignature(mpGUIPipelineSignature)
 			.BindRenderPass(pRenderpass)
-			.BindShader(mpGUIShader.get())
 			.Build();
 	}
 

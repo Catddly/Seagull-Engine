@@ -55,7 +55,7 @@ namespace SG
 		mp3DScene = MakeRef<Scene>();
 		mp3DScene->OnSceneLoad();
 
-		Deserializer::Deserialize(mp3DScene);
+		//Deserializer::Deserialize(mp3DScene);
 
 		mpRenderDataBuilder = MakeRef<RenderDataBuilder>();
 		mpRenderDataBuilder->SetScene(mp3DScene);

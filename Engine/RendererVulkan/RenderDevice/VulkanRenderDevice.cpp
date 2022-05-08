@@ -158,7 +158,9 @@ namespace SG
 			SG_PROFILE_SCOPE("Fence Waiting");
 
 			mpContext->pFences[mCurrentFrame]->WaitAndReset(); // wait for the render commands running on the GPU side to finish
-			//mpContext->pComputeSyncFences[mCurrentFrame]->WaitAndReset(); // wait for the compute command buffer to finish
+#if SG_ENABLE_GPU_CULLING
+			mpContext->pComputeSyncFences[mCurrentFrame]->WaitAndReset(); // wait for the compute command buffer to finish
+#endif
 		}
 
 		{
@@ -174,13 +176,25 @@ namespace SG
 
 			// submit graphic commands
 			VulkanSemaphore* signalSemaphores[1] = { mpContext->pRenderCompleteSemaphore };
+#if SG_ENABLE_GPU_CULLING
+			VulkanSemaphore* waitSemaphores[2] = { mpContext->pPresentCompleteSemaphore, mpContext->pComputeCompleteSemaphore };
+#else
 			VulkanSemaphore* waitSemaphores[1] = { mpContext->pPresentCompleteSemaphore };
-			//VulkanSemaphore* waitSemaphores[2] = { mpContext->pPresentCompleteSemaphore, mpContext->pComputeCompleteSemaphore };
-			EPipelineStage   waitStages[1] = { EPipelineStage::efColor_Attachment_Output };
-			//EPipelineStage   waitStages[2] = { EPipelineStage::efColor_Attachment_Output, EPipelineStage::efCompute_Shader };
+#endif
+#if SG_ENABLE_GPU_CULLING
+			EPipelineStage waitStages[2] = { EPipelineStage::efColor_Attachment_Output, EPipelineStage::efCompute_Shader };
+#else
+			EPipelineStage waitStages[1] = { EPipelineStage::efColor_Attachment_Output };
+#endif
+#if SG_ENABLE_GPU_CULLING
+			mpContext->pGraphicQueue->SubmitCommands<2, 1, 2>(&mpContext->commandBuffers[mCurrentFrame],
+				waitStages, signalSemaphores, waitSemaphores,
+				mpContext->pFences[mCurrentFrame]);
+#else
 			mpContext->pGraphicQueue->SubmitCommands<1, 1, 1>(&mpContext->commandBuffers[mCurrentFrame],
 				waitStages, signalSemaphores, waitSemaphores,
 				mpContext->pFences[mCurrentFrame]);
+#endif
 			// once submit the commands to GPU, pRenderCompleteSemaphore will be locked, and will be unlocked after the GPU finished the commands.
 			// we have to wait for the commands had been executed, then we present this image.
 			// we use semaphore to have GPU-GPU sync.
@@ -195,20 +209,24 @@ namespace SG
 		{
 			SG_PROFILE_SCOPE("Copy Statistics");
 
-			//DrawInfo info;
-			//info.frameIndex = mCurrentFrame;
-			//IndirectRenderer::Begin(info);
-			//IndirectRenderer::WaitForStatisticsCopyed();
-			//IndirectRenderer::End();
+#if SG_ENABLE_GPU_CULLING
+			DrawInfo info;
+			info.frameIndex = mCurrentFrame;
+			IndirectRenderer::Begin(info);
+			IndirectRenderer::WaitForStatisticsCopyed();
+			IndirectRenderer::End();
+#endif
 
-			//// copy statistic data
+			// copy statistic data
 			auto& statisticData = GetStatisticData();
-			//statisticData.cullSceneObjects = 0;
-			//auto* pIndirectReadBackBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer_read_back");
-			//auto* pIndirectCommands = pIndirectReadBackBuffer->MapMemory<DrawIndexedIndirectCommand>();
-			//for (UInt32 i = 0; i < MeshDataArchive::GetInstance()->GetNumMeshData(); ++i)
-			//	statisticData.cullSceneObjects += (pIndirectCommands + i)->instanceCount;
-			//pIndirectReadBackBuffer->UnmapMemory();
+			statisticData.culledSceneObjects = static_cast<UInt32>(SSystem()->GetMainScene()->GetMeshEntityCount());
+#if SG_ENABLE_GPU_CULLING
+			auto* pIndirectReadBackBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer_read_back");
+			auto* pIndirectCommands = pIndirectReadBackBuffer->MapMemory<DrawIndexedIndirectCommand>();
+			for (UInt32 i = 0; i < MeshDataArchive::GetInstance()->GetNumMeshData(); ++i)
+				statisticData.cullSceneObjects -= (pIndirectCommands + i)->instanceCount;
+			pIndirectReadBackBuffer->UnmapMemory();
+#endif
 
 			// copy the query result
 			if (!mpContext->pPipelineStatisticsQueryPool->IsSleep())

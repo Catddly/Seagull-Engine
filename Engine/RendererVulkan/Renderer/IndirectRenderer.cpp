@@ -79,6 +79,7 @@ namespace SG
 		if (!VK_RESOURCE()->CreateBuffer(indirectReadBackCI))
 			return;
 
+#if SG_ENABLE_GPU_CULLING
 		BufferCreateDesc insOutCI = {};
 		insOutCI.name = "instanceOutput";
 		insOutCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
@@ -86,14 +87,16 @@ namespace SG
 		insOutCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 		if (!VK_RESOURCE()->CreateBuffer(insOutCI))
 			return;
+#endif
 
+#if SG_ENABLE_GPU_CULLING
 		mpGPUCullingShader = VulkanShader::Create(mpContext->device);
 		mpDrawCallCompactShader = VulkanShader::Create(mpContext->device);
 		mpResetCullingShader = VulkanShader::Create(mpContext->device);
 		ShaderCompiler compiler;
-		compiler.CompileGLSLShader("culling/culling", mpGPUCullingShader.get());
-		compiler.CompileGLSLShader("culling/drawcall_compact", mpDrawCallCompactShader.get());
-		compiler.CompileGLSLShader("culling/culling_reset", mpResetCullingShader.get());
+		compiler.CompileGLSLShader("culling/culling", mpGPUCullingShader);
+		compiler.CompileGLSLShader("culling/drawcall_compact", mpDrawCallCompactShader);
+		compiler.CompileGLSLShader("culling/culling_reset", mpResetCullingShader);
 
 		mpWaitResetSemaphore = VulkanSemaphore::Create(mpContext->device);
 		mTransferFences.resize(mpContext->pSwapchain->imageCount);
@@ -112,6 +115,7 @@ namespace SG
 		mTransferCommands.resize(mpContext->pSwapchain->imageCount);
 		for (auto& cmd : mTransferCommands)
 			mpContext->pTransferCommandPool->AllocateCommandBuffer(cmd);
+#endif
 
 		//pComputeResetQueryPool = VulkanQueryPool::Create(mpContext->device, ERenderQueryType::ePipeline_Statistics, EPipelineStageQueryType::efCompute_Shader_Invocations);
 		//pComputeCullingQueryPool = VulkanQueryPool::Create(mpContext->device, ERenderQueryType::ePipeline_Statistics, EPipelineStageQueryType::efCompute_Shader_Invocations);
@@ -125,6 +129,7 @@ namespace SG
 		//Memory::Delete(pComputeResetQueryPool);
 		//Memory::Delete(pComputeCullingQueryPool);
 
+#if SG_ENABLE_GPU_CULLING
 		mpResetCullingShader.reset();
 		mpResetCullingPipelineSignature.reset();
 		Delete(mpResetCullingPipeline);
@@ -146,7 +151,12 @@ namespace SG
 		for (auto& cmd : mCullingCommands)
 			mpContext->pComputeCommandPool->FreeCommandBuffer(cmd);
 		Delete(mpWaitResetSemaphore);
+
+		VK_RESOURCE()->DeleteBuffer("instanceOutput");
+#endif
+
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer");
+		VK_RESOURCE()->DeleteBuffer("indirectBuffer_read_back");
 
 		mbRendererInit = false;
 	}
@@ -281,6 +291,7 @@ namespace SG
 				mPackedIBCurrOffset += static_cast<UInt32>(ibSize);
 			});
 
+#if SG_ENABLE_GPU_CULLING
 		BufferCreateDesc insOutputCI = {};
 		insOutputCI.name = "instanceOutput";
 		insOutputCI.type = EBufferType::efStorage;
@@ -291,6 +302,7 @@ namespace SG
 		insOutputCI.subBufferOffset = 0;
 		insOutputCI.bSubBuffer = true;
 		VK_RESOURCE()->CreateBuffer(insOutputCI);
+#endif
 
 		BufferCreateDesc indirectCI = {};
 		indirectCI.name = "indirectBuffer";
@@ -298,36 +310,35 @@ namespace SG
 		indirectCI.type = EBufferType::efIndirect | EBufferType::efStorage;
 		indirectCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 		indirectCI.pInitData = indirectCommands.data();
-		insOutputCI.subBufferSize = static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand) * indirectCommands.size());
-		insOutputCI.subBufferOffset = 0;
-		insOutputCI.bSubBuffer = true;
+		indirectCI.subBufferSize = static_cast<UInt32>(sizeof(DrawIndexedIndirectCommand) * indirectCommands.size());
+		indirectCI.subBufferOffset = 0;
+		indirectCI.bSubBuffer = true;
 		if (!VK_RESOURCE()->CreateBuffer(indirectCI))
 			return;
 		VK_RESOURCE()->FlushBuffers();
 
+#if SG_ENABLE_GPU_CULLING
 		mpResetCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpResetCullingShader)
 			.Build();
 
 		mpResetCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
-			.BindSignature(mpResetCullingPipelineSignature.get())
-			.BindShader(mpResetCullingShader.get())
+			.BindSignature(mpResetCullingPipelineSignature)
 			.Build();
 
 		mpGPUCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpGPUCullingShader)
 			.Build();
 
 		mpGPUCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
-			.BindSignature(mpGPUCullingPipelineSignature.get())
-			.BindShader(mpGPUCullingShader.get())
+			.BindSignature(mpGPUCullingPipelineSignature)
 			.Build();
 
 		mpDrawCallCompactPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpDrawCallCompactShader)
 			.Build();
 
 		mpDrawCallCompactPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
-			.BindSignature(mpDrawCallCompactPipelineSignature.get())
-			.BindShader(mpDrawCallCompactShader.get())
+			.BindSignature(mpDrawCallCompactPipelineSignature)
 			.Build();
+#endif
 
 		mbDrawCallReady = true;
 	}
@@ -372,6 +383,7 @@ namespace SG
 		// [Critical] Here discovered severe performance fluctuation.
 		SG_PROFILE_FUNCTION();
 
+#if SG_ENABLE_GPU_CULLING
 		// Why adding a query pool will fail the submittion of the command?
 		//auto& statistics = GetStatisticData();
 
@@ -393,6 +405,7 @@ namespace SG
 
 		mpContext->pComputeQueue->SubmitCommands<0, 1, 0>(&cmd, nullptr, &mpWaitResetSemaphore, nullptr, nullptr);
 		//statistics.pipelineStatistics[6] = *pComputeResetQueryPool->GetQueryResult(0, 1);
+#endif
 	}
 
 	void IndirectRenderer::DoCulling()
@@ -400,6 +413,7 @@ namespace SG
 		// [Critical] Here discovered severe performance fluctuation.
 		SG_PROFILE_FUNCTION();
 
+#if SG_ENABLE_GPU_CULLING
 		auto& cmd = mCullingCommands[mCurrFrameIndex];
 		cmd.Reset();
 		cmd.BeginRecord();
@@ -443,10 +457,13 @@ namespace SG
 		mpContext->pComputeQueue->SubmitCommands<1, 1, 1>(&cmd, waitStage, &mpContext->pComputeCompleteSemaphore, 
 			&mpWaitResetSemaphore, mpContext->pComputeSyncFences[mCurrFrameIndex]);
 		//statistics.pipelineStatistics[7] = *pComputeCullingQueryPool->GetQueryResult(0, 1);
+#endif
 	}
 
 	void IndirectRenderer::CopyStatisticsData()
 	{
+		SG_PROFILE_FUNCTION();
+
 		auto& cmd = mTransferCommands[mCurrFrameIndex];
 
 		cmd.Reset();
@@ -462,7 +479,9 @@ namespace SG
 
 	void IndirectRenderer::WaitForStatisticsCopyed()
 	{
+#if SG_ENABLE_GPU_CULLING
 		mTransferFences[mCurrFrameIndex]->WaitAndReset();
+#endif
 	}
 
 	void IndirectRenderer::Draw(EMeshPass meshPass)
@@ -490,7 +509,6 @@ namespace SG
 
 	void IndirectRenderer::BindMaterial(const DrawMaterial& drawMaterial)
 	{
-
 	}
 
 }

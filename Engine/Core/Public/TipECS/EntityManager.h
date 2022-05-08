@@ -44,7 +44,6 @@ namespace TipECS
 			SignatureIterator(EntityManager& manager)
 				:mEntityManager(manager)
 			{
-				PreAdvance();
 			}
 
 			bool operator==(const SignatureIterator& rhs) const

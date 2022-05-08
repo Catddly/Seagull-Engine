@@ -37,7 +37,7 @@ project "SCore"
         "../../Libs/glm/",
         "../../Libs/ktx/include/",
         "../../Libs/tracy/",
-        "../../Libs/yaml/include/",
+        "../../Libs/json/single_include/",
     }
 
     links
@@ -48,7 +48,6 @@ project "SCore"
         "ktx",
         "spirv-cross",
         "tracy_server",
-        "yaml",
     }
 
     filter "system:windows"
