@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Lines of code](https://img.shields.io/tokei/lines/github/CrystaLamb/Seagull-Engine)
-![Code size](https://img.shields.io/github/languages/code-size/CrystaLamb/Seagull-Engine/Engine)
+![Code size](https://img.shields.io/github/languages/code-size/CrystaLamb/Seagull-Engine)
 ![Repo size](https://img.shields.io/github/repo-size/CrystaLamb/Seagull-Engine)
 ![GitHub contributors](https://img.shields.io/github/contributors/CrystaLamb/Seagull-Engine)
 ![Repo stars](https://img.shields.io/github/stars/CrystaLamb/Seagull-Engine?style=social)  
