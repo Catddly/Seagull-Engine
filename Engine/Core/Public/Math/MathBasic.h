@@ -3,6 +3,7 @@
 #include "Defs/Defs.h"
 
 #include "Stl/Hash.h"
+#include "Archive/ISerializable.h"
 
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
@@ -12,6 +13,14 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #include <cmath>
+
+namespace glm
+{
+
+	void to_json(SG::json& node, const vec3& v);
+	void from_json(const SG::json& node, vec3& v);
+
+}
 
 namespace SG
 {

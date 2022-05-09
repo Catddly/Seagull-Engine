@@ -66,8 +66,10 @@ namespace SG
 		void MaterialScene();
 		void MaterialTexturedScene();
 
-		virtual void Serialize() override;
-		virtual void Deserialize() override;
+		virtual void Serialize(json& node) override;
+		virtual void Deserialize(json& node) override;
+
+		void Refresh();
 	private:
 		Entity mSkyboxEntity;
 		Entity* mpCameraEntity;

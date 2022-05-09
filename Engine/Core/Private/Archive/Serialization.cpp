@@ -4,6 +4,11 @@
 #include "System/FileSystem.h"
 #include "Profile/Profile.h"
 
+#include <iostream>
+
+#include <fstream>
+#include <sstream>
+
 namespace SG
 {
 
@@ -12,48 +17,21 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 		SG_COMPILE_ASSERT(eastl::is_base_of<ISerializable, Scene>::value);
 
-		using nlohmann::json;
+		// clear old data
+		//if (FileSystem::Exist(EResourceDirectory::eScenes, sceneName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
+		//	FileSystem::RemoveFile(EResourceDirectory::eScenes, sceneName, SG_ENGINE_DEBUG_BASE_OFFSET);
 
-		json serializer;
-		serializer["Hello"] = 2;
-		serializer["EntityID"]["Name"] = "ILLs";
-		serializer["EntityID"]["Age"] = 9;
-		serializer["EntityID"]["Hair Length"] = 33;
+		ISerializable* pSerializable = pScene.get();
 
-		SG_LOG_DEBUG("%s", serializer.dump().c_str());
+		json newNode;
+		pSerializable->Serialize(newNode);
 
-		//ISerializable* pSerializable = pScene.get();
-
-		//UInt32 counter = 0;
-		//string subSceneName = "default.sub_0.scene";
-
-		//// clear all the old data
-		//while (FileSystem::Exist(EResourceDirectory::eScenes, subSceneName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
-		//{
-		//	bool res = FileSystem::RemoveFile(EResourceDirectory::eScenes, subSceneName, SG_ENGINE_DEBUG_BASE_OFFSET);
-		//	++counter;
-		//	subSceneName = "default.sub_" + eastl::to_string(counter) + ".scene";
-		//}
-
-		//// reset
-		//counter = 0;
-		//subSceneName = "default.sub_0.scene";
-
-		//bool res = true;
-		//do
-		//{
-		//	YAML::Emitter out;
-		//	res = pSerializable->Serialize(out);
-
-		//	if (out.good() && FileSystem::Open(EResourceDirectory::eScenes, subSceneName.c_str(), EFileMode::efWrite, SG_ENGINE_DEBUG_BASE_OFFSET))
-		//	{
-		//		FileSystem::Write(out.c_str(), out.size() * sizeof(char));
-		//		FileSystem::Close();
-		//	}
-
-		//	++counter;
-		//	subSceneName = "default.sub_" + eastl::to_string(counter) + ".scene";
-		//} while (!res);
+		if (FileSystem::Open(EResourceDirectory::eScenes, "default.scene", EFileMode::efWrite, SG_ENGINE_DEBUG_BASE_OFFSET))
+		{
+			string dumpStr = newNode.dump(4).c_str();
+			FileSystem::Write(dumpStr.c_str(), dumpStr.size() * sizeof(char));
+			FileSystem::Close();
+		}
 	}
 
 	void Deserializer::Deserialize(RefPtr<Scene> pScene)
@@ -61,34 +39,37 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 		SG_COMPILE_ASSERT(eastl::is_base_of<ISerializable, Scene>::value);
 
-		//UInt32 counter = 0;
-		//string subSceneName = "default.sub_0.scene";
+		if (FileSystem::Exist(EResourceDirectory::eScenes, "default.scene", SG_ENGINE_DEBUG_BASE_OFFSET))
+		{
+			string path = FileSystem::GetResourceFolderPath(EResourceDirectory::eScenes, SG_ENGINE_DEBUG_BASE_OFFSET);
+			path += "default.scene";
+			std::ifstream in(path.c_str());
 
-		//while (FileSystem::Exist(EResourceDirectory::eScenes, subSceneName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
-		//{
-		//	string buf;
+			string buf;
+			if (in.is_open())
+			{
+				std::stringstream buffer;
+				buffer << in.rdbuf();
+				buf = buffer.str().c_str();
+			}
 
-		//	if (FileSystem::Open(EResourceDirectory::eScenes, subSceneName.c_str(), EFileMode::efRead, SG_ENGINE_DEBUG_BASE_OFFSET))
-		//	{
-		//		buf.resize(FileSystem::FileSize());
-		//		FileSystem::Read(buf.data(), FileSystem::FileSize());
-		//		FileSystem::Close();
-		//	}
+			// TODO: fix my filesystem
+			//if (FileSystem::Open(EResourceDirectory::eScenes, "default.scene", EFileMode::efRead, SG_ENGINE_DEBUG_BASE_OFFSET))
+			//{
+			//	Size size = FileSystem::FileSize();
+			//	FileSystem::Read(pStr, size);
+			//	FileSystem::Close();
+			//}
 
-		//	//try
-		//	//{
-		//	YAML::Node data = YAML::Load(buf.c_str());
-		//	ISerializable* pSerializable = pScene.get();
-		//	pSerializable->Deserialize(data);
-		//	//}
-		//	//catch (YAML::TypedBadConversion<float> e)
-		//	//{
-		//	//	SG_LOG_DEBUG("%s", e.what());
-		//	//}
+			auto node = json::parse(buf.c_str());
 
-		//	++counter;
-		//	subSceneName = "default.sub_" + eastl::to_string(counter) + ".scene";
-		//}
+			ISerializable* pSerializable = pScene.get();
+			pSerializable->Deserialize(node);
+		}
+		else
+		{
+			SG_LOG_ERROR("Failed to load default.scene!");
+		}
 	}
 
 }

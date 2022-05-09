@@ -56,8 +56,8 @@ namespace SG
 		SG_INLINE bool IsValid() const noexcept { return mTextureData.IsValid(); }
 		SG_INLINE void FreeMemory() noexcept { SG_ASSERT(mTextureData.IsValid()); mTextureData.FreeMemory(); }
 
-		virtual void Serialize() override;
-		virtual void Deserialize() override;
+		virtual void Serialize(json& node) override;
+		virtual void Deserialize(json& node) override;
 		
 		virtual string GetAssetFilePath() const noexcept override { return mFilename; }
 		virtual void   LoadDataFromDisk() noexcept override;

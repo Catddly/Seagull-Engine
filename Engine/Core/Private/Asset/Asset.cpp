@@ -56,21 +56,20 @@ namespace SG
 		return eastl::move(path);
 	}
 
-	void TextureAsset::Serialize()
+	void TextureAsset::Serialize(json& node)
 	{
-		//outStream << YAML::Key << "Name" << YAML::Value << GetAssetName().c_str();
-		//outStream << YAML::Key << "Filename" << YAML::Value << GetFileName().c_str();
-		//outStream << YAML::Key << "NeedMipmap" << YAML::Value << mbNeedMipmap;
-		//outStream << YAML::Key << "IsCubeMap" << YAML::Value << mbIsCubeMap;
-		//return true;
+		node["Name"] = GetAssetName().c_str();
+		node["Filename"] = GetFileName().c_str();
+		node["NeedMipmap"] = mbNeedMipmap;
+		node["IsCubeMap"] = mbIsCubeMap;
 	}
 
-	void TextureAsset::Deserialize()
+	void TextureAsset::Deserialize(json& node)
 	{
-		//SetAssetName(node["Name"].as<std::string>().c_str());
-		//mFilename = node["Filename"].as<std::string>().c_str();
-		//mbNeedMipmap = node["NeedMipmap"].as<bool>();
-		//mbIsCubeMap = node["IsCubeMap"].as<bool>();
+		SetAssetName(node["Name"].get<std::string>().c_str());
+		mFilename = node["Filename"].get<std::string>().c_str();
+		node["NeedMipmap"].get_to(mbNeedMipmap);
+		node["IsCubeMap"].get_to(mbIsCubeMap);
 	}
 
 }

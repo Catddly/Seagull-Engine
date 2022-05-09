@@ -59,7 +59,7 @@ namespace SG
 		static int  AddPrefix(char* pBuf, const char* file, int line);
 		static void LogToConsole(ELogLevel logLevel, char* pBuffer);
 	private:
-		enum { SG_MAX_LOG_BUFFER_SIZE = 1024 * 8, SG_MAX_TEMP_BUFFER_SIZE = SG_MAX_LOG_BUFFER_SIZE / 2, SG_MAX_SINGLE_LOG_SIZE = 2048 };
+		enum { SG_MAX_LOG_BUFFER_SIZE = 1024 * 8 * 64, SG_MAX_TEMP_BUFFER_SIZE = SG_MAX_LOG_BUFFER_SIZE / 2, SG_MAX_SINGLE_LOG_SIZE = 2048 };
 
 		//typedef eastl::array<eastl::array<char, SG_MAX_TEMP_BUFFER_SIZE>, 2> DoubleCache;
 		//static DoubleCache mLogCaches;
