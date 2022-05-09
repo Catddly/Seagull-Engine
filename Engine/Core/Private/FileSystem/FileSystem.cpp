@@ -136,6 +136,24 @@ namespace SG
 		return mpStreamOp->IsEndOfFile(&mStream);
 	}
 
+	string FileSystem::ReadWholeFileAsText(const EResourceDirectory directory, const char* filename, Size rootFolderOffset)
+	{
+		SG_PROFILE_FUNCTION();
+
+		string path = FileSystem::GetResourceFolderPath(directory, rootFolderOffset);
+		path += filename;
+		std::ifstream in(path.c_str());
+
+		string buf;
+		if (in.is_open())
+		{
+			std::stringstream buffer;
+			buffer << in.rdbuf();
+			buf = buffer.str().c_str();
+		}
+		return eastl::move(buf);
+	}
+
 	string FileSystem::GetResourceFolderPath(EResourceDirectory directory, Size rootFolderOffset)
 	{
 		SG_PROFILE_FUNCTION();

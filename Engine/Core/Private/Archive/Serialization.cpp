@@ -4,11 +4,6 @@
 #include "System/FileSystem.h"
 #include "Profile/Profile.h"
 
-#include <iostream>
-
-#include <fstream>
-#include <sstream>
-
 namespace SG
 {
 
@@ -41,27 +36,9 @@ namespace SG
 
 		if (FileSystem::Exist(EResourceDirectory::eScenes, "default.scene", SG_ENGINE_DEBUG_BASE_OFFSET))
 		{
-			string path = FileSystem::GetResourceFolderPath(EResourceDirectory::eScenes, SG_ENGINE_DEBUG_BASE_OFFSET);
-			path += "default.scene";
-			std::ifstream in(path.c_str());
+			string jsonStr = FileSystem::ReadWholeFileAsText(EResourceDirectory::eScenes, "default.scene", SG_ENGINE_DEBUG_BASE_OFFSET);
 
-			string buf;
-			if (in.is_open())
-			{
-				std::stringstream buffer;
-				buffer << in.rdbuf();
-				buf = buffer.str().c_str();
-			}
-
-			// TODO: fix my filesystem
-			//if (FileSystem::Open(EResourceDirectory::eScenes, "default.scene", EFileMode::efRead, SG_ENGINE_DEBUG_BASE_OFFSET))
-			//{
-			//	Size size = FileSystem::FileSize();
-			//	FileSystem::Read(pStr, size);
-			//	FileSystem::Close();
-			//}
-
-			auto node = json::parse(buf.c_str());
+			auto node = json::parse(jsonStr.c_str());
 
 			ISerializable* pSerializable = pScene.get();
 			pSerializable->Deserialize(node);

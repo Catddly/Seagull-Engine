@@ -110,6 +110,8 @@ namespace SG
 		SG_CORE_API static bool Flush();
 		SG_CORE_API static bool IsEndOfFile();
 
+		SG_CORE_API static string ReadWholeFileAsText(const EResourceDirectory directory, const char* filename, Size rootFolderOffset = 0);
+
 		SG_CORE_API static Size FileSize(const EResourceDirectory directory, const string& filename);
 
 		SG_CORE_API static bool RemoveFile(const EResourceDirectory directory, const string& filename, Size rootFolderOffset = 0);

@@ -2692,24 +2692,24 @@
         {
             "CameraComponent": {
                 "CameraPos": [
-                    -10.682950019836426,
-                    4.915071964263916,
-                    4.520563125610352
+                    -0.2699575424194336,
+                    1.9180586338043213,
+                    9.8771390914917
                 ],
                 "FrontVector": [
-                    0.7515491843223572,
-                    -0.33329856395721436,
-                    -0.5692853927612305
+                    0.006803435739129782,
+                    -0.10886974632740021,
+                    -0.9940328001976013
                 ],
                 "RightVector": [
-                    0.6038095355033875,
+                    0.999976634979248,
                     0.0,
-                    0.7971286773681641
+                    0.006845553405582905
                 ],
                 "UpVector": [
-                    0.26567956805229187,
-                    0.9428224563598633,
-                    -0.2012465000152588
+                    0.0007460963097400963,
+                    0.9940565228462219,
+                    -0.1088629737496376
                 ]
             },
             "EntityID": "2468517968452275",
@@ -3498,42 +3498,6 @@
                     1.0,
                     1.0
                 ],
-                "Metallic": 0.800000011920929,
-                "Roughness": 0.6000000238418579
-            },
-            "MeshComponent": {
-                "Filename": "sphere",
-                "IsProceduralMesh": false
-            },
-            "TagComponent": {
-                "Name": "sphere7_4"
-            },
-            "TransformComponent": {
-                "Position": [
-                    3.5,
-                    -1.0,
-                    -4.0
-                ],
-                "Rotation": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "Scale": [
-                    0.699999988079071,
-                    0.699999988079071,
-                    0.699999988079071
-                ]
-            }
-        },
-        {
-            "EntityID": "2468517968452275",
-            "MaterialComponent": {
-                "Albedo": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
                 "Metallic": 0.6000000238418579,
                 "Roughness": 0.699999988079071
             },
@@ -3571,19 +3535,19 @@
                     1.0
                 ],
                 "Metallic": 0.800000011920929,
-                "Roughness": 0.5
+                "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
                 "Filename": "sphere",
                 "IsProceduralMesh": false
             },
             "TagComponent": {
-                "Name": "sphere7_5"
+                "Name": "sphere7_4"
             },
             "TransformComponent": {
                 "Position": [
                     3.5,
-                    0.5,
+                    -1.0,
                     -4.0
                 ],
                 "Rotation": [
@@ -3643,19 +3607,19 @@
                     1.0
                 ],
                 "Metallic": 0.800000011920929,
-                "Roughness": 0.4000000059604645
+                "Roughness": 0.5
             },
             "MeshComponent": {
                 "Filename": "sphere",
                 "IsProceduralMesh": false
             },
             "TagComponent": {
-                "Name": "sphere7_6"
+                "Name": "sphere7_5"
             },
             "TransformComponent": {
                 "Position": [
                     3.5,
-                    2.0,
+                    0.5,
                     -4.0
                 ],
                 "Rotation": [
@@ -3692,6 +3656,42 @@
                 "Position": [
                     0.5,
                     -5.5,
+                    -4.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Scale": [
+                    0.699999988079071,
+                    0.699999988079071,
+                    0.699999988079071
+                ]
+            }
+        },
+        {
+            "EntityID": "2468517968452275",
+            "MaterialComponent": {
+                "Albedo": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "Metallic": 0.800000011920929,
+                "Roughness": 0.4000000059604645
+            },
+            "MeshComponent": {
+                "Filename": "sphere",
+                "IsProceduralMesh": false
+            },
+            "TagComponent": {
+                "Name": "sphere7_6"
+            },
+            "TransformComponent": {
+                "Position": [
+                    3.5,
+                    2.0,
                     -4.0
                 ],
                 "Rotation": [

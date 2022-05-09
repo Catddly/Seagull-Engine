@@ -17,6 +17,9 @@
 
 #include <direct.h> // _chdir()
 
+#include <fstream>
+#include <sstream>
+
 #include <stdio.h>
 #include <ctime>    // SystemTimeWindows.cpp
 #include <io.h>     // _access() in FileSystem
