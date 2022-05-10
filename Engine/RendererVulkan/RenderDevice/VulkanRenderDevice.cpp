@@ -364,6 +364,8 @@ namespace SG
 		IndirectRenderer::OnShutdown();
 		IndirectRenderer::OnInit(*mpContext);
 		IndirectRenderer::CollectRenderData(pRenderDataBuilder);
+
+		VK_RESOURCE()->WaitBuffersUpdate();
 	}
 
 }

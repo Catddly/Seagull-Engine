@@ -390,6 +390,8 @@ namespace SG
 		pRenderDataBuilder->ResolveRenderData();
 
 		mMessageBusMember.PushEvent("RenderDataRebuild");
+
+		mSelectedEntity = {};
 	}
 
 	void DockSpaceLayer::SaveScene()

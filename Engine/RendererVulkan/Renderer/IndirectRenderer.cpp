@@ -87,9 +87,7 @@ namespace SG
 		insOutCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
 		if (!VK_RESOURCE()->CreateBuffer(insOutCI))
 			return;
-#endif
 
-#if SG_ENABLE_GPU_CULLING
 		mpGPUCullingShader = VulkanShader::Create(mpContext->device);
 		mpDrawCallCompactShader = VulkanShader::Create(mpContext->device);
 		mpResetCullingShader = VulkanShader::Create(mpContext->device);
@@ -157,6 +155,10 @@ namespace SG
 
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer");
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer_read_back");
+
+		VK_RESOURCE()->DeleteBuffer("instanceBuffer");
+		VK_RESOURCE()->DeleteBuffer("packed_vertex_buffer_0");
+		VK_RESOURCE()->DeleteBuffer("packed_index_buffer_0");
 
 		mDrawCallMap.clear();
 
