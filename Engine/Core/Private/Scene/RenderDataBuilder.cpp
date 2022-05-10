@@ -22,6 +22,8 @@ namespace SG
 
 		mpScene = pScene;
 		mbIsRenderDataReady = false;
+
+		mRenderMeshBuildDataMap.clear();
 	}
 
 	void RenderDataBuilder::LoadInNeccessaryDataFromDisk()
@@ -40,11 +42,31 @@ namespace SG
 					MaterialComponent& mat = entity.GetComponent<MaterialComponent>();
 
 					// TODO: may be there is a more automatic and smarter way to load asset.
-					if (mat.albedoTex) mAssets[mat.albedoTex->GetAssetID()] = mat.albedoTex;
-					if (mat.normalTex) mAssets[mat.normalTex->GetAssetID()] = mat.normalTex;
-					if (mat.metallicTex) mAssets[mat.metallicTex->GetAssetID()] = mat.metallicTex;
-					if (mat.roughnessTex) mAssets[mat.roughnessTex->GetAssetID()] = mat.roughnessTex;
-					if (mat.AOTex) mAssets[mat.AOTex->GetAssetID()] = mat.AOTex;
+					if (mat.albedoTex)
+					{
+						if (mAssets.find(mat.albedoTex->GetAssetID()) == mAssets.end())
+							mAssets[mat.albedoTex->GetAssetID()] = mat.albedoTex;
+					}
+					if (mat.normalTex)
+					{
+						if (mAssets.find(mat.normalTex->GetAssetID()) == mAssets.end())
+							mAssets[mat.normalTex->GetAssetID()] = mat.normalTex;
+					}
+					if (mat.metallicTex)
+					{
+						if (mAssets.find(mat.metallicTex->GetAssetID()) == mAssets.end())
+							mAssets[mat.metallicTex->GetAssetID()] = mat.metallicTex;
+					}
+					if (mat.roughnessTex)
+					{
+						if (mAssets.find(mat.roughnessTex->GetAssetID()) == mAssets.end())
+							mAssets[mat.roughnessTex->GetAssetID()] = mat.roughnessTex;
+					}
+					if (mat.AOTex)
+					{
+						if (mAssets.find(mat.AOTex->GetAssetID()) == mAssets.end())
+							mAssets[mat.AOTex->GetAssetID()] = mat.AOTex;
+					}
 				}
 			});
 

@@ -133,11 +133,14 @@ namespace SG
 		MessageBusMember();
 		~MessageBusMember();
 
+		void PushEvent(const string& name);
+		void PushEvent(const string& name, TReceivedCallBackFunc&& func);
+
 		template <typename T>
 		void PushEvent(const string& name, const T& data);
 
 		template <typename T>
-		void PushEvent(const string& name, const T& data, TReceivedCallBackFunc && func);
+		void PushEvent(const string& name, const T& data, TReceivedCallBackFunc&& func);
 
 		template <typename T>
 		void ListenFor(const string& eventName, TListenCallBackFunc<T>&& func);
@@ -146,7 +149,7 @@ namespace SG
 	template <typename T>
 	void MessageBusMember::PushEvent(const string& name, const T& data)
 	{
-		auto* pEvent = Memory::New<Impl::Event<T>>(name, data);
+		auto* pEvent = New(Impl::Event<T>, name, data);
 
 		Impl::MessageBus::GetInstance()->PushEvent(this, pEvent);
 		//SG_LOG_DEBUG("Event pushed! %s", pEvent->GetEventName());
@@ -155,7 +158,7 @@ namespace SG
 	template <typename T>
 	void MessageBusMember::PushEvent(const string& name, const T& data, TReceivedCallBackFunc&& func)
 	{
-		auto* pEvent = Memory::New<Impl::Event<T>>(name, data);
+		auto* pEvent = New(Impl::Event<T>, name, data);
 		pEvent->AddEventCallBackFunc(SG_FWD(func));
 
 		Impl::MessageBus::GetInstance()->PushEvent(this, pEvent);

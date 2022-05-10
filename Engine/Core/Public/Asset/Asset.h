@@ -40,15 +40,15 @@ namespace SG
 		virtual string GetFileName() const noexcept { return mFilename; }
 		virtual string GetFilePath() const noexcept;
 
-		SG_INLINE UInt32 GetWidth() const noexcept { SG_ASSERT(mTextureData.IsValid()); return mTextureData.width; }
-		SG_INLINE UInt32 GetHeight() const noexcept { SG_ASSERT(mTextureData.IsValid()); return mTextureData.height; }
+		SG_INLINE UInt32 GetWidth() const noexcept { return mTextureData.width; }
+		SG_INLINE UInt32 GetHeight() const noexcept { return mTextureData.height; }
 
-		SG_INLINE UInt32 GetArray() const noexcept { SG_ASSERT(mTextureData.IsValid()); return mTextureData.array; }
-		SG_INLINE UInt32 GetMipmap() const noexcept { SG_ASSERT(mTextureData.IsValid()); return mTextureData.mipLevel; }
-		SG_INLINE UInt32 GetDimention() const noexcept { SG_ASSERT(mTextureData.IsValid()); return mTextureData.dimention; }
+		SG_INLINE UInt32 GetArray() const noexcept { return mTextureData.array; }
+		SG_INLINE UInt32 GetMipmap() const noexcept { return mTextureData.mipLevel; }
+		SG_INLINE UInt32 GetDimention() const noexcept {return mTextureData.dimention; }
 		
-		SG_INLINE UInt32 GetByteSize() const noexcept { SG_ASSERT(mTextureData.IsValid()); return mTextureData.sizeInByte; }
-		SG_INLINE ETextureType GetType() const noexcept { SG_ASSERT(mTextureData.IsValid()); return mTextureData.type; }
+		SG_INLINE UInt32 GetByteSize() const noexcept { return mTextureData.sizeInByte; }
+		SG_INLINE ETextureType GetType() const noexcept { return mTextureData.type; }
 
 		SG_INLINE unsigned char* GetRawData() const noexcept { SG_ASSERT(mTextureData.IsValid()); return mTextureData.pData; }
 		SG_INLINE void* GetUserData() const noexcept { SG_ASSERT(mTextureData.IsValid()); return mTextureData.pUserData; }

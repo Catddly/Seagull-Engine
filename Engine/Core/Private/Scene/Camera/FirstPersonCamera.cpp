@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "Scene/Camera/FirstPersonCamera.h"
 
+#include "System/Logger.h"
 #include "Platform/OS.h"
 
 namespace SG

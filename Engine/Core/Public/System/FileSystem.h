@@ -87,6 +87,8 @@ namespace SG
 		virtual bool IsEndOfFile(const FileStream* pStream) const = 0;
 	};
 
+	class Window;
+
 	class FileSystem
 	{
 	public:
@@ -109,6 +111,9 @@ namespace SG
 		SG_CORE_API static Size FileSize();
 		SG_CORE_API static bool Flush();
 		SG_CORE_API static bool IsEndOfFile();
+
+		SG_CORE_API static string OpenFileDialog(Window* pWindow, const char* filter);
+		SG_CORE_API static string SaveFileDialog(Window* pWindow, const char* filter);
 
 		SG_CORE_API static string ReadWholeFileAsText(const EResourceDirectory directory, const char* filename, Size rootFolderOffset = 0);
 

@@ -84,6 +84,17 @@ namespace SG
 		VK_RESOURCE()->CreateTexture(textureCI);
 		VK_RESOURCE()->FlushTextures();
 
+		SamplerCreateDesc samplerCI = {};
+		samplerCI.name = "texture_2k_mipmap_sampler";
+		samplerCI.filterMode = EFilterMode::eLinear;
+		samplerCI.mipmapMode = EFilterMode::eLinear;
+		samplerCI.addressMode = EAddressMode::eRepeat;
+		samplerCI.lodBias = 0.0f;
+		samplerCI.minLod = 0.0f;
+		samplerCI.maxLod = (float)CalcMipmapLevel(2048, 2048);
+		samplerCI.enableAnisotropy = true;
+		VK_RESOURCE()->CreateSampler(samplerCI);
+
 		CreateVKResourceFromAsset(SSystem()->GetRenderDataBuilder());
 
 		// create all the mesh resource
@@ -122,6 +133,9 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		mpGUIDriver->OnUpdate(deltaTime);
+
+		mMessageBusMember.ListenFor<bool>("RenderDataRebuild", SG_BIND_MEMBER_FUNC(RebuildRenderData));
+
 		if (mpDockSpaceGUILayer->ShowStatisticsDetail() != mbCopyStatisticsDetail)
 		{
 			mbCopyStatisticsDetail = mpDockSpaceGUILayer->ShowStatisticsDetail();
@@ -298,6 +312,9 @@ namespace SG
 			if (pAsset->GetAssetType() == EAssetType::eTexture)
 			{
 				TextureAsset* pTextureAsset = static_cast<TextureAsset*>(pAsset.get());
+				if (VK_RESOURCE()->HaveTexture(pTextureAsset->GetAssetName().c_str()))
+					continue;
+
 				TextureCreateDesc texCI = {};
 				texCI.name = pTextureAsset->GetAssetName().c_str();
 				texCI.width = pTextureAsset->GetWidth();
@@ -338,17 +355,15 @@ namespace SG
 				SG_ASSERT(!pTextureAsset->IsDiskResourceLoaded());
 			}
 		}
+	}
 
-		SamplerCreateDesc samplerCI = {};
-		samplerCI.name = "texture_2k_mipmap_sampler";
-		samplerCI.filterMode = EFilterMode::eLinear;
-		samplerCI.mipmapMode = EFilterMode::eLinear;
-		samplerCI.addressMode = EAddressMode::eRepeat;
-		samplerCI.lodBias = 0.0f;
-		samplerCI.minLod = 0.0f;
-		samplerCI.maxLod = (float)CalcMipmapLevel(2048, 2048);
-		samplerCI.enableAnisotropy = true;
-		VK_RESOURCE()->CreateSampler(samplerCI);
+	void VulkanRenderDevice::RebuildRenderData(bool)
+	{
+		auto pRenderDataBuilder = SSystem()->GetRenderDataBuilder();
+		CreateVKResourceFromAsset(pRenderDataBuilder);
+		IndirectRenderer::OnShutdown();
+		IndirectRenderer::OnInit(*mpContext);
+		IndirectRenderer::CollectRenderData(pRenderDataBuilder);
 	}
 
 }

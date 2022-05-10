@@ -1,4 +1,5 @@
 #include "StdAfx.h"
+#ifdef SG_PLATFORM_WINDOWS
 #include "Platform/OS.h"
 
 #include "System/Logger.h"
@@ -6,10 +7,6 @@
 #include "System/System.h"
 #include "Profile/Profile.h"
 #include "Memory/Memory.h"
-
-#if 0
-#include <windows.h>
-#endif
 
 namespace SG
 {
@@ -280,3 +277,4 @@ namespace SG
 	}
 
 }
+#endif

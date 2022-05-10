@@ -1,11 +1,11 @@
 #include "StdAfx.h"
+#ifdef SG_PLATFORM_WINDOWS
 #include "Core/Private/Platform/Windows/FileInfo_Windows.h"
 
 #include "System/Logger.h"
 
 #include <windows.h>
 
-#ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
 

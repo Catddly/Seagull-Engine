@@ -93,7 +93,12 @@ namespace SG
 			meshData.filename = "_generated_skybox";
 		}
 		comp.meshType = EMeshType::eUnknown;
-		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
+
+		// if the mesh data already loaded, you don't need to set it again
+		if (MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
+			comp.meshId = MeshDataArchive::GetInstance()->GetMeshID(meshData.filename);
+		else
+			comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
 	}
 
 	SG_INLINE void LoadMesh(const char* filename, EMeshType type, MeshComponent& comp)
@@ -110,7 +115,12 @@ namespace SG
 		if (!loader.LoadFromFile(fullName.c_str(), meshData.vertices, meshData.indices))
 			SG_LOG_WARN("Mesh %s load failure!", fullName);
 		comp.meshType = type;
-		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
+
+		// if the mesh data already loaded, you don't need to set it again
+		if (MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
+			comp.meshId = MeshDataArchive::GetInstance()->GetMeshID(meshData.filename);
+		else
+			comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
 	}
 
 	SG_INLINE void CopyMesh(const MeshComponent& srcMesh, MeshComponent& dstMesh)

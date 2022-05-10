@@ -2,11 +2,14 @@
 
 #include <mimalloc/include/mimalloc.h>
 
-#ifndef WIN32_LEAN_AND_MEAN
-#	define WIN32_LEAN_AND_MEAN
-#	include <windows.h>
+#ifdef SG_PLATFORM_WINDOWS
+#	ifndef WIN32_LEAN_AND_MEAN
+#		define WIN32_LEAN_AND_MEAN
+#		include <windows.h>
+#	endif
+#	include <windowsx.h>
+#	include <commdlg.h>
 #endif
-#include <windowsx.h>
 
 #include "Stl/string.h"
 #include "Stl/string_view.h"

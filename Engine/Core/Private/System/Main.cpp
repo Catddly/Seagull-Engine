@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "Core/Private/Platform/Main.h"
+#include "Main.h"
 
 #include "System/System.h"
 

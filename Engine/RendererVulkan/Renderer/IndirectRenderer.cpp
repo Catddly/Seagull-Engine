@@ -158,6 +158,16 @@ namespace SG
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer");
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer_read_back");
 
+		mDrawCallMap.clear();
+
+		mCurrDrawCallIndex = 0;
+		mPackedVBCurrOffset = 0;
+		mPackedVIBCurrOffset = 0;
+		mPackedIBCurrOffset = 0;
+
+		mpCmdBuf = nullptr;
+		mpContext = nullptr;
+
 		mbRendererInit = false;
 	}
 

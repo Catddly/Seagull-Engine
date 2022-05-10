@@ -29,17 +29,26 @@ namespace SG
 	public:
 		static constexpr TID INVALID_ID = TID(-1);
 
-		bool IsValid(TID id);
+		bool IsValid(TID id) const;
 
 		TID  Allocate();
 		void Restore(TID id);
+
+		void Reset();
 	private:
 		TID mCurrentAvailableId = TID(0);
 		eastl::queue<TID> mRestoredId;
 	};
 
 	template <typename IDType>
-	bool IDAllocator<IDType, EIDAllocatorType::eRestored>::IsValid(TID id)
+	void IDAllocator<IDType, EIDAllocatorType::eRestored>::Reset()
+	{
+		mCurrentAvailableId = TID(0);
+		mRestoredId.swap(eastl::queue<TID>());
+	}
+
+	template <typename IDType>
+	bool IDAllocator<IDType, EIDAllocatorType::eRestored>::IsValid(TID id) const
 	{
 		return id != INVALID_ID;
 	}
@@ -75,16 +84,24 @@ namespace SG
 	public:
 		static constexpr TID INVALID_ID = TID(-1);
 
-		bool IsValid(TID id);
+		bool IsValid(TID id) const;
 
 		TID  Allocate();
 		void Restore(TID id);
+
+		void Reset();
 	private:
 		TID mCurrentAvailableId = TID(0);
 	};
 
 	template <typename IDType>
-	bool IDAllocator<IDType, EIDAllocatorType::eOneWay>::IsValid(TID id)
+	void IDAllocator<IDType, EIDAllocatorType::eOneWay>::Reset()
+	{
+		mCurrentAvailableId = TID(0);
+	}
+
+	template <typename IDType>
+	bool IDAllocator<IDType, EIDAllocatorType::eOneWay>::IsValid(TID id) const
 	{
 		return id != INVALID_ID;
 	}

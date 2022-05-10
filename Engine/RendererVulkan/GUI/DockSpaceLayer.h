@@ -4,6 +4,7 @@
 #include "System/Input.h"
 #include "System/LayerSystem/LayerSystem.h"
 #include "Scene/Scene.h"
+#include "Event/MessageBus/MessageBus.h"
 
 #include "Math/MathBasic.h"
 
@@ -36,7 +37,13 @@ namespace SG
 		void DrawSelectedEntityProperty();
 
 		void DrawSaveSceneProgressBar();
+
+		void OpenScene();
+		void SaveScene();
+		void SaveAsScene();
 	private:
+		MessageBusMember mMessageBusMember;
+
 		UInt32 mLastFps = 0;
 		UInt32 mFrameCounter = 1;
 		float mElapsedTime = 0.0f;
@@ -47,11 +54,14 @@ namespace SG
 		ReadOnlyHandle<VulkanDescriptorSet*> mViewportTexHandle;
 		Scene::Entity mSelectedEntity;
 
+		string mSavedSceneName = "default.scene";
 		bool mbViewportOnFocused = false;
 		bool mbViewportOnHovered = false;
 		bool mbShowStatisticsDetail = true;
 		bool mbShowSaveSceneProgressBar = false;
 		bool mbTriggerSave = false;
+		bool mbTriggerOpen = false;
+		bool mbTriggerSaveAs = false;
 	};
 
 }

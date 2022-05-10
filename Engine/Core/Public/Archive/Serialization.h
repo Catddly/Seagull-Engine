@@ -12,7 +12,7 @@ namespace SG
 	class Serializer
 	{
 	public:
-		SG_CORE_API static void Serialize(RefPtr<Scene> pScene);
+		SG_CORE_API static void Serialize(RefPtr<Scene> pScene, const char* sceneName);
 	private:
 
 	};
@@ -20,7 +20,7 @@ namespace SG
 	class Deserializer
 	{
 	public:
-		SG_CORE_API static void Deserialize(RefPtr<Scene> pScene);
+		SG_CORE_API static void Deserialize(RefPtr<Scene> pScene, const char* sceneName);
 	private:
 
 	};

@@ -55,10 +55,9 @@ namespace SG
 		mp3DScene = MakeRef<Scene>();
 		mp3DScene->OnSceneLoad();
 
-		Deserializer::Deserialize(mp3DScene);
+		Deserializer::Deserialize(mp3DScene, "default.scene");
 
-		mpRenderDataBuilder = MakeRef<RenderDataBuilder>();
-		mpRenderDataBuilder->SetScene(mp3DScene);
+		mpRenderDataBuilder = MakeRef<RenderDataBuilder>(mp3DScene);
 		mpRenderDataBuilder->LoadInNeccessaryDataFromDisk();
 		mpRenderDataBuilder->ResolveRenderData();
 
@@ -146,6 +145,14 @@ namespace SG
 		//	(mSystemModules.p3DEngine != nullptr) &&
 		//	(mSystemModules.pRenderer != nullptr);
 		return false;
+	}
+
+	RefPtr<Scene> System::NewScene()
+	{
+		mp3DScene->OnSceneUnLoad();
+		mp3DScene = MakeRef<Scene>();
+		mp3DScene->OnSceneLoad();
+		return mp3DScene;
 	}
 
 	RefPtr<Scene> System::GetMainScene()

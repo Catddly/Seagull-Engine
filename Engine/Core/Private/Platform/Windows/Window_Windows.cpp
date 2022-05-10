@@ -1,11 +1,11 @@
 #include "StdAfx.h"
+#ifdef SG_PLATFORM_WINDOWS
 #include "Platform/OS.h"
 
 #include "Memory/Memory.h"
 
 #include <windows.h>
 
-#ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
 

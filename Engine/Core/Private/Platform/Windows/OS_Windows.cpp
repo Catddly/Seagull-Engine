@@ -1,10 +1,10 @@
 #include "StdAfx.h"
+#ifdef SG_PLATFORM_WINDOWS
 #include "Platform/OS.h"
 
 #include "Defs/Defs.h"
 #include "System/Logger.h"
 
-#ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
 	///////////////////////////////////////////////////////////////////////////

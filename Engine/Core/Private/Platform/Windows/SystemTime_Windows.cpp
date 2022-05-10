@@ -1,7 +1,7 @@
 #include "StdAfx.h"
+#ifdef SG_PLATFORM_WINDOWS
 #include "Platform/SystemTime.h"
 
-#ifdef SG_PLATFORM_WINDOWS
 namespace SG
 {
 

@@ -455,6 +455,15 @@ namespace SG
 		return true;
 	}
 
+	bool VulkanResourceRegistry::HaveTexture(const char* name) const
+	{
+		SG_PROFILE_FUNCTION();
+
+		if (mTextures.count(name) == 0)
+			return false;
+		return true;
+	}
+
 	VulkanTexture* VulkanResourceRegistry::GetTexture(const string& name) const
 	{
 		SG_PROFILE_FUNCTION();

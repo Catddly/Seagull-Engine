@@ -4,7 +4,7 @@
 
 // Seagull Engine embedded the entrypoint inside the engine
 // to avoid some user-side problems 
-#include "Core/Private/Platform/Main.h"
+#include "Core/Private/System/Main.h"
 #include "User/IApp.h"
 
 #include "RendererVulkan/RenderDevice/VulkanRenderDevice.h"

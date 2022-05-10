@@ -62,6 +62,8 @@ namespace SG
 		//! Check if all the modules is loaded.
 		SG_CORE_API bool ValidateModules() const;
 
+		SG_CORE_API RefPtr<Scene> NewScene();
+
 		SG_CORE_API RefPtr<Scene> GetMainScene();
 		SG_CORE_API RefPtr<RenderDataBuilder> GetRenderDataBuilder();
 

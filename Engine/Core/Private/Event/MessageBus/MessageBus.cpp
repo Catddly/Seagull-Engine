@@ -16,6 +16,21 @@ namespace SG
 		Impl::MessageBus::GetInstance()->Leave(this);
 	}
 
+	void MessageBusMember::PushEvent(const string& name)
+	{
+		auto* pEvent = New(Impl::Event<bool>, name, false);
+
+		Impl::MessageBus::GetInstance()->PushEvent(this, pEvent);
+	}
+
+	void MessageBusMember::PushEvent(const string& name, TReceivedCallBackFunc&& func)
+	{
+		auto* pEvent = New(Impl::Event<bool>, name, false);
+		pEvent->AddEventCallBackFunc(SG_FWD(func));
+
+		Impl::MessageBus::GetInstance()->PushEvent(this, pEvent);
+	}
+
 	namespace Impl
 	{
 		void MessageBus::ClearEvents()

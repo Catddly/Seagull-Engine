@@ -11,9 +11,11 @@ namespace SG
 	Input::ListenerContainer Input::mpListeners;
 	Vector2i Input::mPrevFrameMousePos = {};
 
-	float Input::mKeyHoldThresHold = 0.0f;
-	bool Input::mKeyStatusMap[KEYCODE_COUNT] = {};
+	float Input::mKeyHoldThresHold = 0.05f;
 	eastl::map<EKeyCode, float> Input::mKeyElapsedTimeMap;
+	bool Input::mKeyStatusMap[KEYCODE_COUNT] = {};
+	bool Input::mbPrevFocusStatus = false;
+	bool Input::mbForceReleaseAllEvent = false;
 
 	void Input::OnInit()
 	{
@@ -63,19 +65,14 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		if (!OperatingSystem::GetMainWindow()->IsMouseCursorInWindow()) // mouse is out of the screen, eliminate all holding event
-		{
-			for (auto& key : mKeyElapsedTimeMap) // force to release
-			{
-				for (auto& e : mpListeners)
-				{
-					if (!e.second->OnKeyInputUpdate(key.first, EKeyState::eRelease))
-						break;
-				}
-				mKeyStatusMap[key.first] = false;
-			}
-			mKeyElapsedTimeMap.clear();
-		}
+		Window* pWindow = OperatingSystem::GetMainWindow();
+
+		// window is lost focus, some key status had become invalid.
+		// reset all the key status so that the window will not receive wrong input event.
+		bool currentFocusStatus = pWindow->IsFocus();
+		if (!pWindow->IsMouseCursorInWindow() || (!currentFocusStatus && mbPrevFocusStatus)) // mouse is out of the screen, eliminate all holding event
+			ForceReleaseAllEvent();
+		mbPrevFocusStatus = currentFocusStatus;
 
 		for (auto& key : mKeyElapsedTimeMap) // update the timer and pass the hold event
 		{
@@ -89,6 +86,26 @@ namespace SG
 				}
 			}
 		}
+
+		if (mbForceReleaseAllEvent)
+		{
+			ReleaseAllEvent();
+			mbForceReleaseAllEvent = false;
+		}
+	}
+
+	void Input::ReleaseAllEvent()
+	{
+		for (auto& key : mKeyElapsedTimeMap) // force to release
+		{
+			for (auto& e : mpListeners)
+			{
+				if (!e.second->OnKeyInputUpdate(key.first, EKeyState::eRelease))
+					break;
+			}
+		}
+		mKeyElapsedTimeMap.clear();
+		memset(mKeyStatusMap, 0, sizeof(mKeyStatusMap));
 	}
 
 	void Input::OnSystemKeyInputEvent(EKeyCode keycode, bool bPressed)
@@ -181,6 +198,12 @@ namespace SG
 	{
 		if (threshold >= 0.0f)
 			mKeyHoldThresHold = threshold;
+	}
+
+	void Input::ForceReleaseAllEvent()
+	{
+		// deferred the release operation, so the mKeyElapsedTimeMap will not be unsafe.
+		mbForceReleaseAllEvent = true;
 	}
 
 }

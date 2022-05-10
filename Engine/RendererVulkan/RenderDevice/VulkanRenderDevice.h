@@ -4,6 +4,7 @@
 
 #include "System/System.h"
 #include "Scene/Camera/ICamera.h"
+#include "Event/MessageBus/MessageBus.h"
 
 #include "Render/IRenderDevice.h"
 #include "Render/GUI/IGUIDriver.h"
@@ -41,8 +42,11 @@ namespace SG
 		void WindowResize();
 
 		void CreateVKResourceFromAsset(RefPtr<RenderDataBuilder> pRenderDataBuilder);
+
+		void RebuildRenderData(bool);
 	private:
 		VulkanContext* mpContext = nullptr;
+		MessageBusMember mMessageBusMember;
 
 		UniquePtr<RenderGraph> mpRenderGraph = nullptr;
 		UniquePtr<IGUIDriver>  mpGUIDriver = nullptr;

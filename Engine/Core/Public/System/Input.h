@@ -634,12 +634,15 @@ namespace SG
 		SG_CORE_API static bool IsKeyPressed(EKeyCode keycode);
 
 		SG_CORE_API static void SetKeyHoldThreshold(float threshold);
+
+		SG_CORE_API static void ForceReleaseAllEvent();
 	private:
 		friend class System;
 		static void OnInit();
 		static void OnShutdown();
 
 		static void OnUpdate(float deltaTime);
+		static void ReleaseAllEvent();
 	private:
 #ifdef SG_PLATFORM_WINDOWS
 		friend static LRESULT CALLBACK _WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -657,6 +660,8 @@ namespace SG
 		static float    mKeyHoldThresHold;
 		static eastl::map<EKeyCode, float> mKeyElapsedTimeMap;
 		static bool mKeyStatusMap[KEYCODE_COUNT];
+		static bool mbPrevFocusStatus;
+		static bool mbForceReleaseAllEvent;
 	};
 
 }

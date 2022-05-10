@@ -58,7 +58,9 @@ namespace SG
 		static float showProgressWindowTime = 0.0f;
 		if (mbShowSaveSceneProgressBar)
 		{
-			showProgressWindowTime += deltaTime;
+			// to avoid the duration user used in the file dialog
+			showProgressWindowTime += deltaTime <= 0.75f ? deltaTime : 0.0f;
+
 			if (showProgressWindowTime >= 2.5f)
 			{
 				showProgressWindowTime = 0.0f;
@@ -73,8 +75,22 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
+		if (keyState != EKeyState::eHold)
+		{
+			if (mbViewportOnFocused)
+				return true;
+			else
+				return false;
+		}
+
+		if (mbTriggerOpen && !Input::IsKeyPressed(KeyCode_LeftControl) || !Input::IsKeyPressed(KeyCode_O))
+			mbTriggerOpen = false;
+
 		if (mbTriggerSave && !Input::IsKeyPressed(KeyCode_LeftControl) || !Input::IsKeyPressed(KeyCode_S))
 			mbTriggerSave = false;
+
+		if (mbTriggerSaveAs && !Input::IsKeyPressed(KeyCode_LeftControl) || !Input::IsKeyPressed(KeyCode_LeftShift) || !Input::IsKeyPressed(KeyCode_S))
+			mbTriggerSaveAs = false;
 
 		if (mbViewportOnFocused)
 			return true;
@@ -82,9 +98,18 @@ namespace SG
 		{
 			if (!mbTriggerSave && Input::IsKeyPressed(KeyCode_LeftControl) && Input::IsKeyPressed(KeyCode_S))
 			{
-				Serializer::Serialize(SSystem()->GetMainScene());
-				mbShowSaveSceneProgressBar = true;
+				SaveScene();
 				mbTriggerSave = true;
+			}
+			else if (!mbTriggerOpen && Input::IsKeyPressed(KeyCode_LeftControl) && Input::IsKeyPressed(KeyCode_O))
+			{
+				OpenScene();
+				mbTriggerOpen = true;
+			}
+			else if (!mbTriggerSaveAs && Input::IsKeyPressed(KeyCode_LeftControl) && Input::IsKeyPressed(KeyCode_LeftShift) && Input::IsKeyPressed(KeyCode_S))
+			{
+				SaveAsScene();
+				mbTriggerSaveAs = true;
 			}
 		}
 
@@ -140,7 +165,7 @@ namespace SG
 		io.ConfigDockingWithShift = true;
 		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		{
-			ImGuiID dockspaceId = ImGui::GetID("MyDockSpace");
+			ImGuiID dockspaceId = ImGui::GetID("_MyDockSpace");
 			ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), dockspaceFlags);
 		}
 
@@ -148,16 +173,19 @@ namespace SG
 		{
 			if (ImGui::BeginMenu("File"))
 			{
+				if (ImGui::MenuItem("Open Scene", "CTRL+O"))
+					OpenScene();
+				
 				if (ImGui::MenuItem("Save Scene", "CTRL+S"))
-				{
-					Serializer::Serialize(SSystem()->GetMainScene());
-					mbShowSaveSceneProgressBar = true;
-				}
+					SaveScene();
+				
+				if (ImGui::MenuItem("Save Scene As", "CTRL+SHIFT+S"))
+					SaveAsScene();
+				
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", "ESC"))
-				{
 					SSystem()->Terminate();
-				}
+				
 				ImGui::EndMenu();
 			}
 
@@ -341,9 +369,46 @@ namespace SG
 			// Typically we would use ImVec2(-1.0f,0.0f) or ImVec2(-FLT_MIN,0.0f) to use all available width,
 			// or ImVec2(width,0.0f) for a specified width. ImVec2(0.0f,0.0f) uses ItemWidth.
 			//ImGui::ProgressBar(0.65f, ImVec2(0.0f, 0.0f));
-			ImGui::Text("Scene Saved to Scene/default.scene.");
+			ImGui::Text("Scene successfully saved to Scene/%s.", mSavedSceneName.c_str());
 		}
 		ImGui::End();
+	}
+
+	void DockSpaceLayer::OpenScene()
+	{
+		string path = FileSystem::OpenFileDialog(OperatingSystem::GetMainWindow(), "SG Scene (*.scene)\0*.scene\0");
+		Size pos = path.find_last_of("\\\\") + 1;
+		string sceneName = path.substr(pos, path.size() - pos);
+		auto pNewScene = SSystem()->NewScene();
+		Deserializer::Deserialize(pNewScene, sceneName.c_str());
+		Input::ForceReleaseAllEvent();
+
+		// rebuild scene render data
+		auto pRenderDataBuilder = SSystem()->GetRenderDataBuilder();
+		pRenderDataBuilder->SetScene(pNewScene);
+		pRenderDataBuilder->LoadInNeccessaryDataFromDisk();
+		pRenderDataBuilder->ResolveRenderData();
+
+		mMessageBusMember.PushEvent("RenderDataRebuild");
+	}
+
+	void DockSpaceLayer::SaveScene()
+	{
+		Serializer::Serialize(SSystem()->GetMainScene(), "default.scene");
+		mSavedSceneName = "default.scene";
+		mbShowSaveSceneProgressBar = true;
+	}
+
+	void DockSpaceLayer::SaveAsScene()
+	{
+		string path = FileSystem::SaveFileDialog(OperatingSystem::GetMainWindow(), "SG Scene (*.scene)\0*.scene\0");
+		if (path.find('.') == string::npos)
+			path += ".scene";
+		Size pos = path.find_last_of("\\\\") + 1;
+		string sceneName = path.substr(pos, path.size() - pos);
+		Serializer::Serialize(SSystem()->GetMainScene(), sceneName.c_str());
+		mSavedSceneName = sceneName;
+		mbShowSaveSceneProgressBar = true;
 	}
 
 }

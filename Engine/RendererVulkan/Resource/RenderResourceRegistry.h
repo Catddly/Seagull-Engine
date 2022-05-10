@@ -64,6 +64,7 @@ namespace SG
 
 		/// Texture Begin
 		bool CreateTexture(const TextureCreateDesc& textureCI);
+		bool HaveTexture(const char* name) const;
 		VulkanTexture* GetTexture(const string& name) const;
 		void FlushTextures() const;
 		/// Texture End

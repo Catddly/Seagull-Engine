@@ -172,6 +172,9 @@ namespace SG
 	void Scene::OnSceneUnLoad()
 	{
 		SG_PROFILE_FUNCTION();
+
+		// clear all the object id in the mesh.
+		gObjectIdAllocator.Reset();
 	}
 
 	void Scene::OnUpdate(float deltaTime)
@@ -497,7 +500,7 @@ namespace SG
 
 					cam.type = ECameraType::eFirstPerson;
 					auto FPSCam = MakeRef<FirstPersonCamera>(cameraComp["CameraPos"].get<Vector3f>());
-					FPSCam->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
+					FPSCam->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio()); // TODO: Wrong aspect ratio
 					FPSCam->SetUpVector(cameraComp["UpVector"].get<Vector3f>());
 					FPSCam->SetRightVector(cameraComp["RightVector"].get<Vector3f>());
 					FPSCam->SetFrontVector(cameraComp["FrontVector"].get<Vector3f>());

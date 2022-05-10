@@ -6,6 +6,8 @@
 #	include "Core/Private/Platform/Windows/FileInfo_Windows.h"
 #endif
 #include "Memory/Memory.h"
+#include "Platform/OS.h"
+#include "Platform/FileDialog.h"
 
 #include "Profile/Profile.h"
 
@@ -134,6 +136,16 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		return mpStreamOp->IsEndOfFile(&mStream);
+	}
+
+	string FileSystem::OpenFileDialog(Window* pWindow, const char* filter)
+	{
+		return FileDialog::OpenFileDialog(pWindow, filter);
+	}
+
+	string FileSystem::SaveFileDialog(Window* pWindow, const char* filter)
+	{
+		return FileDialog::SaveFileDialog(pWindow, filter);
 	}
 
 	string FileSystem::ReadWholeFileAsText(const EResourceDirectory directory, const char* filename, Size rootFolderOffset)
