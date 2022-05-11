@@ -27,7 +27,7 @@ namespace SG
 					BufferCreateDesc bufferCreateDesc = {};
 					bufferCreateDesc.name = (string("instance_vb_") + eastl::to_string(meshId)).c_str();
 					bufferCreateDesc.pInitData = buildData.perInstanceData.data();
-					bufferCreateDesc.bufferSize = sizeof(float) * 4 * buildData.instanceCount;
+					bufferCreateDesc.bufferSize = sizeof(PerInstanceData) * buildData.instanceCount;
 					bufferCreateDesc.type = EBufferType::efVertex;
 					bufferCreateDesc.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 

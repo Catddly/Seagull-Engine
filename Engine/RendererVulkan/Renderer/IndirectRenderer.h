@@ -45,6 +45,8 @@ namespace SG
 	private:
 		static void BindMesh(const DrawMesh& drawMesh);
 		static void BindMaterial(const DrawMaterial& drawMaterial);
+
+		static void LogDebugInfo();
 	private:
 		static VulkanContext* mpContext;
 		static VulkanCommandBuffer* mpCmdBuf;

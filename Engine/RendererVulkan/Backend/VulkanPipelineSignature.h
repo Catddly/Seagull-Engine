@@ -34,18 +34,39 @@ namespace SG
 		SetDescriptorsData&  GetSetDescriptorsData(UInt32 set) { return mDescriptorSetData[set]; }
 		VulkanDescriptorSet& GetDescriptorSet(UInt32 set, const string& name);
 		
-		class DataBinder
+		class SetDataBinder
 		{
 		public:
-			DataBinder(RefPtr<VulkanPipelineSignature> pipelineSignature, UInt32 set);
+			SetDataBinder(RefPtr<VulkanPipelineSignature> pipelineSignature, UInt32 set);
 
-			DataBinder& AddCombindSamplerImage(UInt32 binding, const char* samplerName, const char* textureName);
+			SetDataBinder& AddCombindSamplerImage(UInt32 binding, const char* samplerName, const char* textureName);
 			void Bind(VulkanDescriptorSet& set);
+			void Rebind(VulkanDescriptorSet& set);
 		private:
 			VulkanContext& mContext;
 			VulkanPipelineSignature& mPipelineSignature;
 			UInt32 mSet;
 			VulkanDescriptorDataBinder mDataBinder;
+		};
+
+		class ShaderDataBinder
+		{
+		public:
+			ShaderDataBinder(VulkanPipelineSignature* pipelineSignature, RefPtr<VulkanShader> pShader, UInt32 set);
+			~ShaderDataBinder() = default;
+
+			//! You should add the combine image textures in the order written in the shader!
+			ShaderDataBinder& AddCombindSamplerImage(const char* samplerName, const char* textureName);
+			void Bind(VulkanDescriptorSet& set);
+			void ReBind(VulkanDescriptorSet& set);
+		private:
+			void BindSet(VulkanDescriptorSet& set);
+		private:
+			VulkanContext& mContext;
+			VulkanPipelineSignature& mPipelineSignature;
+			RefPtr<VulkanShader> mpShader;
+			vector<eastl::pair<const char*, const char*>> mCombineImages;
+			UInt32 mSet;
 		};
 
 		class Builder

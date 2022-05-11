@@ -43,7 +43,8 @@ namespace SG
 
 		void CreateVKResourceFromAsset(RefPtr<RenderDataBuilder> pRenderDataBuilder);
 
-		void RebuildRenderData(bool);
+		void OnRenderDataRebuild(bool);
+		void OnShowStatisticsChanged(bool bActive);
 	private:
 		VulkanContext* mpContext = nullptr;
 		MessageBusMember mMessageBusMember;
@@ -52,8 +53,7 @@ namespace SG
 		UniquePtr<IGUIDriver>  mpGUIDriver = nullptr;
 		UInt32 mCurrentFrame = 0;
 
-		RefPtr<DockSpaceLayer> mpDockSpaceGUILayer;
-		bool mbCopyStatisticsDetail;
+		RefPtr<DockSpaceLayer> mpDockSpaceGUILayer = nullptr;
 
 		bool mbBlockEvent = true;
 		bool mbWindowMinimal = false;

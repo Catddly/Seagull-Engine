@@ -6,6 +6,7 @@
 #include "Render/SwapChain.h"
 #include "Scene/Scene.h"
 #include "Scene/RenderDataBuilder.h"
+#include "Event/MessageBus/MessageBus.h"
 
 #include "RendererVulkan/Resource/DrawCall.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
@@ -49,7 +50,7 @@ namespace SG
 
 		const DrawCall& GetSkyboxDrawCall() const { return mSkyboxDrawCall; }
 
-		void WaitBuffersUpdate() const;
+		void WaitBuffersUpdated() const;
 
 		/// Buffer Begin
 		// By default, create the buffer using HOST_VISIBLE bit.
@@ -93,8 +94,12 @@ namespace SG
 		static VulkanResourceRegistry* GetInstance();
 	private:
 		VulkanResourceRegistry() = default;
+
+		void OnRenderDataRebuild(bool);
 	private:
 		VulkanContext* mpContext;
+		MessageBusMember mMessageBusMember;
+
 		mutable eastl::unordered_map<string, VulkanBuffer*>  mBuffers;
 		mutable eastl::unordered_map<string, VulkanTexture*> mTextures;
 		mutable eastl::unordered_map<string, VulkanDescriptorSet*> mDescriptorSets;

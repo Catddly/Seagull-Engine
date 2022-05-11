@@ -16,6 +16,25 @@ namespace SG
 	{
 	}
 
+	void RenderDataBuilder::OnUpdate(float deltaTime)
+	{
+		SG_PROFILE_FUNCTION();
+
+		if (!mCurrentFrameNewAssets.empty())
+			mCurrentFrameNewAssets.clear();
+	}
+
+	void RenderDataBuilder::LogDebugInfo() const
+	{
+		SG_LOG_DEBUG("RenderDataBuilder Debug Info:");
+		for (auto& buildData : mRenderMeshBuildDataMap)
+		{
+			SG_LOG_DEBUG("Mesh ID: %d", buildData.first);
+			SG_LOG_DEBUG("    Object ID: %d", buildData.second.objectId);
+			SG_LOG_DEBUG("    Instance Cnt: %d", buildData.second.instanceCount);
+		}
+	}
+
 	void RenderDataBuilder::SetScene(WeakRefPtr<Scene> pScene)
 	{
 		SG_PROFILE_FUNCTION();
@@ -45,32 +64,47 @@ namespace SG
 					if (mat.albedoTex)
 					{
 						if (mAssets.find(mat.albedoTex->GetAssetID()) == mAssets.end())
+						{
+							mCurrentFrameNewAssets[mat.albedoTex->GetAssetID()] = mat.albedoTex;
 							mAssets[mat.albedoTex->GetAssetID()] = mat.albedoTex;
+						}
 					}
 					if (mat.normalTex)
 					{
 						if (mAssets.find(mat.normalTex->GetAssetID()) == mAssets.end())
+						{
+							mCurrentFrameNewAssets[mat.normalTex->GetAssetID()] = mat.normalTex;
 							mAssets[mat.normalTex->GetAssetID()] = mat.normalTex;
+						}
 					}
 					if (mat.metallicTex)
 					{
 						if (mAssets.find(mat.metallicTex->GetAssetID()) == mAssets.end())
+						{
+							mCurrentFrameNewAssets[mat.metallicTex->GetAssetID()] = mat.metallicTex;
 							mAssets[mat.metallicTex->GetAssetID()] = mat.metallicTex;
+						}
 					}
 					if (mat.roughnessTex)
 					{
 						if (mAssets.find(mat.roughnessTex->GetAssetID()) == mAssets.end())
+						{
+							mCurrentFrameNewAssets[mat.roughnessTex->GetAssetID()] = mat.roughnessTex;
 							mAssets[mat.roughnessTex->GetAssetID()] = mat.roughnessTex;
+						}
 					}
 					if (mat.AOTex)
 					{
 						if (mAssets.find(mat.AOTex->GetAssetID()) == mAssets.end())
+						{
+							mCurrentFrameNewAssets[mat.AOTex->GetAssetID()] = mat.AOTex;
 							mAssets[mat.AOTex->GetAssetID()] = mat.AOTex;
+						}
 					}
 				}
 			});
 
-		for (auto& node : mAssets)
+		for (auto& node : mCurrentFrameNewAssets)
 		{
 			auto pLock = node.second.lock();
 			pLock->LoadDataFromDisk();
@@ -84,6 +118,9 @@ namespace SG
 		auto pScene = mpScene.lock();
 		if (!pScene)
 			SG_LOG_ERROR("No scene is set to build the render data!");
+
+		// reset render status
+		mRenderMeshBuildDataMap.clear();
 
 		// collect instance info and set instance id.
 		pScene->TraverseEntity([this](auto& entity)
@@ -119,7 +156,13 @@ namespace SG
 				node.second.perInstanceData.set_capacity(0);
 				MeshDataArchive::GetInstance()->SetFlag(node.first, false);
 			}
+			else
+			{
+				MeshDataArchive::GetInstance()->SetFlag(node.first, true);
+			}
 		}
+
+		LogDebugInfo();
 
 		mbIsRenderDataReady = true;
 	}

@@ -9,3 +9,5 @@
 #else
 #	define SG_CORE_API
 #endif
+
+#define SG_ENABLE_PROFILE 0

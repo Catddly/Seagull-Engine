@@ -18,6 +18,7 @@ namespace SG
 #	define SG_PROFILE_FREE(PTR) TracyFree(PTR)
 #else
 #	define SG_PROFILE_FUNCTION()
+#	define SG_PROFILE_SCOPE(NAME)
 #	define SG_PROFILE_FRAME_MARK()
 #	define SG_PROFILE_ALLOC(PTR, SIZE)
 #	define SG_PROFILE_FREE(PTR, SIZE)

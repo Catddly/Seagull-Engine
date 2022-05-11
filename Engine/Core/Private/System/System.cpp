@@ -15,8 +15,6 @@
 #include "Memory/Memory.h"
 #include "Profile/Profile.h"
 
-#include <filesystem>
-
 namespace SG
 {
 
@@ -125,6 +123,9 @@ namespace SG
 			mModuleManager.Update(deltaTime);
 			if (mpCurrActiveProcess)
 				mpCurrActiveProcess->OnUpdate(deltaTime);
+
+			// update the RenderDataBuilder to clear the current frame new assets.
+			mpRenderDataBuilder->OnUpdate(deltaTime);
 
 			// modules OnDraw()
 			mModuleManager.Draw();

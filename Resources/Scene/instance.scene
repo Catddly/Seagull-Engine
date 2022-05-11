@@ -1149,42 +1149,6 @@
                     1.0,
                     1.0
                 ],
-                "Metallic": 1.0,
-                "Roughness": 0.4000000059604645
-            },
-            "MeshComponent": {
-                "Filename": "sphere",
-                "IsProceduralMesh": false
-            },
-            "TagComponent": {
-                "Name": "sphere9_6"
-            },
-            "TransformComponent": {
-                "Position": [
-                    6.5,
-                    2.0,
-                    -4.0
-                ],
-                "Rotation": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "Scale": [
-                    0.699999988079071,
-                    0.699999988079071,
-                    0.699999988079071
-                ]
-            }
-        },
-        {
-            "EntityID": "2468517968452275",
-            "MaterialComponent": {
-                "Albedo": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
                 "Metallic": 0.699999988079071,
                 "Roughness": 0.10000000149011612
             },
@@ -1222,19 +1186,19 @@
                     1.0
                 ],
                 "Metallic": 1.0,
-                "Roughness": 0.30000001192092896
+                "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
                 "Filename": "sphere",
                 "IsProceduralMesh": false
             },
             "TagComponent": {
-                "Name": "sphere9_7"
+                "Name": "sphere9_6"
             },
             "TransformComponent": {
                 "Position": [
                     6.5,
-                    3.5,
+                    2.0,
                     -4.0
                 ],
                 "Rotation": [
@@ -1271,6 +1235,42 @@
                 "Position": [
                     2.0,
                     5.0,
+                    -4.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Scale": [
+                    0.699999988079071,
+                    0.699999988079071,
+                    0.699999988079071
+                ]
+            }
+        },
+        {
+            "EntityID": "2468517968452275",
+            "MaterialComponent": {
+                "Albedo": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "Metallic": 1.0,
+                "Roughness": 0.30000001192092896
+            },
+            "MeshComponent": {
+                "Filename": "sphere",
+                "IsProceduralMesh": false
+            },
+            "TagComponent": {
+                "Name": "sphere9_7"
+            },
+            "TransformComponent": {
+                "Position": [
+                    6.5,
+                    3.5,
                     -4.0
                 ],
                 "Rotation": [
@@ -1396,48 +1396,6 @@
         {
             "EntityID": "2468517968452275",
             "MaterialComponent": {
-                "AOTextureAsset": {
-                    "Filename": "cerberus/ao.ktx",
-                    "IsCubeMap": false,
-                    "Name": "cerberus_ao",
-                    "NeedMipmap": true
-                },
-                "Albedo": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "Metallic": 0.05000000074505806,
-                "Roughness": 0.8999999761581421
-            },
-            "MeshComponent": {
-                "Filename": "cerberus",
-                "IsProceduralMesh": false
-            },
-            "TagComponent": {
-                "Name": "cerberus_1"
-            },
-            "TransformComponent": {
-                "Position": [
-                    2.5999999046325684,
-                    1.850000023841858,
-                    -2.299999952316284
-                ],
-                "Rotation": [
-                    0.0,
-                    90.0,
-                    0.0
-                ],
-                "Scale": [
-                    3.0,
-                    3.0,
-                    3.0
-                ]
-            }
-        },
-        {
-            "EntityID": "2468517968452275",
-            "MaterialComponent": {
                 "Albedo": [
                     1.0,
                     1.0,
@@ -1468,6 +1426,48 @@
                     0.699999988079071,
                     0.699999988079071,
                     0.699999988079071
+                ]
+            }
+        },
+        {
+            "EntityID": "2468517968452275",
+            "MaterialComponent": {
+                "AOTextureAsset": {
+                    "Filename": "cerberus/ao.ktx",
+                    "IsCubeMap": false,
+                    "Name": "cerberus_ao",
+                    "NeedMipmap": true
+                },
+                "Albedo": [
+                    0.4786214530467987,
+                    0.11819755285978317,
+                    0.6512455940246582
+                ],
+                "Metallic": 0.0,
+                "Roughness": 0.30000001192092896
+            },
+            "MeshComponent": {
+                "Filename": "cerberus",
+                "IsProceduralMesh": false
+            },
+            "TagComponent": {
+                "Name": "cerberus_1"
+            },
+            "TransformComponent": {
+                "Position": [
+                    2.5999999046325684,
+                    1.850000023841858,
+                    -2.299999952316284
+                ],
+                "Rotation": [
+                    0.0,
+                    90.0,
+                    0.0
+                ],
+                "Scale": [
+                    3.0,
+                    3.0,
+                    3.0
                 ]
             }
         },
@@ -2086,6 +2086,42 @@
         {
             "EntityID": "2468517968452275",
             "MaterialComponent": {
+                "Albedo": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "Metallic": 0.30000001192092896,
+                "Roughness": 0.9000000357627869
+            },
+            "MeshComponent": {
+                "Filename": "sphere",
+                "IsProceduralMesh": false
+            },
+            "TagComponent": {
+                "Name": "sphere2_1"
+            },
+            "TransformComponent": {
+                "Position": [
+                    -4.0,
+                    -5.5,
+                    -4.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Scale": [
+                    0.699999988079071,
+                    0.699999988079071,
+                    0.699999988079071
+                ]
+            }
+        },
+        {
+            "EntityID": "2468517968452275",
+            "MaterialComponent": {
                 "AOTextureAsset": {
                     "Filename": "cerberus/ao.ktx",
                     "IsCubeMap": false,
@@ -2146,42 +2182,6 @@
                     3.0,
                     3.0,
                     3.0
-                ]
-            }
-        },
-        {
-            "EntityID": "2468517968452275",
-            "MaterialComponent": {
-                "Albedo": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "Metallic": 0.30000001192092896,
-                "Roughness": 0.9000000357627869
-            },
-            "MeshComponent": {
-                "Filename": "sphere",
-                "IsProceduralMesh": false
-            },
-            "TagComponent": {
-                "Name": "sphere2_1"
-            },
-            "TransformComponent": {
-                "Position": [
-                    -4.0,
-                    -5.5,
-                    -4.0
-                ],
-                "Rotation": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "Scale": [
-                    0.699999988079071,
-                    0.699999988079071,
-                    0.699999988079071
                 ]
             }
         },
@@ -2620,24 +2620,24 @@
         {
             "CameraComponent": {
                 "CameraPos": [
-                    0.10561420023441315,
-                    1.9944326877593994,
-                    10.046297073364258
+                    3.264629602432251,
+                    0.19494891166687012,
+                    8.371089935302734
                 ],
                 "FrontVector": [
-                    -0.01916510984301567,
-                    -0.13284848630428314,
-                    -0.9909510612487793
+                    -0.21270020306110382,
+                    0.06001266837120056,
+                    -0.9752728343009949
                 ],
                 "RightVector": [
-                    0.9998130202293396,
+                    0.9770342111587524,
                     0.0,
-                    -0.019336508587002754
+                    -0.21308256685733795
                 ],
                 "UpVector": [
-                    -0.002568822121247649,
-                    0.991136372089386,
-                    -0.13282351195812225
+                    0.012786825187504292,
+                    0.9981977343559265,
+                    0.05863416939973831
                 ]
             },
             "EntityID": "2468517968452275",

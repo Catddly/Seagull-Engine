@@ -161,7 +161,7 @@ namespace SG
 		}
 
 		// wait for all the resource in the transfer queue.
-		VK_RESOURCE()->WaitBuffersUpdate();
+		VK_RESOURCE()->WaitBuffersUpdated();
 	}
 
 	VulkanRenderPass* RenderGraph::CompileRenderPasses(const RenderGraphNode* pCurrNode)

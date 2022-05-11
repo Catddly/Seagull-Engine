@@ -162,9 +162,9 @@ namespace SG
 		//pointLight.radius = 3.0f;
 		//pointLight.color = { 0.0f, 1.0f, 0.705f };
 
+		//DefaultScene();
 		//MaterialScene();
 		//MaterialTexturedScene();
-		//DefaultScene();
 
 		Refresh();
 	}
@@ -500,7 +500,6 @@ namespace SG
 
 					cam.type = ECameraType::eFirstPerson;
 					auto FPSCam = MakeRef<FirstPersonCamera>(cameraComp["CameraPos"].get<Vector3f>());
-					FPSCam->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio()); // TODO: Wrong aspect ratio
 					FPSCam->SetUpVector(cameraComp["UpVector"].get<Vector3f>());
 					FPSCam->SetRightVector(cameraComp["RightVector"].get<Vector3f>());
 					FPSCam->SetFrontVector(cameraComp["FrontVector"].get<Vector3f>());

@@ -23,8 +23,6 @@ namespace SG
 		virtual void OnDetach();
 
 		virtual void OnUpdate(float deltaTime);
-
-		bool ShowStatisticsDetail() const { return mbShowStatisticsDetail; }
 	private:
 		virtual bool OnKeyInputUpdate(EKeyCode keycode, EKeyState keyState) override;
 		virtual bool OnMouseMoveInputUpdate(int xPos, int yPos, int deltaXPos, int deltaYPos) override;

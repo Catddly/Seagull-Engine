@@ -107,12 +107,12 @@ namespace SG
 			io.Fonts->SetTexID((ImTextureID)VK_RESOURCE()->GetDescriptorSetHandle("_imgui_font_tex").GetData());
 
 			VulkanDescriptorSet* pViewportSet = New(VulkanDescriptorSet);
-			VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
+			VulkanPipelineSignature::SetDataBinder(mpGUIPipelineSignature, 0)
 				.AddCombindSamplerImage(0, "comp_sampler", "HDRColor")
 				.Bind(*pViewportSet);
 
 			VulkanDescriptorSet* pLogoSet = New(VulkanDescriptorSet);
-			VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
+			VulkanPipelineSignature::SetDataBinder(mpGUIPipelineSignature, 0)
 				.AddCombindSamplerImage(0, "comp_sampler", "logo")
 				.Bind(*pLogoSet);
 
@@ -146,7 +146,7 @@ namespace SG
 
 		VK_RESOURCE()->RemoveDescriptorSet("ViewportTex");
 		VulkanDescriptorSet* pViewportSet = New(VulkanDescriptorSet);
-		VulkanPipelineSignature::DataBinder(mpGUIPipelineSignature, 0)
+		VulkanPipelineSignature::SetDataBinder(mpGUIPipelineSignature, 0)
 			.AddCombindSamplerImage(0, "comp_sampler", "HDRColor")
 			.Bind(*pViewportSet);
 		VK_RESOURCE()->AddDescriptorSet("ViewportTex", pViewportSet, true);

@@ -106,7 +106,6 @@ namespace SG
 		//mpGUIDriver->PushUserLayer(MakeRef<TestGUILayer>());
 		mpDockSpaceGUILayer = MakeRef<DockSpaceLayer>();
 		mpGUIDriver->PushUserLayer(mpDockSpaceGUILayer);
-		mbCopyStatisticsDetail = mpDockSpaceGUILayer->ShowStatisticsDetail();
 
 		// update one frame here to avoid imgui do not draw the first frame.
 		mpGUIDriver->OnUpdate(0.00000001f);
@@ -134,21 +133,11 @@ namespace SG
 
 		mpGUIDriver->OnUpdate(deltaTime);
 
-		mMessageBusMember.ListenFor<bool>("RenderDataRebuild", SG_BIND_MEMBER_FUNC(RebuildRenderData));
-
-		if (mpDockSpaceGUILayer->ShowStatisticsDetail() != mbCopyStatisticsDetail)
 		{
-			mbCopyStatisticsDetail = mpDockSpaceGUILayer->ShowStatisticsDetail();
-			if (mbCopyStatisticsDetail)
-			{
-				mpContext->pPipelineStatisticsQueryPool->Wake();
-				mpContext->pTimeStampQueryPool->Wake();
-			}
-			else
-			{
-				mpContext->pPipelineStatisticsQueryPool->Sleep();
-				mpContext->pTimeStampQueryPool->Sleep();
-			}
+			SG_PROFILE_SCOPE("Listening Events");
+
+			mMessageBusMember.ListenFor<bool>("RenderDataRebuild", SG_BIND_MEMBER_FUNC(OnRenderDataRebuild));
+			mMessageBusMember.ListenFor<bool>("StatisticsShowDetailChanged", SG_BIND_MEMBER_FUNC(OnShowStatisticsChanged));
 		}
 
 		mpRenderGraph->Update();
@@ -238,7 +227,7 @@ namespace SG
 			auto* pIndirectReadBackBuffer = VK_RESOURCE()->GetBuffer("indirectBuffer_read_back");
 			auto* pIndirectCommands = pIndirectReadBackBuffer->MapMemory<DrawIndexedIndirectCommand>();
 			for (UInt32 i = 0; i < MeshDataArchive::GetInstance()->GetNumMeshData(); ++i)
-				statisticData.cullSceneObjects -= (pIndirectCommands + i)->instanceCount;
+				statisticData.culledSceneObjects -= (pIndirectCommands + i)->instanceCount;
 			pIndirectReadBackBuffer->UnmapMemory();
 #endif
 
@@ -294,7 +283,7 @@ namespace SG
 		VK_RESOURCE()->WindowResize();
 		mpRenderGraph->WindowResize();
 
-		// pop and push again to attach and detach the layer.
+		// pop and push the layer to call OnAttach() and OnDetach().
 		mpGUIDriver->PopUserLayer(mpDockSpaceGUILayer);
 		mpGUIDriver->PushUserLayer(mpDockSpaceGUILayer);
 	}
@@ -305,7 +294,7 @@ namespace SG
 
 		bool bHaveTexture = false;
 
-		auto& assets = pRenderDataBuilder->GetAssets();
+		auto& assets = pRenderDataBuilder->GetCurrentFrameNewAssets();
 		for (auto& pWeakRef : assets)
 		{
 			auto pAsset = pWeakRef.second.lock();
@@ -345,6 +334,7 @@ namespace SG
 		if (bHaveTexture)
 			VK_RESOURCE()->FlushTextures();
 
+		// release texture raw data
 		for (auto& pWeakRef : assets)
 		{
 			auto pAsset = pWeakRef.second.lock();
@@ -357,15 +347,27 @@ namespace SG
 		}
 	}
 
-	void VulkanRenderDevice::RebuildRenderData(bool)
+	void VulkanRenderDevice::OnRenderDataRebuild(bool)
 	{
 		auto pRenderDataBuilder = SSystem()->GetRenderDataBuilder();
 		CreateVKResourceFromAsset(pRenderDataBuilder);
-		IndirectRenderer::OnShutdown();
-		IndirectRenderer::OnInit(*mpContext);
 		IndirectRenderer::CollectRenderData(pRenderDataBuilder);
 
-		VK_RESOURCE()->WaitBuffersUpdate();
+		VK_RESOURCE()->WaitBuffersUpdated();
+	}
+
+	void VulkanRenderDevice::OnShowStatisticsChanged(bool bActive)
+	{
+		if (bActive)
+		{
+			mpContext->pPipelineStatisticsQueryPool->Wake();
+			mpContext->pTimeStampQueryPool->Wake();
+		}
+		else
+		{
+			mpContext->pPipelineStatisticsQueryPool->Sleep();
+			mpContext->pTimeStampQueryPool->Sleep();
+		}
 	}
 
 }

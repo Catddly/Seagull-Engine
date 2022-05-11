@@ -34,7 +34,7 @@ namespace SG
 	private:
 		MeshDataArchive() = default;
 	private:
-		eastl::unordered_map<UInt32, eastl::pair<MeshData, bool>> mMeshDatas; // meshId -> pair(MeshData, HaveInstance)
+		eastl::unordered_map<UInt32, eastl::pair<MeshData, bool>> mMeshDatas; // meshId -> pair(MeshData, bHaveInstance)
 
 		static UInt32 msCurrKey;
 	};

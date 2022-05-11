@@ -75,14 +75,6 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		if (keyState != EKeyState::eHold)
-		{
-			if (mbViewportOnFocused)
-				return true;
-			else
-				return false;
-		}
-
 		if (mbTriggerOpen && !Input::IsKeyPressed(KeyCode_LeftControl) || !Input::IsKeyPressed(KeyCode_O))
 			mbTriggerOpen = false;
 
@@ -96,20 +88,20 @@ namespace SG
 			return true;
 		else
 		{
-			if (!mbTriggerSave && Input::IsKeyPressed(KeyCode_LeftControl) && Input::IsKeyPressed(KeyCode_S))
+			if (!mbTriggerSaveAs && Input::IsKeyPressed(KeyCode_LeftControl) && Input::IsKeyPressed(KeyCode_LeftShift) && Input::IsKeyPressed(KeyCode_S))
 			{
-				SaveScene();
-				mbTriggerSave = true;
+				SaveAsScene();
+				mbTriggerSaveAs = true;
 			}
 			else if (!mbTriggerOpen && Input::IsKeyPressed(KeyCode_LeftControl) && Input::IsKeyPressed(KeyCode_O))
 			{
 				OpenScene();
 				mbTriggerOpen = true;
 			}
-			else if (!mbTriggerSaveAs && Input::IsKeyPressed(KeyCode_LeftControl) && Input::IsKeyPressed(KeyCode_LeftShift) && Input::IsKeyPressed(KeyCode_S))
+			else if (!mbTriggerSaveAs && !mbTriggerSave && Input::IsKeyPressed(KeyCode_LeftControl) && Input::IsKeyPressed(KeyCode_S))
 			{
-				SaveAsScene();
-				mbTriggerSaveAs = true;
+				SaveScene();
+				mbTriggerSave = true;
 			}
 		}
 
@@ -277,7 +269,9 @@ namespace SG
 		ImGui::Text("DrawCall: %d", drawCallCnt);
 		ImGui::Text("Scene Objects: %d", meshCnt);
 		ImGui::Text("Culled Objects: %d", statisticData.culledSceneObjects);
-		ImGui::Checkbox("Show Detail", &mbShowStatisticsDetail);
+		if (ImGui::Checkbox("Show Detail", &mbShowStatisticsDetail))
+			mMessageBusMember.PushEvent<bool>("StatisticsShowDetailChanged", mbShowStatisticsDetail);
+		
 		if (mbShowStatisticsDetail)
 		{
 			double total = statisticData.gpuRenderPassTime[0] + statisticData.gpuRenderPassTime[1] + statisticData.gpuRenderPassTime[2];
@@ -304,20 +298,32 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
+		//bool bShow = true;
+		//ImGui::ShowDemoWindow(&bShow);
+
+		static ImGuiTextFilter sTextFilter;
+
 		ImGui::Begin("Scene");
+
+		ImGui::Text("Filter");
+		ImGui::SameLine();
+		sTextFilter.Draw("##Filter", ImGui::GetContentRegionAvail().x);
 
 		auto pScene = SSystem()->GetMainScene();
 		// draw entity tree
 		pScene->TraverseEntity([this](auto& entity) 
 			{
 				auto& tag = entity.GetComponent<TagComponent>();
-				bool bOpened = ImGui::TreeNodeEx(tag.name.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
+				if (sTextFilter.PassFilter(tag.name.c_str()))
+				{
+					bool bOpened = ImGui::TreeNodeEx(tag.name.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
 
-				if (ImGui::IsItemClicked())
-					mSelectedEntity = entity;
+					if (ImGui::IsItemClicked())
+						mSelectedEntity = entity;
 
-				if (bOpened)
-					ImGui::TreePop();
+					if (bOpened)
+						ImGui::TreePop();
+				}
 			});
 
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
@@ -377,20 +383,25 @@ namespace SG
 	void DockSpaceLayer::OpenScene()
 	{
 		string path = FileSystem::OpenFileDialog(OperatingSystem::GetMainWindow(), "SG Scene (*.scene)\0*.scene\0");
+		if (path.empty())
+			return;
+
 		Size pos = path.find_last_of("\\\\") + 1;
 		string sceneName = path.substr(pos, path.size() - pos);
 		auto pNewScene = SSystem()->NewScene();
 		Deserializer::Deserialize(pNewScene, sceneName.c_str());
-		Input::ForceReleaseAllEvent();
+
+		pNewScene->GetMainCamera().GetComponent<CameraComponent>().pCamera->SetPerspective(60.0f, mLastViewportSize.x / mLastViewportSize.y);
 
 		// rebuild scene render data
 		auto pRenderDataBuilder = SSystem()->GetRenderDataBuilder();
 		pRenderDataBuilder->SetScene(pNewScene);
 		pRenderDataBuilder->LoadInNeccessaryDataFromDisk();
 		pRenderDataBuilder->ResolveRenderData();
-
+		// push an event to notify the render device
 		mMessageBusMember.PushEvent("RenderDataRebuild");
 
+		Input::ForceReleaseAllEvent(); // to avoid shourt cut key status
 		mSelectedEntity = {};
 	}
 
@@ -399,11 +410,16 @@ namespace SG
 		Serializer::Serialize(SSystem()->GetMainScene(), "default.scene");
 		mSavedSceneName = "default.scene";
 		mbShowSaveSceneProgressBar = true;
+
+		Input::ForceReleaseAllEvent(); // to avoid shourt cut key status
 	}
 
 	void DockSpaceLayer::SaveAsScene()
 	{
 		string path = FileSystem::SaveFileDialog(OperatingSystem::GetMainWindow(), "SG Scene (*.scene)\0*.scene\0");
+		if (path.empty())
+			return;
+
 		if (path.find('.') == string::npos)
 			path += ".scene";
 		Size pos = path.find_last_of("\\\\") + 1;
@@ -411,6 +427,8 @@ namespace SG
 		Serializer::Serialize(SSystem()->GetMainScene(), sceneName.c_str());
 		mSavedSceneName = sceneName;
 		mbShowSaveSceneProgressBar = true;
+
+		Input::ForceReleaseAllEvent(); // to avoid shourt cut key status
 	}
 
 }

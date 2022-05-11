@@ -128,8 +128,6 @@
 #	define SG_CPP_VERSION_17 1
 #endif
 
-#define SG_ENABLE_PROFILE 1
-
 #ifndef SG_NOT_IMPLEMENTED
 #	define SG_NOT_IMPLEMENTED() SG_ASSERT(false && "This function is not implemented yet!")
 #endif

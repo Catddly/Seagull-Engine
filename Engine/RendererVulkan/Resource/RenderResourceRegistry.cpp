@@ -41,6 +41,7 @@ namespace SG
 		//ssboCI.type = EBufferType::efStorage;
 		//CreateBuffer(ssboCI);
 
+#if SG_ENABLE_GPU_CULLING
 		BufferCreateDesc cullBufferCI = {};
 		cullBufferCI.name = "cullUbo";
 		cullBufferCI.bufferSize = sizeof(GPUCullUBO) * SG_MAX_NUM_OBJECT;
@@ -48,6 +49,7 @@ namespace SG
 		cullBufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 		cullBufferCI.memoryFlag = EGPUMemoryFlag::efPersistent_Map;
 		CreateBuffer(cullBufferCI);
+#endif
 
 		auto pSkybox = SSystem()->GetMainScene()->GetSkyboxEntity();
 		auto& mesh = pSkybox.GetComponent<MeshComponent>();
@@ -84,6 +86,7 @@ namespace SG
 		auto& cameraUbo = GetCameraUBO();
 		cameraUbo.proj = pCamera->GetProjMatrix();
 
+#if SG_ENABLE_GPU_CULLING
 		Frustum cameraFrustum = pCamera->GetFrustum();
 		auto& cullUbo = GetGPUCullUBO();
 		cullUbo.frustum[0] = cameraFrustum.GetTopPlane();
@@ -96,6 +99,7 @@ namespace SG
 		cullUbo.numObjects = static_cast<UInt32>(pScene->GetMeshEntityCount());
 		cullUbo.numDrawCalls = MeshDataArchive::GetInstance()->GetNumMeshData();
 		GetBuffer("cullUbo")->UploadData(&cullUbo);
+#endif
 
 		auto& skyboxUbo = GetSkyboxUBO();
 		skyboxUbo.proj = cameraUbo.proj;
@@ -143,6 +147,8 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
+		mMessageBusMember.ListenFor<bool>("RenderDataRebuild", SG_BIND_MEMBER_FUNC(OnRenderDataRebuild));
+
 		auto pScene = SSystem()->GetMainScene();
 
 		// update camera data
@@ -166,6 +172,7 @@ namespace SG
 
 		if (pCamera->IsViewDirty() || pCamera->IsProjDirty())
 		{
+#if SG_ENABLE_GPU_CULLING
 			auto& cullUbo = GetGPUCullUBO();
 			Frustum cameraFrustum = pCamera->GetFrustum();
 			cullUbo.frustum[0] = cameraFrustum.GetTopPlane();
@@ -176,9 +183,10 @@ namespace SG
 			cullUbo.frustum[5] = cameraFrustum.GetBackPlane();
 			cullUbo.viewPos = pCamera->GetPosition();
 
-			cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
-
 			UpdataBufferData("cullUbo", &cullUbo);
+#endif
+
+			cameraUbo.viewProj = cameraUbo.proj * cameraUbo.view;
 			UpdataBufferData("cameraUbo", &cameraUbo);
 			UpdataBufferData("skyboxUbo", &skyboxUbo);
 
@@ -249,7 +257,19 @@ namespace SG
 		return &instance;
 	}
 
-	void VulkanResourceRegistry::WaitBuffersUpdate() const
+	void VulkanResourceRegistry::OnRenderDataRebuild(bool)
+	{
+#if SG_ENABLE_GPU_CULLING
+		auto pScene = SSystem()->GetMainScene();
+
+		auto& cullUbo = GetGPUCullUBO();
+		cullUbo.numObjects = static_cast<UInt32>(pScene->GetMeshEntityCount());
+		cullUbo.numDrawCalls = MeshDataArchive::GetInstance()->GetNumMeshData();
+		GetBuffer("cullUbo")->UploadData(&cullUbo);
+#endif
+	}
+
+	void VulkanResourceRegistry::WaitBuffersUpdated() const
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -381,7 +401,7 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		if (mBuffers.count(name) == 0)
+		if (mBuffers.find(name) == mBuffers.end())
 			return false;
 		return true;
 	}
@@ -459,7 +479,7 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		if (mTextures.count(name) == 0)
+		if (mTextures.find(name) == mTextures.end())
 			return false;
 		return true;
 	}

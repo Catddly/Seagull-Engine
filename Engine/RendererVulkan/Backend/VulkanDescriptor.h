@@ -15,12 +15,16 @@
 namespace SG
 {
 
+	class VulkanDescriptorSet;
+
 	class VulkanDescriptorPool
 	{
 	public:
 		VulkanDescriptorPool(VulkanDevice& d, const vector<VkDescriptorPoolSize>& poolSizes, UInt32 maxSets);
 		~VulkanDescriptorPool();
 		SG_CLASS_NO_COPY_ASSIGNABLE(VulkanDescriptorPool);
+
+		void FreeDescriptorSet(VulkanDescriptorSet& set);
 
 		class Builder
 		{
@@ -33,8 +37,7 @@ namespace SG
 			UInt32 maxSets;
 		};
 	private:
-		bool AllocateDescriptorSet(const VkDescriptorSetLayout& layout, VkDescriptorSet& set);
-		void FreeDescriptorSet(VkDescriptorSet& set);
+		bool AllocateDescriptorSet(const VkDescriptorSetLayout& layout, VulkanDescriptorSet& set);
 		void Reset();
 	private:
 		friend class VulkanDescriptorDataBinder;
@@ -77,6 +80,7 @@ namespace SG
 		void*  GetHandle() const { return set; }
 		UInt32 GetSetIndex() const { return belongingSet; }
 	private:
+		friend class VulkanDescriptorPool;
 		friend class VulkanPipelineSignature;
 		friend class VulkanDescriptorDataBinder;
 		friend class VulkanCommandBuffer;

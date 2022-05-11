@@ -132,6 +132,13 @@ namespace SG
 		Delete(mpPipeline);
 	}
 
+	void RGDrawScenePBRNode::Update()
+	{
+		SG_PROFILE_FUNCTION();
+
+		mMessageBusMember.ListenFor<bool>("RenderDataRebuild", SG_BIND_MEMBER_FUNC(OnRenderDataRebuild));
+	}
+
 	void RGDrawScenePBRNode::Reset()
 	{
 		SG_PROFILE_FUNCTION();
@@ -677,6 +684,18 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		VK_RESOURCE()->DeleteRenderTarget("HDRColor");
+	}
+
+	void RGDrawScenePBRNode::OnRenderDataRebuild(bool)
+	{
+		auto& defaultDesriptorSet = mpPipelineSignature->GetDescriptorSet(1, "__non_dynamic");
+		VulkanPipelineSignature::ShaderDataBinder(mpPipelineSignature.get(), mpShader, 1)
+			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_albedo")
+			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_metallic")
+			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_roughness")
+			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_ao")
+			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_normal")
+			.ReBind(defaultDesriptorSet);
 	}
 
 }

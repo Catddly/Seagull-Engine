@@ -177,6 +177,13 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
+		// clear all the old data and reset status
+		mDrawCallMap.clear();
+		mCurrDrawCallIndex = 0;
+		mPackedVBCurrOffset = 0;
+		mPackedVIBCurrOffset = 0;
+		mPackedIBCurrOffset = 0;
+
 		if (!mbRendererInit)
 		{
 			SG_LOG_ERROR("Renderer not initialized");
@@ -330,27 +337,32 @@ namespace SG
 		VK_RESOURCE()->FlushBuffers();
 
 #if SG_ENABLE_GPU_CULLING
-		mpResetCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpResetCullingShader)
-			.Build();
+		if (!mbDrawCallReady)
+		{
+			mpResetCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpResetCullingShader)
+				.Build();
 
-		mpResetCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
-			.BindSignature(mpResetCullingPipelineSignature)
-			.Build();
+			mpResetCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
+				.BindSignature(mpResetCullingPipelineSignature)
+				.Build();
 
-		mpGPUCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpGPUCullingShader)
-			.Build();
+			mpGPUCullingPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpGPUCullingShader)
+				.Build();
 
-		mpGPUCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
-			.BindSignature(mpGPUCullingPipelineSignature)
-			.Build();
+			mpGPUCullingPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
+				.BindSignature(mpGPUCullingPipelineSignature)
+				.Build();
 
-		mpDrawCallCompactPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpDrawCallCompactShader)
-			.Build();
+			mpDrawCallCompactPipelineSignature = VulkanPipelineSignature::Builder(*mpContext, mpDrawCallCompactShader)
+				.Build();
 
-		mpDrawCallCompactPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
-			.BindSignature(mpDrawCallCompactPipelineSignature)
-			.Build();
+			mpDrawCallCompactPipeline = VulkanPipeline::Builder(mpContext->device, EPipelineType::eCompute)
+				.BindSignature(mpDrawCallCompactPipelineSignature)
+				.Build();
+		}
 #endif
+
+		LogDebugInfo();
 
 		mbDrawCallReady = true;
 	}
@@ -521,6 +533,21 @@ namespace SG
 
 	void IndirectRenderer::BindMaterial(const DrawMaterial& drawMaterial)
 	{
+	}
+
+	void IndirectRenderer::LogDebugInfo()
+	{
+		SG_LOG_DEBUG("Indirect Renderer Debug Info:");
+		for (auto& dc : mDrawCallMap)
+		{
+			SG_LOG_DEBUG("Mesh Pass: %d", (UInt32)dc.first);
+			for (auto& idc : dc.second)
+			{
+				SG_LOG_DEBUG("    Draw Call: 0x%p", idc.pIndirectBuffer);
+				SG_LOG_DEBUG("    Draw Call Count: %d", idc.count);
+				SG_LOG_DEBUG("    Draw Call Offset: %d", idc.first);
+			}
+		}
 	}
 
 }

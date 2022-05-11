@@ -65,7 +65,7 @@ namespace SG
 		vkDestroyDescriptorPool(device.logicalDevice, pool, nullptr);
 	}
 
-	bool VulkanDescriptorPool::AllocateDescriptorSet(const VkDescriptorSetLayout& layout, VkDescriptorSet& set)
+	bool VulkanDescriptorPool::AllocateDescriptorSet(const VkDescriptorSetLayout& layout, VulkanDescriptorSet& set)
 	{
 		VkDescriptorSetAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -73,14 +73,14 @@ namespace SG
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &layout;
 
-		VK_CHECK(vkAllocateDescriptorSets(device.logicalDevice, &allocInfo, &set),
+		VK_CHECK(vkAllocateDescriptorSets(device.logicalDevice, &allocInfo, &set.set),
 			SG_LOG_ERROR("Failed to allocate descriptor set!"); return false;);
 		return true;
 	}
 
-	void VulkanDescriptorPool::FreeDescriptorSet(VkDescriptorSet& set)
+	void VulkanDescriptorPool::FreeDescriptorSet(VulkanDescriptorSet& set)
 	{
-		vkFreeDescriptorSets(device.logicalDevice, pool, 1, &set);
+		vkFreeDescriptorSets(device.logicalDevice, pool, 1, &set.set);
 	}
 
 	void VulkanDescriptorPool::Reset()
@@ -208,7 +208,7 @@ namespace SG
 
 	bool VulkanDescriptorDataBinder::Bind(VulkanDescriptorSet& set)
 	{
-		if (!pool.AllocateDescriptorSet(layout.descriptorSetLayout, set.set))
+		if (!pool.AllocateDescriptorSet(layout.descriptorSetLayout, set))
 			return false;
 		OverWriteData(set);
 		return true;
