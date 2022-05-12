@@ -6,60 +6,76 @@
 namespace SG
 {
 
-	UInt32 MeshDataArchive::msCurrKey = 0;
+	IDAllocator<UInt32> MeshDataArchive::msIdAllocator;
 
 	UInt32 MeshDataArchive::SetData(const MeshData& meshData)
 	{
-		auto& md = const_cast<MeshData&>(meshData);
-		mMeshDatas[msCurrKey] = { md, true };
-		//SG_LOG_DEBUG("New Mesh Data");
-		return msCurrKey++;
+		UInt32 meshId = UInt32(-1);
+		if (mMeshIDMap.find(meshData.filename) == mMeshIDMap.end())// this is a new mesh data
+		{
+			meshId = msIdAllocator.Allocate();
+			//auto& md = const_cast<MeshData&>(meshData);
+			mMeshDatas.emplace_back(meshData, 1);
+			mMeshIDMap[meshData.filename] = meshId;
+		}
+		else
+		{
+			meshId = mMeshIDMap[meshData.filename];
+			mMeshDatas[meshId].second += 1;
+		}
+		return meshId;
 	}
 
-	void MeshDataArchive::SetFlag(UInt32 meshId, bool bHaveInstance)
+	UInt32 MeshDataArchive::GetRefCount(UInt32 meshId) const
 	{
-		mMeshDatas[meshId].second = bHaveInstance;
+		SG_ASSERT(meshId < mMeshDatas.size());
+		return mMeshDatas[meshId].second;
 	}
 
 	const MeshData* MeshDataArchive::GetData(UInt32 meshId) const
 	{
-		auto node = mMeshDatas.find(meshId);
-		if (node == mMeshDatas.end())
-			return nullptr;
-		return &node->second.first;
+		SG_ASSERT(meshId < mMeshDatas.size());
+		return &mMeshDatas[meshId].first;
 	}
 
 	UInt32 MeshDataArchive::GetMeshID(const string& filename) const
 	{
-		// TODO: modified it, this is too slow.
-		for (auto& node : mMeshDatas)
-		{
-			if (node.second.first.filename == filename)
-				return node.first;
-		}
+		auto node = mMeshIDMap.find(filename);
+		if (node != mMeshIDMap.end())
+			return node->second;
 		return UInt32(-1);
 	}
 
 	bool MeshDataArchive::HaveInstance(UInt32 meshId) const
 	{
-		auto node = mMeshDatas.find(meshId);
-		if (node == mMeshDatas.end())
-		{
-			SG_LOG_ERROR("No mesh have id: %d", meshId);
-			return false;
-		}
-		return node->second.second;
+		UInt32 cnt = GetRefCount(meshId);
+		return cnt > 1;
 	}
 
 	bool MeshDataArchive::HaveMeshData(const string& filename)
 	{
-		// TODO: modified it, this is too slow.
-		for (auto& node : mMeshDatas)
-		{
-			if (node.second.first.filename == filename)
-				return true;
-		}
+		if (mMeshIDMap.find(filename) != mMeshIDMap.end())
+			return true;
 		return false;
+	}
+
+	void MeshDataArchive::Reset()
+	{
+		for (auto& meshData : mMeshDatas)
+			meshData.second = 0;
+	}
+
+	void MeshDataArchive::LogDebugInfo()
+	{
+		SG_LOG_DEBUG("MeshDataArchive Debug Info:");
+		UInt32 id = 0;
+		for (auto& meshData : mMeshDatas)
+		{
+			SG_LOG_DEBUG("Mesh ID: %d", id);
+			SG_LOG_DEBUG("    Filename: %s", meshData.first.filename.c_str());
+			SG_LOG_DEBUG("    Ref Count: %d", meshData.second);
+			++id;
+		}
 	}
 
 	MeshDataArchive* MeshDataArchive::GetInstance()

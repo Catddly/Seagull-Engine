@@ -147,7 +147,7 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		mMessageBusMember.ListenFor<bool>("RenderDataRebuild", SG_BIND_MEMBER_FUNC(OnRenderDataRebuild));
+		mMessageBusMember.ListenFor("RenderDataRebuild", SG_BIND_MEMBER_FUNC(OnRenderDataRebuild));
 
 		auto pScene = SSystem()->GetMainScene();
 
@@ -257,7 +257,7 @@ namespace SG
 		return &instance;
 	}
 
-	void VulkanResourceRegistry::OnRenderDataRebuild(bool)
+	void VulkanResourceRegistry::OnRenderDataRebuild()
 	{
 #if SG_ENABLE_GPU_CULLING
 		auto pScene = SSystem()->GetMainScene();
@@ -297,46 +297,47 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		bool bHostVisible = IsHostVisible(bufferCI.memoryUsage);
-		if (mBuffers.count(bufferCI.name) != 0) // do data copy
+		auto& bufferCreateInfo = const_cast<BufferCreateDesc&>(bufferCI);
+		if (!bHostVisible && !SG_HAS_ENUM_FLAG(bufferCreateInfo.type, EBufferType::efTransfer_Dst))
+			bufferCreateInfo.type = bufferCreateInfo.type | EBufferType::efTransfer_Dst;
+
+		if (mBuffers.count(bufferCreateInfo.name) != 0) // do data copy
 		{
 			if (!bHostVisible)
 			{
-				if (!bufferCI.pInitData)
+				if (!bufferCreateInfo.pInitData)
 				{
 					SG_LOG_ERROR("Device local buffer must have initialize data!");
 					return false;
 				}
 				// make a copy of bufferCI
-				mWaitToSubmitBuffers.push_back({ bufferCI, GetBuffer(bufferCI.name) });
+				mWaitToSubmitBuffers.push_back({ bufferCreateInfo, GetBuffer(bufferCreateInfo.name) });
 				return true;
 			}
 		}
 
-		auto& bufferCreateInfo = const_cast<BufferCreateDesc&>(bufferCI);
-		if (!bHostVisible && !SG_HAS_ENUM_FLAG(bufferCreateInfo.type, EBufferType::efTransfer_Dst))
-			bufferCreateInfo.type = bufferCreateInfo.type | EBufferType::efTransfer_Dst;
 		mBuffers[bufferCreateInfo.name] = VulkanBuffer::Create(*mpContext, bufferCreateInfo);
 		VulkanBuffer* pBuffer = mBuffers[bufferCI.name];
 		if (!pBuffer)
 		{
-			SG_LOG_ERROR("Failed to create buffer: %s", bufferCI.name);
+			SG_LOG_ERROR("Failed to create buffer: %s", bufferCreateInfo.name);
 			return false;
 		}
 
-		if (bHostVisible && bufferCI.pInitData)
+		if (bHostVisible && bufferCreateInfo.pInitData)
 		{
-			if (bufferCI.bSubBuffer)
-				pBuffer->UploadData(bufferCI.pInitData, bufferCI.subBufferSize, bufferCI.subBufferOffset);
+			if (bufferCreateInfo.bSubBuffer)
+				pBuffer->UploadData(bufferCreateInfo.pInitData, bufferCreateInfo.subBufferSize, bufferCreateInfo.subBufferOffset);
 			else
-				pBuffer->UploadData(bufferCI.pInitData);
+				pBuffer->UploadData(bufferCreateInfo.pInitData);
 		}
 
 		if (!bHostVisible)
 		{
-			if (bufferCI.pInitData)
+			if (bufferCreateInfo.pInitData)
 			{
 				// make a copy of bufferCI
-				mWaitToSubmitBuffers.push_back({ bufferCI, pBuffer });
+				mWaitToSubmitBuffers.push_back({ bufferCreateInfo, pBuffer });
 			}
 		}
 		return true;
@@ -438,16 +439,17 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		if (mTextures.count(textureCI.name) != 0)
-		{
-			SG_LOG_ERROR("Already have a texture named %s!", textureCI.name);
-			return false;
-		}
-
 		auto& texCI = const_cast<TextureCreateDesc&>(textureCI);
 		if (!SG_HAS_ENUM_FLAG(textureCI.usage, EImageUsage::efTransfer_Dst))
 			texCI.usage = texCI.usage | EImageUsage::efTransfer_Dst;
-		mTextures[texCI.name] = VulkanTexture::Create(*mpContext, textureCI);
+
+		if (mTextures.count(texCI.name) != 0)
+		{
+			SG_LOG_ERROR("Already have a texture named %s!", texCI.name);
+			return false;
+		}
+
+		mTextures[texCI.name] = VulkanTexture::Create(*mpContext, texCI);
 		VulkanTexture* pTex = mTextures[texCI.name];
 		if (!pTex)
 		{
@@ -455,7 +457,7 @@ namespace SG
 			return false;
 		}
 
-		if (textureCI.pInitData)
+		if (texCI.pInitData)
 		{
 			//if (!textureCI.pInitData)
 			//{
@@ -465,11 +467,11 @@ namespace SG
 			 
 			// make a copy of bufferCI
 			BufferCreateDesc bufferCI = {};
-			bufferCI.name = textureCI.name;
+			bufferCI.name = texCI.name;
 			bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 			bufferCI.type = EBufferType::efTransfer_Src;
-			bufferCI.pInitData = textureCI.pInitData;
-			bufferCI.bufferSize = textureCI.sizeInByte;
+			bufferCI.pInitData = texCI.pInitData;
+			bufferCI.bufferSize = texCI.sizeInByte;
 			mWaitToSubmitTextures.push_back({ bufferCI, pTex });
 		}
 		return true;

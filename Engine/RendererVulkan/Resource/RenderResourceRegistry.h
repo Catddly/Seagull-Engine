@@ -95,7 +95,7 @@ namespace SG
 	private:
 		VulkanResourceRegistry() = default;
 
-		void OnRenderDataRebuild(bool);
+		void OnRenderDataRebuild();
 	private:
 		VulkanContext* mpContext;
 		MessageBusMember mMessageBusMember;

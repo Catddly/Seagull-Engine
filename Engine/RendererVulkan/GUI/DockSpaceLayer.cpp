@@ -84,6 +84,9 @@ namespace SG
 		if (mbTriggerSaveAs && !Input::IsKeyPressed(KeyCode_LeftControl) || !Input::IsKeyPressed(KeyCode_LeftShift) || !Input::IsKeyPressed(KeyCode_S))
 			mbTriggerSaveAs = false;
 
+		if (mbTriggerNew && !Input::IsKeyPressed(KeyCode_LeftControl) || !Input::IsKeyPressed(KeyCode_N))
+			mbTriggerNew = false;
+
 		if (mbViewportOnFocused)
 			return true;
 		else
@@ -102,6 +105,11 @@ namespace SG
 			{
 				SaveScene();
 				mbTriggerSave = true;
+			}
+			else if (!mbTriggerNew && Input::IsKeyPressed(KeyCode_LeftControl) && Input::IsKeyPressed(KeyCode_N))
+			{
+				NewScene();
+				mbTriggerNew = true;
 			}
 		}
 
@@ -165,9 +173,14 @@ namespace SG
 		{
 			if (ImGui::BeginMenu("File"))
 			{
+				if (ImGui::MenuItem("New Scene", "CTRL+N"))
+					NewScene();
+
+				ImGui::Separator();
 				if (ImGui::MenuItem("Open Scene", "CTRL+O"))
 					OpenScene();
 				
+				ImGui::Separator();
 				if (ImGui::MenuItem("Save Scene", "CTRL+S"))
 					SaveScene();
 				
@@ -380,29 +393,38 @@ namespace SG
 		ImGui::End();
 	}
 
+	void DockSpaceLayer::NewScene()
+	{
+		MeshDataArchive::GetInstance()->Reset();
+
+		auto pNewScene = SSystem()->NewScene();
+		pNewScene->OnSceneLoad();
+
+		MeshDataArchive::GetInstance()->LogDebugInfo();
+
+		pNewScene->GetMainCamera().GetComponent<CameraComponent>().pCamera->SetPerspective(60.0f, mLastViewportSize.x / mLastViewportSize.y);
+
+		OnSceneRebuild(pNewScene);
+	}
+
 	void DockSpaceLayer::OpenScene()
 	{
 		string path = FileSystem::OpenFileDialog(OperatingSystem::GetMainWindow(), "SG Scene (*.scene)\0*.scene\0");
 		if (path.empty())
 			return;
 
+		MeshDataArchive::GetInstance()->Reset();
+
 		Size pos = path.find_last_of("\\\\") + 1;
 		string sceneName = path.substr(pos, path.size() - pos);
 		auto pNewScene = SSystem()->NewScene();
 		Deserializer::Deserialize(pNewScene, sceneName.c_str());
 
+		MeshDataArchive::GetInstance()->LogDebugInfo();
+
 		pNewScene->GetMainCamera().GetComponent<CameraComponent>().pCamera->SetPerspective(60.0f, mLastViewportSize.x / mLastViewportSize.y);
 
-		// rebuild scene render data
-		auto pRenderDataBuilder = SSystem()->GetRenderDataBuilder();
-		pRenderDataBuilder->SetScene(pNewScene);
-		pRenderDataBuilder->LoadInNeccessaryDataFromDisk();
-		pRenderDataBuilder->ResolveRenderData();
-		// push an event to notify the render device
-		mMessageBusMember.PushEvent("RenderDataRebuild");
-
-		Input::ForceReleaseAllEvent(); // to avoid shourt cut key status
-		mSelectedEntity = {};
+		OnSceneRebuild(pNewScene);
 	}
 
 	void DockSpaceLayer::SaveScene()
@@ -428,7 +450,21 @@ namespace SG
 		mSavedSceneName = sceneName;
 		mbShowSaveSceneProgressBar = true;
 
-		Input::ForceReleaseAllEvent(); // to avoid shourt cut key status
+		Input::ForceReleaseAllEvent(); // to avoid short cut key status
+	}
+
+	void DockSpaceLayer::OnSceneRebuild(RefPtr<Scene> pNewScene)
+	{
+		// rebuild scene render data
+		auto pRenderDataBuilder = SSystem()->GetRenderDataBuilder();
+		pRenderDataBuilder->SetScene(pNewScene);
+		pRenderDataBuilder->LoadInNeccessaryDataFromDisk();
+		pRenderDataBuilder->ResolveRenderData();
+		// push an event to notify the render device
+		mMessageBusMember.PushEvent("RenderDataRebuild");
+
+		Input::ForceReleaseAllEvent(); // to avoid short cut key status
+		mSelectedEntity = {};
 	}
 
 }

@@ -136,7 +136,7 @@ namespace SG
 		{
 			SG_PROFILE_SCOPE("Listening Events");
 
-			mMessageBusMember.ListenFor<bool>("RenderDataRebuild", SG_BIND_MEMBER_FUNC(OnRenderDataRebuild));
+			mMessageBusMember.ListenFor("RenderDataRebuild", SG_BIND_MEMBER_FUNC(OnRenderDataRebuild));
 			mMessageBusMember.ListenFor<bool>("StatisticsShowDetailChanged", SG_BIND_MEMBER_FUNC(OnShowStatisticsChanged));
 		}
 
@@ -347,7 +347,7 @@ namespace SG
 		}
 	}
 
-	void VulkanRenderDevice::OnRenderDataRebuild(bool)
+	void VulkanRenderDevice::OnRenderDataRebuild()
 	{
 		auto pRenderDataBuilder = SSystem()->GetRenderDataBuilder();
 		CreateVKResourceFromAsset(pRenderDataBuilder);

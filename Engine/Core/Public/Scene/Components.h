@@ -82,45 +82,46 @@ namespace SG
 
 		MeshData meshData = {};
 		meshData.bIsProceduralMesh = true;
+
+		// if the mesh data already loaded, you don't need to set it again
 		if (type == EGennerateMeshType::eGrid)
 		{
-			MeshGenerator::GenGrid(meshData.vertices, meshData.indices);
 			meshData.filename = "_generated_grid";
+			if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
+				MeshGenerator::GenGrid(meshData.vertices, meshData.indices);
 		}
 		else if (type == EGennerateMeshType::eSkybox)
 		{
-			MeshGenerator::GenSkybox(meshData.vertices);
 			meshData.filename = "_generated_skybox";
+			if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
+				MeshGenerator::GenSkybox(meshData.vertices);
 		}
-		comp.meshType = EMeshType::eUnknown;
 
-		// if the mesh data already loaded, you don't need to set it again
-		if (MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
-			comp.meshId = MeshDataArchive::GetInstance()->GetMeshID(meshData.filename);
-		else
-			comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
+		comp.meshType = EMeshType::eUnknown;
+		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
 	}
 
 	SG_INLINE void LoadMesh(const char* filename, EMeshType type, MeshComponent& comp)
 	{
 		SG_PROFILE_FUNCTION();
 
-		string fullName = filename;
-		fullName += MeshTypeToExtString(type);
-
 		MeshData meshData = {};
 		meshData.filename = filename;
 		meshData.bIsProceduralMesh = false;
-		MeshResourceLoader loader;
-		if (!loader.LoadFromFile(fullName.c_str(), meshData.vertices, meshData.indices))
-			SG_LOG_WARN("Mesh %s load failure!", fullName);
-		comp.meshType = type;
 
 		// if the mesh data already loaded, you don't need to set it again
-		if (MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
-			comp.meshId = MeshDataArchive::GetInstance()->GetMeshID(meshData.filename);
-		else
-			comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
+		if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
+		{
+			string fullName = filename;
+			fullName += MeshTypeToExtString(type);
+
+			MeshResourceLoader loader;
+			if (!loader.LoadFromFile(fullName.c_str(), meshData.vertices, meshData.indices))
+				SG_LOG_WARN("Mesh %s load failure!", fullName);
+		}
+
+		comp.meshType = type;
+		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
 	}
 
 	SG_INLINE void CopyMesh(const MeshComponent& srcMesh, MeshComponent& dstMesh)

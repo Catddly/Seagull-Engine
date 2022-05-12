@@ -152,14 +152,7 @@ namespace SG
 		for (auto node : mRenderMeshBuildDataMap) // clear the memory that is not necessary
 		{
 			if (node.second.instanceCount == 1)
-			{
 				node.second.perInstanceData.set_capacity(0);
-				MeshDataArchive::GetInstance()->SetFlag(node.first, false);
-			}
-			else
-			{
-				MeshDataArchive::GetInstance()->SetFlag(node.first, true);
-			}
 		}
 
 		LogDebugInfo();

@@ -5,7 +5,7 @@
 
 #include "Platform/OS.h"
 #include "Scene/Camera/FirstPersonCamera.h"
-#include "Scene/Mesh/MeshDataArchive.h"
+//#include "Scene/Mesh/MeshDataArchive.h"
 #include "Scene/Mesh/TextureAssetArchive.h"
 #include "Profile/Profile.h"
 
@@ -134,23 +134,23 @@ namespace SG
 	{
 		mEntityManager.GetComponentHooker<MeshComponent>().HookOnAdded(_OnMeshComponentAdded);
 		mEntityManager.GetComponentHooker<MeshComponent>().HookOnRemoved(_OnMeshComponentRemoved);
+
+		mSkyboxEntity = mEntityManager.CreateEntity();
+		mSkyboxEntity.AddComponent<TagComponent>("__skybox");
+		auto& mesh = mSkyboxEntity.AddComponent<MeshComponent>();
+		LoadMesh(EGennerateMeshType::eSkybox, mesh);
 	}
 
 	void Scene::OnSceneLoad()
 	{
 		SG_PROFILE_FUNCTION();
 
-		mSkyboxEntity = mEntityManager.CreateEntity();
-		mSkyboxEntity.AddComponent<TagComponent>("__skybox");
-		auto& mesh = mSkyboxEntity.AddComponent<MeshComponent>();
-		LoadMesh(EGennerateMeshType::eSkybox, mesh);
+		const auto camPos = Vector3f(0.0f, 3.0f, 7.0f);
 
-		//const auto camPos = Vector3f(0.0f, 3.0f, 7.0f);
-
-		//mpCameraEntity = CreateEntity("main_camera", camPos, Vector3f(1.0f), Vector3f(0.0f));
-		//auto& cam = mpCameraEntity->AddComponent<CameraComponent>();
-		//cam.pCamera = MakeRef<FirstPersonCamera>(camPos);
-		//cam.pCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
+		mpCameraEntity = CreateEntity("main_camera", camPos, Vector3f(1.0f), Vector3f(0.0f));
+		auto& cam = mpCameraEntity->AddComponent<CameraComponent>();
+		cam.pCamera = MakeRef<FirstPersonCamera>(camPos);
+		cam.pCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
 
 		//auto* pEntity = CreateEntity("directional_light_0", Vector3f{ 8.0f, 12.0f, 0.0f }, Vector3f(1.0f), Vector3f(40.0f, -40.0f, 0.0f));
 		//pEntity->AddTag<LightTag>();
@@ -386,27 +386,16 @@ namespace SG
 					bool bIsProceduralMesh = meshComp["IsProceduralMesh"].get<bool>();
 					auto& mesh = pEntity->AddComponent<MeshComponent>();
 
-					if (MeshDataArchive::GetInstance()->HaveMeshData(filename))
+					if (bIsProceduralMesh)
 					{
-						if (bIsProceduralMesh)
-							mesh.meshType = EMeshType::eUnknown;
-						else
-							mesh.meshType = EMeshType::eOBJ;
-						mesh.meshId = MeshDataArchive::GetInstance()->GetMeshID(filename);
+						if (filename == "_generated_grid")
+							LoadMesh(EGennerateMeshType::eGrid, mesh);
+						else if (filename == "_generated_skybox")
+							LoadMesh(EGennerateMeshType::eSkybox, mesh);
 					}
 					else
 					{
-						if (bIsProceduralMesh)
-						{
-							if (filename == "_generated_grid")
-								LoadMesh(EGennerateMeshType::eGrid, mesh);
-							else if (filename == "_generated_skybox")
-								LoadMesh(EGennerateMeshType::eSkybox, mesh);
-						}
-						else
-						{
-							LoadMesh(filename.c_str(), EMeshType::eOBJ, mesh);
-						}
+						LoadMesh(filename.c_str(), EMeshType::eOBJ, mesh);
 					}
 				}
 

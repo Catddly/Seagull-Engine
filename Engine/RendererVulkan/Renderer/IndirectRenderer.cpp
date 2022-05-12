@@ -79,6 +79,15 @@ namespace SG
 		if (!VK_RESOURCE()->CreateBuffer(indirectReadBackCI))
 			return;
 
+		// create one big vertex buffer
+		BufferCreateDesc vibCI = {};
+		vibCI.name = "instanceBuffer";
+		vibCI.bufferSize = SG_MAX_PACKED_INSTANCE_BUFFER_SIZE;
+		vibCI.type = EBufferType::efVertex | EBufferType::efStorage;
+		vibCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+		if (!VK_RESOURCE()->CreateBuffer(vibCI))
+			return;
+
 #if SG_ENABLE_GPU_CULLING
 		BufferCreateDesc insOutCI = {};
 		insOutCI.name = "instanceOutput";
@@ -190,10 +199,10 @@ namespace SG
 			return;
 		}
 
+		auto pScene = SSystem()->GetMainScene();
+
 		vector<DrawIndexedIndirectCommand> indirectCommands;
 		indirectCommands.resize(MeshDataArchive::GetInstance()->GetNumMeshData());
-		vector<InstanceOutputData> instanceOutputData;
-		instanceOutputData.emplace_back(InstanceOutputData()); // empty instance of the skybox
 
 		pRenderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RenderMeshBuildData& buildData)
 			{
@@ -219,15 +228,15 @@ namespace SG
 					VK_RESOURCE()->CreateBuffer(vibCI);
 					SG_LOG_DEBUG("Have instance!");
 
-					InstanceOutputData insOutputData = {};
-					insOutputData.baseOffset = mPackedVIBCurrOffset / sizeof(PerInstanceData);
-					for (UInt32 i = 0; i < buildData.instanceCount; ++i)
-						instanceOutputData.emplace_back(insOutputData);
+					//InstanceOutputData insOutputData = {};
+					//insOutputData.baseOffset = mPackedVIBCurrOffset / sizeof(PerInstanceData);
+					//for (UInt32 i = 0; i < buildData.instanceCount; ++i)
+					//	instanceOutputData.emplace_back(insOutputData);
 				}
-				else // see every draw call as one instance
-				{
-					instanceOutputData.emplace_back(InstanceOutputData());
-				}
+				//else // see every draw call as one instance
+				//{
+				//	instanceOutputData.emplace_back(InstanceOutputData());
+				//}
 
 				auto* pMeshData = MeshDataArchive::GetInstance()->GetData(meshId);
 				const UInt64 vbSize = pMeshData->vertices.size() * sizeof(float);
@@ -310,18 +319,7 @@ namespace SG
 				mPackedIBCurrOffset += static_cast<UInt32>(ibSize);
 			});
 
-#if SG_ENABLE_GPU_CULLING
-		BufferCreateDesc insOutputCI = {};
-		insOutputCI.name = "instanceOutput";
-		insOutputCI.type = EBufferType::efStorage;
-		insOutputCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
-		insOutputCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
-		insOutputCI.pInitData = instanceOutputData.data();
-		insOutputCI.subBufferSize = static_cast<UInt32>(sizeof(InstanceOutputData) * instanceOutputData.size());
-		insOutputCI.subBufferOffset = 0;
-		insOutputCI.bSubBuffer = true;
-		VK_RESOURCE()->CreateBuffer(insOutputCI);
-#endif
+		//SG_ASSERT(instanceOutputData.size() == SSystem()->GetMainScene()->GetMeshEntityCount() + 1);
 
 		BufferCreateDesc indirectCI = {};
 		indirectCI.name = "indirectBuffer";
@@ -334,6 +332,31 @@ namespace SG
 		indirectCI.bSubBuffer = true;
 		if (!VK_RESOURCE()->CreateBuffer(indirectCI))
 			return;
+
+		//vector<InstanceOutputData> instanceOutputData;
+		//instanceOutputData.resize(pScene->GetMeshEntityCount() + 1);
+
+		//// resolve instance outputData
+		//pScene->TraverseEntity([](auto& entity)
+		//	{
+		//		if (entity.HasComponent<MeshComponent>())
+		//		{
+		//			MeshComponent& mesh = entity.GetComponent<MeshComponent>();
+		//		}
+		//	});
+
+#if SG_ENABLE_GPU_CULLING
+		BufferCreateDesc insOutputCI = {};
+		insOutputCI.name = "instanceOutput";
+		insOutputCI.type = EBufferType::efStorage;
+		insOutputCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
+		insOutputCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+		insOutputCI.pInitData = instanceOutputData.data();
+		insOutputCI.subBufferSize = static_cast<UInt32>(sizeof(InstanceOutputData) * instanceOutputData.size());
+		insOutputCI.subBufferOffset = 0;
+		insOutputCI.bSubBuffer = true;
+		VK_RESOURCE()->CreateBuffer(insOutputCI);
+#endif
 		VK_RESOURCE()->FlushBuffers();
 
 #if SG_ENABLE_GPU_CULLING

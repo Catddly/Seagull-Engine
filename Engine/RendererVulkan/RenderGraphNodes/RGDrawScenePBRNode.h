@@ -44,7 +44,7 @@ namespace SG
 		void PrefilterCubemap();
 		void DrawScene(DrawInfo& drawInfo);
 
-		void OnRenderDataRebuild(bool);
+		void OnRenderDataRebuild();
 	private:
 		VulkanContext&        mContext;
 		MessageBusMember      mMessageBusMember;

@@ -36,9 +36,12 @@ namespace SG
 
 		void DrawSaveSceneProgressBar();
 
+		void NewScene();
 		void OpenScene();
 		void SaveScene();
 		void SaveAsScene();
+
+		void OnSceneRebuild(RefPtr<Scene> pNewScene);
 	private:
 		MessageBusMember mMessageBusMember;
 
@@ -60,6 +63,7 @@ namespace SG
 		bool mbTriggerSave = false;
 		bool mbTriggerOpen = false;
 		bool mbTriggerSaveAs = false;
+		bool mbTriggerNew = false;
 	};
 
 }

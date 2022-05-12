@@ -53,7 +53,7 @@ namespace SG
 		mp3DScene = MakeRef<Scene>();
 		mp3DScene->OnSceneLoad();
 
-		Deserializer::Deserialize(mp3DScene, "default.scene");
+		MeshDataArchive::GetInstance()->LogDebugInfo();
 
 		mpRenderDataBuilder = MakeRef<RenderDataBuilder>(mp3DScene);
 		mpRenderDataBuilder->LoadInNeccessaryDataFromDisk();
@@ -115,6 +115,7 @@ namespace SG
 
 			// dispatch all the system messages
 			mSystemMessageManager.Update();
+			// update input messages
 			Input::OnUpdate(deltaTime);
 
 			mp3DScene->OnUpdate(deltaTime);
@@ -152,7 +153,7 @@ namespace SG
 	{
 		mp3DScene->OnSceneUnLoad();
 		mp3DScene = MakeRef<Scene>();
-		mp3DScene->OnSceneLoad();
+		//mp3DScene->OnSceneLoad();
 		return mp3DScene;
 	}
 

@@ -43,7 +43,7 @@ namespace SG
 
 		void CreateVKResourceFromAsset(RefPtr<RenderDataBuilder> pRenderDataBuilder);
 
-		void OnRenderDataRebuild(bool);
+		void OnRenderDataRebuild();
 		void OnShowStatisticsChanged(bool bActive);
 	private:
 		VulkanContext* mpContext = nullptr;
