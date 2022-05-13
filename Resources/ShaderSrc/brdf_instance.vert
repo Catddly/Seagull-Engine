@@ -13,9 +13,7 @@ layout (location = 2) out vec2 outUV;
 layout (location = 3) out vec3 outTangentWS;
 layout (location = 4) out vec3 outViewPosWS;
 layout (location = 5) out vec4 outShadowMapPos;
-layout (location = 6) out float outMetallic;
-layout (location = 7) out float outRoughness;
-layout (location = 8) out uint  outId;
+layout (location = 6) out uint outId;
 
 layout (set = 0, binding = 0) uniform CameraUBO
 {
@@ -40,7 +38,8 @@ struct ObjectRenderData
 {
 	mat4 model;
 	mat4 inverseTransposeModel;
-	vec3 mrif;
+	vec2 mr;
+    int instanceId;
     int meshId;
 	vec3 albedo;
 	uint texFlag;
@@ -67,8 +66,6 @@ void main()
 	outNormalWS = mat3(perObjectBuffer.objects[inId].inverseTransposeModel) * inNormalLS;
 	outTangentWS = mat3(perObjectBuffer.objects[inId].model) * inTangentLS;
 	outShadowMapPos = biasMat * lightUbo.lightSpaceVP * vec4(outPosWS, 1.0);
-	outMetallic = perObjectBuffer.objects[inId].mrif.x;
-	outRoughness = perObjectBuffer.objects[inId].mrif.y;
 	outId = inId;
 
     gl_Position = cameraUbo.viewProj * vec4(outPosWS, 1.0);

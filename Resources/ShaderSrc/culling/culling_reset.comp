@@ -27,17 +27,6 @@ layout(binding = 1, std430) writeonly buffer IndirectBuffer
     IndexedIndirectCommand drawcalls[];
 } indirectBuffer;
 
-struct InstanceOutputData
-{
-    int  testIndex;
-    uint baseOffset; // such a waste
-};
-
-layout(binding = 2, std430) writeonly buffer InstanceOutputBuffer
-{
-    InstanceOutputData datas[];
-} instanceOutput;
-
 void main()
 {
     // grab global ID
@@ -46,7 +35,6 @@ void main()
     if (gID < cullUbo.numDrawCalls)
     {
         indirectBuffer.drawcalls[gID].instanceCount = 0;
-        instanceOutput.datas[0].testIndex = -1;
         return;
     }
 }

@@ -97,6 +97,14 @@ namespace SG
 		if (!VK_RESOURCE()->CreateBuffer(insOutCI))
 			return;
 
+		BufferCreateDesc instanceSumTableCI = {};
+		instanceSumTableCI.name = "instanceSumTable";
+		instanceSumTableCI.bufferSize = sizeof(UInt32) * SG_MAX_DRAW_CALL;
+		instanceSumTableCI.type = EBufferType::efStorage;
+		instanceSumTableCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+		if (!VK_RESOURCE()->CreateBuffer(instanceSumTableCI))
+			return;
+
 		mpGPUCullingShader = VulkanShader::Create(mpContext->device);
 		mpDrawCallCompactShader = VulkanShader::Create(mpContext->device);
 		mpResetCullingShader = VulkanShader::Create(mpContext->device);
@@ -160,6 +168,7 @@ namespace SG
 		Delete(mpWaitResetSemaphore);
 
 		VK_RESOURCE()->DeleteBuffer("instanceOutput");
+		VK_RESOURCE()->DeleteBuffer("instanceSumTable");
 #endif
 
 		VK_RESOURCE()->DeleteBuffer("indirectBuffer");
@@ -199,11 +208,29 @@ namespace SG
 			return;
 		}
 
-		auto pScene = SSystem()->GetMainScene();
+		vector<UInt32> instanceSumTable;
+		for (UInt32 i = 0; i < MeshDataArchive::GetInstance()->GetNumMeshData(); ++i)
+			instanceSumTable.emplace_back(MeshDataArchive::GetInstance()->GetInstanceSumOffset(i));
+
+		BufferCreateDesc instanceSumTableCI = {};
+		instanceSumTableCI.name = "instanceSumTable";
+		instanceSumTableCI.bufferSize = sizeof(UInt32) * SG_MAX_DRAW_CALL;
+		instanceSumTableCI.type = EBufferType::efStorage;
+		instanceSumTableCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+		instanceSumTableCI.pInitData = instanceSumTable.data();
+		instanceSumTableCI.subBufferSize = static_cast<UInt32>(sizeof(UInt32) * instanceSumTable.size());
+		instanceSumTableCI.subBufferOffset = 0;
+		instanceSumTableCI.bSubBuffer = true;
+		if (!VK_RESOURCE()->CreateBuffer(instanceSumTableCI))
+			return;
+
+		vector<InstanceOutputData> instanceOutputData;
+		//instanceOutputData.emplace_back(InstanceOutputData());
 
 		vector<DrawIndexedIndirectCommand> indirectCommands;
 		indirectCommands.resize(MeshDataArchive::GetInstance()->GetNumMeshData());
 
+		auto pScene = SSystem()->GetMainScene();
 		pRenderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RenderMeshBuildData& buildData)
 			{
 				if (buildData.instanceCount > 1) // move it to the Forward Instance Mesh Pass
@@ -228,10 +255,12 @@ namespace SG
 					VK_RESOURCE()->CreateBuffer(vibCI);
 					SG_LOG_DEBUG("Have instance!");
 
-					//InstanceOutputData insOutputData = {};
-					//insOutputData.baseOffset = mPackedVIBCurrOffset / sizeof(PerInstanceData);
-					//for (UInt32 i = 0; i < buildData.instanceCount; ++i)
-					//	instanceOutputData.emplace_back(insOutputData);
+					for (UInt32 i = 0; i < buildData.instanceCount; ++i)
+					{
+						InstanceOutputData insOutputData = {};
+						insOutputData.objectId = buildData.perInstanceData[i].objectId;
+						instanceOutputData.emplace_back(insOutputData);
+					}
 				}
 				//else // see every draw call as one instance
 				//{
@@ -333,10 +362,7 @@ namespace SG
 		if (!VK_RESOURCE()->CreateBuffer(indirectCI))
 			return;
 
-		//vector<InstanceOutputData> instanceOutputData;
-		//instanceOutputData.resize(pScene->GetMeshEntityCount() + 1);
-
-		//// resolve instance outputData
+		// resolve instance outputData
 		//pScene->TraverseEntity([](auto& entity)
 		//	{
 		//		if (entity.HasComponent<MeshComponent>())
@@ -346,16 +372,19 @@ namespace SG
 		//	});
 
 #if SG_ENABLE_GPU_CULLING
-		BufferCreateDesc insOutputCI = {};
-		insOutputCI.name = "instanceOutput";
-		insOutputCI.type = EBufferType::efStorage;
-		insOutputCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
-		insOutputCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
-		insOutputCI.pInitData = instanceOutputData.data();
-		insOutputCI.subBufferSize = static_cast<UInt32>(sizeof(InstanceOutputData) * instanceOutputData.size());
-		insOutputCI.subBufferOffset = 0;
-		insOutputCI.bSubBuffer = true;
-		VK_RESOURCE()->CreateBuffer(insOutputCI);
+		if (!instanceOutputData.empty())
+		{
+			BufferCreateDesc insOutputCI = {};
+			insOutputCI.name = "instanceOutput";
+			insOutputCI.type = EBufferType::efStorage;
+			insOutputCI.bufferSize = SG_MAX_NUM_OBJECT * sizeof(InstanceOutputData);
+			insOutputCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
+			insOutputCI.pInitData = instanceOutputData.data();
+			insOutputCI.subBufferSize = static_cast<UInt32>(sizeof(InstanceOutputData) * instanceOutputData.size());
+			insOutputCI.subBufferOffset = 0;
+			insOutputCI.bSubBuffer = true;
+			VK_RESOURCE()->CreateBuffer(insOutputCI);
+		}
 #endif
 		VK_RESOURCE()->FlushBuffers();
 

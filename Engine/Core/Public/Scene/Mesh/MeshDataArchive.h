@@ -28,6 +28,8 @@ namespace SG
 
 		SG_CORE_API UInt32 GetNumMeshData() const { return static_cast<UInt32>(mMeshDatas.size()); }
 
+		SG_CORE_API UInt32 GetInstanceSumOffset(UInt32 meshId) const;
+
 		SG_CORE_API bool HaveInstance(UInt32 meshId) const;
 		SG_CORE_API bool HaveMeshData(const string& filename);
 
@@ -41,6 +43,8 @@ namespace SG
 	private:
 		eastl::vector<eastl::pair<MeshData, UInt32>> mMeshDatas; // meshId -> pair<MeshData, RefCount(Instance Count)>
 		eastl::unordered_map<string, UInt32> mMeshIDMap; // filename -> meshId
+
+		eastl::vector<UInt32> mInstanceCountAreaSumTable;
 
 		static IDAllocator<UInt32> msIdAllocator;
 	};

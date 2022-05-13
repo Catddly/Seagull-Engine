@@ -3,6 +3,8 @@
 
 #include "System/Logger.h"
 
+#include "eastl/algorithm.h"
+
 namespace SG
 {
 
@@ -11,17 +13,29 @@ namespace SG
 	UInt32 MeshDataArchive::SetData(const MeshData& meshData)
 	{
 		UInt32 meshId = UInt32(-1);
-		if (mMeshIDMap.find(meshData.filename) == mMeshIDMap.end())// this is a new mesh data
+		if (mMeshIDMap.find(meshData.filename) == mMeshIDMap.end()) // this is a new mesh data
 		{
 			meshId = msIdAllocator.Allocate();
-			//auto& md = const_cast<MeshData&>(meshData);
 			mMeshDatas.emplace_back(meshData, 1);
 			mMeshIDMap[meshData.filename] = meshId;
+
+			if (meshId == 0)
+				mInstanceCountAreaSumTable.emplace_back(0);
+			else
+			{
+				mInstanceCountAreaSumTable.emplace_back();
+				mInstanceCountAreaSumTable[meshId] = mInstanceCountAreaSumTable[meshId - 1];
+			}
 		}
 		else
 		{
 			meshId = mMeshIDMap[meshData.filename];
 			mMeshDatas[meshId].second += 1;
+			// update the area sum table. (each element behind the meshId plus one)
+			if (meshId > 0)
+				mInstanceCountAreaSumTable[meshId] = mInstanceCountAreaSumTable[meshId - 1] + (GetRefCount(meshId) <= 1 ? 0 : GetRefCount(meshId));
+			for (UInt32 i = meshId + 1; i < mInstanceCountAreaSumTable.size(); ++i)
+				mInstanceCountAreaSumTable[i] = mInstanceCountAreaSumTable[i - 1] + (GetRefCount(i) <= 1 ? 0 : GetRefCount(i));
 		}
 		return meshId;
 	}
@@ -46,6 +60,12 @@ namespace SG
 		return UInt32(-1);
 	}
 
+	UInt32 MeshDataArchive::GetInstanceSumOffset(UInt32 meshId) const
+	{
+		SG_ASSERT(meshId < mInstanceCountAreaSumTable.size());
+		return mInstanceCountAreaSumTable[meshId];
+	}
+
 	bool MeshDataArchive::HaveInstance(UInt32 meshId) const
 	{
 		UInt32 cnt = GetRefCount(meshId);
@@ -63,6 +83,8 @@ namespace SG
 	{
 		for (auto& meshData : mMeshDatas)
 			meshData.second = 0;
+		for (UInt32 i = 0; i < mInstanceCountAreaSumTable.size(); ++i)
+			mInstanceCountAreaSumTable[i] = 0;
 	}
 
 	void MeshDataArchive::LogDebugInfo()
@@ -76,6 +98,16 @@ namespace SG
 			SG_LOG_DEBUG("    Ref Count: %d", meshData.second);
 			++id;
 		}
+
+		SG_LOG_DEBUG("Area Sum Table:");
+		string res = "[";
+		for (UInt32 i = 0; i < mInstanceCountAreaSumTable.size() - 1; ++i)
+		{
+			res += eastl::to_string(mInstanceCountAreaSumTable[i]) + ", ";
+		}
+		res += eastl::to_string(mInstanceCountAreaSumTable[mInstanceCountAreaSumTable.size() - 1]);
+		res += "]";
+		SG_LOG_DEBUG("%s", res.c_str());
 	}
 
 	MeshDataArchive* MeshDataArchive::GetInstance()

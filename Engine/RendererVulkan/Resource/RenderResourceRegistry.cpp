@@ -109,17 +109,23 @@ namespace SG
 		compositionUbo.exposure = 1.0f;
 
 		auto* pSSBOObject = GetBuffer("perObjectBuffer");
+
+		renderData = {};
+		renderData.instanceOffset = -1;
+		pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), 0);
+
 		// update all the render data of the render mesh
 		auto meshes = pScene->View<TransformComponent, MeshComponent, MaterialComponent>();
 		for (auto& entity : meshes)
 		{
 			auto [trans, mesh, mat] = entity.GetComponent<TransformComponent, MeshComponent, MaterialComponent>();
 
-			ObjcetRenderData renderData;
+			ObjcetRenderData renderData = {};
 			renderData.model = GetTransform(trans);
 			renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
 			renderData.meshId = mesh.meshId;
-			renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
+			renderData.MR = { mat.metallic, mat.roughness };
+			renderData.instanceOffset = MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? MeshDataArchive::GetInstance()->GetInstanceSumOffset(renderData.meshId - 1) + mesh.instanceId : -1;
 			renderData.albedo = mat.albedo;
 			renderData.texFlag = GetMaterialTexMask(mat);
 			pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
@@ -231,7 +237,8 @@ namespace SG
 						renderData.model = GetTransform(trans);
 						renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
 						renderData.meshId = mesh.meshId;
-						renderData.MRIF = { mat.metallic, mat.roughness, MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? 1.0f : -1.0f };
+						renderData.MR = { mat.metallic, mat.roughness };
+						renderData.instanceOffset = MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? MeshDataArchive::GetInstance()->GetInstanceSumOffset(renderData.meshId - 1) + mesh.instanceId : -1;
 						renderData.albedo = mat.albedo;
 						renderData.texFlag = GetMaterialTexMask(mat);
 						pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);

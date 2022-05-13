@@ -144,6 +144,7 @@ namespace SG
 						meshComp.instanceId = node->second.instanceCount;
 						node->second.instanceCount += 1;
 					}
+
 					auto& perInstanceData = mRenderMeshBuildDataMap[meshId].perInstanceData;
 					perInstanceData.emplace_back(objectId);
 				}

@@ -15,4 +15,4 @@
 //! When compiling shaders, should we use vulkan sdk?
 #define SG_FORCE_USE_VULKAN_SDK 0
 
-#define SG_ENABLE_GPU_CULLING 0
+#define SG_ENABLE_GPU_CULLING 1

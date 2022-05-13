@@ -7,6 +7,7 @@
 #include "Stl/vector.h"
 #include "Stl/SmartPtr.h"
 #include "eastl/unordered_map.h"
+#include "eastl/map.h"
 
 namespace SG
 {
@@ -41,7 +42,7 @@ namespace SG
 		void LogDebugInfo() const;
 	private:
 		WeakRefPtr<Scene> mpScene;
-		eastl::unordered_map<UInt32, RenderMeshBuildData> mRenderMeshBuildDataMap; // meshId -> RenderMeshBuildData
+		eastl::map<UInt32, RenderMeshBuildData> mRenderMeshBuildDataMap; // meshId -> RenderMeshBuildData (ordered with meshId)
 		eastl::unordered_map<UInt32, WeakRefPtr<IAsset>> mCurrentFrameNewAssets; // assetId -> IAsset
 		eastl::unordered_map<UInt32, WeakRefPtr<IAsset>> mAssets; // assetId -> IAsset
 

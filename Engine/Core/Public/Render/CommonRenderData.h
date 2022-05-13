@@ -70,7 +70,8 @@ namespace SG
 		Matrix4f model = Matrix4f(1.0f);
 		Matrix4f inverseTransposeModel = Matrix4f(1.0f);
 		// material
-		Vector3f MRIF = { 0.2f, 0.85f, 0.0f };
+		Vector2f MR = { 0.2f, 0.85f }; // metallic and roughness
+		Int32    instanceOffset; // instanceId, if it have no instance, id = -1.
 		Int32    meshId;
 		Vector3f albedo;
 		UInt32   texFlag; //! Used to determined which texture map should be use.
@@ -85,7 +86,7 @@ namespace SG
 	struct InstanceOutputData
 	{
 		Int32  testIndex = -1; //! if testIndex is -1, it means this instance is invalid, should not be drawn on screen.
-		UInt32 baseOffset = 0; //! the offset of the instance buffer (the mesh) of this exact instance.
+		UInt32 objectId = 0;
 	};
 
 	struct PerInstanceData

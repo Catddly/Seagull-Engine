@@ -16,7 +16,8 @@ struct ObjectRenderData
 {
 	mat4 model;
 	mat4 inverseTransposeModel;
-	vec3 mrif;
+	vec2 mr;
+    int instanceId;
     int meshId;
 	vec3 albedo;
 	uint texFlag;
@@ -46,7 +47,7 @@ layout(binding = 2, std430) writeonly buffer IndirectBuffer
 struct InstanceOutputData
 {
     int  testIndex;
-    uint baseOffset; // such a waste
+    uint objectId;
 };
 
 layout(binding = 3, std430) writeonly buffer InstanceOutputBuffer
@@ -109,19 +110,23 @@ void main()
         mat4 model = perObjectBuffer.objects[gID].model;
         Sphere sphere = BuildBoundingSphereFromModelMat(model);
 
+        int instanceId = perObjectBuffer.objects[gID].instanceId;
         if (IsInFrustum(sphere)) // in the frustum, camera can see it, don't cull
         {
             int drawCallIndex = perObjectBuffer.objects[gID].meshId;
-            if (perObjectBuffer.objects[gID].mrif.z > 0.0) // have instance
+            if (instanceId != -1) // have instance
             {
-                instanceOutput.datas[gID].testIndex = drawCallIndex;
+                instanceOutput.datas[instanceId].testIndex = drawCallIndex;
             }
             atomicAdd(indirectBuffer.drawcalls[drawCallIndex].instanceCount, 1);
             //cullingOutputData.objects[gID].albedo = TEST_NOT_CULL_ALBEDO; // debug purpose
         }
         else // camera can't see it, cull out
         {
-            instanceOutput.datas[gID].testIndex = -1;
+            if (instanceId != -1) // have instance
+            {
+                instanceOutput.datas[instanceId].testIndex = -1;
+            }
             //cullingOutputData.objects[gID].albedo = TEST_CULL_ALBEDO; // debug purpose
         }
     }

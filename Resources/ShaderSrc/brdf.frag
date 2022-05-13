@@ -8,9 +8,7 @@ layout (location = 2) in vec2 inUV;
 layout (location = 3) in vec3 inTangentWS;
 layout (location = 4) in vec3 inViewPosWS;
 layout (location = 5) in vec4 inShadowMapPos;
-layout (location = 6) in flat float inMetallic;
-layout (location = 7) in flat float inRoughness;
-layout (location = 8) in flat uint  inId;
+layout (location = 6) in flat uint inId;
 
 layout (set = 0, binding = 1) uniform LightUBO
 {
@@ -33,7 +31,8 @@ struct ObjectRenderData
 {
 	mat4 model;
 	mat4 inverseTransposeModel;
-	vec3 mrif;
+	vec2 mr;
+    int instanceId;
     int meshId;
 	vec3 albedo;
 	uint texFlag;
@@ -226,8 +225,8 @@ void main()
 	vec3 V = normalize(inViewPosWS - inPosWS);
 	vec3 R = reflect(-V, N); 
 
-	float metallic = perObjectBuffer.objects[inId].mrif.r;
-	float roughness = perObjectBuffer.objects[inId].mrif.g;
+	float metallic = perObjectBuffer.objects[inId].mr.r;
+	float roughness = perObjectBuffer.objects[inId].mr.g;
 	if ((perObjectBuffer.objects[inId].texFlag & METALLIC_TEX_MASK) != 0)
 		metallic = texture(sMetallicMap, inUV).r;
 	if ((perObjectBuffer.objects[inId].texFlag & ROUGHNESS_TEX_MASK) != 0)

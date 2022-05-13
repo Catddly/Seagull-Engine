@@ -16,7 +16,8 @@ struct ObjectRenderData
 {
 	mat4 model;
 	mat4 inverseTransposeModel;
-	vec3 mrif;
+	vec2 mr;
+    int instanceId;
     int meshId;
 	vec3 albedo;
 	uint texFlag;

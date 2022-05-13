@@ -25,7 +25,7 @@ layout(binding = 1, std430) writeonly buffer InstanceBuffer
 struct InstanceOutputData
 {
     int testIndex;
-    uint baseOffset; // such a waste
+    uint objectId;
 };
 
 layout(binding = 2, std430) readonly buffer InstanceOutputBuffer
@@ -33,27 +33,38 @@ layout(binding = 2, std430) readonly buffer InstanceOutputBuffer
     InstanceOutputData datas[];
 } instanceOutput;
 
+layout(binding = 3, std430) readonly buffer InstanceSumTable
+{
+    uint datas[];
+} instanceSumTable;
+
 void main()
 {
+    // here, gID represents meshId. (i.e. drawcall id)
+
     // grab global ID
 	uint gID = gl_GlobalInvocationID.x;
 
-    if (gID == 0) // do once
+    if (gID == 0) // skip the first draw call (the skybox)
+        return;
+
+    if (gID < cullUbo.numDrawCalls)
     {
+        uint rangeBegin = instanceSumTable.datas[gID - 1];
+        uint rangeEnd = instanceSumTable.datas[gID];
+
+        if (rangeBegin == rangeEnd)
+            return;
+
         uint index = 0;
-        int prevTestIndex = -1;
-        for (int i = 1; i <= cullUbo.numObjects; ++i)
+        for (uint i = rangeBegin; i < rangeEnd; ++i)
         {
             int testIndex = instanceOutput.datas[i].testIndex;
             if (testIndex != -1) // it is not been cull out by the frustum
             {
-                if (prevTestIndex != testIndex) // beacause meshId in perObjectBuffer is sequential, so we can do it this way.
-                {
-                    prevTestIndex = testIndex;
-                    index = 0;
-                }
+                uint objectId = instanceOutput.datas[i].objectId;
 
-                instanceBuffer.objects[index + instanceOutput.datas[i].baseOffset].objectId = i; // set the correct objectId to instance buffer
+                instanceBuffer.objects[index + rangeBegin].objectId = objectId; // set the correct objectId to instance buffer
                 ++index;
             }
         }
