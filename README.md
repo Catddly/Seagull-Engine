@@ -67,12 +67,14 @@ Open the solution file, build the whole solution and you are ready to go!
 ## ToDo
 
 - Simple Scripting System (Native Scripting and may be C#)  
-- ECS  
-- ImGui for Editor  
+- ECS (√)  
+- ImGui for Editor (√)  
 - Little Particle System  
 - PBR Rendering  (√)
-- Easy to use Editor  
 - 2D Renderer branch for 2D branch
+- Multi-Thread System (Including Task System and Some advanced techs)
+- Physics
+- User exposed rendering system (like the scriptable render pipelines?)
 
 Also see ISSUE.md to gain more details.
 
