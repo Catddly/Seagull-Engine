@@ -55,9 +55,6 @@ Default Scene with IBL and BRDF.
 Default Scene with phone shading.
 ![](Screenshots/scene_phong.png)
 
-Defalut Scene with no skybox.
-![](Screenshots/scene_no_skybox.png)
-
 ## Building
 
 Open the Scripts folder, and run the GenerateProject-Win.bat.  
