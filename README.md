@@ -77,4 +77,4 @@ Also see ISSUE.md to gain more details.
 
 ## Dependencies
 
-For now, no dependencies.
+- VulkanSDK.
