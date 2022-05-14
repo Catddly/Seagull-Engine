@@ -20,6 +20,11 @@
 namespace SG
 {
 
+	namespace
+	{
+		static ImGuiTextFilter gTextFilter;
+	}
+
 	DockSpaceLayer::DockSpaceLayer()
 		:ILayer("Dockspace")
 	{
@@ -314,35 +319,79 @@ namespace SG
 		//bool bShow = true;
 		//ImGui::ShowDemoWindow(&bShow);
 
-		static ImGuiTextFilter sTextFilter;
-
 		ImGui::Begin("Scene");
 
 		ImGui::Text("Filter");
 		ImGui::SameLine();
-		sTextFilter.Draw("##Filter", ImGui::GetContentRegionAvail().x);
+		gTextFilter.Draw("##Filter", ImGui::GetContentRegionAvail().x);
 
 		auto pScene = SSystem()->GetMainScene();
+		auto* pRootNode = pScene->GetTreeRepresentation();
+
 		// draw entity tree
-		pScene->TraverseEntity([this](auto& entity) 
-			{
-				auto& tag = entity.GetComponent<TagComponent>();
-				if (sTextFilter.PassFilter(tag.name.c_str()))
-				{
-					bool bOpened = ImGui::TreeNodeEx(tag.name.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
-
-					if (ImGui::IsItemClicked())
-						mSelectedEntity = entity;
-
-					if (bOpened)
-						ImGui::TreePop();
-				}
-			});
+		for (auto* pChild : pRootNode->pChilds)
+			DrawSceneTreeNode(pChild, false);
 
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			mSelectedEntity = { };
 
 		ImGui::End();
+	}
+
+	void DockSpaceLayer::DrawSceneTreeNode(Scene::TreeNode* pNode, bool bPass)
+	{
+		SG_PROFILE_FUNCTION();
+
+		// recursive basis
+		//if (!pNode->pEntity)
+		//	return;
+
+		// draw entity tree node
+		auto& tag = pNode->pEntity->GetComponent<TagComponent>();
+		bool bHasChildPass = false;
+		if (!bPass)
+		{
+			bPass = gTextFilter.PassFilter(tag.name.c_str());
+			if (!bPass)
+			{
+				for (auto* pChild : pNode->pChilds)
+				{
+					bHasChildPass = TestNodePassFilter(pChild);
+					if (bHasChildPass)
+						break;
+				}
+			}
+		}
+
+		if (bPass || bHasChildPass) // it is a leaf node
+		{
+			bool bOpened = ImGui::TreeNodeEx(tag.name.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
+
+			if (ImGui::IsItemClicked())
+				mSelectedEntity = *pNode->pEntity;
+
+			if (bOpened)
+			{
+				for (auto* pChild : pNode->pChilds)
+					DrawSceneTreeNode(pChild, bPass);
+				ImGui::TreePop();
+			}
+		}
+	}
+
+	bool DockSpaceLayer::TestNodePassFilter(Scene::TreeNode* pNode)
+	{
+		SG_PROFILE_FUNCTION();
+
+		if (pNode->pChilds.empty())
+			return gTextFilter.PassFilter(pNode->pEntity->GetComponent<TagComponent>().name.c_str());
+
+		for (auto& pChild : pNode->pChilds)
+		{
+			if (TestNodePassFilter(pChild))
+				return true;
+		}
+		return false;
 	}
 
 	void DockSpaceLayer::DrawSelectedEntityProperty()

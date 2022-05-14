@@ -42,6 +42,9 @@ namespace SG
 		void SaveAsScene();
 
 		void OnSceneRebuild(RefPtr<Scene> pNewScene);
+
+		void DrawSceneTreeNode(Scene::TreeNode* pNode, bool bPass);
+		bool TestNodePassFilter(Scene::TreeNode* pNode);
 	private:
 		MessageBusMember mMessageBusMember;
 

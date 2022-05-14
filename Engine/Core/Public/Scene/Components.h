@@ -82,20 +82,25 @@ namespace SG
 
 		MeshData meshData = {};
 		meshData.bIsProceduralMesh = true;
+		auto& subMesh = meshData.subMeshDatas.emplace_back();
 
 		// if the mesh data already loaded, you don't need to set it again
 		if (type == EGennerateMeshType::eGrid)
 		{
 			meshData.filename = "_generated_grid";
+			subMesh.subMeshName = "_grid_0";
 			if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
-				MeshGenerator::GenGrid(meshData.vertices, meshData.indices);
+				MeshGenerator::GenGrid(subMesh.vertices, subMesh.indices);
 		}
 		else if (type == EGennerateMeshType::eSkybox)
 		{
 			meshData.filename = "_generated_skybox";
+			subMesh.subMeshName = "_skybox_0";
 			if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
-				MeshGenerator::GenSkybox(meshData.vertices);
+				MeshGenerator::GenSkybox(subMesh.vertices);
 		}
+
+		subMesh.filename = meshData.filename;
 
 		comp.meshType = EMeshType::eUnknown;
 		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
@@ -106,18 +111,13 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		MeshData meshData = {};
-		meshData.filename = filename;
-		meshData.bIsProceduralMesh = false;
 
 		// if the mesh data already loaded, you don't need to set it again
 		if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
 		{
-			string fullName = filename;
-			fullName += MeshTypeToExtString(type);
-
 			MeshResourceLoader loader;
-			if (!loader.LoadFromFile(fullName.c_str(), meshData.vertices, meshData.indices))
-				SG_LOG_WARN("Mesh %s load failure!", fullName);
+			if (!loader.LoadFromFile(filename, type, meshData))
+				SG_LOG_WARN("Mesh %s load failure!", filename);
 		}
 
 		comp.meshType = type;
@@ -127,9 +127,10 @@ namespace SG
 	SG_INLINE void CopyMesh(const MeshComponent& srcMesh, MeshComponent& dstMesh)
 	{
 		SG_PROFILE_FUNCTION();
-
+		// just copy the reference id
 		dstMesh.meshType = srcMesh.meshType;
 		dstMesh.meshId = srcMesh.meshId;
+		MeshDataArchive::GetInstance()->IncreaseRef(dstMesh.meshId);
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////

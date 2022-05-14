@@ -124,7 +124,7 @@ namespace SG
 			});
 		DrawComponent<MeshComponent>(entity, [&tag](MeshComponent& comp)
 			{
-				ImGui::Text("MeshType:   %s", comp.meshType == EMeshType::eOBJ ? ".obj" : "Unknown");
+				ImGui::Text("MeshType:   %s", MeshTypeToExtString(comp.meshType));
 				ImGui::Text("ObjectId:   %d", comp.objectId);
 				ImGui::Text("MeshId:     %d", comp.meshId);
 				ImGui::Text("InstanceId: %d", comp.instanceId);

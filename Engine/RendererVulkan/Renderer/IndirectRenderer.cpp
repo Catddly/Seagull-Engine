@@ -268,8 +268,8 @@ namespace SG
 				//}
 
 				auto* pMeshData = MeshDataArchive::GetInstance()->GetData(meshId);
-				const UInt64 vbSize = pMeshData->vertices.size() * sizeof(float);
-				const UInt64 ibSize = pMeshData->indices.size() * sizeof(UInt32);
+				const UInt64 vbSize = pMeshData->subMeshDatas[0].vertices.size() * sizeof(float);
+				const UInt64 ibSize = pMeshData->subMeshDatas[0].indices.size() * sizeof(UInt32);
 
 				if (mPackedVBCurrOffset + vbSize > SG_MAX_PACKED_VERTEX_BUFFER_SIZE)
 				{
@@ -288,7 +288,7 @@ namespace SG
 				vbCI.bufferSize = SG_MAX_PACKED_VERTEX_BUFFER_SIZE;
 				vbCI.type = EBufferType::efVertex;
 				vbCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
-				vbCI.pInitData = pMeshData->vertices.data();
+				vbCI.pInitData = pMeshData->subMeshDatas[0].vertices.data();
 				vbCI.subBufferSize = static_cast<UInt32>(vbSize);
 				vbCI.subBufferOffset = static_cast<UInt32>(mPackedVBCurrOffset);
 				vbCI.bSubBuffer = true;
@@ -300,7 +300,7 @@ namespace SG
 				ibCI.bufferSize = SG_MAX_PACKED_INDEX_BUFFER_SIZE;
 				ibCI.type = EBufferType::efIndex;
 				ibCI.memoryUsage = EGPUMemoryUsage::eGPU_Only;
-				ibCI.pInitData = pMeshData->indices.data();
+				ibCI.pInitData = pMeshData->subMeshDatas[0].indices.data();
 				ibCI.subBufferSize = static_cast<UInt32>(ibSize);
 				ibCI.subBufferOffset = static_cast<UInt32>(mPackedIBCurrOffset);
 				ibCI.bSubBuffer = true;

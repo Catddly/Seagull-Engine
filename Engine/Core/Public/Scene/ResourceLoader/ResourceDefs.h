@@ -18,6 +18,7 @@ namespace SG
 	enum class EMeshType
 	{
 		eOBJ = 0,
+		eGLTF,
 		eUnknown,
 	};
 
@@ -26,6 +27,7 @@ namespace SG
 		switch (type)
 		{
 		case EMeshType::eOBJ: return ".obj"; break;
+		case EMeshType::eGLTF: return ".gltf"; break;
 		case EMeshType::eUnknown:
 		default:
 			SG_LOG_ERROR("Invalid mesh type!");

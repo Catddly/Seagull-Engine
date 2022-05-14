@@ -11,6 +11,7 @@
 #include "Stl/vector.h"
 #include "Stl/unordered_map.h"
 #include "eastl/array.h"
+#include "eastl/list.h"
 #include "Stl/SmartPtr.h"
 
 namespace SG
@@ -25,8 +26,24 @@ namespace SG
 	public:
 		using EntityManager = typename TipECS::EntityManager<SGECSSetting>;
 		using Entity = typename TipECS::Entity<SGECSSetting>;
+
+		struct SceneTreeNode
+		{
+			Entity* pEntity = nullptr;
+			SceneTreeNode* pParent = nullptr;
+			eastl::list<SceneTreeNode*> pChilds;
+
+			SceneTreeNode() = default;
+			SceneTreeNode(Entity* ptr)
+				:pEntity(ptr), pParent(nullptr)
+			{}
+			~SceneTreeNode() = default;
+		};
+
+		using TreeNode = SceneTreeNode;
 	public:
 		Scene();
+		~Scene();
 
 		//! This function can be dispatched to another thread. 
 		SG_CORE_API void OnSceneLoad();
@@ -36,6 +53,8 @@ namespace SG
 
 		SG_CORE_API Entity* CreateEntity(const string& name);
 		SG_CORE_API Entity* CreateEntity(const string& name, const Vector3f& pos, const Vector3f& scale, const Vector3f& rot);
+
+		SG_CORE_API Entity* CreateEntityWithMesh(const string& name, const string& filename, EMeshType type);
 
 		SG_CORE_API void    DestroyEntity(Entity& entity);
 		SG_CORE_API void    DestroyEntityByName(const string& name);
@@ -48,6 +67,8 @@ namespace SG
 
 		SG_CORE_API Size GetMeshEntityCount() const { return mMeshEntityCount; }
 		SG_CORE_API Size GetEntityCount()     const { return mEntities.size(); }
+
+		SG_CORE_API TreeNode* GetTreeRepresentation() const { return mpRootNode; };
 
 		template <typename... Ts>
 		SG_INLINE auto View()
@@ -72,15 +93,15 @@ namespace SG
 		void Refresh();
 	private:
 		Entity mSkyboxEntity;
-		Entity* mpCameraEntity;
-		//RefPtr<ICamera> mpMainCamera; // TODO: support multiply switchable camera
+		Entity* mpCameraEntity;  // TODO: support multiply switchable camera
 
-		// TODO: use tree structure to store the meshes (for now there are no many meshes in the scene, map is ok)
 		Size mMeshEntityCount = 0;
-		unordered_map<string, Entity> mEntities;
+		unordered_map<string, Entity> mEntities; //! Contain all the entities in the scene.
+
+		//! Tree representation of the scene.
+		TreeNode* mpRootNode;
 
 		EntityManager mEntityManager;
-		IDAllocator<UInt32> mObjectIdAllocator;
 	};
 
 }

@@ -139,6 +139,15 @@ namespace SG
 		mSkyboxEntity.AddComponent<TagComponent>("__skybox");
 		auto& mesh = mSkyboxEntity.AddComponent<MeshComponent>();
 		LoadMesh(EGennerateMeshType::eSkybox, mesh);
+
+		mpRootNode = New(TreeNode);
+		SG_ASSERT(mpRootNode);
+	}
+
+	Scene::~Scene()
+	{
+		SG_ASSERT(mpRootNode);
+		Delete(mpRootNode);
 	}
 
 	void Scene::OnSceneLoad()
@@ -165,6 +174,11 @@ namespace SG
 		//DefaultScene();
 		//MaterialScene();
 		//MaterialTexturedScene();
+
+		auto* pEntity = CreateEntityWithMesh("sponza", "sponza", EMeshType::eGLTF);
+		auto& trans = pEntity->GetComponent<TransformComponent>();
+		trans.rotation = { 90.0f, 0.0f, 0.0f };
+		trans.scale = { 0.25f, 0.25f, 0.25f };
 
 		Refresh();
 	}
@@ -231,6 +245,51 @@ namespace SG
 
 		mEntities[name] = entity;
 		return &mEntities[name];
+	}
+
+	Scene::Entity* Scene::CreateEntityWithMesh(const string& name, const string& filename, EMeshType type)
+	{
+		SG_PROFILE_FUNCTION();
+
+		if (mEntities.find(name) != mEntities.end())
+		{
+			SG_LOG_WARN("Already have an entity named: %s", name.c_str());
+			return nullptr;
+		}
+		
+		auto* pRootEntity = CreateEntity(name);
+		auto* pRootTreeNode = New(TreeNode, pRootEntity);
+		// do connect
+		pRootTreeNode->pParent = mpRootNode;
+		mpRootNode->pChilds.emplace_back(pRootTreeNode);
+
+		MeshData meshData = {};
+
+		// if the mesh data already loaded, you don't need to set it again
+		if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
+		{
+			MeshResourceLoader loader;
+			if (!loader.LoadFromFile(filename, type, meshData))
+				SG_LOG_WARN("Mesh %s load failure!", filename);
+		}
+
+		for (UInt32 i = 0; i < meshData.subMeshDatas.size(); ++i) // for each sub mesh data, create an entity
+		{
+			auto& subMesh = meshData.subMeshDatas[i];
+
+			auto* pSubMeshEntity = CreateEntity(subMesh.subMeshName);
+			auto* pSubMeshTreeNode = New(TreeNode, pSubMeshEntity);
+			pSubMeshTreeNode->pParent = pRootTreeNode;
+			pRootTreeNode->pChilds.emplace_back(pSubMeshTreeNode);
+
+			pSubMeshEntity->AddComponent<MaterialComponent>();
+			auto& mesh = pSubMeshEntity->AddComponent<MeshComponent>();
+
+			mesh.meshType = type;
+			mesh.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
+		}
+
+		return pRootEntity;
 	}
 
 	void Scene::DestroyEntity(Entity& entity)

@@ -9,18 +9,27 @@
 namespace SG
 {
 
-	struct MeshData
+	struct SubMeshData
 	{
 		vector<float>  vertices = {};
 		vector<UInt32> indices = {};
-		string         filename = "";
-		bool           bIsProceduralMesh = false;
+		string subMeshName = "";
+		string filename = ""; //! Ref pointer to its parent.
+	};
+
+	struct MeshData
+	{
+		vector<SubMeshData> subMeshDatas;
+		string filename = "";
+		bool   bIsProceduralMesh = false;
 	};
 
 	class MeshDataArchive
 	{
 	public:
 		SG_CORE_API UInt32 SetData(const MeshData& meshData);
+
+		SG_CORE_API void IncreaseRef(UInt32 meshId);
 
 		SG_CORE_API UInt32 GetRefCount(UInt32 meshId) const;
 		SG_CORE_API const MeshData* GetData(UInt32 meshId) const;

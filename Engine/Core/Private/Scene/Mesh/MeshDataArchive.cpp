@@ -40,6 +40,12 @@ namespace SG
 		return meshId;
 	}
 
+	void MeshDataArchive::IncreaseRef(UInt32 meshId)
+	{
+		auto* pMeshData = GetData(meshId);
+		SetData(*pMeshData); // just call SetData and it will do the increase ref counting
+	}
+
 	UInt32 MeshDataArchive::GetRefCount(UInt32 meshId) const
 	{
 		SG_ASSERT(meshId < mMeshDatas.size());

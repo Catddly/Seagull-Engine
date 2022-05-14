@@ -67,7 +67,7 @@ namespace SG
 			SG_PROFILE_FUNCTION();
 
 			mMembers.emplace_back(pMember);
-			SG_LOG_DEBUG("Member Join: (0x%p)", pMember);
+			//SG_LOG_DEBUG("Member Join: (0x%p)", pMember);
 		}
 
 		void MessageBus::Leave(MessageBusMember* pMember)
@@ -78,7 +78,7 @@ namespace SG
 			{
 				if (*beg == pMember)
 				{
-					SG_LOG_DEBUG("Member Leave: (0x%p)", *beg);
+					//SG_LOG_DEBUG("Member Leave: (0x%p)", *beg);
 					mMembers.erase(beg);
 					break;
 				}

@@ -91,12 +91,20 @@ namespace SG
 		return true;
 	}
 
-	bool MeshResourceLoader::LoadFromFile(const char* name, vector<float>& vertices, vector<UInt32>& indices)
+	bool MeshResourceLoader::LoadFromFile(const string& name, EMeshType type, MeshData& meshData)
 	{
 		SG_PROFILE_FUNCTION();
 
+		SG_ASSERT(meshData.subMeshDatas.empty() && "It must be an empty mesh data!");
+
+		meshData.filename = name;
+		meshData.bIsProceduralMesh = false;
+
+		string fullName = name;
+		fullName += MeshTypeToExtString(type);
+
 		string path = FileSystem::GetResourceFolderPath(EResourceDirectory::eMeshes, SG_ENGINE_DEBUG_BASE_OFFSET);
-		path += name;
+		path += fullName;
 
 		Assimp::Importer importer;
 		auto* scene = importer.ReadFile(path.c_str(), aiProcess_CalcTangentSpace);
@@ -107,17 +115,22 @@ namespace SG
 			return false;
 		}
 
-		SG_LOG_DEBUG("Meshes: %d", scene->mNumMeshes);
+		SG_LOG_DEBUG("Loading Meshes: Count of %d", scene->mNumMeshes);
 		if (scene->HasMeshes())
 		{
-			//SG_LOG_DEBUG("Mesh Name: %s", scene->mRootNode->mName);
 			for (UInt32 i = 0; i < scene->mNumMeshes; ++i)
 			{
+				auto& subMesh = meshData.subMeshDatas.emplace_back();
+				subMesh.filename = name;
+
 				const aiMesh* pMesh = scene->mMeshes[i];
-				const UInt32  meshNumVertices = pMesh->mNumVertices;
+				subMesh.subMeshName = pMesh->mName.C_Str();
+				SG_LOG_DEBUG("    Loading submesh: %s", subMesh.subMeshName.c_str());
 
 				SG_ASSERT(pMesh->HasNormals());
 
+				const UInt32 meshNumVertices = pMesh->mNumVertices;
+				auto& vertices = subMesh.vertices;
 				for (UInt32 index = 0; index < meshNumVertices; ++index)
 				{
 					const aiVector3D& vertexPos = pMesh->mVertices[index];
@@ -130,7 +143,7 @@ namespace SG
 					vertices.emplace_back(vertexNormal.y);
 					vertices.emplace_back(vertexNormal.z);
 
-					if (pMesh->HasTextureCoords(0))
+					if (pMesh->HasTextureCoords(0)) // default: uv channel 0 is for texture mapping
 					{
 						const aiVector3D& vertexUV = pMesh->mTextureCoords[0][index];
 						vertices.emplace_back(vertexUV.x);
@@ -157,6 +170,7 @@ namespace SG
 					}
 				}
 
+				auto& indices = subMesh.indices;
 				for (UInt32 index = 0; index < pMesh->mNumFaces; ++index)
 				{
 					const aiFace& pFace = pMesh->mFaces[index];
@@ -166,8 +180,8 @@ namespace SG
 					}
 				}
 
-				SG_LOG_DEBUG("Mesh Verticies: %d", vertices.size());
-				SG_LOG_DEBUG("Mesh Indices  : %d", indices.size());
+				SG_LOG_DEBUG("    Mesh Verticies: %d", vertices.size());
+				SG_LOG_DEBUG("    Mesh Indices  : %d", indices.size());
 			}
 		}
 		else

@@ -4,6 +4,8 @@
 #include "Memory/Memory.h"
 #include "Scene/ResourceLoader/ResourceDefs.h"
 
+#include "Scene/Mesh/MeshDataArchive.h"
+
 #include "Stl/string.h"
 #include "Stl/vector.h"
 
@@ -54,6 +56,8 @@ namespace SG
 		const char* suffix = GetFileNameSuffix(filename);
 		if (strcmp(suffix, "obj") == 0)
 			return EMeshType::eOBJ;
+		else if (strcmp(suffix, "gltf") == 0)
+			return EMeshType::eGLTF;
 		else
 		{
 			SG_LOG_ERROR("Unsupported mesh format: %s", suffix);
@@ -79,7 +83,7 @@ namespace SG
 		MeshResourceLoader() = default;
 		~MeshResourceLoader() = default;
 
-		SG_CORE_API bool LoadFromFile(const char* name, vector<float>& vertices, vector<UInt32>& indices);
+		SG_CORE_API bool LoadFromFile(const string& name, EMeshType type, MeshData& meshData);
 	private:
 	};
 

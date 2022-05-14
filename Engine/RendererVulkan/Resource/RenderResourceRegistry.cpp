@@ -53,7 +53,7 @@ namespace SG
 
 		auto pSkybox = SSystem()->GetMainScene()->GetSkyboxEntity();
 		auto& mesh = pSkybox.GetComponent<MeshComponent>();
-		auto& skyboxVertices = MeshDataArchive::GetInstance()->GetData(mesh.meshId)->vertices;
+		auto& skyboxVertices = MeshDataArchive::GetInstance()->GetData(mesh.meshId)->subMeshDatas[0].vertices;
 		const UInt64 vbSize = skyboxVertices.size() * sizeof(float);
 
 		BufferCreateDesc bufferCI = {};
