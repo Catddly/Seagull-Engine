@@ -56,7 +56,7 @@ namespace SG
 		Vector2f mLastViewportSize = { 0.0f, 0.0f };
 
 		ReadOnlyHandle<VulkanDescriptorSet*> mViewportTexHandle;
-		Scene::Entity mSelectedEntity;
+		Scene::TreeNode* mpSelectedEntityNode;
 
 		string mSavedSceneName = "default.scene";
 		bool mbViewportOnFocused = false;

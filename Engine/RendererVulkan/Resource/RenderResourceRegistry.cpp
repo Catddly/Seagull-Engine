@@ -53,7 +53,7 @@ namespace SG
 
 		auto pSkybox = SSystem()->GetMainScene()->GetSkyboxEntity();
 		auto& mesh = pSkybox.GetComponent<MeshComponent>();
-		auto& skyboxVertices = MeshDataArchive::GetInstance()->GetData(mesh.meshId)->subMeshDatas[0].vertices;
+		auto& skyboxVertices = MeshDataArchive::GetInstance()->GetData(mesh.meshId)->vertices;
 		const UInt64 vbSize = skyboxVertices.size() * sizeof(float);
 
 		BufferCreateDesc bufferCI = {};
@@ -115,21 +115,24 @@ namespace SG
 		pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), 0);
 
 		// update all the render data of the render mesh
-		auto meshes = pScene->View<TransformComponent, MeshComponent, MaterialComponent>();
-		for (auto& entity : meshes)
-		{
-			auto [trans, mesh, mat] = entity.GetComponent<TransformComponent, MeshComponent, MaterialComponent>();
+		pScene->TraverseEntityContext([pSSBOObject](Scene::EntityContext& context)
+			{
+				auto& entity = context.entity;
+				if (entity.HasComponent<MeshComponent>() && entity.HasComponent<MaterialComponent>())
+				{
+					auto [mesh, mat] = entity.GetComponent<MeshComponent, MaterialComponent>();
 
-			ObjcetRenderData renderData = {};
-			renderData.model = GetTransform(trans);
-			renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
-			renderData.meshId = mesh.meshId;
-			renderData.MR = { mat.metallic, mat.roughness };
-			renderData.instanceOffset = MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? MeshDataArchive::GetInstance()->GetInstanceSumOffset(renderData.meshId - 1) + mesh.instanceId : -1;
-			renderData.albedo = mat.albedo;
-			renderData.texFlag = GetMaterialTexMask(mat);
-			pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
-		}
+					ObjcetRenderData renderData = {};
+					renderData.model = GetTransform(context.pTreeNode);
+					renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
+					renderData.meshId = mesh.meshId;
+					renderData.MR = { mat.metallic, mat.roughness };
+					renderData.instanceOffset = MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? MeshDataArchive::GetInstance()->GetInstanceSumOffset(renderData.meshId - 1) + mesh.instanceId : -1;
+					renderData.albedo = mat.albedo;
+					renderData.texFlag = GetMaterialTexMask(mat);
+					pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
+				}
+			});
 	}
 
 	void VulkanResourceRegistry::Shutdown()
@@ -203,8 +206,11 @@ namespace SG
 		auto* pSSBOObject = GetBuffer("perObjectBuffer");
 		bool bNeedUpdateLightUbo = false;
 		auto& lightUbo = GetLightUBO();
-		pScene->TraverseEntity([this, pSSBOObject, &bNeedUpdateLightUbo, &lightUbo](auto& entity)
+
+		pScene->TraverseEntityContext([this, pSSBOObject, &bNeedUpdateLightUbo, &lightUbo](Scene::EntityContext& context)
 			{
+				auto& entity = context.entity;
+
 				auto& tag = entity.GetComponent<TagComponent>();
 				if (tag.bDirty)
 				{
@@ -231,10 +237,10 @@ namespace SG
 					}
 					else if (entity.HasComponent<MeshComponent>() && entity.HasComponent<MaterialComponent>())
 					{
-						auto [trans, mesh, mat] = entity.GetComponent<TransformComponent, MeshComponent, MaterialComponent>();
+						auto [mesh, mat] = entity.GetComponent<MeshComponent, MaterialComponent>();
 
 						ObjcetRenderData renderData = {};
-						renderData.model = GetTransform(trans);
+						renderData.model = GetTransform(context.pTreeNode);
 						renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
 						renderData.meshId = mesh.meshId;
 						renderData.MR = { mat.metallic, mat.roughness };

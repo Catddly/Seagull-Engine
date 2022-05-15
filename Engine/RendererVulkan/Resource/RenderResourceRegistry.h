@@ -77,7 +77,6 @@ namespace SG
 		void RemoveDescriptorSet(VulkanDescriptorSet* pSet);
 		VulkanDescriptorSet*         GetDescriptorSet(const string& name) const;
 		Handle<VulkanDescriptorSet*> GetDescriptorSetHandle(const string& name);
-		//ReadOnlyHandle<VulkanDescriptorSet> GetDescriptorSetReadOnlyHandle(const string& name);
 		/// DescriptorSet End
 
 		/// RenderTarget Begin

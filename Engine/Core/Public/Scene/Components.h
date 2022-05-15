@@ -81,7 +81,6 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		MeshData meshData = {};
-		meshData.bIsProceduralMesh = true;
 		auto& subMesh = meshData.subMeshDatas.emplace_back();
 
 		// if the mesh data already loaded, you don't need to set it again
@@ -89,6 +88,7 @@ namespace SG
 		{
 			meshData.filename = "_generated_grid";
 			subMesh.subMeshName = "_grid_0";
+			subMesh.bIsProceduralMesh = true;
 			if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
 				MeshGenerator::GenGrid(subMesh.vertices, subMesh.indices);
 		}
@@ -96,6 +96,7 @@ namespace SG
 		{
 			meshData.filename = "_generated_skybox";
 			subMesh.subMeshName = "_skybox_0";
+			subMesh.bIsProceduralMesh = true;
 			if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
 				MeshGenerator::GenSkybox(subMesh.vertices);
 		}
@@ -103,7 +104,7 @@ namespace SG
 		subMesh.filename = meshData.filename;
 
 		comp.meshType = EMeshType::eUnknown;
-		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
+		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData.subMeshDatas[0]);
 	}
 
 	SG_INLINE void LoadMesh(const char* filename, EMeshType type, MeshComponent& comp)
@@ -113,7 +114,7 @@ namespace SG
 		MeshData meshData = {};
 
 		// if the mesh data already loaded, you don't need to set it again
-		if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
+		if (!MeshDataArchive::GetInstance()->HaveMeshData(filename))
 		{
 			MeshResourceLoader loader;
 			if (!loader.LoadFromFile(filename, type, meshData))
@@ -121,7 +122,28 @@ namespace SG
 		}
 
 		comp.meshType = type;
-		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
+		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData.subMeshDatas[0]);
+	}
+
+	SG_INLINE void LoadMesh(const char* filename, const char* subMeshName, EMeshType type, MeshComponent& comp)
+	{
+		SG_PROFILE_FUNCTION();
+
+		MeshData meshData = {};
+
+		// if the mesh data already loaded, you don't need to set it again
+		if (!MeshDataArchive::GetInstance()->HaveMeshData(subMeshName))
+		{
+			MeshResourceLoader loader;
+			if (!loader.LoadFromFile(filename, type, meshData))
+				SG_LOG_WARN("Mesh %s load failure!", filename);
+			for (auto& subMeshData : meshData.subMeshDatas)
+				MeshDataArchive::GetInstance()->SetData(subMeshData);
+		}
+
+		comp.meshType = type;
+		comp.meshId = MeshDataArchive::GetInstance()->GetMeshID(subMeshName);
+		MeshDataArchive::GetInstance()->IncreaseRef(comp.meshId);
 	}
 
 	SG_INLINE void CopyMesh(const MeshComponent& srcMesh, MeshComponent& dstMesh)

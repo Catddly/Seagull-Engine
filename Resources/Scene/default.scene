@@ -1,32 +1,71 @@
 {
     "Entities": [
         {
-            "EntityID": "2468517968452275",
-            "MaterialComponent": {
-                "Albedo": [
-                    1.0,
-                    1.0,
-                    1.0
+            "CameraComponent": {
+                "CameraPos": [
+                    2.7901105880737305,
+                    1.9833471775054932,
+                    1.443574070930481
                 ],
-                "Metallic": 0.20000000298023224,
-                "Roughness": 0.800000011920929
+                "FrontVector": [
+                    -0.6951133608818054,
+                    -0.4434090256690979,
+                    -0.5658673048019409
+                ],
+                "RightVector": [
+                    0.6313235759735107,
+                    0.0,
+                    -0.775519609451294
+                ],
+                "UpVector": [
+                    -0.3438718914985657,
+                    0.8963198661804199,
+                    -0.2799336910247803
+                ]
             },
-            "MeshComponent": {
-                "Filename": "model",
-                "IsProceduralMesh": false
-            },
+            "EntityID": "2468517968452275",
             "TagComponent": {
-                "Name": "model"
+                "Name": "main_camera"
             },
             "TransformComponent": {
                 "Position": [
                     0.0,
-                    0.0,
-                    0.0
+                    3.0,
+                    7.0
                 ],
                 "Rotation": [
                     0.0,
                     0.0,
+                    0.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        {
+            "DirectionalLightComponent": {
+                "Color": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "EntityID": "2468517968452275",
+            "TagComponent": {
+                "Name": "directional_light_0"
+            },
+            "TransformComponent": {
+                "Position": [
+                    8.0,
+                    12.0,
+                    0.0
+                ],
+                "Rotation": [
+                    40.0,
+                    -40.0,
                     0.0
                 ],
                 "Scale": [
@@ -75,72 +114,23 @@
                     1.0,
                     1.0
                 ],
-                "Metallic": 0.05000000074505806,
-                "NormalTextureAsset": {
-                    "Filename": "cerberus/normal.ktx",
-                    "IsCubeMap": false,
-                    "Name": "cerberus_normal",
-                    "NeedMipmap": true
-                },
-                "Roughness": 0.7599999904632568
+                "Metallic": 0.20000000298023224,
+                "Roughness": 0.800000011920929
             },
             "MeshComponent": {
-                "Filename": "_generated_grid",
-                "IsProceduralMesh": true
+                "Filename": "model",
+                "IsProceduralMesh": false,
+                "SubMeshName": "defaultobject",
+                "Type": 0
             },
             "TagComponent": {
-                "Name": "grid"
+                "Name": "model"
             },
             "TransformComponent": {
                 "Position": [
                     0.0,
                     0.0,
                     0.0
-                ],
-                "Rotation": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "Scale": [
-                    8.0,
-                    1.0,
-                    8.0
-                ]
-            }
-        },
-        {
-            "CameraComponent": {
-                "CameraPos": [
-                    2.5723235607147217,
-                    2.549781322479248,
-                    1.5333906412124634
-                ],
-                "FrontVector": [
-                    -0.5781093239784241,
-                    -0.5994778871536255,
-                    -0.5535484552383423
-                ],
-                "RightVector": [
-                    0.6915978193283081,
-                    0.0,
-                    -0.722282886505127
-                ],
-                "UpVector": [
-                    -0.432992547750473,
-                    0.8003916144371033,
-                    -0.4145973026752472
-                ]
-            },
-            "EntityID": "2468517968452275",
-            "TagComponent": {
-                "Name": "main_camera"
-            },
-            "TransformComponent": {
-                "Position": [
-                    0.0,
-                    3.0,
-                    7.0
                 ],
                 "Rotation": [
                     0.0,
@@ -167,7 +157,9 @@
             },
             "MeshComponent": {
                 "Filename": "model",
-                "IsProceduralMesh": false
+                "IsProceduralMesh": false,
+                "SubMeshName": "defaultobject",
+                "Type": 0
             },
             "TagComponent": {
                 "Name": "model_1"
@@ -191,32 +183,46 @@
             }
         },
         {
-            "DirectionalLightComponent": {
-                "Color": [
+            "EntityID": "2468517968452275",
+            "MaterialComponent": {
+                "Albedo": [
                     1.0,
                     1.0,
                     1.0
-                ]
+                ],
+                "Metallic": 0.05000000074505806,
+                "NormalTextureAsset": {
+                    "Filename": "cerberus/normal.ktx",
+                    "IsCubeMap": false,
+                    "Name": "cerberus_normal",
+                    "NeedMipmap": true
+                },
+                "Roughness": 0.7599999904632568
             },
-            "EntityID": "2468517968452275",
+            "MeshComponent": {
+                "Filename": "_generated_grid",
+                "IsProceduralMesh": true,
+                "SubMeshName": "_grid_0",
+                "Type": 2
+            },
             "TagComponent": {
-                "Name": "directional_light_0"
+                "Name": "grid"
             },
             "TransformComponent": {
                 "Position": [
-                    8.0,
-                    12.0,
+                    0.0,
+                    0.0,
                     0.0
                 ],
                 "Rotation": [
-                    40.0,
-                    -40.0,
+                    0.0,
+                    0.0,
                     0.0
                 ],
                 "Scale": [
+                    8.0,
                     1.0,
-                    1.0,
-                    1.0
+                    8.0
                 ]
             }
         }

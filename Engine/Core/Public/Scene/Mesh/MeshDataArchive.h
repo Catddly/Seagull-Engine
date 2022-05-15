@@ -15,27 +15,34 @@ namespace SG
 		vector<UInt32> indices = {};
 		string subMeshName = "";
 		string filename = ""; //! Ref pointer to its parent.
+		bool   bIsProceduralMesh = false;
 	};
 
 	struct MeshData
 	{
 		vector<SubMeshData> subMeshDatas;
 		string filename = "";
-		bool   bIsProceduralMesh = false;
 	};
 
 	class MeshDataArchive
 	{
 	public:
-		SG_CORE_API UInt32 SetData(const MeshData& meshData);
+		SG_CORE_API UInt32 SetData(const SubMeshData& subMeshData);
+		//SG_CORE_API UInt32 SetData(const MeshData& meshData);
 
 		SG_CORE_API void IncreaseRef(UInt32 meshId);
 
 		SG_CORE_API UInt32 GetRefCount(UInt32 meshId) const;
-		SG_CORE_API const MeshData* GetData(UInt32 meshId) const;
+
+		//SG_CORE_API const MeshData* GetData(const string& filename) const;
+		//SG_CORE_API const MeshData* GetData(UInt32 meshId) const;
+
+		SG_CORE_API const SubMeshData* GetData(const string& filename) const;
+		SG_CORE_API const SubMeshData* GetData(UInt32 meshId) const;
+
 		SG_CORE_API UInt32 GetMeshID(const string& filename) const;
 
-		SG_CORE_API UInt32 GetNumMeshData() const { return static_cast<UInt32>(mMeshDatas.size()); }
+		SG_CORE_API UInt32 GetNumMeshData() const { return static_cast<UInt32>(mSubMeshDatas.size()); }
 
 		SG_CORE_API UInt32 GetInstanceSumOffset(UInt32 meshId) const;
 
@@ -50,7 +57,7 @@ namespace SG
 	private:
 		MeshDataArchive() = default;
 	private:
-		eastl::vector<eastl::pair<MeshData, UInt32>> mMeshDatas; // meshId -> pair<MeshData, RefCount(Instance Count)>
+		eastl::vector<eastl::pair<SubMeshData, UInt32>> mSubMeshDatas; // meshId -> pair<SubMeshData, RefCount(Instance Count)>
 		eastl::unordered_map<string, UInt32> mMeshIDMap; // filename -> meshId
 
 		eastl::vector<UInt32> mInstanceCountAreaSumTable;

@@ -27,8 +27,9 @@ namespace SG
 		gObjectIdAllocator.Restore(comp.objectId);
 	}
 
-	static void _SerializeEntity(Scene::Entity& entity, json& node)
+	static void _SerializeEntity(Scene::TreeNode* pTreeNode, json& node)
 	{
+		auto& entity = *pTreeNode->pEntity;
 		node["EntityID"] = "2468517968452275"; // TEMPORARY
 
 		auto& tagNode = node["TagComponent"];
@@ -52,6 +53,8 @@ namespace SG
 				auto& mesh = entity.GetComponent<MeshComponent>();
 				auto* pMeshData = MeshDataArchive::GetInstance()->GetData(mesh.meshId);
 				meshNode["Filename"] = pMeshData->filename.c_str();
+				meshNode["SubMeshName"] = pMeshData->subMeshName.c_str();
+				meshNode["Type"] = mesh.meshType;
 				meshNode["IsProceduralMesh"] = pMeshData->bIsProceduralMesh;
 			}
 		}
@@ -128,6 +131,13 @@ namespace SG
 				}
 			}
 		}
+
+		if (!pTreeNode->pChilds.empty()) // this node have children
+		{
+			node["Children"] = {};
+			for (auto* pChild : pTreeNode->pChilds)
+				_SerializeEntity(pChild, node["Children"].emplace_back());
+		}
 	}
 
 	Scene::Scene()
@@ -146,8 +156,7 @@ namespace SG
 
 	Scene::~Scene()
 	{
-		SG_ASSERT(mpRootNode);
-		Delete(mpRootNode);
+		ClearTreeNodes();
 	}
 
 	void Scene::OnSceneLoad()
@@ -175,10 +184,10 @@ namespace SG
 		//MaterialScene();
 		//MaterialTexturedScene();
 
-		auto* pEntity = CreateEntityWithMesh("sponza", "sponza", EMeshType::eGLTF);
-		auto& trans = pEntity->GetComponent<TransformComponent>();
-		trans.rotation = { 90.0f, 0.0f, 0.0f };
-		trans.scale = { 0.25f, 0.25f, 0.25f };
+		//pEntity = CreateEntityWithMesh("sponza", "sponza", EMeshType::eGLTF);
+		//auto& trans = pEntity->GetComponent<TransformComponent>();
+		//trans.rotation = { 90.0f, 0.0f, 0.0f };
+		//trans.scale = { 0.25f, 0.25f, 0.25f };
 
 		Refresh();
 	}
@@ -213,83 +222,96 @@ namespace SG
 
 	Scene::Entity* Scene::CreateEntity(const string& name)
 	{
-		SG_PROFILE_FUNCTION();
-
-		if (mEntities.find(name) != mEntities.end())
-		{
-			SG_LOG_WARN("Already have an entity named: %s", name.c_str());
-			return nullptr;
-		}
-		auto entity = mEntityManager.CreateEntity();
-		// an entity must have a TagComponent and a TransformComponent
-		entity.AddComponent<TagComponent>(name);
-		entity.AddComponent<TransformComponent>();
-
-		mEntities[name] = entity;
-		return &mEntities[name];
+		return &(CreateEntityContext(name)->entity);
 	}
 
 	Scene::Entity* Scene::CreateEntity(const string& name, const Vector3f& pos, const Vector3f& scale, const Vector3f& rot)
 	{
+		return &(CreateEntityContext(name, pos, scale, rot)->entity);
+	}
+
+	Scene::EntityContext* Scene::CreateEntityContext(const string& name)
+	{
 		SG_PROFILE_FUNCTION();
 
-		if (mEntities.find(name) != mEntities.end())
-		{
-			SG_LOG_WARN("Already have an entity named: %s", name.c_str());
-			return nullptr;
-		}
-		auto entity = mEntityManager.CreateEntity();
-		// an entity must have a TagComponent and a TransformComponent
-		entity.AddComponent<TagComponent>(name);
-		entity.AddComponent<TransformComponent>(pos, scale, rot);
+		auto* pEntityContext = CreateEntityContextWithoutTreeNode(name);
+		pEntityContext->pTreeNode = New(TreeNode, &pEntityContext->entity);
+		pEntityContext->pTreeNode->pParent = mpRootNode;
+		mpRootNode->pChilds.emplace_back(pEntityContext->pTreeNode);
 
-		mEntities[name] = entity;
-		return &mEntities[name];
+		return pEntityContext;
+	}
+
+	Scene::EntityContext* Scene::CreateEntityContext(const string& name, const Vector3f& pos, const Vector3f& scale, const Vector3f& rot)
+	{
+		SG_PROFILE_FUNCTION();
+
+		auto* pEntityContext = CreateEntityContextWithoutTreeNode(name);
+		pEntityContext->pTreeNode = New(TreeNode, &pEntityContext->entity);
+		pEntityContext->pTreeNode->pParent = mpRootNode;
+		mpRootNode->pChilds.emplace_back(pEntityContext->pTreeNode);
+
+		auto& trans = pEntityContext->entity.GetComponent<TransformComponent>();
+		trans.position = pos;
+		trans.rotation = rot;
+		trans.scale = scale;
+
+		return pEntityContext;
 	}
 
 	Scene::Entity* Scene::CreateEntityWithMesh(const string& name, const string& filename, EMeshType type)
 	{
+		return &(CreateEntityContextWithMesh(name, filename, type)->entity);
+	}
+
+	Scene::EntityContext* Scene::CreateEntityContextWithMesh(const string& name, const string& filename, EMeshType type)
+	{
 		SG_PROFILE_FUNCTION();
 
-		if (mEntities.find(name) != mEntities.end())
+		if (mEntityContexts.find(name) != mEntityContexts.end())
 		{
 			SG_LOG_WARN("Already have an entity named: %s", name.c_str());
 			return nullptr;
 		}
-		
-		auto* pRootEntity = CreateEntity(name);
-		auto* pRootTreeNode = New(TreeNode, pRootEntity);
-		// do connect
-		pRootTreeNode->pParent = mpRootNode;
-		mpRootNode->pChilds.emplace_back(pRootTreeNode);
 
 		MeshData meshData = {};
+		const SubMeshData* pSubMeshData = nullptr;
 
 		// if the mesh data already loaded, you don't need to set it again
-		if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
+		if (!MeshDataArchive::GetInstance()->HaveMeshData(filename))
 		{
 			MeshResourceLoader loader;
 			if (!loader.LoadFromFile(filename, type, meshData))
 				SG_LOG_WARN("Mesh %s load failure!", filename);
 		}
+		else
+		{
+			pSubMeshData = MeshDataArchive::GetInstance()->GetData(filename);
+		}
+
+		auto* pRootContext = CreateEntityContext(name);
+		auto* pRootNode = pRootContext->pTreeNode;
 
 		for (UInt32 i = 0; i < meshData.subMeshDatas.size(); ++i) // for each sub mesh data, create an entity
 		{
-			auto& subMesh = meshData.subMeshDatas[i];
+			auto& subMesh = pSubMeshData ? *pSubMeshData : meshData.subMeshDatas[i];
 
-			auto* pSubMeshEntity = CreateEntity(subMesh.subMeshName);
-			auto* pSubMeshTreeNode = New(TreeNode, pSubMeshEntity);
-			pSubMeshTreeNode->pParent = pRootTreeNode;
-			pRootTreeNode->pChilds.emplace_back(pSubMeshTreeNode);
+			auto* pEntityContext = CreateEntityContextWithoutTreeNode(subMesh.subMeshName);
+			auto* pSubMeshTreeNode = New(TreeNode, &pEntityContext->entity);
+			pEntityContext->pTreeNode = pSubMeshTreeNode;
 
+			pSubMeshTreeNode->pParent = pRootNode;
+			pRootNode->pChilds.emplace_back(pSubMeshTreeNode);
+
+			auto* pSubMeshEntity = &pEntityContext->entity;
 			pSubMeshEntity->AddComponent<MaterialComponent>();
 			auto& mesh = pSubMeshEntity->AddComponent<MeshComponent>();
 
 			mesh.meshType = type;
-			mesh.meshId = MeshDataArchive::GetInstance()->SetData(meshData);
+			mesh.meshId = MeshDataArchive::GetInstance()->SetData(subMesh);
 		}
 
-		return pRootEntity;
+		return pRootContext;
 	}
 
 	void Scene::DestroyEntity(Entity& entity)
@@ -297,7 +319,7 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		auto& tag = entity.GetComponent<TagComponent>();
-		mEntities.erase(tag.name);
+		mEntityContexts.erase(tag.name);
 		mEntityManager.DestroyEntity(entity);
 	}
 
@@ -307,20 +329,51 @@ namespace SG
 
 		auto* pEntity = GetEntityByName(name);
 		mEntityManager.DestroyEntity(*pEntity);
-		mEntities.erase(name);
+		mEntityContexts.erase(name);
 	}
 
 	Scene::Entity* Scene::GetEntityByName(const string& name)
 	{
 		SG_PROFILE_FUNCTION();
 
-		auto node = mEntities.find(name);
-		if (node == mEntities.end())
+		auto* pContext = GetEntityContextByName(name);
+
+		return pContext ? &(pContext->entity) : nullptr;
+	}
+
+	Scene::EntityContext* Scene::GetEntityContextByName(const string& name)
+	{
+		SG_PROFILE_FUNCTION();
+
+		auto node = mEntityContexts.find(name);
+		if (node == mEntityContexts.end())
 		{
 			SG_LOG_WARN("No entity named: %s", name.c_str());
 			return nullptr;
 		}
+
 		return &node->second;
+	}
+
+	Scene::EntityContext* Scene::CreateEntityContextWithoutTreeNode(const string& name)
+	{
+		SG_PROFILE_FUNCTION();
+
+		if (mEntityContexts.find(name) != mEntityContexts.end())
+		{
+			SG_LOG_WARN("Already have an entity named: %s", name.c_str());
+			return nullptr;
+		}
+
+		auto entity = mEntityManager.CreateEntity();
+		// an entity must have a TagComponent and a TransformComponent
+		entity.AddComponent<TagComponent>(name);
+		entity.AddComponent<TransformComponent>();
+
+		auto& context = mEntityContexts.insert(name).first->second;
+		context.entity = entity;
+
+		return &context;
 	}
 
 	void Scene::DefaultScene()
@@ -415,10 +468,13 @@ namespace SG
 		node["Scene"] = "My Default Scene";
 		node["Entities"] = {};
 
-		TraverseEntity([&](auto& entity)
-			{
-				_SerializeEntity(entity, node["Entities"].emplace_back());
-			});
+		//TraverseEntity([&](auto& entity)
+		//	{
+		//		_SerializeEntity(entity, node["Entities"].emplace_back());
+		//	});
+
+		for (auto* pChild : mpRootNode->pChilds)
+			_SerializeEntity(pChild, node["Entities"].emplace_back());
 	}
 
 	void Scene::Deserialize(json& node)
@@ -430,147 +486,196 @@ namespace SG
 		if (entities.is_array() && !entities.empty())
 		{
 			for (auto& entity : entities)
-			{
-				auto& tagComp = entity["TagComponent"];
-				string name = tagComp["Name"].get<std::string>().c_str();
-
-				auto& transComp = entity["TransformComponent"];
-				auto* pEntity = CreateEntity(name, transComp["Position"].get<Vector3f>(), transComp["Scale"].get<Vector3f>(), transComp["Rotation"].get<Vector3f>());
-
-				if (auto node = entity.find("MeshComponent"); node != entity.end())
-				{
-					auto& meshComp = *node;
-
-					string filename = meshComp["Filename"].get<std::string>().c_str();
-					bool bIsProceduralMesh = meshComp["IsProceduralMesh"].get<bool>();
-					auto& mesh = pEntity->AddComponent<MeshComponent>();
-
-					if (bIsProceduralMesh)
-					{
-						if (filename == "_generated_grid")
-							LoadMesh(EGennerateMeshType::eGrid, mesh);
-						else if (filename == "_generated_skybox")
-							LoadMesh(EGennerateMeshType::eSkybox, mesh);
-					}
-					else
-					{
-						LoadMesh(filename.c_str(), EMeshType::eOBJ, mesh);
-					}
-				}
-
-				if (auto node = entity.find("MaterialComponent"); node != entity.end())
-				{
-					auto& matComp = *node;
-
-					auto& mat = pEntity->AddComponent<MaterialComponent>();
-
-					matComp["Albedo"].get_to(mat.albedo);
-					matComp["Metallic"].get_to(mat.metallic);
-					matComp["Roughness"].get_to(mat.roughness);
-
-					if (auto n = matComp.find("AlbedoTextureAsset"); n != matComp.end())
-					{
-						auto& node = *n;
-						string filename = node["Filename"].get<std::string>().c_str();
-
-						mat.albedoTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
-						mat.albedoTex->Deserialize(node);
-					}
-					else
-						mat.albedoTex = nullptr;
-
-					if (auto n = matComp.find("MetallicTextureAsset"); n != matComp.end())
-					{
-						auto& node = *n;
-						string filename = node["Filename"].get<std::string>().c_str();
-
-						mat.metallicTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
-						mat.metallicTex->Deserialize(node);
-					}
-					else
-						mat.metallicTex = nullptr;
-
-					if (auto n = matComp.find("RoughnessTextureAsset"); n != matComp.end())
-					{
-						auto& node = *n;
-						string filename = node["Filename"].get<std::string>().c_str();
-
-						mat.roughnessTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
-						mat.roughnessTex->Deserialize(node);
-					}
-					else
-						mat.roughnessTex = nullptr;
-
-					if (auto n = matComp.find("NormalTextureAsset"); n != matComp.end())
-					{
-						auto& node = *n;
-						string filename = node["Filename"].get<std::string>().c_str();
-
-						mat.normalTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
-						mat.normalTex->Deserialize(node);
-					}
-					else
-						mat.normalTex = nullptr;
-
-					if (auto n = matComp.find("AOTextureAsset"); n != matComp.end())
-					{
-						auto& node = *n;
-						string filename = node["Filename"].get<std::string>().c_str();
-
-						mat.AOTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
-						mat.AOTex->Deserialize(node);
-					}
-					else
-						mat.AOTex = nullptr;
-				}
-
-				if (auto node = entity.find("PointLightComponent"); node != entity.end())
-				{
-					auto& pointLightComp = *node;
-
-					auto& light = pEntity->AddComponent<PointLightComponent>();
-					pointLightComp["Color"].get_to<Vector3f>(light.color);
-					pointLightComp["Radius"].get_to(light.radius);
-				}
-
-				if (auto node = entity.find("DirectionalLightComponent"); node != entity.end())
-				{
-					auto& directionalLightComp = *node;
-
-					auto& light = pEntity->AddComponent<DirectionalLightComponent>();
-					directionalLightComp["Color"].get_to(light.color);
-				}
-
-				if (auto node = entity.find("CameraComponent"); node != entity.end())
-				{
-					auto& cameraComp = *node;
-					auto& cam = pEntity->AddComponent<CameraComponent>();
-
-					cam.type = ECameraType::eFirstPerson;
-					auto FPSCam = MakeRef<FirstPersonCamera>(cameraComp["CameraPos"].get<Vector3f>());
-					FPSCam->SetUpVector(cameraComp["UpVector"].get<Vector3f>());
-					FPSCam->SetRightVector(cameraComp["RightVector"].get<Vector3f>());
-					FPSCam->SetFrontVector(cameraComp["FrontVector"].get<Vector3f>());
-					cam.pCamera = FPSCam;
-					mpCameraEntity = pEntity;
-				}
-			}
+				DeserializeEntity(mpRootNode, entity);
 		}
 
 		Refresh();
 	}
 
+	void Scene::DeserializeEntity(Scene::TreeNode* pTreeNode, json& entity)
+	{
+		auto& tagComp = entity["TagComponent"];
+		string name = tagComp["Name"].get<std::string>().c_str();
+
+		auto& transComp = entity["TransformComponent"];
+		auto* pEntityContext = CreateEntityContextWithoutTreeNode(name);
+		auto* pEntity = &(pEntityContext->entity);
+		auto& trans = pEntity->GetComponent<TransformComponent>();
+		transComp["Position"].get_to(trans.position);
+		transComp["Scale"].get_to(trans.scale);
+		transComp["Rotation"].get_to(trans.rotation);
+
+		// create a tree node and do connect
+		auto* pCurrTreeNode = New(TreeNode, pEntity);
+		pEntityContext->pTreeNode = pCurrTreeNode;
+		pCurrTreeNode->pParent = pTreeNode;
+		pTreeNode->pChilds.emplace_back(pCurrTreeNode);
+
+		if (auto node = entity.find("MeshComponent"); node != entity.end())
+		{
+			auto& meshComp = *node;
+
+			string filename = meshComp["Filename"].get<std::string>().c_str();
+			string subMeshName = meshComp["SubMeshName"].get<std::string>().c_str();
+			bool bIsProceduralMesh = meshComp["IsProceduralMesh"].get<bool>();
+			auto& mesh = pEntity->AddComponent<MeshComponent>();
+
+			if (bIsProceduralMesh)
+			{
+				if (filename == "_generated_grid")
+					LoadMesh(EGennerateMeshType::eGrid, mesh);
+				else if (filename == "_generated_skybox")
+					LoadMesh(EGennerateMeshType::eSkybox, mesh);
+			}
+			else
+			{
+				EMeshType type = (EMeshType)meshComp["Type"];
+				//LoadMesh(filename.c_str(), type, mesh);
+				LoadMesh(filename.c_str(), subMeshName.c_str(), type, mesh);
+			}
+		}
+
+		if (auto node = entity.find("MaterialComponent"); node != entity.end())
+		{
+			auto& matComp = *node;
+
+			auto& mat = pEntity->AddComponent<MaterialComponent>();
+
+			matComp["Albedo"].get_to(mat.albedo);
+			matComp["Metallic"].get_to(mat.metallic);
+			matComp["Roughness"].get_to(mat.roughness);
+
+			if (auto n = matComp.find("AlbedoTextureAsset"); n != matComp.end())
+			{
+				auto& node = *n;
+				string filename = node["Filename"].get<std::string>().c_str();
+
+				mat.albedoTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
+				mat.albedoTex->Deserialize(node);
+			}
+			else
+				mat.albedoTex = nullptr;
+
+			if (auto n = matComp.find("MetallicTextureAsset"); n != matComp.end())
+			{
+				auto& node = *n;
+				string filename = node["Filename"].get<std::string>().c_str();
+
+				mat.metallicTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
+				mat.metallicTex->Deserialize(node);
+			}
+			else
+				mat.metallicTex = nullptr;
+
+			if (auto n = matComp.find("RoughnessTextureAsset"); n != matComp.end())
+			{
+				auto& node = *n;
+				string filename = node["Filename"].get<std::string>().c_str();
+
+				mat.roughnessTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
+				mat.roughnessTex->Deserialize(node);
+			}
+			else
+				mat.roughnessTex = nullptr;
+
+			if (auto n = matComp.find("NormalTextureAsset"); n != matComp.end())
+			{
+				auto& node = *n;
+				string filename = node["Filename"].get<std::string>().c_str();
+
+				mat.normalTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
+				mat.normalTex->Deserialize(node);
+			}
+			else
+				mat.normalTex = nullptr;
+
+			if (auto n = matComp.find("AOTextureAsset"); n != matComp.end())
+			{
+				auto& node = *n;
+				string filename = node["Filename"].get<std::string>().c_str();
+
+				mat.AOTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
+				mat.AOTex->Deserialize(node);
+			}
+			else
+				mat.AOTex = nullptr;
+		}
+
+		if (auto node = entity.find("PointLightComponent"); node != entity.end())
+		{
+			auto& pointLightComp = *node;
+
+			auto& light = pEntity->AddComponent<PointLightComponent>();
+			pointLightComp["Color"].get_to<Vector3f>(light.color);
+			pointLightComp["Radius"].get_to(light.radius);
+		}
+
+		if (auto node = entity.find("DirectionalLightComponent"); node != entity.end())
+		{
+			auto& directionalLightComp = *node;
+
+			auto& light = pEntity->AddComponent<DirectionalLightComponent>();
+			directionalLightComp["Color"].get_to(light.color);
+		}
+
+		if (auto node = entity.find("CameraComponent"); node != entity.end())
+		{
+			auto& cameraComp = *node;
+			auto& cam = pEntity->AddComponent<CameraComponent>();
+
+			cam.type = ECameraType::eFirstPerson;
+			auto FPSCam = MakeRef<FirstPersonCamera>(cameraComp["CameraPos"].get<Vector3f>());
+			FPSCam->SetUpVector(cameraComp["UpVector"].get<Vector3f>());
+			FPSCam->SetRightVector(cameraComp["RightVector"].get<Vector3f>());
+			FPSCam->SetFrontVector(cameraComp["FrontVector"].get<Vector3f>());
+			cam.pCamera = FPSCam;
+			mpCameraEntity = pEntity;
+		}
+
+		// if this node have child
+		auto& children = entity["Children"];
+		if (children.is_array() && !children.empty())
+		{
+			for (auto& child : children)
+				DeserializeEntity(pCurrTreeNode, child);
+		}
+	}
+
 	void Scene::Refresh()
 	{
+		SG_PROFILE_FUNCTION();
+
 		mEntityManager.ReFresh();
 
 		mMeshEntityCount = 0;
-		for (auto node : mEntities)
+		for (auto node : mEntityContexts)
 		{
-			auto& entity = node.second;
+			auto& entity = node.second.entity;
 			if (entity.HasComponent<MeshComponent>())
 				++mMeshEntityCount;
 		}
+	}
+
+	void Scene::ClearTreeNodes()
+	{
+		SG_PROFILE_FUNCTION();
+
+		FreeTreeNode(mpRootNode);
+	}
+
+	void Scene::FreeTreeNode(TreeNode* pTreeNode)
+	{
+		SG_PROFILE_FUNCTION();
+
+		if (pTreeNode->pChilds.empty()) // it is a leaf node
+		{
+			Delete(pTreeNode);
+			return;
+		}
+
+		for (auto* pChild : pTreeNode->pChilds)
+			FreeTreeNode(pChild);
+		Delete(pTreeNode);
 	}
 
 }

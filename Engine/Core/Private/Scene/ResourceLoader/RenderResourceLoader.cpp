@@ -98,7 +98,6 @@ namespace SG
 		SG_ASSERT(meshData.subMeshDatas.empty() && "It must be an empty mesh data!");
 
 		meshData.filename = name;
-		meshData.bIsProceduralMesh = false;
 
 		string fullName = name;
 		fullName += MeshTypeToExtString(type);
@@ -122,6 +121,7 @@ namespace SG
 			{
 				auto& subMesh = meshData.subMeshDatas.emplace_back();
 				subMesh.filename = name;
+				subMesh.bIsProceduralMesh = false;
 
 				const aiMesh* pMesh = scene->mMeshes[i];
 				subMesh.subMeshName = pMesh->mName.C_Str();

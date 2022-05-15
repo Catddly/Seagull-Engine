@@ -6,10 +6,6 @@
 #include "Memory/MemoryTracker.h"
 #include "Memory/MemoryLeakDetecter.h"
 
-#define SG_ENABLE_MEMORY_TRACKING 0
-#define SG_ENABLE_MEMORY_LEAK_DETECTION 0
-#define SG_ENABLE_MEMORY_PROFILE 1
-
 //struct nothrow_t
 //{
 //	explicit nothrow_t() = default;

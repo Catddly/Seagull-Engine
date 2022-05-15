@@ -26,7 +26,7 @@ namespace SG
 	}
 
 	DockSpaceLayer::DockSpaceLayer()
-		:ILayer("Dockspace")
+		:ILayer("Dockspace"), mpSelectedEntityNode(nullptr)
 	{
 		Input::RegisterListener(EListenerPriority::eLevel0, this);
 	}
@@ -333,7 +333,7 @@ namespace SG
 			DrawSceneTreeNode(pChild, false);
 
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-			mSelectedEntity = { };
+			mpSelectedEntityNode = nullptr;
 
 		ImGui::End();
 	}
@@ -342,19 +342,15 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		// recursive basis
-		//if (!pNode->pEntity)
-		//	return;
-
 		// draw entity tree node
 		auto& tag = pNode->pEntity->GetComponent<TagComponent>();
 		bool bHasChildPass = false;
-		if (!bPass)
+		if (!bPass) // if this node's parent passed?
 		{
 			bPass = gTextFilter.PassFilter(tag.name.c_str());
-			if (!bPass)
+			if (!bPass) // if this node passed?
 			{
-				for (auto* pChild : pNode->pChilds)
+				for (auto* pChild : pNode->pChilds) // if this node didn't passed, check its children.
 				{
 					bHasChildPass = TestNodePassFilter(pChild);
 					if (bHasChildPass)
@@ -363,12 +359,14 @@ namespace SG
 			}
 		}
 
-		if (bPass || bHasChildPass) // it is a leaf node
+		if (bPass || bHasChildPass)
 		{
-			bool bOpened = ImGui::TreeNodeEx(tag.name.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+			flags |= pNode->pChilds.empty() ? ImGuiTreeNodeFlags_Leaf : ImGuiTreeNodeFlags_DefaultOpen;
+			bool bOpened = ImGui::TreeNodeEx(tag.name.c_str(), flags);
 
 			if (ImGui::IsItemClicked())
-				mSelectedEntity = *pNode->pEntity;
+				mpSelectedEntityNode = pNode;
 
 			if (bOpened)
 			{
@@ -383,7 +381,7 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		if (pNode->pChilds.empty())
+		if (pNode->pChilds.empty()) // it is a leaf node
 			return gTextFilter.PassFilter(pNode->pEntity->GetComponent<TagComponent>().name.c_str());
 
 		for (auto& pChild : pNode->pChilds)
@@ -400,8 +398,8 @@ namespace SG
 
 		ImGui::Begin("Property");
 
-		if (mSelectedEntity.IsValid())
-			DrawEntityProperty(mSelectedEntity);
+		if (mpSelectedEntityNode)
+			DrawEntityProperty(mpSelectedEntityNode);
 
 		ImGui::End();
 	}
@@ -512,8 +510,8 @@ namespace SG
 		// push an event to notify the render device
 		mMessageBusMember.PushEvent("RenderDataRebuild");
 
-		Input::ForceReleaseAllEvent(); // to avoid short cut key status
-		mSelectedEntity = {};
+		Input::ForceReleaseAllEvent(); // to avoid causing short cut key status error
+		mpSelectedEntityNode = nullptr;
 	}
 
 }

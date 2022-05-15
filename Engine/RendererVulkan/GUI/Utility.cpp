@@ -91,11 +91,21 @@ namespace SG
 		}
 	}
 
-	bool DrawEntityProperty(Scene::Entity& entity)
+	static void _MarkChildrenDirty(Scene::TreeNode* pTreeNode)
+	{
+		if (pTreeNode->pChilds.empty())
+			pTreeNode->pEntity->GetComponent<TagComponent>().bDirty = true;
+
+		for (auto* pChild : pTreeNode->pChilds)
+			_MarkChildrenDirty(pChild);
+	}
+
+	bool DrawEntityProperty(Scene::TreeNode* pTreeNode)
 	{
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
+		auto& entity = *pTreeNode->pEntity;
 		auto& tag = entity.GetComponent<TagComponent>();
 
 		char buffer[256];
@@ -139,6 +149,9 @@ namespace SG
 				tag.bDirty |= DrawGUIColorEdit3("Color", comp.color);
 			});
 		ImGui::PopID();
+
+		if (tag.bDirty)
+			_MarkChildrenDirty(pTreeNode);
 
 		return false;
 	}

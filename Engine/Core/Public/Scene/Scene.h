@@ -41,6 +41,14 @@ namespace SG
 		};
 
 		using TreeNode = SceneTreeNode;
+
+		struct EntityContext
+		{
+			Entity    entity = {};
+			TreeNode* pTreeNode = nullptr;
+		};
+
+		using EntityContext = EntityContext;
 	public:
 		Scene();
 		~Scene();
@@ -59,6 +67,7 @@ namespace SG
 		SG_CORE_API void    DestroyEntity(Entity& entity);
 		SG_CORE_API void    DestroyEntityByName(const string& name);
 
+		SG_CORE_API EntityContext* GetEntityContextByName(const string& name);
 		SG_CORE_API Entity* GetEntityByName(const string& name);
 
 		SG_CORE_API Entity  GetSkyboxEntity() { return mSkyboxEntity; }
@@ -66,7 +75,7 @@ namespace SG
 		Entity& GetMainCamera() { return *mpCameraEntity; }
 
 		SG_CORE_API Size GetMeshEntityCount() const { return mMeshEntityCount; }
-		SG_CORE_API Size GetEntityCount()     const { return mEntities.size(); }
+		SG_CORE_API Size GetEntityCount()     const { return mEntityContexts.size(); }
 
 		SG_CORE_API TreeNode* GetTreeRepresentation() const { return mpRootNode; };
 
@@ -79,9 +88,24 @@ namespace SG
 		template <typename Func>
 		SG_INLINE void TraverseEntity(Func&& func)
 		{
-			for (auto node : mEntities)
+			for (auto node : mEntityContexts)
+				func(node.second.entity);
+		}
+
+		template <typename Func>
+		SG_INLINE void TraverseEntityContext(Func&& func)
+		{
+			for (auto node : mEntityContexts)
 				func(node.second);
 		}
+	private:
+		// entity creation and destruction
+		EntityContext* CreateEntityContextWithoutTreeNode(const string& name);
+
+		EntityContext* CreateEntityContext(const string& name);
+		EntityContext* CreateEntityContext(const string& name, const Vector3f& pos, const Vector3f& scale, const Vector3f& rot);
+
+		EntityContext* CreateEntityContextWithMesh(const string& name, const string& filename, EMeshType type);
 	private:
 		void DefaultScene();
 		void MaterialScene();
@@ -89,19 +113,35 @@ namespace SG
 
 		virtual void Serialize(json& node) override;
 		virtual void Deserialize(json& node) override;
+		void DeserializeEntity(Scene::TreeNode* pTreeNode, json& entity);
 
 		void Refresh();
+
+		void ClearTreeNodes();
+		void FreeTreeNode(TreeNode* pTreeNode);
 	private:
 		Entity mSkyboxEntity;
 		Entity* mpCameraEntity;  // TODO: support multiply switchable camera
 
 		Size mMeshEntityCount = 0;
-		unordered_map<string, Entity> mEntities; //! Contain all the entities in the scene.
+		unordered_map<string, EntityContext> mEntityContexts; //! Contain all the entities' contexts in the scene.
 
 		//! Tree representation of the scene.
 		TreeNode* mpRootNode;
 
 		EntityManager mEntityManager;
 	};
+
+	// helper functions
+
+	static Matrix4f GetTransform(Scene::TreeNode* pTreeNode)
+	{
+		if (!pTreeNode->pParent->pEntity)
+			return GetTransform(pTreeNode->pEntity->GetComponent<TransformComponent>());
+		
+		if (pTreeNode->pParent)
+			return GetTransform(pTreeNode->pParent) * GetTransform(pTreeNode->pEntity->GetComponent<TransformComponent>());
+		return Matrix4f(1.0f);
+	}
 
 }

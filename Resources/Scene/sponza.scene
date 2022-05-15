@@ -1,0 +1,1086 @@
+{
+    "Entities": [
+        {
+            "CameraComponent": {
+                "CameraPos": [
+                    -8.825613021850586,
+                    4.046438217163086,
+                    3.8243470191955566
+                ],
+                "FrontVector": [
+                    0.9532327055931091,
+                    -0.030614832416176796,
+                    -0.30068308115005493
+                ],
+                "RightVector": [
+                    0.30082541704177856,
+                    0.0,
+                    0.9536793231964111
+                ],
+                "UpVector": [
+                    0.02919676899909973,
+                    0.9995313286781311,
+                    -0.009209698997437954
+                ]
+            },
+            "EntityID": "2468517968452275",
+            "TagComponent": {
+                "Name": "main_camera"
+            },
+            "TransformComponent": {
+                "Position": [
+                    0.0,
+                    3.0,
+                    7.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        {
+            "DirectionalLightComponent": {
+                "Color": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "EntityID": "2468517968452275",
+            "TagComponent": {
+                "Name": "directional_light_0"
+            },
+            "TransformComponent": {
+                "Position": [
+                    8.0,
+                    12.0,
+                    0.0
+                ],
+                "Rotation": [
+                    40.0,
+                    -40.0,
+                    0.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        {
+            "EntityID": "2468517968452275",
+            "PointLightComponent": {
+                "Color": [
+                    0.0,
+                    1.0,
+                    0.7049999833106995
+                ],
+                "Radius": 3.0
+            },
+            "TagComponent": {
+                "Name": "point_light_0"
+            },
+            "TransformComponent": {
+                "Position": [
+                    1.25,
+                    0.75,
+                    -0.30000001192092896
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        {
+            "Children": [
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId24_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId24_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId23_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId23_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId22_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId22_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId21_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId21_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId20_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId20_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId19_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId19_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId18_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId18_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId17_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId17_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId16_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId16_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId15_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId15_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId14_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId14_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId13_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId13_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId12_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId12_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId11_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId11_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId10_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId10_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId9_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId9_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId8_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId8_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId7_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId7_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId6_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId6_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId5_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId5_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId4_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId4_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId3_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId3_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId2_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId2_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId1_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId1_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "Metallic": 0.699999988079071,
+                        "Roughness": 0.3499999940395355
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "meshId0_name",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "meshId0_name"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                }
+            ],
+            "EntityID": "2468517968452275",
+            "TagComponent": {
+                "Name": "sponza"
+            },
+            "TransformComponent": {
+                "Position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Rotation": [
+                    90.0,
+                    0.0,
+                    0.0
+                ],
+                "Scale": [
+                    0.25,
+                    0.25,
+                    0.25
+                ]
+            }
+        }
+    ],
+    "Scene": "My Default Scene"
+}
