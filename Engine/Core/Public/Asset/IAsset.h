@@ -12,6 +12,7 @@ namespace SG
 	{
 		eUnknown = 0,
 		eTexture,
+		eMaterial,
 	};
 
 	interface IAsset : public IDiskResource

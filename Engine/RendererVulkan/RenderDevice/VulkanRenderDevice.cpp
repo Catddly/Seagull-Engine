@@ -8,7 +8,7 @@
 
 #include "Math/MathBasic.h"
 #include "Math/Plane.h"
-#include "Scene/Mesh/MeshDataArchive.h"
+#include "Archive/MeshDataArchive.h"
 #include "Profile/Profile.h"
 #include "Render/CommonRenderData.h"
 
@@ -95,13 +95,24 @@ namespace SG
 		samplerCI.enableAnisotropy = true;
 		VK_RESOURCE()->CreateSampler(samplerCI);
 
+		samplerCI = {};
+		samplerCI.name = "texture_1k_mipmap_sampler";
+		samplerCI.filterMode = EFilterMode::eLinear;
+		samplerCI.mipmapMode = EFilterMode::eLinear;
+		samplerCI.addressMode = EAddressMode::eRepeat;
+		samplerCI.lodBias = 0.0f;
+		samplerCI.minLod = 0.0f;
+		samplerCI.maxLod = (float)CalcMipmapLevel(1024, 1024);
+		samplerCI.enableAnisotropy = true;
+		VK_RESOURCE()->CreateSampler(samplerCI);
+
 		CreateVKResourceFromAsset(SSystem()->GetRenderDataBuilder());
+
+		BuildRenderGraph();
 
 		// create all the mesh resource
 		IndirectRenderer::OnInit(*mpContext);
 		IndirectRenderer::CollectRenderData(SSystem()->GetRenderDataBuilder());
-
-		BuildRenderGraph();
 
 		//mpGUIDriver->PushUserLayer(MakeRef<TestGUILayer>());
 		mpDockSpaceGUILayer = MakeRef<DockSpaceLayer>();
@@ -109,6 +120,9 @@ namespace SG
 
 		// update one frame here to avoid imgui do not draw the first frame.
 		mpGUIDriver->OnUpdate(0.00000001f);
+
+		// wait for all the resource in the transfer queue.
+		VK_RESOURCE()->WaitBuffersUpdated();
 	}
 
 	void VulkanRenderDevice::OnShutdown()
@@ -315,9 +329,7 @@ namespace SG
 					texCI.format = EImageFormat::eUnorm_R8;
 				else if (pTextureAsset->GetDimention() == 2)
 					texCI.format = EImageFormat::eUnorm_R8G8;
-				else if (pTextureAsset->GetDimention() == 3)
-					texCI.format = EImageFormat::eUnorm_R8G8B8;
-				else if (pTextureAsset->GetDimention() == 4)
+				else if (pTextureAsset->GetDimention() == 3 || pTextureAsset->GetDimention() == 4)
 					texCI.format = EImageFormat::eUnorm_R8G8B8A8;
 				texCI.sample = ESampleCount::eSample_1;
 				texCI.usage = EImageUsage::efSample;

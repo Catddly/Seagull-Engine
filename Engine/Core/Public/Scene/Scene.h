@@ -62,7 +62,7 @@ namespace SG
 		SG_CORE_API Entity* CreateEntity(const string& name);
 		SG_CORE_API Entity* CreateEntity(const string& name, const Vector3f& pos, const Vector3f& scale, const Vector3f& rot);
 
-		SG_CORE_API Entity* CreateEntityWithMesh(const string& name, const string& filename, EMeshType type);
+		SG_CORE_API Entity* CreateEntityWithMesh(const string& name, const string& filename, EMeshType type, bool bLoadMaterials = false);
 
 		SG_CORE_API void    DestroyEntity(Entity& entity);
 		SG_CORE_API void    DestroyEntityByName(const string& name);
@@ -105,7 +105,7 @@ namespace SG
 		EntityContext* CreateEntityContext(const string& name);
 		EntityContext* CreateEntityContext(const string& name, const Vector3f& pos, const Vector3f& scale, const Vector3f& rot);
 
-		EntityContext* CreateEntityContextWithMesh(const string& name, const string& filename, EMeshType type);
+		EntityContext* CreateEntityContextWithMesh(const string& name, const string& filename, EMeshType type, bool bLoadMaterials = false);
 	private:
 		void DefaultScene();
 		void MaterialScene();
@@ -124,7 +124,7 @@ namespace SG
 		Entity* mpCameraEntity;  // TODO: support multiply switchable camera
 
 		Size mMeshEntityCount = 0;
-		unordered_map<string, EntityContext> mEntityContexts; //! Contain all the entities' contexts in the scene.
+		unordered_map<string, EntityContext> mEntityContexts; //! Contain all the entities' contexts in the scene. name -> EntityContext
 
 		//! Tree representation of the scene.
 		TreeNode* mpRootNode;

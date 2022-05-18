@@ -159,9 +159,6 @@ namespace SG
 
 			pCurrNode->Prepare(pRenderPass);
 		}
-
-		// wait for all the resource in the transfer queue.
-		VK_RESOURCE()->WaitBuffersUpdated();
 	}
 
 	VulkanRenderPass* RenderGraph::CompileRenderPasses(const RenderGraphNode* pCurrNode)

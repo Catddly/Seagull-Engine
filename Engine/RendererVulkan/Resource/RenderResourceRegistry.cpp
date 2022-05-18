@@ -5,7 +5,7 @@
 #include "System/Logger.h"
 #include "Memory/Memory.h"
 #include "Render/SwapChain.h"
-#include "Scene/Mesh/MeshDataArchive.h"
+#include "Archive/MeshDataArchive.h"
 #include "Profile/Profile.h"
 #include "TipECS/Entity.h"
 
@@ -207,7 +207,7 @@ namespace SG
 		bool bNeedUpdateLightUbo = false;
 		auto& lightUbo = GetLightUBO();
 
-		pScene->TraverseEntityContext([this, pSSBOObject, &bNeedUpdateLightUbo, &lightUbo](Scene::EntityContext& context)
+		pScene->TraverseEntityContext([this, pSSBOObject, &bNeedUpdateLightUbo, &lightUbo, pScene](Scene::EntityContext& context)
 			{
 				auto& entity = context.entity;
 
@@ -230,8 +230,8 @@ namespace SG
 						auto& shadowUbo = GetShadowUBO();
 						shadowUbo.lightSpaceVP = CalcDirectionalLightViewProj(trans);
 						lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
-						lightUbo.directionalColor = { light.color, 1.0f };
 						lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
+						lightUbo.directionalColor = { light.color, 1.0f };
 						UpdataBufferData("shadowUbo", &shadowUbo);
 						bNeedUpdateLightUbo |= true;
 					}

@@ -41,7 +41,10 @@ namespace SG
 		static void DoCulling();
 		static void CopyStatisticsData();
 		static void WaitForStatisticsCopyed();
+
 		static void Draw(EMeshPass meshPass);
+		// temp
+		static void DrawWithoutBindMaterial(EMeshPass meshPass);
 	private:
 		static void BindMesh(const DrawMesh& drawMesh);
 		static void BindMaterial(const DrawMaterial& drawMaterial);

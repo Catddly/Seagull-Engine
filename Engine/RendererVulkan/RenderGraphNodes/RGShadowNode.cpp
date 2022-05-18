@@ -85,8 +85,6 @@ namespace SG
 
 		mpShadowPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShadowShader)
 			.Build();
-		mpShadowInstancePipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShadowInstanceShader)
-			.Build();
 
 		ClearValue cv = {};
 		cv.depthStencil.depth = 1.0f;
@@ -121,18 +119,20 @@ namespace SG
 			.SetInputVertexRange(sizeof(PerInstanceData), EVertexInputRate::ePerInstance)
 			.SetDepthStencil(true)
 			.SetColorBlend(false)
-			.SetRasterizer(ECullMode::eFront)
+			.SetRasterizer(ECullMode::eBack)
 			.SetDynamicStates(VK_DYNAMIC_STATE_DEPTH_BIAS)
-			.BindSignature(mpShadowInstancePipelineSignature)
+			.BindSignature(mpShadowPipelineSignature)
+			.BindShader(mpShadowInstanceShader)
 			.BindRenderPass(pRenderpass)
 			.Build();
 
 		mpShadowPipeline = VulkanPipeline::Builder(mContext.device)
 			.SetDepthStencil(true)
 			.SetColorBlend(false)
-			.SetRasterizer(ECullMode::eFront)
+			.SetRasterizer(ECullMode::eBack)
 			.SetDynamicStates(VK_DYNAMIC_STATE_DEPTH_BIAS)
 			.BindSignature(mpShadowPipelineSignature)
+			.BindShader(mpShadowShader)
 			.BindRenderPass(pRenderpass)
 			.Build();
 	}
@@ -158,15 +158,15 @@ namespace SG
 
 		if (mbDrawShadow)
 		{
+			pBuf.BindPipelineSignatureNonDynamic(mpShadowPipelineSignature.get());
+
 			// 1.1 Forward Mesh Pass
 			pBuf.BindPipeline(mpShadowPipeline);
-			pBuf.BindPipelineSignatureNonDynamic(mpShadowPipelineSignature.get());
-			IndirectRenderer::Draw(EMeshPass::eForward);
+			IndirectRenderer::DrawWithoutBindMaterial(EMeshPass::eForward);
 
 			// 1.2 Forward Instanced Mesh Pass
 			pBuf.BindPipeline(mpShadowInstancePipeline);
-			pBuf.BindPipelineSignatureNonDynamic(mpShadowInstancePipelineSignature.get());
-			IndirectRenderer::Draw(EMeshPass::eForwardInstanced);
+			IndirectRenderer::DrawWithoutBindMaterial(EMeshPass::eForwardInstanced);
 		}
 		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efBottom_Of_Pipeline, 1);
 

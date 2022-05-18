@@ -241,10 +241,28 @@ namespace SG
 			case EPipelineType::eTransfer: bp = VK_PIPELINE_BIND_POINT_GRAPHICS; break;
 			case EPipelineType::eCompute: bp = VK_PIPELINE_BIND_POINT_COMPUTE; break;
 			}
+			auto& descriptorSet = pSignature->GetDescriptorSet(set.first, "__non_dynamic");
 			// here we assume that user know that this shader have non-dynamic buffers
 			vkCmdBindDescriptorSets(commandBuffer, bp, pSignature->mpPipelineLayout->layout,
-				set.first, 1, &(set.second.descriptorSets.back().set), 0, nullptr);
+				set.first, 1, &(descriptorSet.set), 0, nullptr);
 		}
+	}
+
+	void VulkanCommandBuffer::BindPipelineSignatureNonDynamic(VulkanPipelineSignature* pSignature, UInt32 set, EPipelineType type)
+	{
+		if (!IsRenderPassValid())
+			return;
+		VkPipelineBindPoint bp;
+		switch (type)
+		{
+		case EPipelineType::eGraphic:
+		case EPipelineType::eTransfer: bp = VK_PIPELINE_BIND_POINT_GRAPHICS; break;
+		case EPipelineType::eCompute: bp = VK_PIPELINE_BIND_POINT_COMPUTE; break;
+		}
+		auto& descriptorSet = pSignature->GetDescriptorSet(set, "__non_dynamic");
+		// here we assume that user know that this shader have non-dynamic buffers
+		vkCmdBindDescriptorSets(commandBuffer, bp, pSignature->mpPipelineLayout->layout,
+			set, 1, &(descriptorSet.set), 0, nullptr);
 	}
 
 	void VulkanCommandBuffer::BindPipeline(VulkanPipeline* pipeline)

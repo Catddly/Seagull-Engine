@@ -38,9 +38,12 @@ namespace SG
 		VulkanBuffer* pInstanceBuffer = nullptr;
 	};
 
+	class VulkanPipelineSignature;
+
 	struct DrawMaterial
 	{
-
+		VulkanPipelineSignature* pPipelineSignature = nullptr;
+		string materialAssetName = "";
 	};
 
 	struct DrawCall

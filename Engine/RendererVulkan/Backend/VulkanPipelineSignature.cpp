@@ -41,6 +41,21 @@ namespace SG
 			return setDescriptorsData.descriptorSets[node->second];
 	}
 
+	VulkanDescriptorSet& VulkanPipelineSignature::NewDescripotrSet(UInt32 set, const string& name)
+	{
+		SG_ASSERT(set < mDescriptorSetData.size());
+
+		auto& setDescriptorsData = mDescriptorSetData[set];
+		auto node = setDescriptorsData.setIndexMap.find(name);
+		if (node == setDescriptorsData.setIndexMap.end())
+		{
+			setDescriptorsData.setIndexMap[name] = static_cast<UInt32>(setDescriptorsData.descriptorSets.size());
+			return setDescriptorsData.descriptorSets.emplace_back();
+		}
+		else
+			return setDescriptorsData.descriptorSets[node->second];
+	}
+
 	RefPtr<VulkanPipelineSignature> VulkanPipelineSignature::Create(VulkanContext& context, RefPtr<VulkanShader> pShader,
 		const vector<eastl::pair<const char*, const char*>>& combineImages, const unordered_map<string, EDescriptorType>& overrides)
 	{
@@ -167,7 +182,7 @@ namespace SG
 			}
 
 			auto& setDescriptorsData = mDescriptorSetData[setIndex];
-			shaderDataBinder.Bind(setDescriptorsData.descriptorSets.back());
+			shaderDataBinder.Bind(setDescriptorsData.descriptorSets[setDescriptorsData.setIndexMap["__non_dynamic"]]);
 		}
 
 		VulkanPipelineLayout::Builder pipelineLayoutBuilder(mContext.device);
@@ -226,6 +241,13 @@ namespace SG
 		Bind(set);
 	}
 
+	VulkanDescriptorSet& VulkanPipelineSignature::SetDataBinder::BindNew(const string& name)
+	{
+		auto& newDescriptorSet = mPipelineSignature.NewDescripotrSet(mSet, name);
+		Bind(newDescriptorSet);
+		return newDescriptorSet;
+	}
+
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// ShaderDataBinder
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -250,6 +272,13 @@ namespace SG
 	{
 		//mContext.pDefaultDescriptorPool->FreeDescriptorSet(set);
 		BindSet(set);
+	}
+
+	VulkanDescriptorSet& VulkanPipelineSignature::ShaderDataBinder::BindNew(const string& name)
+	{
+		auto& newDescriptorSet = mPipelineSignature.NewDescripotrSet(mSet, name);
+		Bind(newDescriptorSet);
+		return newDescriptorSet;
 	}
 
 	void VulkanPipelineSignature::ShaderDataBinder::BindSet(VulkanDescriptorSet& set)

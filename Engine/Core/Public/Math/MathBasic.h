@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Defs/Defs.h"
+#include "Core/Config.h"
 
 #include "Stl/Hash.h"
 #include "Archive/ISerializable.h"
@@ -137,18 +138,24 @@ namespace SG
 	//! @return a 4x4 matrix represent the perspective matrix.
 	SG_INLINE Matrix4f BuildPerspectiveMatrix(float fovYInRadians, float aspect, float zNear, float zFar)
 	{
-		return glm::perspective(fovYInRadians, aspect, zNear, zFar);
+		Matrix4f mat = glm::perspective(fovYInRadians, aspect, zNear, zFar);
+		// inverse the proj matrix for vulkan's clip space coordinate
+#ifdef SG_PROJ_FLIP_Y
+		mat[1][1] *= -1.0f;
+#endif
+		return mat;
 	}
 
 	//! Build a orthographic matrix.
-	//! @param [fovInRadians] Field of view in radians, an angle present the view cone.
-	//! @param [aspect] Aspect describe the camera's view in 2D. To be width / height.
-	//! @param [zNear] near z plane value.
-	//! @param [zFar] far z plane value.
-	//! @return a 4x4 matrix represent the perspective matrix.
+	//! @return a 4x4 matrix represent the orthographic matrix.
 	SG_INLINE Matrix4f BuildOrthographicMatrix(float left, float right, float bottom, float top, float zNear, float zFar)
 	{
-		return glm::ortho(left, right, bottom, top, zNear, zFar);
+		Matrix4f mat = glm::ortho(left, right, bottom, top, zNear, zFar);
+		// inverse the proj matrix for vulkan's clip space coordinate
+#ifdef SG_PROJ_FLIP_Y
+		mat[1][1] *= -1.0f;
+#endif
+		return mat;
 	}
 #endif
 

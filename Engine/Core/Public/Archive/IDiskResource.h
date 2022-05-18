@@ -13,7 +13,7 @@ namespace SG
 
 		virtual bool IsDiskResourceLoaded() const noexcept = 0;
 
-		virtual void LoadDataFromDisk() noexcept = 0;
+		virtual void LoadDataFromFile() noexcept = 0;
 
 		virtual string GetFileName() const noexcept = 0;
 		virtual string GetFilePath() const noexcept = 0;

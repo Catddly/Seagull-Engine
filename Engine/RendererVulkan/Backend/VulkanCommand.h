@@ -41,6 +41,7 @@ namespace SG
 		void PushConstants(VulkanPipelineSignature* pSignature, EShaderStage shaderStage, UInt32 size, UInt32 offset, const void* pConstants);
 		void BindDescriptorSet(VulkanPipelineSignature* pSignature, UInt32 firstSet, VulkanDescriptorSet* set, UInt32 dynamicOffsetCnt = 0, UInt32* pOffsets = nullptr, EPipelineType type = EPipelineType::eGraphic);
 		void BindPipelineSignatureNonDynamic(VulkanPipelineSignature* pSignature, EPipelineType type = EPipelineType::eGraphic);
+		void BindPipelineSignatureNonDynamic(VulkanPipelineSignature* pSignature, UInt32 set, EPipelineType type = EPipelineType::eGraphic);
 		void BindPipeline(VulkanPipeline* pPipeline);
 
 		void Draw(UInt32 vertexCount, UInt32 instanceCount, UInt32 firstVertex, UInt32 firstInstance);

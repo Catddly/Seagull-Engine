@@ -2,7 +2,7 @@
 #include "RendererVulkan/GUI/TestGUILayer.h"
 
 #include "Render/CommonRenderData.h"
-#include "Scene/Mesh/MeshDataArchive.h"
+#include "Archive/MeshDataArchive.h"
 
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"

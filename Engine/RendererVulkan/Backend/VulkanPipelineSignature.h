@@ -33,6 +33,8 @@ namespace SG
 
 		SetDescriptorsData&  GetSetDescriptorsData(UInt32 set) { return mDescriptorSetData[set]; }
 		VulkanDescriptorSet& GetDescriptorSet(UInt32 set, const string& name);
+
+		VulkanDescriptorSet& NewDescripotrSet(UInt32 set, const string& name);
 		
 		class SetDataBinder
 		{
@@ -42,6 +44,7 @@ namespace SG
 			SetDataBinder& AddCombindSamplerImage(UInt32 binding, const char* samplerName, const char* textureName);
 			void Bind(VulkanDescriptorSet& set);
 			void Rebind(VulkanDescriptorSet& set);
+			VulkanDescriptorSet& BindNew(const string& name);
 		private:
 			VulkanContext& mContext;
 			VulkanPipelineSignature& mPipelineSignature;
@@ -59,6 +62,7 @@ namespace SG
 			ShaderDataBinder& AddCombindSamplerImage(const char* samplerName, const char* textureName);
 			void Bind(VulkanDescriptorSet& set);
 			void ReBind(VulkanDescriptorSet& set);
+			VulkanDescriptorSet& BindNew(const string& name);
 		private:
 			void BindSet(VulkanDescriptorSet& set);
 		private:

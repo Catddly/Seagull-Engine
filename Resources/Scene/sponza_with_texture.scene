@@ -1,0 +1,1349 @@
+{
+    "Entities": [
+        {
+            "CameraComponent": {
+                "CameraPos": [
+                    63.581878662109375,
+                    63.34069061279297,
+                    -9.861087799072266
+                ],
+                "FrontVector": [
+                    -0.9306107759475708,
+                    -0.3644264340400696,
+                    0.03401417285203934
+                ],
+                "RightVector": [
+                    -0.03652552142739296,
+                    0.0,
+                    -0.9993327260017395
+                ],
+                "UpVector": [
+                    -0.36418429017066956,
+                    0.9312318563461304,
+                    0.013310731388628483
+                ]
+            },
+            "EntityID": "2468517968452275",
+            "TagComponent": {
+                "Name": "main_camera"
+            },
+            "TransformComponent": {
+                "Position": [
+                    0.0,
+                    3.0,
+                    7.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        {
+            "DirectionalLightComponent": {
+                "Color": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "EntityID": "2468517968452275",
+            "TagComponent": {
+                "Name": "directional_light_0"
+            },
+            "TransformComponent": {
+                "Position": [
+                    0.0,
+                    150.0,
+                    0.3499999940395355
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        {
+            "Children": [
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*0",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*2",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0-0",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0-0"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*3",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*5",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0-1",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0-1"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*6",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*8",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0-2",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0-2"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*9",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*11",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0-3",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0-3"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*12",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*14",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0-4",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0-4"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*15",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*17",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0-5",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0-5"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*18",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*20",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0-6",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0-6"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*21",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*23",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0-7",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0-7"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*24",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0-8",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0-8"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*25",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*27",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.001",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.001"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*28",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*30",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.002",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.002"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*31",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*33",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.003-0",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.003-0"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*34",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*36",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.003-1",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.003-1"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*37",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*39",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.004",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.004"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*40",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*42",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.005-0",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.005-0"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*43",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*45",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.005-1",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.005-1"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*46",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*47",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.006-0",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.006-0"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*48",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*49",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.006-1",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.006-1"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*50",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*51",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.007-0",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.007-0"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*52",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*53",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.007-1",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.007-1"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*54",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*56",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.008",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.008"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*57",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*59",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.009",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.009"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*60",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*62",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.010",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.010"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*63",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*65",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.011",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.011"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "EntityID": "2468517968452275",
+                    "MaterialComponent": {
+                        "Albedo": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "AlbedoTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*66",
+                            "NeedMipmap": false
+                        },
+                        "Metallic": 0.10000000149011612,
+                        "NormalTextureAsset": {
+                            "Filename": "sponza_gltf_khronos_fixed_and_split",
+                            "IsCubeMap": false,
+                            "Name": "embedded_texture_*68",
+                            "NeedMipmap": false
+                        },
+                        "Roughness": 0.75
+                    },
+                    "MeshComponent": {
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "IsProceduralMesh": false,
+                        "SubMeshName": "Mesh_0.012",
+                        "Type": 1
+                    },
+                    "TagComponent": {
+                        "Name": "Mesh_0.012"
+                    },
+                    "TransformComponent": {
+                        "Position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                }
+            ],
+            "EntityID": "2468517968452275",
+            "TagComponent": {
+                "Name": "sponza"
+            },
+            "TransformComponent": {
+                "Position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Scale": [
+                    0.10000000149011612,
+                    0.10000000149011612,
+                    0.10000000149011612
+                ]
+            }
+        }
+    ],
+    "Scene": "My Default Scene"
+}

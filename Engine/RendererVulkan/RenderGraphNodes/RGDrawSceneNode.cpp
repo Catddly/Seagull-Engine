@@ -5,7 +5,7 @@
 #include "System/Logger.h"
 #include "Render/Shader/ShaderComiler.h"
 #include "Render/CommonRenderData.h"
-#include "Scene/ResourceLoader/RenderResourceLoader.h"
+#include "Archive/ResourceLoader.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"

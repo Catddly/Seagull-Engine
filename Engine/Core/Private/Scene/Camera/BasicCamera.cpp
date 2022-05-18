@@ -24,8 +24,6 @@ namespace SG
 			mbIsProjDirty = true;
 			mbUseOrtho = false;
 			mProjectionMatrix = BuildPerspectiveMatrix(glm::radians(fovyInDegrees), aspect, zNear, zFar);
-			// inverse the proj matrix for vulkan's clip space coordinate
-			mProjectionMatrix[1][1] *= -1.0f;
 
 			sFovyInDegrees = fovyInDegrees;
 			mAspectRatio   = aspect;

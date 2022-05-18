@@ -2,7 +2,7 @@
 #include "IndirectRenderer.h"
 
 #include "System/System.h"
-#include "Scene/Mesh/MeshDataArchive.h"
+#include "Archive/MeshDataArchive.h"
 #include "Render/Shader/ShaderComiler.h"
 #include "Profile/Profile.h"
 //#include "Render/CommonRenderData.h"
@@ -225,13 +225,11 @@ namespace SG
 			return;
 
 		vector<InstanceOutputData> instanceOutputData;
-		//instanceOutputData.emplace_back(InstanceOutputData());
-
 		vector<DrawIndexedIndirectCommand> indirectCommands;
 		indirectCommands.resize(MeshDataArchive::GetInstance()->GetNumMeshData());
 
 		auto pScene = SSystem()->GetMainScene();
-		pRenderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RenderMeshBuildData& buildData)
+		pRenderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RendererBuildData& buildData)
 			{
 				if (buildData.instanceCount > 1) // move it to the Forward Instance Mesh Pass
 				{
@@ -262,10 +260,6 @@ namespace SG
 						instanceOutputData.emplace_back(insOutputData);
 					}
 				}
-				//else // see every draw call as one instance
-				//{
-				//	instanceOutputData.emplace_back(InstanceOutputData());
-				//}
 
 				auto* pMeshData = MeshDataArchive::GetInstance()->GetData(meshId);
 				const UInt64 vbSize = pMeshData->vertices.size() * sizeof(float);
@@ -316,6 +310,17 @@ namespace SG
 				indirectDc.drawMesh.iBOffset = mPackedIBCurrOffset;
 				indirectDc.drawMesh.pInstanceBuffer = nullptr;
 				indirectDc.drawMesh.instanceOffset = 0;
+
+				auto* pPipelineSignature = mpContext->pTempPipelineSignature;
+				indirectDc.drawMaterial.pPipelineSignature = pPipelineSignature;
+				VulkanPipelineSignature::ShaderDataBinder setBinder(pPipelineSignature, mpContext->pShader, 1);
+				setBinder.AddCombindSamplerImage("texture_1k_mipmap_sampler", buildData.albedoTexAssetName.c_str());
+				setBinder.AddCombindSamplerImage("texture_1k_mipmap_sampler", buildData.metallicTexAssetName.c_str());
+				setBinder.AddCombindSamplerImage("texture_1k_mipmap_sampler", buildData.roughnessTexAssetName.c_str());
+				setBinder.AddCombindSamplerImage("texture_1k_mipmap_sampler", buildData.aoTexAssetName.c_str());
+				setBinder.AddCombindSamplerImage("texture_1k_mipmap_sampler", buildData.normalTexAssetName.c_str());
+				auto& descriptorSet = setBinder.BindNew(buildData.materialAssetName);
+				indirectDc.drawMaterial.materialAssetName = buildData.materialAssetName;
 
 				indirectDc.count = 1;
 				indirectDc.first = meshId;
@@ -566,8 +571,20 @@ namespace SG
 
 		for (auto& dc : mDrawCallMap[meshPass])
 		{
-			BindMesh(dc.drawMesh);
-			BindMaterial(dc.drawMaterial);
+			BindMesh(dc.drawMesh); // bind vertex buffer, index buffer and instance buffer (if exists)
+			BindMaterial(dc.drawMaterial); // bind descriptor set (i.e. bind resources into the pipeline layout)
+
+			mpCmdBuf->DrawIndexedIndirect(dc.pIndirectBuffer, dc.first * sizeof(DrawIndexedIndirectCommand), 1, sizeof(DrawIndexedIndirectCommand));
+		}
+	}
+
+	void IndirectRenderer::DrawWithoutBindMaterial(EMeshPass meshPass)
+	{
+		SG_PROFILE_FUNCTION();
+
+		for (auto& dc : mDrawCallMap[meshPass])
+		{
+			BindMesh(dc.drawMesh); // bind vertex buffer, index buffer and instance buffer (if exists)
 
 			mpCmdBuf->DrawIndexedIndirect(dc.pIndirectBuffer, dc.first * sizeof(DrawIndexedIndirectCommand), 1, sizeof(DrawIndexedIndirectCommand));
 		}
@@ -585,6 +602,14 @@ namespace SG
 
 	void IndirectRenderer::BindMaterial(const DrawMaterial& drawMaterial)
 	{
+		SG_PROFILE_FUNCTION();
+
+		mpCmdBuf->BindPipelineSignatureNonDynamic(drawMaterial.pPipelineSignature, 0); // bind necessary resource first
+		if (!drawMaterial.materialAssetName.empty())
+		{
+			auto& descriptorSet = drawMaterial.pPipelineSignature->GetDescriptorSet(1, drawMaterial.materialAssetName);
+			mpCmdBuf->BindDescriptorSet(drawMaterial.pPipelineSignature, 1, &descriptorSet); // set index 1 for custom user resource bind.
+		}
 	}
 
 	void IndirectRenderer::LogDebugInfo()

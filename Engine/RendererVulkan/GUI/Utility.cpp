@@ -124,13 +124,13 @@ namespace SG
 		DrawComponent<MaterialComponent>(entity, [&tag](MaterialComponent& comp)
 			{
 				tag.bDirty |= DrawGUIColorEdit3("Color", comp.albedo);
-				ImGui::Text("Albedo Map: %s", comp.albedoTex ? comp.albedoTex->GetFileName() : "Null");
+				ImGui::Text("Albedo Map: %s", comp.albedoTex ? comp.albedoTex->GetAssetName() : "Null");
 				tag.bDirty |= DrawGUIDragFloat("Metallic", comp.metallic, 0.35f, 0.05f, 0.0f, 1.0f);
-				ImGui::Text("Metallic Map: %s", comp.metallicTex ? comp.metallicTex->GetFileName() : "Null");
+				ImGui::Text("Metallic Map: %s", comp.metallicTex ? comp.metallicTex->GetAssetName() : "Null");
 				tag.bDirty |= DrawGUIDragFloat("Roughness", comp.roughness, 0.75f, 0.05f, 0.0f, 1.0f);
-				ImGui::Text("Roughness Map: %s", comp.roughnessTex ? comp.roughnessTex->GetFileName() : "Null");
-				ImGui::Text("AO Map: %s", comp.AOTex ? comp.AOTex->GetFileName() : "Null");
-				ImGui::Text("Normal Map: %s", comp.normalTex ? comp.normalTex->GetFileName() : "Null");
+				ImGui::Text("Roughness Map: %s", comp.roughnessTex ? comp.roughnessTex->GetAssetName() : "Null");
+				ImGui::Text("AO Map: %s", comp.AOTex ? comp.AOTex->GetAssetName() : "Null");
+				ImGui::Text("Normal Map: %s", comp.normalTex ? comp.normalTex->GetAssetName() : "Null");
 			});
 		DrawComponent<MeshComponent>(entity, [&tag](MeshComponent& comp)
 			{

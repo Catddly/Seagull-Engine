@@ -12,11 +12,19 @@
 namespace SG
 {
 
-	struct RenderMeshBuildData
+	struct RendererBuildData
 	{
 		UInt32 objectId = UInt32(-1); //! Object id to get the ObjcetRenderData.
 		UInt32 instanceCount = 1; //! Instance count of this draw call, used to decide whether this draw call should be instance draw.
 		vector<PerInstanceData> perInstanceData = {}; // Object ids of instance data.
+
+		// binded texture assets
+		string materialAssetName = "";
+		string albedoTexAssetName = "";
+		string metallicTexAssetName = "";
+		string roughnessTexAssetName = "";
+		string normalTexAssetName = "";
+		string aoTexAssetName = "";
 	};
 
 	interface IAsset;
@@ -42,7 +50,7 @@ namespace SG
 		void LogDebugInfo() const;
 	private:
 		WeakRefPtr<Scene> mpScene;
-		eastl::map<UInt32, RenderMeshBuildData> mRenderMeshBuildDataMap; // meshId -> RenderMeshBuildData (ordered with meshId)
+		eastl::map<UInt32, RendererBuildData> mRenderMeshBuildDataMap; // meshId -> RenderMeshBuildData (ordered with meshId)
 		eastl::unordered_map<UInt32, WeakRefPtr<IAsset>> mCurrentFrameNewAssets; // assetId -> IAsset
 		eastl::unordered_map<UInt32, WeakRefPtr<IAsset>> mAssets; // assetId -> IAsset
 

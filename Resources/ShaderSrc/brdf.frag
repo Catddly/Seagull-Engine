@@ -216,7 +216,12 @@ void main()
 {		
 	vec3 albedo = perObjectBuffer.objects[inId].albedo;
 	if ((perObjectBuffer.objects[inId].texFlag & ALBEDO_TEX_MASK) != 0)
-		albedo = pow(texture(sAlbedoMap, inUV).rgb, vec3(2.2));
+	{
+		vec4 texColor = texture(sAlbedoMap, inUV);
+		if (texColor.a < 0.5)
+			discard;
+		albedo = pow(texColor.rgb, vec3(2.2));
+	}
 
 	vec3 N = normalize(inNormalWS);
 	if ((perObjectBuffer.objects[inId].texFlag & NORMAL_TEX_MASK) != 0)
@@ -242,11 +247,11 @@ void main()
 		directLighting += directLight(albedo, normalize(lightUbo.pointLightPos - inPosWS), V, N, F0, metallic, roughness, pointLightRadiance);
 
 		// directional light
-		directLighting += directLight(albedo, -lightUbo.viewDirection, V, N, F0, metallic, roughness, lightUbo.directionalColor.rgb);
+		vec3 directionalLightRadiance = directLight(albedo, -lightUbo.viewDirection, V, N, F0, metallic, roughness, lightUbo.directionalColor.rgb);
+		float shadow = SampleShadowMapPCF(inShadowMapPos);
+		directLighting += mix(directionalLightRadiance, SHADOW_COLOR, shadow);
 	}
 
-	float shadow = SampleShadowMapPCF(inShadowMapPos);
-	directLighting = mix(directLighting, SHADOW_COLOR, shadow);
 	
 	vec3 indirectLighting = vec3(0.0);
 	{

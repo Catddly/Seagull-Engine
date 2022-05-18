@@ -18,13 +18,18 @@ namespace SG
 		SG_CORE_API virtual Matrix4f GetViewMatrix() const override { return mViewMatrix; }
 		SG_CORE_API virtual Matrix4f GetProjMatrix() const override { return mProjectionMatrix; }
 
-		SG_CORE_API virtual void SetPerspective(float fovyInDegrees, float aspect, float zNear = 0.01f, float zFar = 256.0f) override;
+		SG_CORE_API virtual void SetPerspective(float fovyInDegrees, float aspect, float zNear = 0.01f, float zFar = 512.0f) override;
 		SG_CORE_API virtual void SetOrthographic(float left, float right, float top, float bottom, float zNear, float zfar) override;
 
 		SG_CORE_API virtual void     SetPosition(const Vector3f& pos) override { mbIsViewDirty = true; mPosition = pos; UpdateViewMatrix(); }
 		SG_CORE_API virtual Vector3f GetPosition() const override { return mPosition; }
 		SG_CORE_API virtual void     SetRotation(const Vector3f& rot) override { mbIsViewDirty = true; mRotation = rot; UpdateViewMatrix(); }
 		SG_CORE_API virtual Vector3f GetRotation() const override { return mRotation; }
+
+		SG_CORE_API virtual float GetMoveSpeed() const override { return mMoveSpeed; }
+		SG_CORE_API virtual void  SetMoveSpeed(float speed) override { mMoveSpeed = speed; }
+		SG_CORE_API virtual float GetRotateSpeed() const override { return mRotateSpeed; }
+		SG_CORE_API virtual void  SetRotateSpeed(float speed) override { mRotateSpeed = speed; }
 
 		SG_CORE_API virtual bool IsViewDirty() const override { return mbIsViewDirty; }
 		SG_CORE_API virtual bool IsProjDirty() const override { return mbIsProjDirty; }
@@ -48,6 +53,9 @@ namespace SG
 		Matrix4f mProjectionMatrix;
 
 		Frustum mFrustum;
+
+		float mMoveSpeed = 5.0f;
+		float mRotateSpeed = 1.5f;
 
 		mutable bool mbIsViewDirty = false;
 		mutable bool mbIsProjDirty = false;

@@ -5,8 +5,8 @@
 
 #include "Platform/OS.h"
 #include "Scene/Camera/FirstPersonCamera.h"
-//#include "Scene/Mesh/MeshDataArchive.h"
-#include "Scene/Mesh/TextureAssetArchive.h"
+#include "Archive/TextureAssetArchive.h"
+#include "Archive/MaterialAssetArchive.h"
 #include "Profile/Profile.h"
 
 namespace SG
@@ -169,10 +169,11 @@ namespace SG
 		auto& cam = mpCameraEntity->AddComponent<CameraComponent>();
 		cam.pCamera = MakeRef<FirstPersonCamera>(camPos);
 		cam.pCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
+		cam.pCamera->SetMoveSpeed(50.0f);
 
-		//auto* pEntity = CreateEntity("directional_light_0", Vector3f{ 8.0f, 12.0f, 0.0f }, Vector3f(1.0f), Vector3f(40.0f, -40.0f, 0.0f));
-		//pEntity->AddTag<LightTag>();
-		//pEntity->AddComponent<DirectionalLightComponent>();
+		auto* pEntity = CreateEntity("directional_light_0", Vector3f{ 0.0f, 150.0f, 0.35f }, Vector3f(1.0f), Vector3f(0.0f, 0.0f, 0.0f));
+		pEntity->AddTag<LightTag>();
+		pEntity->AddComponent<DirectionalLightComponent>();
 
 		//pEntity = CreateEntity("point_light_0", { 1.25f, 0.75f, -0.3f }, Vector3f(1.0f), Vector3f(0.0f));
 		//pEntity->AddTag<LightTag>();
@@ -184,10 +185,10 @@ namespace SG
 		//MaterialScene();
 		//MaterialTexturedScene();
 
-		//pEntity = CreateEntityWithMesh("sponza", "sponza", EMeshType::eGLTF);
-		//auto& trans = pEntity->GetComponent<TransformComponent>();
-		//trans.rotation = { 90.0f, 0.0f, 0.0f };
-		//trans.scale = { 0.25f, 0.25f, 0.25f };
+		pEntity = CreateEntityWithMesh("sponza", "sponza_gltf_khronos_fixed_and_split", EMeshType::eGLTF, true);
+		auto& trans = pEntity->GetComponent<TransformComponent>();
+		trans.rotation = { 0.0f, 0.0f, 0.0f };
+		trans.scale = { 0.1f, 0.1f, 0.1f };
 
 		Refresh();
 	}
@@ -259,12 +260,12 @@ namespace SG
 		return pEntityContext;
 	}
 
-	Scene::Entity* Scene::CreateEntityWithMesh(const string& name, const string& filename, EMeshType type)
+	Scene::Entity* Scene::CreateEntityWithMesh(const string& name, const string& filename, EMeshType type, bool bLoadMaterials)
 	{
-		return &(CreateEntityContextWithMesh(name, filename, type)->entity);
+		return &(CreateEntityContextWithMesh(name, filename, type, bLoadMaterials)->entity);
 	}
 
-	Scene::EntityContext* Scene::CreateEntityContextWithMesh(const string& name, const string& filename, EMeshType type)
+	Scene::EntityContext* Scene::CreateEntityContextWithMesh(const string& name, const string& filename, EMeshType type, bool bLoadMaterials)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -281,7 +282,7 @@ namespace SG
 		if (!MeshDataArchive::GetInstance()->HaveMeshData(filename))
 		{
 			MeshResourceLoader loader;
-			if (!loader.LoadFromFile(filename, type, meshData))
+			if (!loader.LoadFromFile(filename, type, meshData, bLoadMaterials))
 				SG_LOG_WARN("Mesh %s load failure!", filename);
 		}
 		else
@@ -299,12 +300,23 @@ namespace SG
 			auto* pEntityContext = CreateEntityContextWithoutTreeNode(subMesh.subMeshName);
 			auto* pSubMeshTreeNode = New(TreeNode, &pEntityContext->entity);
 			pEntityContext->pTreeNode = pSubMeshTreeNode;
-
+			// do connect
 			pSubMeshTreeNode->pParent = pRootNode;
 			pRootNode->pChilds.emplace_back(pSubMeshTreeNode);
-
+			// add necessary components
 			auto* pSubMeshEntity = &pEntityContext->entity;
-			pSubMeshEntity->AddComponent<MaterialComponent>();
+			auto& mat = pSubMeshEntity->AddComponent<MaterialComponent>();
+			if (subMesh.materialAssetId != IDAllocator<UInt32>::INVALID_ID) // assign material
+			{
+				auto pMaterialAsset = MaterialAssetArchive::GetInstance()->GetMaterialAsset(subMesh.materialAssetId);
+				mat.materialAssetId = pMaterialAsset->GetAssetID();
+				mat.albedoTex = pMaterialAsset->GetAlbedoTexture();
+				mat.metallicTex = pMaterialAsset->GetMetallicTexture();
+				mat.roughnessTex = pMaterialAsset->GetRoughnessTexture();
+				mat.normalTex = pMaterialAsset->GetNormalTexture();
+				mat.AOTex = pMaterialAsset->GetAOTexture();
+			}
+
 			auto& mesh = pSubMeshEntity->AddComponent<MeshComponent>();
 
 			mesh.meshType = type;
@@ -629,6 +641,7 @@ namespace SG
 			FPSCam->SetRightVector(cameraComp["RightVector"].get<Vector3f>());
 			FPSCam->SetFrontVector(cameraComp["FrontVector"].get<Vector3f>());
 			cam.pCamera = FPSCam;
+			cam.pCamera->SetMoveSpeed(50.0f);
 			mpCameraEntity = pEntity;
 		}
 

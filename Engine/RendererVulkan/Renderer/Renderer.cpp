@@ -2,7 +2,7 @@
 #include "RendererVulkan/Renderer/Renderer.h"
 
 #include "System/Logger.h"
-#include "Scene/Mesh/MeshDataArchive.h"
+#include "Archive/MeshDataArchive.h"
 
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
@@ -20,7 +20,7 @@ namespace SG
 
 	void Renderer::CollectRenderData(RefPtr<RenderDataBuilder> pRenderDataBuilder)
 	{
-		pRenderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RenderMeshBuildData& buildData)
+		pRenderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RendererBuildData& buildData)
 			{
 				if (buildData.instanceCount > 1) // move it to the Forward Instance Mesh Pass
 				{

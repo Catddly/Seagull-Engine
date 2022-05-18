@@ -10,6 +10,8 @@
 #	define SG_CORE_API
 #endif
 
+#define SG_PROJ_FLIP_Y 1
+
 #define SG_ENABLE_PROFILE 1
 
 #define SG_ENABLE_MEMORY_TRACKING 0

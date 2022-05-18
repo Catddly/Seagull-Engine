@@ -9,6 +9,7 @@
 #include "VulkanAllocator.h"
 
 #include "Stl/vector.h"
+#include "Stl/SmartPtr.h"
 
 namespace SG
 {
@@ -22,6 +23,9 @@ namespace SG
 	class VulkanRenderPass;
 	class VulkanFrameBuffer;
 	class VulkanQueue;
+
+	class VulkanPipelineSignature;
+	class VulkanShader;
 
 	class VulkanQueryPool;
 
@@ -68,6 +72,9 @@ namespace SG
 
 		VulkanQueryPool* pPipelineStatisticsQueryPool;
 		VulkanQueryPool* pTimeStampQueryPool;
+		// for multi-texture bind test
+		VulkanPipelineSignature* pTempPipelineSignature = nullptr;
+		RefPtr<VulkanShader> pShader = nullptr;
 
 		void WindowResize();
 	private:

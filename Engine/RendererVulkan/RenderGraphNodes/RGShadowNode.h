@@ -30,11 +30,9 @@ namespace SG
 		LoadStoreClearOp  mDepthRtLoadStoreOp;
 
 		RefPtr<VulkanShader> mpShadowShader;
+		RefPtr<VulkanShader> mpShadowInstanceShader;
 		RefPtr<VulkanPipelineSignature> mpShadowPipelineSignature;
 		VulkanPipeline* mpShadowPipeline;
-
-		RefPtr<VulkanShader> mpShadowInstanceShader;
-		RefPtr<VulkanPipelineSignature> mpShadowInstancePipelineSignature;
 		VulkanPipeline* mpShadowInstancePipeline;
 
 		bool mbDrawShadow = true;

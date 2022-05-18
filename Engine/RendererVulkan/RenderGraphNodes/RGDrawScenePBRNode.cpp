@@ -5,7 +5,7 @@
 #include "System/Logger.h"
 #include "Render/Shader/ShaderComiler.h"
 #include "Render/CommonRenderData.h"
-#include "Scene/ResourceLoader/RenderResourceLoader.h"
+#include "Archive/ResourceLoader.h"
 #include "Profile/Profile.h"
 
 #include "Stl/Utility.h"
@@ -99,12 +99,16 @@ namespace SG
 			.AddCombindSamplerImage("brdf_lut_sampler", "brdf_lut")
 			.AddCombindSamplerImage("irradiance_cubemap_sampler", "cubemap_irradiance")
 			.AddCombindSamplerImage("prefilter_cubemap_sampler", "cubemap_prefilter")
-			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_albedo")
-			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_metallic")
-			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_roughness")
-			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_ao")
-			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_normal")
+			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*0")
+			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_metallic")
+			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_roughness")
+			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_ao")
+			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*2")
 			.Build();
+
+		// TEMPORARY
+		mContext.pTempPipelineSignature = mpPipelineSignature.get();
+		mContext.pShader = mpShader;
 
 #ifdef SG_ENABLE_HDR
 		ClearValue cv = {};
@@ -225,14 +229,14 @@ namespace SG
 		//pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
 		IndirectRenderer::Begin(drawInfo);
+		//pBuf.BindPipelineSignatureNonDynamic(mpPipelineSignature.get());
+
 		// 1.1 Forward Mesh Pass
 		pBuf.BindPipeline(mpPipeline);
-		pBuf.BindPipelineSignatureNonDynamic(mpPipelineSignature.get());
 		IndirectRenderer::Draw(EMeshPass::eForward);
 
 		// 1.2 Forward Instanced Mesh Pass
 		pBuf.BindPipeline(mpInstancePipeline);
-		pBuf.BindPipelineSignatureNonDynamic(mpPipelineSignature.get());
 		IndirectRenderer::Draw(EMeshPass::eForwardInstanced);
 		IndirectRenderer::End();
 	}
@@ -690,11 +694,11 @@ namespace SG
 	{
 		auto& defaultDesriptorSet = mpPipelineSignature->GetDescriptorSet(1, "__non_dynamic");
 		VulkanPipelineSignature::ShaderDataBinder(mpPipelineSignature.get(), mpShader, 1) // rebind all the textures to descriptor
-			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_albedo")
-			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_metallic")
-			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_roughness")
-			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_ao")
-			.AddCombindSamplerImage("texture_2k_mipmap_sampler", "cerberus_normal")
+			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*0")
+			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_metallic")
+			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_roughness")
+			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_ao")
+			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*2")
 			.ReBind(defaultDesriptorSet);
 	}
 

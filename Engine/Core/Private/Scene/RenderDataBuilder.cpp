@@ -2,7 +2,8 @@
 #include "Scene/RenderDataBuilder.h"
 
 #include "Scene/Components.h"
-#include "Scene/Mesh/MeshDataArchive.h"
+#include "Archive/MeshDataArchive.h"
+#include "Archive/MaterialAssetArchive.h"
 #include "Profile/Profile.h"
 #include "TipECS/Entity.h"
 
@@ -107,7 +108,7 @@ namespace SG
 		for (auto& node : mCurrentFrameNewAssets)
 		{
 			auto pLock = node.second.lock();
-			pLock->LoadDataFromDisk();
+			pLock->LoadDataFromFile();
 		}
 	}
 
@@ -135,9 +136,27 @@ namespace SG
 					if (node == mRenderMeshBuildDataMap.end())
 					{
 						auto node = mRenderMeshBuildDataMap.insert(meshId);
-						node.first->second.objectId = objectId;
-						node.first->second.instanceCount = 1;
+						auto& rendererBuildData = node.first->second;
+
+						rendererBuildData.objectId = objectId;
+						rendererBuildData.instanceCount = 1;
 						meshComp.instanceId = 0;
+
+						if (entity.HasComponent<MaterialComponent>())
+						{
+							auto& matComp = entity.GetComponent<MaterialComponent>();
+							rendererBuildData.materialAssetName = MaterialAssetArchive::GetInstance()->GetMaterialAsset(matComp.materialAssetId)->GetAssetName();
+							if (matComp.albedoTex)
+								rendererBuildData.albedoTexAssetName = matComp.albedoTex->GetAssetName();
+							if (matComp.metallicTex)
+								rendererBuildData.metallicTexAssetName = matComp.metallicTex->GetAssetName();
+							if (matComp.roughnessTex)
+								rendererBuildData.roughnessTexAssetName = matComp.roughnessTex->GetAssetName();
+							if (matComp.normalTex)
+								rendererBuildData.normalTexAssetName = matComp.normalTex->GetAssetName();
+							if (matComp.AOTex)
+								rendererBuildData.aoTexAssetName = matComp.AOTex->GetAssetName();
+						}
 					}
 					else // have instance
 					{

@@ -2,9 +2,9 @@
 
 #include "Math/MathBasic.h"
 
-#include "Scene/Mesh/MeshDataArchive.h"
-#include "Scene/ResourceLoader/RenderResourceLoader.h"
-#include "Scene/ResourceLoader/ResourceDefs.h"
+#include "Archive/ResourceDefs.h"
+#include "Archive/ResourceLoader.h"
+#include "Archive/MeshDataArchive.h"
 #include "Render/MeshGenerate/MeshGenerator.h"
 #include "Asset/Asset.h"
 #include "Profile/Profile.h"
@@ -168,13 +168,14 @@ namespace SG
 	struct MaterialComponent
 	{
 		Vector3f albedo = { 1.0f, 1.0f, 1.0f };
+		float    metallic = 0.1f;
+		float    roughness = 0.75f;
 		RefPtr<TextureAsset> albedoTex = nullptr;
-		float    metallic = 0.7f;
 		RefPtr<TextureAsset> metallicTex = nullptr;
-		float    roughness = 0.35f;
 		RefPtr<TextureAsset> roughnessTex = nullptr;
 		RefPtr<TextureAsset> normalTex = nullptr;
 		RefPtr<TextureAsset> AOTex = nullptr;
+		UInt32 materialAssetId = IDAllocator<UInt32>::INVALID_ID;
 
 		MaterialComponent() = default;
 		MaterialComponent(const Vector3f& c, float m, float r)
@@ -226,16 +227,23 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		Vector3f rotatedVec = Vector4f(SG_ENGINE_FRONT_VEC(), 0.0f) * glm::toMat4(Quaternion(glm::radians(trans.rotation)));
-		return glm::normalize(rotatedVec);
+		//Vector3f rotatedVec = Vector4f(SG_ENGINE_FRONT_VEC(), 0.0f) * glm::toMat4(Quaternion(glm::radians(trans.rotation)));
+		//return glm::normalize(rotatedVec);
+
+		Vector3f direction = -trans.position;
+		return glm::normalize(direction);
 	}
 
 	SG_INLINE Matrix4f CalcDirectionalLightViewProj(const TransformComponent& trans)
 	{
 		SG_PROFILE_FUNCTION();
 
-		return BuildOrthographicMatrix(-10.0f, 10.0f, -10.0f, 10.0f, 0.0001f, 200.0f) *
-			BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
+		return BuildOrthographicMatrix(-150.0f, 150.0f, -150.0f, 150.0f, 1.0f, 500.0f) *
+			BuildViewMatrixCenter(trans.position, Vector3f(0.0f), SG_ENGINE_UP_VEC());
+			//BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
+
+		//return BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0f, 300.0f) *
+		//	BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
