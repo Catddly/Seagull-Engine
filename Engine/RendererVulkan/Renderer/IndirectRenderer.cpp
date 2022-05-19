@@ -320,6 +320,7 @@ namespace SG
 				setBinder.AddCombindSamplerImage("texture_1k_mipmap_sampler", buildData.aoTexAssetName.c_str());
 				setBinder.AddCombindSamplerImage("texture_1k_mipmap_sampler", buildData.normalTexAssetName.c_str());
 				auto& descriptorSet = setBinder.BindNew(buildData.materialAssetName);
+
 				indirectDc.drawMaterial.materialAssetName = buildData.materialAssetName;
 
 				indirectDc.count = 1;

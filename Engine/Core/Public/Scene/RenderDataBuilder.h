@@ -19,6 +19,7 @@ namespace SG
 		vector<PerInstanceData> perInstanceData = {}; // Object ids of instance data.
 
 		// binded texture assets
+		UInt32 materialTextureMask = 0;
 		string materialAssetName = "";
 		string albedoTexAssetName = "";
 		string metallicTexAssetName = "";

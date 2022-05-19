@@ -107,6 +107,7 @@ namespace SG
 		outRaw.height = bIsCubeMap ? (y / 3) : y;
 		outRaw.array = bIsCubeMap ? 6 : 1;
 		outRaw.mipLevel = bNeedMipMap ? CalcMipmapLevel(outRaw.width, outRaw.height) : 1;
+
 		// force to be 4 channels
 		outRaw.sizeInByte = x * y * STBI_rgb_alpha;
 		outRaw.dimention = STBI_rgb_alpha;
@@ -149,7 +150,7 @@ namespace SG
 			auto* pTex = scene->GetEmbeddedTexture(texName.C_Str()); \
 			string textureName = "embedded_texture_"; \
 			textureName += texName.C_Str(); \
-			STORED_ARRAY[COUNTER] = TextureAssetArchive::GetInstance()->NewTextureAsset(textureName, name, reinterpret_cast<Byte*>(pTex->pcData), pTex->mWidth); \
+			STORED_ARRAY[COUNTER] = TextureAssetArchive::GetInstance()->NewTextureAsset(textureName, name, reinterpret_cast<Byte*>(pTex->pcData), pTex->mWidth, true); \
 			SG_LOG_DEBUG("    Name: %s", texName.C_Str()); \
 			SG_LOG_DEBUG("    Width: %d", pTex->mWidth); \
 			SG_LOG_DEBUG("    Height: %d", pTex->mHeight); \

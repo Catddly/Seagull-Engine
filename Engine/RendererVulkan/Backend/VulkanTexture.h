@@ -65,7 +65,8 @@ namespace SG
 #else
 		VkDeviceMemory memory;
 #endif
-		VkImageLayout  currLayout; // used to do some safety check
+
+		vector<VkImageLayout> currLayouts; // used to do some safety check (for each mipmap)
 
 		UInt32 width;
 		UInt32 height;

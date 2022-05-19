@@ -191,6 +191,9 @@ namespace SG
 			mpRts[i]->array  = 1;
 			mpRts[i]->mipLevel = 1;
 
+			mpRts[i]->currLayouts.resize(1);
+			mpRts[i]->currLayouts[0] = VK_IMAGE_LAYOUT_UNDEFINED;
+
 			mpRts[i]->format = ToSGImageFormat(mFormat);
 			mpRts[i]->sample = ToSGSampleCount(VK_SAMPLE_COUNT_1_BIT);
 			mpRts[i]->type   = ToSGImageType(VK_IMAGE_TYPE_2D);

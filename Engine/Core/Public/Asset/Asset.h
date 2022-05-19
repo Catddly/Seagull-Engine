@@ -82,6 +82,12 @@ namespace SG
 	public:
 		MaterialAsset();
 		MaterialAsset(const string& name, const string& filename);
+		// texture masks
+		static constexpr UInt32 ALBEDO_TEX_MASK = BIT(0);
+		static constexpr UInt32 METALLIC_TEX_MASK = BIT(1);
+		static constexpr UInt32 ROUGHNESS_TEX_MASK = BIT(2);
+		static constexpr UInt32 NORMAL_TEX_MASK = BIT(3);
+		static constexpr UInt32 AO_TEX_MASK = BIT(4);
 
 		virtual string GetFileName() const noexcept { return mFilename; }
 		virtual string GetFilePath() const noexcept { return ""; }
@@ -105,6 +111,8 @@ namespace SG
 		SG_INLINE RefPtr<TextureAsset> GetRoughnessTexture() const noexcept { return mRoughnessTex; }
 		SG_INLINE RefPtr<TextureAsset> GetNormalTexture() const noexcept { return mNormalTex; }
 		SG_INLINE RefPtr<TextureAsset> GetAOTexture() const noexcept { return mAOTex; }
+
+		UInt32 GetTextureMask() const noexcept;
 
 		virtual void Serialize(json& node) override {}
 		virtual void Deserialize(json& node) override {}

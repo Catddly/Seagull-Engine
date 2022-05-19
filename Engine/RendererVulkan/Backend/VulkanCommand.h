@@ -53,9 +53,10 @@ namespace SG
 		void CopyBuffer(VulkanBuffer& srcBuffer, VulkanBuffer& dstBuffer, UInt64 srcOffset = 0, UInt64 dstOffset = 0);
 		void CopyBufferToImage(VulkanBuffer& srcBuffer, VulkanTexture& dstTexture, const vector<TextureCopyRegion>& region);
 		void CopyImage(VulkanTexture& srcTexture, VulkanTexture& dstTexture, const TextureCopyRegion& region);
+		void BlitImage(VulkanTexture& srcTexture, VulkanTexture& dstTexture, const TextureBlitRegion& region, EFilterMode mode);
 
 		//void BufferBarrier();
-		void ImageBarrier(VulkanTexture* pTex, EResourceBarrier oldBarrier, EResourceBarrier newBarrier);
+		void ImageBarrier(VulkanTexture* pTex, EResourceBarrier oldBarrier, EResourceBarrier newBarrier, int mipLevel = -1);
 		void BufferBarrier(VulkanBuffer* pBuf, EPipelineStageAccess oldStage, EPipelineStageAccess newStage, EPipelineType srcType = EPipelineType::eGraphic, EPipelineType dstType = EPipelineType::eGraphic);
 		//void MemoryBarrier();
 

@@ -246,6 +246,7 @@ namespace SG
 		case SG::EImageFormat::eUnorm_B8G8R8: return 3;
 		case SG::EImageFormat::eUnorm_R8G8B8A8: return 4;
 		case SG::EImageFormat::eUnorm_B8G8R8A8: return 4;
+		case SG::EImageFormat::eSfloat_R32G32B32A32: return 16;
 		case SG::EImageFormat::eSnorm_R8:
 			break;
 		case SG::EImageFormat::eSnorm_R8G8:
@@ -361,8 +362,6 @@ namespace SG
 		case SG::EImageFormat::eUint_R32G32B32A32:
 			break;
 		case SG::EImageFormat::eSint_R32G32B32A32:
-			break;
-		case SG::EImageFormat::eSfloat_R32G32B32A32:
 			break;
 		case SG::EImageFormat::eUint_R64:
 			break;
@@ -542,6 +541,19 @@ namespace SG
 		UInt32 mipLevel;
 		UInt32 baseArray;
 		UInt32 layer;
+	};
+
+	struct TextureBlitRegion
+	{
+		Int32  srcOffsets[2][3] = {};
+		UInt32 srcMipLevel;
+		UInt32 srcBaseArrayLayer;
+		UInt32 srcLayerCount;
+
+		Int32  dstOffsets[2][3] = {};
+		UInt32 dstMipLevel;
+		UInt32 dstBaseArrayLayer;
+		UInt32 dstLayerCount;
 	};
 
 	struct TextureCreateDesc

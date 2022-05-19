@@ -3,24 +3,24 @@
         {
             "CameraComponent": {
                 "CameraPos": [
-                    2.7901105880737305,
-                    1.9833471775054932,
-                    1.443574070930481
+                    3.608910322189331,
+                    2.494795322418213,
+                    2.9053096771240234
                 ],
                 "FrontVector": [
-                    -0.6951133608818054,
-                    -0.4434090256690979,
-                    -0.5658673048019409
+                    -0.6627107858657837,
+                    -0.4505133628845215,
+                    -0.5982074737548828
                 ],
                 "RightVector": [
-                    0.6313235759735107,
+                    0.6700571179389954,
                     0.0,
-                    -0.775519609451294
+                    -0.7423096299171448
                 ],
                 "UpVector": [
-                    -0.3438718914985657,
-                    0.8963198661804199,
-                    -0.2799336910247803
+                    -0.3344200551509857,
+                    0.8927698135375977,
+                    -0.3018697202205658
                 ]
             },
             "EntityID": "2468517968452275",
@@ -59,13 +59,13 @@
             },
             "TransformComponent": {
                 "Position": [
-                    8.0,
-                    12.0,
-                    0.0
+                    0.0,
+                    150.0,
+                    0.3499999940395355
                 ],
                 "Rotation": [
-                    40.0,
-                    -40.0,
+                    0.0,
+                    0.0,
                     0.0
                 ],
                 "Scale": [
@@ -114,11 +114,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "model_mat",
+                "Filename": "",
                 "Metallic": 0.20000000298023224,
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
                 "Filename": "model",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "defaultobject",
                 "Type": 0
@@ -152,11 +155,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "model_1_mat",
+                "Filename": "",
                 "Metallic": 0.800000011920929,
                 "Roughness": 0.3499999940395355
             },
             "MeshComponent": {
                 "Filename": "model",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "defaultobject",
                 "Type": 0
@@ -190,6 +196,8 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "grid_mat",
+                "Filename": "",
                 "Metallic": 0.05000000074505806,
                 "NormalTextureAsset": {
                     "Filename": "cerberus/normal.ktx",
@@ -201,6 +209,7 @@
             },
             "MeshComponent": {
                 "Filename": "_generated_grid",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": true,
                 "SubMeshName": "_grid_0",
                 "Type": 2

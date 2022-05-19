@@ -72,7 +72,6 @@ namespace SG
 			SG_ASSERT(false);
 
 		pUserData = CI.pUserData;
-		currLayout = ToVkImageLayout(CI.initLayout);
 
 		width = CI.width;
 		height = CI.height;
@@ -84,6 +83,10 @@ namespace SG
 		type = CI.type;
 		sample = CI.sample;
 		usage = CI.usage;
+
+		currLayouts.resize(mipLevel);
+		for (auto& layout : currLayouts)
+			layout = ToVkImageLayout(CI.initLayout);
 
 		VkImageCreateInfo imageCI = {};
 		imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;

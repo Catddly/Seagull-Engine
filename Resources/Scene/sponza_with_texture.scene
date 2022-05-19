@@ -3,24 +3,24 @@
         {
             "CameraComponent": {
                 "CameraPos": [
-                    63.581878662109375,
-                    63.34069061279297,
-                    -9.861087799072266
+                    -50.222782135009766,
+                    36.5914421081543,
+                    6.1774492263793945
                 ],
                 "FrontVector": [
-                    -0.9306107759475708,
-                    -0.3644264340400696,
-                    0.03401417285203934
+                    0.9269020557403564,
+                    -0.3535464107990265,
+                    -0.12592679262161255
                 ],
                 "RightVector": [
-                    -0.03652552142739296,
+                    0.13462071120738983,
                     0.0,
-                    -0.9993327260017395
+                    0.9908972382545471
                 ],
                 "UpVector": [
-                    -0.36418429017066956,
-                    0.9312318563461304,
-                    0.013310731388628483
+                    0.3503274619579315,
+                    0.9354172348976135,
+                    -0.047594521194696426
                 ]
             },
             "EntityID": "2468517968452275",
@@ -91,6 +91,8 @@
                             "Name": "embedded_texture_*0",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_5",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -102,6 +104,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0-0",
                         "Type": 1
@@ -141,6 +144,8 @@
                             "Name": "embedded_texture_*3",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_6",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -152,6 +157,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0-1",
                         "Type": 1
@@ -191,6 +197,8 @@
                             "Name": "embedded_texture_*6",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_7",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -202,6 +210,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0-2",
                         "Type": 1
@@ -241,6 +250,8 @@
                             "Name": "embedded_texture_*9",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_8",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -252,6 +263,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0-3",
                         "Type": 1
@@ -291,6 +303,8 @@
                             "Name": "embedded_texture_*12",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_9",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -302,6 +316,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0-4",
                         "Type": 1
@@ -341,6 +356,8 @@
                             "Name": "embedded_texture_*15",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_10",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -352,6 +369,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0-5",
                         "Type": 1
@@ -391,6 +409,8 @@
                             "Name": "embedded_texture_*18",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_11",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -402,6 +422,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0-6",
                         "Type": 1
@@ -441,6 +462,8 @@
                             "Name": "embedded_texture_*21",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_12",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -452,6 +475,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0-7",
                         "Type": 1
@@ -491,11 +515,14 @@
                             "Name": "embedded_texture_*24",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_2",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "Roughness": 0.75
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0-8",
                         "Type": 1
@@ -535,6 +562,8 @@
                             "Name": "embedded_texture_*25",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_1",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -546,6 +575,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.001",
                         "Type": 1
@@ -585,6 +615,8 @@
                             "Name": "embedded_texture_*28",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_3",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -596,6 +628,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.002",
                         "Type": 1
@@ -635,6 +668,8 @@
                             "Name": "embedded_texture_*31",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_4",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -646,6 +681,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.003-0",
                         "Type": 1
@@ -685,6 +721,8 @@
                             "Name": "embedded_texture_*34",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_23",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -696,6 +734,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.003-1",
                         "Type": 1
@@ -735,6 +774,8 @@
                             "Name": "embedded_texture_*37",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_0",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -746,6 +787,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.004",
                         "Type": 1
@@ -785,6 +827,8 @@
                             "Name": "embedded_texture_*40",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_14",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -796,6 +840,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.005-0",
                         "Type": 1
@@ -835,6 +880,8 @@
                             "Name": "embedded_texture_*43",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_19",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -846,6 +893,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.005-1",
                         "Type": 1
@@ -885,6 +933,8 @@
                             "Name": "embedded_texture_*46",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_15",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -896,6 +946,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.006-0",
                         "Type": 1
@@ -935,6 +986,8 @@
                             "Name": "embedded_texture_*48",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_17",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -946,6 +999,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.006-1",
                         "Type": 1
@@ -985,6 +1039,8 @@
                             "Name": "embedded_texture_*50",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_16",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -996,6 +1052,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.007-0",
                         "Type": 1
@@ -1035,6 +1092,8 @@
                             "Name": "embedded_texture_*52",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_18",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1046,6 +1105,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.007-1",
                         "Type": 1
@@ -1085,6 +1145,8 @@
                             "Name": "embedded_texture_*54",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_21",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1096,6 +1158,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.008",
                         "Type": 1
@@ -1135,6 +1198,8 @@
                             "Name": "embedded_texture_*57",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_20",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1146,6 +1211,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.009",
                         "Type": 1
@@ -1185,6 +1251,8 @@
                             "Name": "embedded_texture_*60",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_22",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1196,6 +1264,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.010",
                         "Type": 1
@@ -1235,6 +1304,8 @@
                             "Name": "embedded_texture_*63",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_13",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1246,6 +1317,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.011",
                         "Type": 1
@@ -1285,6 +1357,8 @@
                             "Name": "embedded_texture_*66",
                             "NeedMipmap": false
                         },
+                        "AssetName": "Material_24",
+                        "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "Metallic": 0.10000000149011612,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1296,6 +1370,7 @@
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
+                        "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
                         "SubMeshName": "Mesh_0.012",
                         "Type": 1

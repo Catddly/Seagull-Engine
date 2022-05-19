@@ -98,4 +98,15 @@ namespace SG
 		: AssetBase(name, EAssetType::eMaterial), mFilename(filename)
 	{}
 
+	UInt32 MaterialAsset::GetTextureMask() const noexcept
+	{
+		UInt32 flag = 0;
+		flag |= mAlbedoTex ? ALBEDO_TEX_MASK : 0;
+		flag |= mMetallicTex ? METALLIC_TEX_MASK : 0;
+		flag |= mRoughnessTex ? ROUGHNESS_TEX_MASK : 0;
+		flag |= mNormalTex ? NORMAL_TEX_MASK : 0;
+		flag |= mAOTex ? AO_TEX_MASK : 0;
+		return flag;
+	}
+
 }

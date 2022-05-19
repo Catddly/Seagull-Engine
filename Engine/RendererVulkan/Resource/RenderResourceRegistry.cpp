@@ -121,15 +121,16 @@ namespace SG
 				if (entity.HasComponent<MeshComponent>() && entity.HasComponent<MaterialComponent>())
 				{
 					auto [mesh, mat] = entity.GetComponent<MeshComponent, MaterialComponent>();
+					auto matAsset = mat.materialAsset.lock();
 
 					ObjcetRenderData renderData = {};
 					renderData.model = GetTransform(context.pTreeNode);
 					renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
 					renderData.meshId = mesh.meshId;
-					renderData.MR = { mat.metallic, mat.roughness };
+					renderData.MR = { matAsset->GetMetallic(), matAsset->GetRoughness() };
 					renderData.instanceOffset = MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? MeshDataArchive::GetInstance()->GetInstanceSumOffset(renderData.meshId - 1) + mesh.instanceId : -1;
-					renderData.albedo = mat.albedo;
-					renderData.texFlag = GetMaterialTexMask(mat);
+					renderData.albedo = matAsset->GetAlbedo();
+					renderData.texFlag = matAsset->GetTextureMask();
 					pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
 				}
 			});
@@ -238,15 +239,16 @@ namespace SG
 					else if (entity.HasComponent<MeshComponent>() && entity.HasComponent<MaterialComponent>())
 					{
 						auto [mesh, mat] = entity.GetComponent<MeshComponent, MaterialComponent>();
+						auto matAsset = mat.materialAsset.lock();
 
 						ObjcetRenderData renderData = {};
 						renderData.model = GetTransform(context.pTreeNode);
 						renderData.inverseTransposeModel = glm::transpose(glm::inverse(renderData.model));
 						renderData.meshId = mesh.meshId;
-						renderData.MR = { mat.metallic, mat.roughness };
+						renderData.MR = { matAsset->GetMetallic(), matAsset->GetRoughness() };
 						renderData.instanceOffset = MeshDataArchive::GetInstance()->HaveInstance(renderData.meshId) ? MeshDataArchive::GetInstance()->GetInstanceSumOffset(renderData.meshId - 1) + mesh.instanceId : -1;
-						renderData.albedo = mat.albedo;
-						renderData.texFlag = GetMaterialTexMask(mat);
+						renderData.albedo = matAsset->GetAlbedo();
+						renderData.texFlag = matAsset->GetTextureMask();
 						pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
 					}
 					tag.bDirty = false;
@@ -280,6 +282,19 @@ namespace SG
 		cullUbo.numDrawCalls = MeshDataArchive::GetInstance()->GetNumMeshData();
 		GetBuffer("cullUbo")->UploadData(&cullUbo);
 #endif
+
+		// reset lightUbo
+		auto& lightUbo = GetLightUBO();
+		lightUbo.pointLightColor = Vector3f(0.0f);
+		lightUbo.pointLightRadius = 0.0f;
+		lightUbo.pointLightPos = Vector3f(0.0f);
+		UpdataBufferData("lightUbo", &lightUbo);
+	}
+
+	bool VulkanResourceRegistry::IsTextureNeedToGenerateMipmap(UInt32 width, UInt32 height, EImageFormat imageFormat, UInt32 dataByteSize, UInt32 mipmap) const
+	{
+		return width * height * ImageFormatToMemoryByte(imageFormat) == dataByteSize &&
+			mipmap > 1;
 	}
 
 	void VulkanResourceRegistry::WaitBuffersUpdated() const
@@ -455,6 +470,8 @@ namespace SG
 		auto& texCI = const_cast<TextureCreateDesc&>(textureCI);
 		if (!SG_HAS_ENUM_FLAG(textureCI.usage, EImageUsage::efTransfer_Dst))
 			texCI.usage = texCI.usage | EImageUsage::efTransfer_Dst;
+		if (IsTextureNeedToGenerateMipmap(textureCI.width, textureCI.height, textureCI.format, textureCI.sizeInByte, textureCI.mipLevel)) // need to generate mipmaps
+			texCI.usage = texCI.usage | EImageUsage::efTransfer_Src;
 
 		if (mTextures.count(texCI.name) != 0)
 		{
@@ -526,48 +543,119 @@ namespace SG
 		UInt32 index = 0;
 		for (auto& data : mWaitToSubmitTextures) // copy all the buffers data using staging buffer
 		{
-			data.first.type = EBufferType::efTransfer_Src;
-			data.first.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
+			auto* pTex = data.second;
+			auto& bufferCI = data.first;
 
-			stagingBuffers.emplace_back(VulkanBuffer::Create(*mpContext, data.first)); // create a staging buffer
-			stagingBuffers[index]->UploadData(data.first.pInitData);
-
-			vector<TextureCopyRegion> copyRegions;
-			UInt32 offset = 0;
-			for (UInt32 face = 0; face < data.second->GetNumArray(); ++face)
+			if (IsTextureNeedToGenerateMipmap(pTex->GetWidth(), pTex->GetHeight(), pTex->GetFormat(), bufferCI.bufferSize, pTex->GetNumMipmap())) // need to generate mipmap for this texture
 			{
-				for (UInt32 i = 0; i < data.second->GetNumMipmap(); ++i)
-				{
-					TextureCopyRegion copyRegion = {};
-					copyRegion.mipLevel = i;
-					copyRegion.baseArray = face;
-					copyRegion.layer  = 1;
-					copyRegion.width  = data.second->GetWidth() >> i;
-					copyRegion.height = data.second->GetHeight() >> i;
-					copyRegion.depth  = 1;
-					if (data.second->GetNumArray() == 6) // cubemap
-					{
-						Size offset;
-						auto ret = ktxTexture_GetImageOffset(reinterpret_cast<ktxTexture*>(data.second->GetUserData()), i, 0, face, &offset);
-						copyRegion.offset = static_cast<UInt32>(offset);
-					}
-					else
-					{
-						copyRegion.offset = offset;
-						offset += copyRegion.width * copyRegion.height * ImageFormatToMemoryByte(data.second->GetFormat()); // 4 byte for RGBA
-					}
-					copyRegions.emplace_back(copyRegion);
-				}
-			}
-			// transfer image barrier to do the copy
-			pCmd.ImageBarrier(data.second, EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
-			pCmd.CopyBufferToImage(*stagingBuffers[index], *data.second, copyRegions);
-			// transfer complete, switch this texture to a shader read-only texture
-			pCmd.ImageBarrier(data.second, EResourceBarrier::efCopy_Dest, EResourceBarrier::efShader_Resource);
-			++index;
+				// create staging buffer
+				bufferCI.type = EBufferType::efTransfer_Src;
+				bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
 
-			if (data.second->GetNumArray() == 6) // cubemap resource destroy
-				ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(data.second->GetUserData()));
+				stagingBuffers.emplace_back(VulkanBuffer::Create(*mpContext, bufferCI)); // create a staging buffer
+				stagingBuffers[index]->UploadData(bufferCI.pInitData);
+
+				// copy mipmap 0 data first.
+				vector<TextureCopyRegion> copyRegions;
+				TextureCopyRegion copyRegion = {};
+				copyRegion.mipLevel = 0;
+				copyRegion.baseArray = 0;
+				copyRegion.layer = 1;
+				copyRegion.width = data.second->GetWidth();
+				copyRegion.height = data.second->GetHeight();
+				copyRegion.depth = 1;
+				copyRegion.offset = 0;
+				copyRegions.push_back(copyRegion);
+
+				pCmd.ImageBarrier(data.second, EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
+				pCmd.CopyBufferToImage(*stagingBuffers[index], *pTex, copyRegions);
+
+				UInt32 mipWidth = copyRegion.width;
+				UInt32 mipHeight = copyRegion.height;
+				TextureBlitRegion blitRegion = {};
+				blitRegion.srcBaseArrayLayer = 0;
+				blitRegion.srcLayerCount = 1;
+				blitRegion.dstBaseArrayLayer = 0;
+				blitRegion.dstLayerCount = 1;
+				for (UInt32 i = 1; i < pTex->GetNumMipmap(); ++i) // copy mip-chain from mipmap 1
+				{
+					pCmd.ImageBarrier(data.second, EResourceBarrier::efCopy_Dest, EResourceBarrier::efCopy_Source, i - 1); // the former mipmap level to copy
+
+					blitRegion.srcOffsets[0][0] = 0;
+					blitRegion.srcOffsets[0][1] = 0;
+					blitRegion.srcOffsets[0][2] = 0;
+					blitRegion.srcOffsets[1][0] = mipWidth;
+					blitRegion.srcOffsets[1][1] = mipHeight;
+					blitRegion.srcOffsets[1][2] = 1;
+
+					blitRegion.srcMipLevel = i - 1;
+
+					blitRegion.dstOffsets[0][0] = 0;
+					blitRegion.dstOffsets[0][1] = 0;
+					blitRegion.dstOffsets[0][2] = 0;
+					blitRegion.dstOffsets[1][0] = mipWidth > 1 ? mipWidth / 2 : 1;
+					blitRegion.dstOffsets[1][1] = mipHeight > 1 ? mipHeight / 2 : 1;
+					blitRegion.dstOffsets[1][2] = 1;
+					blitRegion.dstMipLevel = i;
+
+					pCmd.BlitImage(*pTex, *pTex, blitRegion, EFilterMode::eLinear);
+					// this cmd will wait until the blit operation is complete
+					pCmd.ImageBarrier(data.second, EResourceBarrier::efCopy_Source, EResourceBarrier::efShader_Resource, i - 1);
+
+					// down-scaling
+					if (mipWidth > 1)
+						mipWidth /= 2;
+					if (mipHeight > 1)
+						mipHeight /= 2;
+				}
+				pCmd.ImageBarrier(data.second, EResourceBarrier::efCopy_Dest, EResourceBarrier::efShader_Resource, pTex->GetNumMipmap() - 1);
+			}
+			else
+			{
+				bufferCI.type = EBufferType::efTransfer_Src;
+				bufferCI.memoryUsage = EGPUMemoryUsage::eCPU_To_GPU;
+
+				stagingBuffers.emplace_back(VulkanBuffer::Create(*mpContext, bufferCI)); // create a staging buffer
+				stagingBuffers[index]->UploadData(bufferCI.pInitData);
+
+				vector<TextureCopyRegion> copyRegions;
+				UInt32 offset = 0;
+				for (UInt32 face = 0; face < data.second->GetNumArray(); ++face)
+				{
+					for (UInt32 i = 0; i < data.second->GetNumMipmap(); ++i)
+					{
+						TextureCopyRegion copyRegion = {};
+						copyRegion.mipLevel = i;
+						copyRegion.baseArray = face;
+						copyRegion.layer = 1;
+						copyRegion.width = data.second->GetWidth() >> i;
+						copyRegion.height = data.second->GetHeight() >> i;
+						copyRegion.depth = 1;
+						if (data.second->GetNumArray() == 6) // cubemap
+						{
+							Size offset;
+							auto ret = ktxTexture_GetImageOffset(reinterpret_cast<ktxTexture*>(data.second->GetUserData()), i, 0, face, &offset);
+							copyRegion.offset = static_cast<UInt32>(offset);
+						}
+						else
+						{
+							copyRegion.offset = offset;
+							offset += copyRegion.width * copyRegion.height * ImageFormatToMemoryByte(data.second->GetFormat()); // 4 byte for RGBA
+						}
+						copyRegions.emplace_back(copyRegion);
+					}
+				}
+
+				// transfer image barrier to do the copy
+				pCmd.ImageBarrier(pTex, EResourceBarrier::efUndefined, EResourceBarrier::efCopy_Dest);
+				pCmd.CopyBufferToImage(*stagingBuffers[index], *pTex, copyRegions);
+				// transfer complete, switch this texture to a shader read-only texture
+				pCmd.ImageBarrier(pTex, EResourceBarrier::efCopy_Dest, EResourceBarrier::efShader_Resource);
+			}
+
+			++index;
+			if (pTex->GetNumArray() == 6) // cubemap resource destroy
+				ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(pTex->GetUserData()));
 		}
 		pCmd.EndRecord();
 

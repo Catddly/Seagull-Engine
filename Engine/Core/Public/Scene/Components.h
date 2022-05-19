@@ -5,6 +5,7 @@
 #include "Archive/ResourceDefs.h"
 #include "Archive/ResourceLoader.h"
 #include "Archive/MeshDataArchive.h"
+#include "Archive/MaterialAssetArchive.h"
 #include "Render/MeshGenerate/MeshGenerator.h"
 #include "Asset/Asset.h"
 #include "Profile/Profile.h"
@@ -26,7 +27,7 @@ namespace SG
 		bool   bDirty = true;
 
 		TagComponent() = default;
-		TagComponent(const char* n)
+		explicit TagComponent(const char* n)
 			: name(n)
 		{}
 		TagComponent(const string& str)
@@ -125,7 +126,7 @@ namespace SG
 		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData.subMeshDatas[0]);
 	}
 
-	SG_INLINE void LoadMesh(const char* filename, const char* subMeshName, EMeshType type, MeshComponent& comp)
+	SG_INLINE void LoadMesh(const char* filename, const char* subMeshName, EMeshType type, MeshComponent& comp, bool bLoadMaterial = false)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -135,7 +136,7 @@ namespace SG
 		if (!MeshDataArchive::GetInstance()->HaveMeshData(subMeshName))
 		{
 			MeshResourceLoader loader;
-			if (!loader.LoadFromFile(filename, type, meshData))
+			if (!loader.LoadFromFile(filename, type, meshData, bLoadMaterial))
 				SG_LOG_WARN("Mesh %s load failure!", filename);
 			for (auto& subMeshData : meshData.subMeshDatas)
 				MeshDataArchive::GetInstance()->SetData(subMeshData);
@@ -159,40 +160,30 @@ namespace SG
 	/// MaterialComponent
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	static constexpr UInt32 ALBEDO_TEX_MASK = BIT(0);
-	static constexpr UInt32 METALLIC_TEX_MASK = BIT(1);
-	static constexpr UInt32 ROUGHNESS_TEX_MASK = BIT(2);
-	static constexpr UInt32 NORMAL_TEX_MASK = BIT(3);
-	static constexpr UInt32 AO_TEX_MASK = BIT(4);
-	
 	struct MaterialComponent
 	{
-		Vector3f albedo = { 1.0f, 1.0f, 1.0f };
-		float    metallic = 0.1f;
-		float    roughness = 0.75f;
-		RefPtr<TextureAsset> albedoTex = nullptr;
-		RefPtr<TextureAsset> metallicTex = nullptr;
-		RefPtr<TextureAsset> roughnessTex = nullptr;
-		RefPtr<TextureAsset> normalTex = nullptr;
-		RefPtr<TextureAsset> AOTex = nullptr;
-		UInt32 materialAssetId = IDAllocator<UInt32>::INVALID_ID;
+		//Vector3f albedo = { 1.0f, 1.0f, 1.0f };
+		//float    metallic = 0.1f;
+		//float    roughness = 0.75f;
+		//RefPtr<TextureAsset> albedoTex = nullptr;
+		//RefPtr<TextureAsset> metallicTex = nullptr;
+		//RefPtr<TextureAsset> roughnessTex = nullptr;
+		//RefPtr<TextureAsset> normalTex = nullptr;
+		//RefPtr<TextureAsset> AOTex = nullptr;
+		//UInt32 materialAssetId = IDAllocator<UInt32>::INVALID_ID;
+
+		WeakRefPtr<MaterialAsset> materialAsset;
 
 		MaterialComponent() = default;
-		MaterialComponent(const Vector3f& c, float m, float r)
-			:albedo(c), metallic(m), roughness(r)
-		{}
+		MaterialComponent(const string& materialName, const Vector3f& c, float m, float r)
+		{
+			materialAsset = MaterialAssetArchive::GetInstance()->NewMaterialAsset(materialName, "");
+			auto pMaterialAsset = materialAsset.lock();
+			pMaterialAsset->SetAlbedo(c);
+			pMaterialAsset->SetMetallic(m);
+			pMaterialAsset->SetRoughness(r);
+		}
 	};
-
-	SG_INLINE UInt32 GetMaterialTexMask(const MaterialComponent& mat)
-	{
-		UInt32 flag = 0;
-		flag |= mat.albedoTex ? ALBEDO_TEX_MASK : 0;
-		flag |= mat.metallicTex ? METALLIC_TEX_MASK : 0;
-		flag |= mat.roughnessTex ? ROUGHNESS_TEX_MASK : 0;
-		flag |= mat.normalTex ? NORMAL_TEX_MASK : 0;
-		flag |= mat.AOTex ? AO_TEX_MASK : 0;
-		return flag;
-	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// PointLightComponent

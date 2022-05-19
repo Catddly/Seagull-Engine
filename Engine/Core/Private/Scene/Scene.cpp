@@ -56,6 +56,7 @@ namespace SG
 				meshNode["SubMeshName"] = pMeshData->subMeshName.c_str();
 				meshNode["Type"] = mesh.meshType;
 				meshNode["IsProceduralMesh"] = pMeshData->bIsProceduralMesh;
+				meshNode["HaveEmbeddedResource"] = pMeshData->materialAssetId != IDAllocator<UInt32>::INVALID_ID;
 			}
 		}
 
@@ -64,34 +65,38 @@ namespace SG
 			auto& matNode = node["MaterialComponent"];
 			{
 				auto& mat = entity.GetComponent<MaterialComponent>();
+				auto pMatAsset = mat.materialAsset.lock();
+				matNode["AssetName"] = pMatAsset->GetAssetName().c_str();
+				matNode["Filename"] = pMatAsset->GetFileName().c_str();
 
-				matNode["Albedo"] = mat.albedo;
-				matNode["Metallic"] = mat.metallic;
-				matNode["Roughness"] = mat.roughness;
-				if (mat.albedoTex)
+				matNode["Albedo"] = pMatAsset->GetAlbedo();
+				matNode["Metallic"] = pMatAsset->GetMetallic();
+				matNode["Roughness"] = pMatAsset->GetRoughness();
+				UInt32 texMask = pMatAsset->GetTextureMask();
+				if ((texMask & MaterialAsset::ALBEDO_TEX_MASK) != 0)
 				{
 					auto& assetNode = matNode["AlbedoTextureAsset"];
-					mat.albedoTex->Serialize(assetNode);
+					pMatAsset->GetAlbedoTexture()->Serialize(assetNode);
 				}
-				if (mat.metallicTex)
+				if ((texMask & MaterialAsset::METALLIC_TEX_MASK) != 0)
 				{
 					auto& assetNode = matNode["MetallicTextureAsset"];
-					mat.metallicTex->Serialize(assetNode);
+					pMatAsset->GetMetallicTexture()->Serialize(assetNode);
 				}
-				if (mat.roughnessTex)
+				if ((texMask & MaterialAsset::ROUGHNESS_TEX_MASK) != 0)
 				{
 					auto& assetNode = matNode["RoughnessTextureAsset"];
-					mat.roughnessTex->Serialize(assetNode);
+					pMatAsset->GetRoughnessTexture()->Serialize(assetNode);
 				}
-				if (mat.normalTex)
+				if ((texMask & MaterialAsset::NORMAL_TEX_MASK) != 0)
 				{
 					auto& assetNode = matNode["NormalTextureAsset"];
-					mat.normalTex->Serialize(assetNode);
+					pMatAsset->GetNormalTexture()->Serialize(assetNode);
 				}
-				if (mat.AOTex)
+				if ((texMask & MaterialAsset::AO_TEX_MASK) != 0)
 				{
 					auto& assetNode = matNode["AOTextureAsset"];
-					mat.AOTex->Serialize(assetNode);
+					pMatAsset->GetAOTexture()->Serialize(assetNode);
 				}
 
 			}
@@ -171,9 +176,9 @@ namespace SG
 		cam.pCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
 		cam.pCamera->SetMoveSpeed(50.0f);
 
-		auto* pEntity = CreateEntity("directional_light_0", Vector3f{ 0.0f, 150.0f, 0.35f }, Vector3f(1.0f), Vector3f(0.0f, 0.0f, 0.0f));
-		pEntity->AddTag<LightTag>();
-		pEntity->AddComponent<DirectionalLightComponent>();
+		//auto* pEntity = CreateEntity("directional_light_0", Vector3f{ 0.0f, 150.0f, 0.35f }, Vector3f(1.0f), Vector3f(0.0f, 0.0f, 0.0f));
+		//pEntity->AddTag<LightTag>();
+		//pEntity->AddComponent<DirectionalLightComponent>();
 
 		//pEntity = CreateEntity("point_light_0", { 1.25f, 0.75f, -0.3f }, Vector3f(1.0f), Vector3f(0.0f));
 		//pEntity->AddTag<LightTag>();
@@ -184,11 +189,11 @@ namespace SG
 		//DefaultScene();
 		//MaterialScene();
 		//MaterialTexturedScene();
-
-		pEntity = CreateEntityWithMesh("sponza", "sponza_gltf_khronos_fixed_and_split", EMeshType::eGLTF, true);
-		auto& trans = pEntity->GetComponent<TransformComponent>();
-		trans.rotation = { 0.0f, 0.0f, 0.0f };
-		trans.scale = { 0.1f, 0.1f, 0.1f };
+		
+		//pEntity = CreateEntityWithMesh("sponza", "sponza_gltf_khronos_fixed_and_split", EMeshType::eGLTF, true);
+		//auto& trans = pEntity->GetComponent<TransformComponent>();
+		//trans.rotation = { 0.0f, 0.0f, 0.0f };
+		//trans.scale = { 0.1f, 0.1f, 0.1f };
 
 		Refresh();
 	}
@@ -300,21 +305,24 @@ namespace SG
 			auto* pEntityContext = CreateEntityContextWithoutTreeNode(subMesh.subMeshName);
 			auto* pSubMeshTreeNode = New(TreeNode, &pEntityContext->entity);
 			pEntityContext->pTreeNode = pSubMeshTreeNode;
+
 			// do connect
 			pSubMeshTreeNode->pParent = pRootNode;
 			pRootNode->pChilds.emplace_back(pSubMeshTreeNode);
+
 			// add necessary components
 			auto* pSubMeshEntity = &pEntityContext->entity;
 			auto& mat = pSubMeshEntity->AddComponent<MaterialComponent>();
 			if (subMesh.materialAssetId != IDAllocator<UInt32>::INVALID_ID) // assign material
 			{
 				auto pMaterialAsset = MaterialAssetArchive::GetInstance()->GetMaterialAsset(subMesh.materialAssetId);
-				mat.materialAssetId = pMaterialAsset->GetAssetID();
-				mat.albedoTex = pMaterialAsset->GetAlbedoTexture();
-				mat.metallicTex = pMaterialAsset->GetMetallicTexture();
-				mat.roughnessTex = pMaterialAsset->GetRoughnessTexture();
-				mat.normalTex = pMaterialAsset->GetNormalTexture();
-				mat.AOTex = pMaterialAsset->GetAOTexture();
+				mat.materialAsset = pMaterialAsset;
+				//mat.materialAssetId = pMaterialAsset->GetAssetID();
+				//mat.albedoTex = pMaterialAsset->GetAlbedoTexture();
+				//mat.metallicTex = pMaterialAsset->GetMetallicTexture();
+				//mat.roughnessTex = pMaterialAsset->GetRoughnessTexture();
+				//mat.normalTex = pMaterialAsset->GetNormalTexture();
+				//mat.AOTex = pMaterialAsset->GetAOTexture();
 			}
 
 			auto& mesh = pSubMeshEntity->AddComponent<MeshComponent>();
@@ -393,18 +401,18 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		auto* pEntity = CreateEntity("model");
-		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.2f, 0.8f);
+		pEntity->AddComponent<MaterialComponent>("model_mat", Vector3f(1.0f), 0.2f, 0.8f);
 		auto& mesh = pEntity->AddComponent<MeshComponent>();
 		LoadMesh("model", EMeshType::eOBJ, mesh);
 
 		pEntity = CreateEntity("model_1", { 0.0f, 0.0f, -1.5f }, { 0.6f, 0.6f, 0.6f }, Vector3f(0.0f));
-		pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.8f, 0.35f);
+		pEntity->AddComponent<MaterialComponent>("model_1_mat", Vector3f(1.0f), 0.8f, 0.35f);
 		auto& mesh1 = pEntity->AddComponent<MeshComponent>();
 		CopyMesh(GetEntityByName("model")->GetComponent<MeshComponent>(), mesh1);
 
 		pEntity = CreateEntity("grid", Vector3f(0.0f), { 8.0f, 1.0f, 8.0f }, Vector3f(0.0f));
-		auto& mat = pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.05f, 0.76f);
-		mat.normalTex = TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_normal", "cerberus/normal.ktx", true);
+		auto& mat = pEntity->AddComponent<MaterialComponent>("grid_mat", Vector3f(1.0f), 0.05f, 0.76f);
+		mat.materialAsset.lock()->SetNormalTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_normal", "cerberus/normal.ktx", true));
 		auto& mesh2 = pEntity->AddComponent<MeshComponent>();
 		LoadMesh(EGennerateMeshType::eGrid, mesh2);
 	}
@@ -426,7 +434,7 @@ namespace SG
 					auto& mesh = pEntity->AddComponent<MeshComponent>();
 					LoadMesh("sphere", EMeshType::eOBJ, mesh);
 
-					pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), (i + 1) * 0.1f, (10 - j) * 0.1f);
+					pEntity->AddComponent<MaterialComponent>(name + "_mat", Vector3f(1.0f), (i + 1) * 0.1f, (10 - j) * 0.1f);
 				}
 				else
 				{
@@ -437,7 +445,7 @@ namespace SG
 					auto& srcMesh = pCopyEntity->GetComponent<MeshComponent>();
 					CopyMesh(srcMesh, mesh);
 
-					pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), (i + 1) * 0.1f, (10 - j) * 0.1f);
+					pEntity->AddComponent<MaterialComponent>(name + "_mat", Vector3f(1.0f), (i + 1) * 0.1f, (10 - j) * 0.1f);
 				}
 			}
 		}
@@ -451,12 +459,13 @@ namespace SG
 		trans.position.y = 3.0f;
 		trans.rotation.y = 90.0f;
 		trans.scale = { 3.0f, 3.0f, 3.0f };
-		auto& mat = pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.05f, 0.9f);
-		mat.albedoTex = TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_albedo", "cerberus/albedo.ktx", true);
-		mat.normalTex = TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_normal", "cerberus/normal.ktx", true);
-		mat.metallicTex = TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_metallic", "cerberus/metallic.ktx", true);
-		mat.roughnessTex = TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_roughness", "cerberus/roughness.ktx", true);
-		mat.AOTex = TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_ao", "cerberus/ao.ktx", true);
+		auto& mat = pEntity->AddComponent<MaterialComponent>("cerberus_mat", Vector3f(1.0f), 0.05f, 0.9f);
+		auto pMatAsset = mat.materialAsset.lock();
+		pMatAsset->SetAlbedoTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_albedo", "cerberus/albedo.ktx", true));
+		pMatAsset->SetNormalTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_normal", "cerberus/normal.ktx", true));
+		pMatAsset->SetMetallicTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_metallic", "cerberus/metallic.ktx", true));
+		pMatAsset->SetRoughnessTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_roughness", "cerberus/roughness.ktx", true));
+		pMatAsset->SetAOTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_ao", "cerberus/ao.ktx", true));
 		auto& mesh = pEntity->AddComponent<MeshComponent>();
 		LoadMesh("cerberus", EMeshType::eOBJ, mesh);
 
@@ -467,8 +476,9 @@ namespace SG
 		trans1.position.z = -2.3f;
 		trans1.rotation.y = 90.0f;
 		trans1.scale = { 3.0f, 3.0f, 3.0f };
-		auto& mat1 = pEntity->AddComponent<MaterialComponent>(Vector3f(1.0f), 0.05f, 0.9f);
-		mat1.AOTex = TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_ao", "cerberus/ao.ktx", true);
+		auto& mat1 = pEntity->AddComponent<MaterialComponent>("cerberus_1_mat", Vector3f(1.0f), 0.05f, 0.9f);
+		auto pMat1Asset = mat1.materialAsset.lock();
+		pMat1Asset->SetAOTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("cerberus_ao", "cerberus/ao.ktx", true));
 		auto& mesh1 = pEntity->AddComponent<MeshComponent>();
 		CopyMesh(GetEntityByName("cerberus")->GetComponent<MeshComponent>(), mesh1);
 	}
@@ -530,6 +540,7 @@ namespace SG
 			string filename = meshComp["Filename"].get<std::string>().c_str();
 			string subMeshName = meshComp["SubMeshName"].get<std::string>().c_str();
 			bool bIsProceduralMesh = meshComp["IsProceduralMesh"].get<bool>();
+			bool bHaveEmbeddedResource = meshComp["HaveEmbeddedResource"].get<bool>();
 			auto& mesh = pEntity->AddComponent<MeshComponent>();
 
 			if (bIsProceduralMesh)
@@ -542,8 +553,7 @@ namespace SG
 			else
 			{
 				EMeshType type = (EMeshType)meshComp["Type"];
-				//LoadMesh(filename.c_str(), type, mesh);
-				LoadMesh(filename.c_str(), subMeshName.c_str(), type, mesh);
+				LoadMesh(filename.c_str(), subMeshName.c_str(), type, mesh, bHaveEmbeddedResource);
 			}
 		}
 
@@ -553,64 +563,97 @@ namespace SG
 
 			auto& mat = pEntity->AddComponent<MaterialComponent>();
 
-			matComp["Albedo"].get_to(mat.albedo);
-			matComp["Metallic"].get_to(mat.metallic);
-			matComp["Roughness"].get_to(mat.roughness);
+			string assetName = matComp["AssetName"].get<std::string>().c_str();
+			string filename = matComp["Filename"].get<std::string>().c_str();
 
-			if (auto n = matComp.find("AlbedoTextureAsset"); n != matComp.end())
+			if (!filename.empty()) // it is a embedded material
 			{
-				auto& node = *n;
-				string filename = node["Filename"].get<std::string>().c_str();
-
-				mat.albedoTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
-				mat.albedoTex->Deserialize(node);
+				mat.materialAsset = MaterialAssetArchive::GetInstance()->GetMaterialAsset(assetName);
 			}
-			else
-				mat.albedoTex = nullptr;
-
-			if (auto n = matComp.find("MetallicTextureAsset"); n != matComp.end())
+			else // create an asset
 			{
-				auto& node = *n;
-				string filename = node["Filename"].get<std::string>().c_str();
+				auto materialAsset = MaterialAssetArchive::GetInstance()->NewMaterialAsset(assetName, filename);
+				mat.materialAsset = materialAsset;
 
-				mat.metallicTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
-				mat.metallicTex->Deserialize(node);
+				materialAsset->SetAlbedo(matComp["Albedo"].get<Vector3f>());
+				materialAsset->SetMetallic(matComp["Metallic"].get<float>());
+				materialAsset->SetRoughness(matComp["Roughness"].get<float>());
+
+				if (auto n = matComp.find("AlbedoTextureAsset"); n != matComp.end())
+				{
+					auto& node = *n;
+					string texFilename = node["Filename"].get<std::string>().c_str();
+					if (texFilename != filename) // it is not an embedded textures, loaded it explicitly
+					{
+						materialAsset->SetAlbedoTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("", texFilename));
+						materialAsset->GetAlbedoTexture()->Deserialize(node);
+					}
+					else // it is an embedded textures, check to see if it is successfully loaded
+					{
+						SG_ASSERT(materialAsset->GetAlbedoTexture()->GetFileName() == texFilename);
+					}
+				}
+
+				if (auto n = matComp.find("MetallicTextureAsset"); n != matComp.end())
+				{
+					auto& node = *n;
+					string texFilename = node["Filename"].get<std::string>().c_str();
+					if (texFilename != filename) // it is not an embedded textures, loaded it explicitly
+					{
+						materialAsset->SetMetallicTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("", texFilename));
+						materialAsset->GetMetallicTexture()->Deserialize(node);
+					}
+					else // it is an embedded textures, check to see if it is successfully loaded
+					{
+						SG_ASSERT(materialAsset->GetMetallicTexture()->GetFileName() == texFilename);
+					}
+				}
+
+				if (auto n = matComp.find("RoughnessTextureAsset"); n != matComp.end())
+				{
+					auto& node = *n;
+					string texFilename = node["Filename"].get<std::string>().c_str();
+					if (texFilename != filename) // it is not an embedded textures, loaded it explicitly
+					{
+						materialAsset->SetRoughnessTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("", texFilename));
+						materialAsset->GetRoughnessTexture()->Deserialize(node);
+					}
+					else // it is an embedded textures, check to see if it is successfully loaded
+					{
+						SG_ASSERT(materialAsset->GetRoughnessTexture()->GetFileName() == texFilename);
+					}
+				}
+
+				if (auto n = matComp.find("NormalTextureAsset"); n != matComp.end())
+				{
+					auto& node = *n;
+					string texFilename = node["Filename"].get<std::string>().c_str();
+					if (texFilename != filename) // it is not an embedded textures, loaded it explicitly
+					{
+						materialAsset->SetNormalTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("", texFilename));
+						materialAsset->GetNormalTexture()->Deserialize(node);
+					}
+					else // it is an embedded textures, check to see if it is successfully loaded
+					{
+						SG_ASSERT(materialAsset->GetNormalTexture()->GetFileName() == texFilename);
+					}
+				}
+
+				if (auto n = matComp.find("AOTextureAsset"); n != matComp.end())
+				{
+					auto& node = *n;
+					string texFilename = node["Filename"].get<std::string>().c_str();
+					if (texFilename != filename) // it is not an embedded textures, loaded it explicitly
+					{
+						materialAsset->SetAOTexture(TextureAssetArchive::GetInstance()->NewTextureAsset("", texFilename));
+						materialAsset->GetAOTexture()->Deserialize(node);
+					}
+					else // it is an embedded textures, check to see if it is successfully loaded
+					{
+						SG_ASSERT(materialAsset->GetAOTexture()->GetFileName() == texFilename);
+					}
+				}
 			}
-			else
-				mat.metallicTex = nullptr;
-
-			if (auto n = matComp.find("RoughnessTextureAsset"); n != matComp.end())
-			{
-				auto& node = *n;
-				string filename = node["Filename"].get<std::string>().c_str();
-
-				mat.roughnessTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
-				mat.roughnessTex->Deserialize(node);
-			}
-			else
-				mat.roughnessTex = nullptr;
-
-			if (auto n = matComp.find("NormalTextureAsset"); n != matComp.end())
-			{
-				auto& node = *n;
-				string filename = node["Filename"].get<std::string>().c_str();
-
-				mat.normalTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
-				mat.normalTex->Deserialize(node);
-			}
-			else
-				mat.normalTex = nullptr;
-
-			if (auto n = matComp.find("AOTextureAsset"); n != matComp.end())
-			{
-				auto& node = *n;
-				string filename = node["Filename"].get<std::string>().c_str();
-
-				mat.AOTex = TextureAssetArchive::GetInstance()->NewTextureAsset("", filename);
-				mat.AOTex->Deserialize(node);
-			}
-			else
-				mat.AOTex = nullptr;
 		}
 
 		if (auto node = entity.find("PointLightComponent"); node != entity.end())

@@ -172,13 +172,28 @@ namespace SG
 		UInt32 imageIndex = 0;
 		for (auto setIndex : pShader->GetSetIndices()) // bind descriptors for each set
 		{
+			Size setNumImages = mSetImagesCount[setIndex] + imageIndex;
+
 			ShaderDataBinder shaderDataBinder(this, pShader, setIndex);
 
-			Size setNumImages = mSetImagesCount[setIndex] + imageIndex;
-			while (imageIndex < setNumImages)
+			if (setNumImages != 0) // at least bind the buffers
 			{
-				shaderDataBinder.AddCombindSamplerImage(combineImages[imageIndex].first, combineImages[imageIndex].second);
-				++imageIndex;
+				if (imageIndex >= combineImages.size())
+				{
+					if (setNumImages - mSetImagesCount[setIndex] < imageIndex)
+					{
+						auto& setDescriptorsData = mDescriptorSetData[setIndex];
+						shaderDataBinder.Bind(setDescriptorsData.descriptorSets[setDescriptorsData.setIndexMap["__non_dynamic"]]);
+					}
+					else
+						break;
+				}
+
+				while (imageIndex < setNumImages)
+				{
+					shaderDataBinder.AddCombindSamplerImage(combineImages[imageIndex].first, combineImages[imageIndex].second);
+					++imageIndex;
+				}
 			}
 
 			auto& setDescriptorsData = mDescriptorSetData[setIndex];

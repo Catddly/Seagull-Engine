@@ -60,46 +60,53 @@ namespace SG
 				if (entity.HasComponent<MaterialComponent>())
 				{
 					MaterialComponent& mat = entity.GetComponent<MaterialComponent>();
+					auto matAsset = mat.materialAsset.lock();
+					const UInt32 matTextureMask = matAsset->GetTextureMask();
 
 					// TODO: may be there is a more automatic and smarter way to load asset.
-					if (mat.albedoTex)
+					if ((matTextureMask & MaterialAsset::ALBEDO_TEX_MASK) != 0)
 					{
-						if (mAssets.find(mat.albedoTex->GetAssetID()) == mAssets.end())
+						auto albedoTex = matAsset->GetAlbedoTexture();
+						if (mAssets.find(albedoTex->GetAssetID()) == mAssets.end())
 						{
-							mCurrentFrameNewAssets[mat.albedoTex->GetAssetID()] = mat.albedoTex;
-							mAssets[mat.albedoTex->GetAssetID()] = mat.albedoTex;
+							mCurrentFrameNewAssets[albedoTex->GetAssetID()] = albedoTex;
+							mAssets[albedoTex->GetAssetID()] = albedoTex;
 						}
 					}
-					if (mat.normalTex)
+					if ((matTextureMask & MaterialAsset::NORMAL_TEX_MASK) != 0)
 					{
-						if (mAssets.find(mat.normalTex->GetAssetID()) == mAssets.end())
+						auto normalTex = matAsset->GetNormalTexture();
+						if (mAssets.find(normalTex->GetAssetID()) == mAssets.end())
 						{
-							mCurrentFrameNewAssets[mat.normalTex->GetAssetID()] = mat.normalTex;
-							mAssets[mat.normalTex->GetAssetID()] = mat.normalTex;
+							mCurrentFrameNewAssets[normalTex->GetAssetID()] = normalTex;
+							mAssets[normalTex->GetAssetID()] = normalTex;
 						}
 					}
-					if (mat.metallicTex)
+					if ((matTextureMask & MaterialAsset::METALLIC_TEX_MASK) != 0)
 					{
-						if (mAssets.find(mat.metallicTex->GetAssetID()) == mAssets.end())
+						auto metallicTex = matAsset->GetMetallicTexture();
+						if (mAssets.find(metallicTex->GetAssetID()) == mAssets.end())
 						{
-							mCurrentFrameNewAssets[mat.metallicTex->GetAssetID()] = mat.metallicTex;
-							mAssets[mat.metallicTex->GetAssetID()] = mat.metallicTex;
+							mCurrentFrameNewAssets[metallicTex->GetAssetID()] = metallicTex;
+							mAssets[metallicTex->GetAssetID()] = metallicTex;
 						}
 					}
-					if (mat.roughnessTex)
+					if ((matTextureMask & MaterialAsset::ROUGHNESS_TEX_MASK) != 0)
 					{
-						if (mAssets.find(mat.roughnessTex->GetAssetID()) == mAssets.end())
+						auto roughnessTex = matAsset->GetRoughnessTexture();
+						if (mAssets.find(roughnessTex->GetAssetID()) == mAssets.end())
 						{
-							mCurrentFrameNewAssets[mat.roughnessTex->GetAssetID()] = mat.roughnessTex;
-							mAssets[mat.roughnessTex->GetAssetID()] = mat.roughnessTex;
+							mCurrentFrameNewAssets[roughnessTex->GetAssetID()] = roughnessTex;
+							mAssets[roughnessTex->GetAssetID()] = roughnessTex;
 						}
 					}
-					if (mat.AOTex)
+					if ((matTextureMask & MaterialAsset::AO_TEX_MASK) != 0)
 					{
-						if (mAssets.find(mat.AOTex->GetAssetID()) == mAssets.end())
+						auto AOTex = matAsset->GetAOTexture();
+						if (mAssets.find(AOTex->GetAssetID()) == mAssets.end())
 						{
-							mCurrentFrameNewAssets[mat.AOTex->GetAssetID()] = mat.AOTex;
-							mAssets[mat.AOTex->GetAssetID()] = mat.AOTex;
+							mCurrentFrameNewAssets[AOTex->GetAssetID()] = AOTex;
+							mAssets[AOTex->GetAssetID()] = AOTex;
 						}
 					}
 				}
@@ -144,24 +151,54 @@ namespace SG
 
 						if (entity.HasComponent<MaterialComponent>())
 						{
-							auto& matComp = entity.GetComponent<MaterialComponent>();
-							rendererBuildData.materialAssetName = MaterialAssetArchive::GetInstance()->GetMaterialAsset(matComp.materialAssetId)->GetAssetName();
-							if (matComp.albedoTex)
-								rendererBuildData.albedoTexAssetName = matComp.albedoTex->GetAssetName();
-							if (matComp.metallicTex)
-								rendererBuildData.metallicTexAssetName = matComp.metallicTex->GetAssetName();
-							if (matComp.roughnessTex)
-								rendererBuildData.roughnessTexAssetName = matComp.roughnessTex->GetAssetName();
-							if (matComp.normalTex)
-								rendererBuildData.normalTexAssetName = matComp.normalTex->GetAssetName();
-							if (matComp.AOTex)
-								rendererBuildData.aoTexAssetName = matComp.AOTex->GetAssetName();
+							MaterialComponent& matComp = entity.GetComponent<MaterialComponent>();
+							auto materialAsset = matComp.materialAsset.lock();
+
+							rendererBuildData.materialAssetName = materialAsset->GetAssetName();
+							rendererBuildData.materialTextureMask = materialAsset->GetTextureMask();
+							if ((rendererBuildData.materialTextureMask & MaterialAsset::ALBEDO_TEX_MASK) != 0)
+								rendererBuildData.albedoTexAssetName = materialAsset->GetAlbedoTexture()->GetAssetName();
+							if ((rendererBuildData.materialTextureMask & MaterialAsset::METALLIC_TEX_MASK) != 0)
+								rendererBuildData.metallicTexAssetName = materialAsset->GetMetallicTexture()->GetAssetName();
+							if ((rendererBuildData.materialTextureMask & MaterialAsset::ROUGHNESS_TEX_MASK) != 0)
+								rendererBuildData.roughnessTexAssetName = materialAsset->GetRoughnessTexture()->GetAssetName();
+							if ((rendererBuildData.materialTextureMask & MaterialAsset::NORMAL_TEX_MASK) != 0)
+								rendererBuildData.normalTexAssetName = materialAsset->GetNormalTexture()->GetAssetName();
+							if ((rendererBuildData.materialTextureMask & MaterialAsset::AO_TEX_MASK) != 0)
+								rendererBuildData.aoTexAssetName = materialAsset->GetAOTexture()->GetAssetName();
 						}
 					}
 					else // have instance
 					{
-						meshComp.instanceId = node->second.instanceCount;
-						node->second.instanceCount += 1;
+						auto& rendererBuildData = node->second;
+						meshComp.instanceId = rendererBuildData.instanceCount;
+						rendererBuildData.instanceCount += 1;
+
+						if (entity.HasComponent<MaterialComponent>())
+						{
+							MaterialComponent& matComp = entity.GetComponent<MaterialComponent>();
+							auto materialAsset = matComp.materialAsset.lock();
+							const UInt32 oldMask = rendererBuildData.materialTextureMask;
+
+							const UInt32 textureMask = materialAsset->GetTextureMask();
+
+							if ((textureMask | oldMask) != oldMask) // it is the new maximum set
+							{
+								rendererBuildData.materialAssetName = materialAsset->GetAssetName();
+								rendererBuildData.materialTextureMask = textureMask;
+
+								if ((textureMask & MaterialAsset::ALBEDO_TEX_MASK) != 0)
+									rendererBuildData.albedoTexAssetName = materialAsset->GetAlbedoTexture()->GetAssetName();
+								if ((textureMask & MaterialAsset::METALLIC_TEX_MASK) != 0)
+									rendererBuildData.metallicTexAssetName = materialAsset->GetMetallicTexture()->GetAssetName();
+								if ((textureMask & MaterialAsset::ROUGHNESS_TEX_MASK) != 0)
+									rendererBuildData.roughnessTexAssetName = materialAsset->GetRoughnessTexture()->GetAssetName();
+								if ((textureMask & MaterialAsset::NORMAL_TEX_MASK) != 0)
+									rendererBuildData.normalTexAssetName = materialAsset->GetNormalTexture()->GetAssetName();
+								if ((textureMask & MaterialAsset::AO_TEX_MASK) != 0)
+									rendererBuildData.aoTexAssetName = materialAsset->GetAOTexture()->GetAssetName();
+							}
+						}
 					}
 
 					auto& perInstanceData = mRenderMeshBuildDataMap[meshId].perInstanceData;

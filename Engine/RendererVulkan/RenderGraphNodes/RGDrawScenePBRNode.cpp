@@ -99,11 +99,11 @@ namespace SG
 			.AddCombindSamplerImage("brdf_lut_sampler", "brdf_lut")
 			.AddCombindSamplerImage("irradiance_cubemap_sampler", "cubemap_irradiance")
 			.AddCombindSamplerImage("prefilter_cubemap_sampler", "cubemap_prefilter")
-			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*0")
-			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_metallic")
-			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_roughness")
-			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_ao")
-			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*2")
+			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*0")
+			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_metallic")
+			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_roughness")
+			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_ao")
+			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*2")
 			.Build();
 
 		// TEMPORARY
@@ -229,7 +229,6 @@ namespace SG
 		//pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
 		IndirectRenderer::Begin(drawInfo);
-		//pBuf.BindPipelineSignatureNonDynamic(mpPipelineSignature.get());
 
 		// 1.1 Forward Mesh Pass
 		pBuf.BindPipeline(mpPipeline);
@@ -692,14 +691,14 @@ namespace SG
 
 	void RGDrawScenePBRNode::OnRenderDataRebuild()
 	{
-		auto& defaultDesriptorSet = mpPipelineSignature->GetDescriptorSet(1, "__non_dynamic");
-		VulkanPipelineSignature::ShaderDataBinder(mpPipelineSignature.get(), mpShader, 1) // rebind all the textures to descriptor
-			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*0")
-			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_metallic")
-			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_roughness")
-			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_ao")
-			.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*2")
-			.ReBind(defaultDesriptorSet);
+		//auto& defaultDesriptorSet = mpPipelineSignature->GetDescriptorSet(1, "__non_dynamic");
+		//VulkanPipelineSignature::ShaderDataBinder(mpPipelineSignature.get(), mpShader, 1) // rebind all the textures to descriptor
+		//	.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*0")
+		//	.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_metallic")
+		//	.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_roughness")
+		//	.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_ao")
+		//	.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*2")
+		//	.ReBind(defaultDesriptorSet);
 	}
 
 }

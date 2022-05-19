@@ -95,6 +95,8 @@ namespace SG
 		VulkanResourceRegistry() = default;
 
 		void OnRenderDataRebuild();
+
+		bool IsTextureNeedToGenerateMipmap(UInt32 width, UInt32 height, EImageFormat imageFormat, UInt32 dataByteSize, UInt32 mipmap) const;
 	private:
 		VulkanContext* mpContext;
 		MessageBusMember mMessageBusMember;

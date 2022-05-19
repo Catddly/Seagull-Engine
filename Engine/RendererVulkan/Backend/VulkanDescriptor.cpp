@@ -190,7 +190,7 @@ namespace SG
 		VkDescriptorImageInfo imageInfo = {};
 		imageInfo.sampler = pSampler->sampler;
 		imageInfo.imageView = pTexture->imageView;
-		imageInfo.imageLayout = pTexture->currLayout;
+		imageInfo.imageLayout = pTexture->currLayouts[0];
 
 		imageInfos[currentImageIndex] = eastl::move(imageInfo);
 

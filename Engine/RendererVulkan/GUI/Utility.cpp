@@ -112,7 +112,7 @@ namespace SG
 		memset(buffer, 0, sizeof(buffer));
 		strcpy_s(buffer, tag.name.c_str());
 		if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
-			tag = buffer;
+			tag.name = buffer;
 
 		ImGui::PushID(tag.name.c_str());
 		DrawComponent<TransformComponent>(entity, [&tag](TransformComponent& comp)
@@ -123,14 +123,26 @@ namespace SG
 			});
 		DrawComponent<MaterialComponent>(entity, [&tag](MaterialComponent& comp)
 			{
-				tag.bDirty |= DrawGUIColorEdit3("Color", comp.albedo);
-				ImGui::Text("Albedo Map: %s", comp.albedoTex ? comp.albedoTex->GetAssetName() : "Null");
-				tag.bDirty |= DrawGUIDragFloat("Metallic", comp.metallic, 0.35f, 0.05f, 0.0f, 1.0f);
-				ImGui::Text("Metallic Map: %s", comp.metallicTex ? comp.metallicTex->GetAssetName() : "Null");
-				tag.bDirty |= DrawGUIDragFloat("Roughness", comp.roughness, 0.75f, 0.05f, 0.0f, 1.0f);
-				ImGui::Text("Roughness Map: %s", comp.roughnessTex ? comp.roughnessTex->GetAssetName() : "Null");
-				ImGui::Text("AO Map: %s", comp.AOTex ? comp.AOTex->GetAssetName() : "Null");
-				ImGui::Text("Normal Map: %s", comp.normalTex ? comp.normalTex->GetAssetName() : "Null");
+				auto matAsset = comp.materialAsset.lock();
+				// this is bad...
+				Vector3f albedo = matAsset->GetAlbedo();
+				tag.bDirty |= DrawGUIColorEdit3("Color", albedo);
+				matAsset->SetAlbedo(albedo);
+
+				float metallic = matAsset->GetMetallic();
+				tag.bDirty |= DrawGUIDragFloat("Metallic", metallic, 0.35f, 0.05f, 0.0f, 1.0f);
+				matAsset->SetMetallic(metallic);
+
+				float roughness = matAsset->GetRoughness();
+				tag.bDirty |= DrawGUIDragFloat("Roughness", roughness, 0.75f, 0.05f, 0.0f, 1.0f);
+				matAsset->SetRoughness(roughness);
+
+				const UInt32 textureMask = matAsset->GetTextureMask();
+				ImGui::Text("Albedo Map: %s", ((textureMask & MaterialAsset::ALBEDO_TEX_MASK) != 0) ? matAsset->GetAlbedoTexture()->GetAssetName() : "Null");
+				ImGui::Text("Metallic Map: %s", ((textureMask & MaterialAsset::METALLIC_TEX_MASK) != 0) ? matAsset->GetMetallicTexture()->GetAssetName() : "Null");
+				ImGui::Text("Roughness Map: %s", ((textureMask & MaterialAsset::ROUGHNESS_TEX_MASK) != 0) ? matAsset->GetRoughnessTexture()->GetAssetName() : "Null");
+				ImGui::Text("AO Map: %s", ((textureMask & MaterialAsset::AO_TEX_MASK) != 0) ? matAsset->GetAOTexture()->GetAssetName() : "Null");
+				ImGui::Text("Normal Map: %s", ((textureMask & MaterialAsset::NORMAL_TEX_MASK) != 0) ? matAsset->GetNormalTexture()->GetAssetName() : "Null");
 			});
 		DrawComponent<MeshComponent>(entity, [&tag](MeshComponent& comp)
 			{

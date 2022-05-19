@@ -72,7 +72,7 @@ namespace SG
 		textureCI.height = texture.height;
 		textureCI.depth = 1;
 		textureCI.array = texture.array;
-		textureCI.mipLevel = 1;
+		textureCI.mipLevel = texture.mipLevel;
 
 		textureCI.sample = ESampleCount::eSample_1;
 		textureCI.usage = EImageUsage::efSample;

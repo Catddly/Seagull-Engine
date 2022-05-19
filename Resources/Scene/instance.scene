@@ -3,24 +3,24 @@
         {
             "CameraComponent": {
                 "CameraPos": [
-                    0.010688945651054382,
-                    3.6638636589050293,
-                    9.386187553405762
+                    0.03416881710290909,
+                    3.5772759914398193,
+                    9.934842109680176
                 ],
                 "FrontVector": [
-                    -0.011234809644520283,
-                    -0.22864113748073578,
-                    -0.9734460115432739
+                    0.0010125136468559504,
+                    -0.19631651043891907,
+                    -0.9805400967597961
                 ],
                 "RightVector": [
-                    0.9999334812164307,
+                    0.999999463558197,
                     0.0,
-                    -0.011540365405380726
+                    0.0010326022747904062
                 ],
                 "UpVector": [
-                    -0.002638631034642458,
-                    0.9735109210014343,
-                    -0.22862569987773895
+                    0.00020271709945518523,
+                    0.9805406332015991,
+                    -0.19631649553775787
                 ]
             },
             "EntityID": "2468517968452275",
@@ -59,13 +59,13 @@
             },
             "TransformComponent": {
                 "Position": [
-                    8.0,
-                    12.0,
-                    0.0
+                    0.0,
+                    150.0,
+                    0.3499999940395355
                 ],
                 "Rotation": [
-                    40.0,
-                    -40.0,
+                    0.0,
+                    0.0,
                     0.0
                 ],
                 "Scale": [
@@ -114,11 +114,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere0_0_mat",
+                "Filename": "",
                 "Metallic": 0.10000000149011612,
                 "Roughness": 1.0
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -152,11 +155,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere0_1_mat",
+                "Filename": "",
                 "Metallic": 0.10000000149011612,
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -190,11 +196,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere0_2_mat",
+                "Filename": "",
                 "Metallic": 0.10000000149011612,
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -228,11 +237,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere0_3_mat",
+                "Filename": "",
                 "Metallic": 0.10000000149011612,
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -266,11 +278,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere0_4_mat",
+                "Filename": "",
                 "Metallic": 0.10000000149011612,
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -304,11 +319,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere0_5_mat",
+                "Filename": "",
                 "Metallic": 0.10000000149011612,
                 "Roughness": 0.5
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -342,11 +360,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere0_6_mat",
+                "Filename": "",
                 "Metallic": 0.10000000149011612,
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -380,11 +401,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere0_7_mat",
+                "Filename": "",
                 "Metallic": 0.10000000149011612,
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -418,11 +442,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere0_8_mat",
+                "Filename": "",
                 "Metallic": 0.10000000149011612,
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -456,11 +483,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere0_9_mat",
+                "Filename": "",
                 "Metallic": 0.10000000149011612,
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -494,11 +524,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere1_0_mat",
+                "Filename": "",
                 "Metallic": 0.20000000298023224,
                 "Roughness": 1.0
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -532,11 +565,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere1_1_mat",
+                "Filename": "",
                 "Metallic": 0.20000000298023224,
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -570,11 +606,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere1_2_mat",
+                "Filename": "",
                 "Metallic": 0.20000000298023224,
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -608,11 +647,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere1_3_mat",
+                "Filename": "",
                 "Metallic": 0.20000000298023224,
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -646,11 +688,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere1_4_mat",
+                "Filename": "",
                 "Metallic": 0.20000000298023224,
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -684,11 +729,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere1_5_mat",
+                "Filename": "",
                 "Metallic": 0.20000000298023224,
                 "Roughness": 0.5
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -722,11 +770,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere1_6_mat",
+                "Filename": "",
                 "Metallic": 0.20000000298023224,
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -760,11 +811,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere1_7_mat",
+                "Filename": "",
                 "Metallic": 0.20000000298023224,
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -798,11 +852,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere1_8_mat",
+                "Filename": "",
                 "Metallic": 0.20000000298023224,
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -836,11 +893,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere1_9_mat",
+                "Filename": "",
                 "Metallic": 0.20000000298023224,
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -874,11 +934,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere2_0_mat",
+                "Filename": "",
                 "Metallic": 0.30000001192092896,
                 "Roughness": 1.0
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -912,11 +975,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere2_1_mat",
+                "Filename": "",
                 "Metallic": 0.30000001192092896,
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -950,11 +1016,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere2_2_mat",
+                "Filename": "",
                 "Metallic": 0.30000001192092896,
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -988,11 +1057,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere2_3_mat",
+                "Filename": "",
                 "Metallic": 0.30000001192092896,
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1026,11 +1098,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere2_4_mat",
+                "Filename": "",
                 "Metallic": 0.30000001192092896,
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1064,11 +1139,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere2_5_mat",
+                "Filename": "",
                 "Metallic": 0.30000001192092896,
                 "Roughness": 0.5
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1102,11 +1180,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere2_6_mat",
+                "Filename": "",
                 "Metallic": 0.30000001192092896,
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1140,11 +1221,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere2_7_mat",
+                "Filename": "",
                 "Metallic": 0.30000001192092896,
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1178,11 +1262,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere2_8_mat",
+                "Filename": "",
                 "Metallic": 0.30000001192092896,
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1216,11 +1303,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere2_9_mat",
+                "Filename": "",
                 "Metallic": 0.30000001192092896,
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1254,11 +1344,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere3_0_mat",
+                "Filename": "",
                 "Metallic": 0.4000000059604645,
                 "Roughness": 1.0
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1292,11 +1385,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere3_1_mat",
+                "Filename": "",
                 "Metallic": 0.4000000059604645,
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1330,11 +1426,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere3_2_mat",
+                "Filename": "",
                 "Metallic": 0.4000000059604645,
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1368,11 +1467,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere3_3_mat",
+                "Filename": "",
                 "Metallic": 0.4000000059604645,
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1406,11 +1508,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere3_4_mat",
+                "Filename": "",
                 "Metallic": 0.4000000059604645,
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1444,11 +1549,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere3_5_mat",
+                "Filename": "",
                 "Metallic": 0.4000000059604645,
                 "Roughness": 0.5
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1482,11 +1590,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere3_6_mat",
+                "Filename": "",
                 "Metallic": 0.4000000059604645,
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1520,11 +1631,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere3_7_mat",
+                "Filename": "",
                 "Metallic": 0.4000000059604645,
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1558,11 +1672,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere3_8_mat",
+                "Filename": "",
                 "Metallic": 0.4000000059604645,
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1596,11 +1713,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere3_9_mat",
+                "Filename": "",
                 "Metallic": 0.4000000059604645,
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1634,11 +1754,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere4_0_mat",
+                "Filename": "",
                 "Metallic": 0.5,
                 "Roughness": 1.0
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1672,11 +1795,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere4_1_mat",
+                "Filename": "",
                 "Metallic": 0.5,
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1710,11 +1836,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere4_2_mat",
+                "Filename": "",
                 "Metallic": 0.5,
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1748,11 +1877,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere4_3_mat",
+                "Filename": "",
                 "Metallic": 0.5,
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1786,11 +1918,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere4_4_mat",
+                "Filename": "",
                 "Metallic": 0.5,
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1824,11 +1959,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere4_5_mat",
+                "Filename": "",
                 "Metallic": 0.5,
                 "Roughness": 0.5
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1862,11 +2000,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere4_6_mat",
+                "Filename": "",
                 "Metallic": 0.5,
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1900,11 +2041,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere4_7_mat",
+                "Filename": "",
                 "Metallic": 0.5,
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1938,11 +2082,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere4_8_mat",
+                "Filename": "",
                 "Metallic": 0.5,
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -1976,11 +2123,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere4_9_mat",
+                "Filename": "",
                 "Metallic": 0.5,
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2014,11 +2164,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere5_0_mat",
+                "Filename": "",
                 "Metallic": 0.6000000238418579,
                 "Roughness": 1.0
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2052,11 +2205,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere5_1_mat",
+                "Filename": "",
                 "Metallic": 0.6000000238418579,
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2090,11 +2246,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere5_2_mat",
+                "Filename": "",
                 "Metallic": 0.6000000238418579,
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2128,11 +2287,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere5_3_mat",
+                "Filename": "",
                 "Metallic": 0.6000000238418579,
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2166,11 +2328,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere5_4_mat",
+                "Filename": "",
                 "Metallic": 0.6000000238418579,
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2204,11 +2369,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere5_5_mat",
+                "Filename": "",
                 "Metallic": 0.6000000238418579,
                 "Roughness": 0.5
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2242,11 +2410,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere5_6_mat",
+                "Filename": "",
                 "Metallic": 0.6000000238418579,
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2280,11 +2451,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere5_7_mat",
+                "Filename": "",
                 "Metallic": 0.6000000238418579,
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2318,11 +2492,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere5_8_mat",
+                "Filename": "",
                 "Metallic": 0.6000000238418579,
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2356,11 +2533,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere5_9_mat",
+                "Filename": "",
                 "Metallic": 0.6000000238418579,
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2394,11 +2574,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere6_0_mat",
+                "Filename": "",
                 "Metallic": 0.699999988079071,
                 "Roughness": 1.0
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2432,11 +2615,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere6_1_mat",
+                "Filename": "",
                 "Metallic": 0.699999988079071,
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2470,11 +2656,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere6_2_mat",
+                "Filename": "",
                 "Metallic": 0.699999988079071,
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2508,11 +2697,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere6_3_mat",
+                "Filename": "",
                 "Metallic": 0.699999988079071,
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2546,11 +2738,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere6_4_mat",
+                "Filename": "",
                 "Metallic": 0.699999988079071,
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2584,11 +2779,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere6_5_mat",
+                "Filename": "",
                 "Metallic": 0.699999988079071,
                 "Roughness": 0.5
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2622,11 +2820,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere6_6_mat",
+                "Filename": "",
                 "Metallic": 0.699999988079071,
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2660,11 +2861,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere6_7_mat",
+                "Filename": "",
                 "Metallic": 0.699999988079071,
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2698,11 +2902,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere6_8_mat",
+                "Filename": "",
                 "Metallic": 0.699999988079071,
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2736,11 +2943,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere6_9_mat",
+                "Filename": "",
                 "Metallic": 0.699999988079071,
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2774,11 +2984,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere7_0_mat",
+                "Filename": "",
                 "Metallic": 0.800000011920929,
                 "Roughness": 1.0
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2812,11 +3025,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere7_1_mat",
+                "Filename": "",
                 "Metallic": 0.800000011920929,
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2850,11 +3066,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere7_2_mat",
+                "Filename": "",
                 "Metallic": 0.800000011920929,
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2888,11 +3107,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere7_3_mat",
+                "Filename": "",
                 "Metallic": 0.800000011920929,
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2926,11 +3148,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere7_4_mat",
+                "Filename": "",
                 "Metallic": 0.800000011920929,
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -2964,11 +3189,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere7_5_mat",
+                "Filename": "",
                 "Metallic": 0.800000011920929,
                 "Roughness": 0.5
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3002,11 +3230,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere7_6_mat",
+                "Filename": "",
                 "Metallic": 0.800000011920929,
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3040,11 +3271,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere7_7_mat",
+                "Filename": "",
                 "Metallic": 0.800000011920929,
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3078,11 +3312,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere7_8_mat",
+                "Filename": "",
                 "Metallic": 0.800000011920929,
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3116,11 +3353,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere7_9_mat",
+                "Filename": "",
                 "Metallic": 0.800000011920929,
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3154,11 +3394,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere8_0_mat",
+                "Filename": "",
                 "Metallic": 0.9000000357627869,
                 "Roughness": 1.0
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3192,11 +3435,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere8_1_mat",
+                "Filename": "",
                 "Metallic": 0.9000000357627869,
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3230,11 +3476,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere8_2_mat",
+                "Filename": "",
                 "Metallic": 0.9000000357627869,
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3268,11 +3517,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere8_3_mat",
+                "Filename": "",
                 "Metallic": 0.9000000357627869,
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3306,11 +3558,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere8_4_mat",
+                "Filename": "",
                 "Metallic": 0.9000000357627869,
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3344,11 +3599,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere8_5_mat",
+                "Filename": "",
                 "Metallic": 0.9000000357627869,
                 "Roughness": 0.5
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3382,11 +3640,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere8_6_mat",
+                "Filename": "",
                 "Metallic": 0.9000000357627869,
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3420,11 +3681,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere8_7_mat",
+                "Filename": "",
                 "Metallic": 0.9000000357627869,
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3458,11 +3722,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere8_8_mat",
+                "Filename": "",
                 "Metallic": 0.9000000357627869,
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3496,11 +3763,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere8_9_mat",
+                "Filename": "",
                 "Metallic": 0.9000000357627869,
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3534,11 +3804,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere9_0_mat",
+                "Filename": "",
                 "Metallic": 1.0,
                 "Roughness": 1.0
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3572,11 +3845,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere9_1_mat",
+                "Filename": "",
                 "Metallic": 1.0,
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3610,11 +3886,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere9_2_mat",
+                "Filename": "",
                 "Metallic": 1.0,
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3648,11 +3927,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere9_3_mat",
+                "Filename": "",
                 "Metallic": 1.0,
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3686,11 +3968,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere9_4_mat",
+                "Filename": "",
                 "Metallic": 1.0,
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3724,11 +4009,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere9_5_mat",
+                "Filename": "",
                 "Metallic": 1.0,
                 "Roughness": 0.5
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3762,11 +4050,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere9_6_mat",
+                "Filename": "",
                 "Metallic": 1.0,
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3800,11 +4091,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere9_7_mat",
+                "Filename": "",
                 "Metallic": 1.0,
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3838,11 +4132,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere9_8_mat",
+                "Filename": "",
                 "Metallic": 1.0,
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3876,11 +4173,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "sphere9_9_mat",
+                "Filename": "",
                 "Metallic": 1.0,
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
                 "Filename": "sphere",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Sphere",
                 "Type": 0
@@ -3926,6 +4226,8 @@
                     "Name": "cerberus_albedo",
                     "NeedMipmap": true
                 },
+                "AssetName": "cerberus_mat",
+                "Filename": "",
                 "Metallic": 0.05000000074505806,
                 "MetallicTextureAsset": {
                     "Filename": "cerberus/metallic.ktx",
@@ -3949,6 +4251,7 @@
             },
             "MeshComponent": {
                 "Filename": "cerberus",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Mesh_0",
                 "Type": 0
@@ -3988,11 +4291,14 @@
                     1.0,
                     1.0
                 ],
+                "AssetName": "cerberus_1_mat",
+                "Filename": "",
                 "Metallic": 0.05000000074505806,
                 "Roughness": 0.8999999761581421
             },
             "MeshComponent": {
                 "Filename": "cerberus",
+                "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
                 "SubMeshName": "Mesh_0",
                 "Type": 0
