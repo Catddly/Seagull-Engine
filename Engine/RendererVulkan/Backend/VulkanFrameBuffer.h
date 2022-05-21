@@ -29,8 +29,6 @@ namespace SG
 			const vector<VulkanImageTransitions>& trans);
 		~VulkanRenderPass();
 
-		const VkRenderPass& NativeHandle() const { return renderPass; }
-
 		// The data in the builder will not be cached!
 		class Builder
 		{
@@ -70,7 +68,7 @@ namespace SG
 	class VulkanFrameBuffer
 	{
 	public:
-		VulkanFrameBuffer(VulkanDevice& d, const vector<VulkanRenderTarget*>& pRenderTargets, const vector<ClearValue>& clearValues, VulkanRenderPass* pRenderPass);
+		VulkanFrameBuffer(VulkanDevice& d, const vector<VulkanRenderTarget*>& pRenderTargets, VulkanRenderPass* pRenderPass);
 		~VulkanFrameBuffer();
 
 		class Builder
@@ -82,23 +80,21 @@ namespace SG
 			 * @brief In the VulkanFrameBuffer we bind the render target for a reference of image view,
 			 * it tell the whole render device where to draw on.
 			 */
-			Builder& AddRenderTarget(VulkanRenderTarget* pRenderTarget, const ClearValue& clearValue);
+			Builder& AddRenderTarget(VulkanRenderTarget* pRenderTarget);
 			Builder& BindRenderPass(VulkanRenderPass* pRenderPass);
 			VulkanFrameBuffer* Build();
 		private:
 			VulkanDevice& device;
 			vector<VulkanRenderTarget*> renderTargets;
-			vector<ClearValue>          clearValues;
-			VulkanRenderPass*           pRenderPass;
+			VulkanRenderPass* pRenderPass;
 			bool bHaveSwapChainRT; // if user had bind the render target of swapchain
 		};
 	private:
 		friend class VulkanCommandBuffer;
 
 		VulkanDevice& device;
-		VulkanRenderPass* currRenderPass;
+		VulkanRenderPass* pRenderPass;
 		VkFramebuffer frameBuffer;
-		vector<VkClearValue> clearValues;
 		UInt32 width;
 		UInt32 height;
 	};

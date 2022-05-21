@@ -138,7 +138,7 @@ namespace SG
 		vkResetCommandBuffer(commandBuffer, bReleaseResource ? VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT : 0);
 	}
 
-	void VulkanCommandBuffer::BeginRenderPass(VulkanFrameBuffer* pFrameBuffer)
+	void VulkanCommandBuffer::BeginRenderPass(VulkanFrameBuffer* pFrameBuffer, const ClearValue* pClearValues, UInt32 numClearValue)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -147,17 +147,17 @@ namespace SG
 		renderPassBeginInfo.pNext = nullptr;
 		renderPassBeginInfo.renderArea.offset.x = 0;
 		renderPassBeginInfo.renderArea.offset.y = 0;
-		renderPassBeginInfo.renderArea.extent.width  = pFrameBuffer->width;
+		renderPassBeginInfo.renderArea.extent.width = pFrameBuffer->width;
 		renderPassBeginInfo.renderArea.extent.height = pFrameBuffer->height;
 
-		renderPassBeginInfo.clearValueCount = static_cast<UInt32>(pFrameBuffer->clearValues.size());
-		renderPassBeginInfo.pClearValues    = pFrameBuffer->clearValues.data();
+		renderPassBeginInfo.clearValueCount = numClearValue;
+		renderPassBeginInfo.pClearValues = reinterpret_cast<const VkClearValue*>(pClearValues);
 
-		renderPassBeginInfo.renderPass = pFrameBuffer->currRenderPass->renderPass;
+		renderPassBeginInfo.renderPass = pFrameBuffer->pRenderPass->renderPass;
 		renderPassBeginInfo.framebuffer = pFrameBuffer->frameBuffer;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-		gpCurrRenderPass = pFrameBuffer->currRenderPass;
+		gpCurrRenderPass = pFrameBuffer->pRenderPass;
 	}
 
 	void VulkanCommandBuffer::EndRenderPass()
@@ -497,6 +497,15 @@ namespace SG
 
 			srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 			dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+			barrier.newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		{
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;;
+
+			srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		}
 		else if (barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
 			barrier.newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)

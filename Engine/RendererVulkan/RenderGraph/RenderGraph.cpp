@@ -92,24 +92,21 @@ namespace SG
 		for (auto* pCurrNode : mpNodes)
 		{
 			// calculate the hash data
+			Size renderpassHash = 0;
 			Size framebufferHash = 0;
 			for (auto& resource : pCurrNode->mInResources)
 			{
 				if (resource.has_value())
 				{
-					bool bHaveMultiResource = resource->GetNumRenderTarget() != 1 ? true : false;
+					const bool bHaveMultiResource = resource->GetNumRenderTarget() != 1 ? true : false;
 
-					UInt32 address[3] = {
-						resource->GetRenderTarget(bHaveMultiResource ? frameIndex : 0)->GetID(),
-						resource->GetRenderTarget(bHaveMultiResource ? frameIndex : 0)->GetNumMipmap(),
-						resource->GetRenderTarget(bHaveMultiResource ? frameIndex : 0)->GetNumArray(),
-					};
-					framebufferHash = HashMemory32Array(address, 3, framebufferHash);
+					renderpassHash = resource->GetRenderPassHash(renderpassHash);
+					framebufferHash = resource->GetFrameBufferHash(renderpassHash, bHaveMultiResource ? frameIndex : 0);
 				}
 			}
 			auto* pFrameBuffer = mFrameBuffersMap.find(framebufferHash)->second;
 
-			commandBuf.BeginRenderPass(pFrameBuffer);
+			commandBuf.BeginRenderPass(pFrameBuffer, pCurrNode->GetClearValues(), pCurrNode->GetNumResource());
 			pCurrNode->Draw(drawInfo);
 			commandBuf.EndRenderPass();
 		}
@@ -211,12 +208,11 @@ namespace SG
 		}
 
 		// calculate the hash data
-		UInt32 currIndex = 0;
 		for (UInt32 i = 0; i < maxNum; ++i)
 		{
-			Size framebufferHash = 0;
 			Size renderpassHash = 0;
-			vector<eastl::pair<VulkanRenderTarget*, ClearValue>> frameRtCollection;
+			Size framebufferHash = 0;
+			vector<VulkanRenderTarget*> frameRtCollection;
 
 			for (auto& resource : pCurrNode->mInResources)
 			{
@@ -226,10 +222,10 @@ namespace SG
 					if (resource->GetNumRenderTarget() != 1)
 						bHaveMultiResource = true;
 
-					frameRtCollection.emplace_back(resource->GetRenderTarget(bHaveMultiResource ? currIndex : 0), resource->GetClearValue());
+					frameRtCollection.emplace_back(resource->GetRenderTarget(bHaveMultiResource ? i : 0));
 
 					renderpassHash = resource->GetRenderPassHash(renderpassHash);
-					framebufferHash = resource->GetFrameBufferHash(framebufferHash, bHaveMultiResource ? currIndex : 0);
+					framebufferHash = resource->GetFrameBufferHash(renderpassHash, bHaveMultiResource ? i : 0);
 				}
 			}
 
@@ -238,15 +234,14 @@ namespace SG
 			if (pFrameBufferNode == mFrameBuffersMap.end()) // Didn't find this framebuffer, then create a new one
 			{
 				VulkanFrameBuffer::Builder fbBuilder(mpContext->device);
-				for (auto& resource : frameRtCollection)
-					fbBuilder.AddRenderTarget(resource.first, resource.second);
+				for (auto* resource : frameRtCollection)
+					fbBuilder.AddRenderTarget(resource);
 
 				auto* pRenderPass = mRenderPassesMap.find(renderpassHash)->second;
 				auto* pFrameBuffer = fbBuilder.BindRenderPass(pRenderPass).Build();
 
 				mFrameBuffersMap[framebufferHash] = pFrameBuffer; // append the new framebuffer to the map
 			}
-			++currIndex;
 		}
 	}
 

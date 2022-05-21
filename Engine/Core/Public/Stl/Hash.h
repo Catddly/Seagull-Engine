@@ -45,7 +45,7 @@ namespace SG
 	{
 		UInt64 hash = HashMemory32(&arrayOfAddress[0], prevHash);
 		for (UInt32 i = 1; i < count; ++i)
-			HashMemory32(&arrayOfAddress[i], hash);
+			hash = HashMemory32(&arrayOfAddress[i], hash);
 		return hash;
 	}
 

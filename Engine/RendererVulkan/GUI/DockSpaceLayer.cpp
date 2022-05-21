@@ -292,12 +292,16 @@ namespace SG
 		
 		if (mbShowStatisticsDetail)
 		{
-			double total = statisticData.gpuRenderPassTime[0] + statisticData.gpuRenderPassTime[1] + statisticData.gpuRenderPassTime[2];
+			const double passTime0 = (statisticData.gpuRenderPassTimes[1].result - statisticData.gpuRenderPassTimes[0].result) * (statisticData.timePeriod / 1e6);
+			const double passTime1 = (statisticData.gpuRenderPassTimes[3].result - statisticData.gpuRenderPassTimes[2].result) * (statisticData.timePeriod / 1e6);
+			const double passTime2 = (statisticData.gpuRenderPassTimes[5].result - statisticData.gpuRenderPassTimes[4].result) * (statisticData.timePeriod / 1e6);
+
+			const double total = passTime0 + passTime1 + passTime2;
 			ImGui::Separator();
 			ImGui::Text("Fps GPU: %u", UInt32(1000.0 / total));
-			ImGui::Text("Shadow Pass: %.4lf ms", statisticData.gpuRenderPassTime[0]);
-			ImGui::Text("Draw Pass: %.4lf ms", statisticData.gpuRenderPassTime[1]);
-			ImGui::Text("UI Pass: %.4lf ms", statisticData.gpuRenderPassTime[2]);
+			ImGui::Text("Shadow Pass: %.4lf ms", passTime0);
+			ImGui::Text("Draw Pass: %.4lf ms", passTime1);
+			ImGui::Text("UI Pass: %.4lf ms", passTime2);
 			ImGui::Text("GPU Total: %.4lf ms", total);
 			ImGui::Separator();
 			ImGui::Text("Input assembly vertices: %d", statisticData.pipelineStatistics[0]);

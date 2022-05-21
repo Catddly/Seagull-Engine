@@ -25,7 +25,11 @@ namespace SG
 
 		RenderGraphNode(RenderGraph* pRenderGraph);
 		virtual ~RenderGraphNode() = default;
+
+		const ClearValue* GetClearValues() const { return mClearValues.data(); }
+		UInt32 GetNumResource() const;
 	protected:
+
 		const InResourceType& GetResource(UInt32 slot);
 		void AttachResource(UInt32 slot, const RenderGraphInReousrce& resource);
 		void DetachResource(UInt32 slot);
@@ -52,6 +56,7 @@ namespace SG
 
 		RenderGraph* mpRenderGraph = nullptr;
 		eastl::array<InResourceType, SG_MAX_RENDER_GRAPH_NODE_RESOURCE> mInResources;
+		eastl::array<ClearValue, SG_MAX_RENDER_GRAPH_NODE_RESOURCE> mClearValues;
 		UInt32 mResourceValidFlag;
 	};
 

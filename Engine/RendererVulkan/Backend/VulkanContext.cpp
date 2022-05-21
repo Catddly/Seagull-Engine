@@ -2,6 +2,7 @@
 #include "VulkanContext.h"
 
 #include "Platform/OS.h"
+#include "Render/CommonRenderData.h"
 #include "Memory/Memory.h"
 
 #include "VulkanCommand.h"
@@ -208,6 +209,10 @@ namespace SG
 			EPipelineStageQueryType::efFragment_Shader_Invocations;
 		pPipelineStatisticsQueryPool = VulkanQueryPool::Create(device, ERenderQueryType::ePipeline_Statistics, types);
 		pTimeStampQueryPool = VulkanQueryPool::Create(device, ERenderQueryType::eTimeStamp, 6);
+
+		auto& statisticsData = GetStatisticData();
+		statisticsData.timePeriod = pTimeStampQueryPool->GetTimePeriod();
+		statisticsData.gpuRenderPassTimes.resize(6);
 	}
 
 	void VulkanContext::DestroyDefaultResource()

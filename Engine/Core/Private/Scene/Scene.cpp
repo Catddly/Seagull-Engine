@@ -569,6 +569,11 @@ namespace SG
 			if (!filename.empty()) // it is a embedded material
 			{
 				mat.materialAsset = MaterialAssetArchive::GetInstance()->GetMaterialAsset(assetName);
+				auto materialAsset = mat.materialAsset.lock();
+
+				materialAsset->SetAlbedo(matComp["Albedo"].get<Vector3f>());
+				materialAsset->SetMetallic(matComp["Metallic"].get<float>());
+				materialAsset->SetRoughness(matComp["Roughness"].get<float>());
 			}
 			else // create an asset
 			{

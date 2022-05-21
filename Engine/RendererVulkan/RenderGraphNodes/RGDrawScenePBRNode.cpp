@@ -21,7 +21,7 @@
 #include "RendererVulkan/Backend/VulkanFrameBuffer.h"
 #include "RendererVulkan/Backend/VulkanShader.h"
 
-#include "RendererVulkan/Resource/DrawCall.h"
+#include "RendererVulkan/RenderDevice/DrawCall.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
 #include "RendererVulkan/Renderer/Renderer.h"
@@ -38,7 +38,7 @@ namespace SG
 		:RenderGraphNode(pRenderGraph), mContext(context), mpPipeline(nullptr),
 		// Set to default clear ops
 		mColorRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eDont_Care, EStoreOp::eDont_Care }),
-		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eDont_Care, ELoadOp::eClear, EStoreOp::eDont_Care })
+		mDepthRtLoadStoreOp({ ELoadOp::eClear, EStoreOp::eStore, ELoadOp::eClear, EStoreOp::eStore })
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -285,10 +285,8 @@ namespace SG
 			.CombineAsSubpass()
 			.Build();
 
-		ClearValue cv;
-		cv.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 		auto* pTempFrameBuffer = VulkanFrameBuffer::Builder(mContext.device)
-			.AddRenderTarget(VK_RESOURCE()->GetRenderTarget("brdf_lut"), cv)
+			.AddRenderTarget(VK_RESOURCE()->GetRenderTarget("brdf_lut"))
 			.BindRenderPass(pTempVulkanRenderPass)
 			.Build();
 
@@ -306,7 +304,9 @@ namespace SG
 		mContext.pGraphicCommandPool->AllocateCommandBuffer(cmdBuf);
 
 		cmdBuf.BeginRecord();
-		cmdBuf.BeginRenderPass(pTempFrameBuffer);
+		ClearValue cv;
+		cv.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+		cmdBuf.BeginRenderPass(pTempFrameBuffer, &cv, 1);
 		{
 			cmdBuf.SetViewport((float)texSize, (float)texSize, 0.0f, 1.0f);
 			cmdBuf.SetScissor({ 0, 0, (int)texSize, (int)texSize });
@@ -394,10 +394,8 @@ namespace SG
 			.CombineAsSubpass()
 			.Build();
 
-		ClearValue cv;
-		cv.color = { 0.0f, 0.0f, 0.0f, 0.0f };
 		auto* pTempFrameBuffer = VulkanFrameBuffer::Builder(mContext.device)
-			.AddRenderTarget(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"), cv)
+			.AddRenderTarget(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"))
 			.BindRenderPass(pTempVulkanRenderPass)
 			.Build();
 
@@ -442,7 +440,9 @@ namespace SG
 				{
 					cmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_irradiance_rt"), EResourceBarrier::efCopy_Source, EResourceBarrier::efRenderTarget);
 
-					cmd.BeginRenderPass(pTempFrameBuffer);
+					ClearValue cv;
+					cv.color = { 0.0f, 0.0f, 0.0f, 0.0f };
+					cmd.BeginRenderPass(pTempFrameBuffer, &cv, 1);
 					{
 						cmd.SetViewport((float)(texSize >> mip), (float)(texSize >> mip), 0.0f, 1.0f);
 						cmd.SetScissor({ 0, 0, (int)(texSize >> mip), (int)(texSize >> mip) });
@@ -556,10 +556,8 @@ namespace SG
 			.CombineAsSubpass()
 			.Build();
 
-		ClearValue cv;
-		cv.color = { 0.0f, 0.0f, 0.0f, 0.0f };
 		auto* pTempFrameBuffer = VulkanFrameBuffer::Builder(mContext.device)
-			.AddRenderTarget(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"), cv)
+			.AddRenderTarget(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"))
 			.BindRenderPass(pTempVulkanRenderPass)
 			.Build();
 
@@ -607,7 +605,9 @@ namespace SG
 				{
 					cmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("cubemap_prefilter_rt"), EResourceBarrier::efCopy_Source, EResourceBarrier::efRenderTarget);
 
-					cmd.BeginRenderPass(pTempFrameBuffer);
+					ClearValue cv;
+					cv.color = { 0.0f, 0.0f, 0.0f, 0.0f };
+					cmd.BeginRenderPass(pTempFrameBuffer, &cv, 1);
 					{
 						cmd.SetViewport((float)(texSize >> mip), (float)(texSize >> mip), 0.0f, 1.0f);
 						cmd.SetScissor({ 0, 0, (int)(texSize >> mip), (int)(texSize >> mip) });

@@ -9,6 +9,7 @@ namespace SG
 	{
 		eForward = 0,
 		eForwardInstanced,
+		eDebug,
 		NUM_MESH_PASS,
 		eUndefined,
 	};

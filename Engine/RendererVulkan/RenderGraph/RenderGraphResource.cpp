@@ -11,12 +11,13 @@ namespace SG
 		Size hash = prev;
 		if (!pRenderTarget->IsDepth())
 		{
-			UInt32 address[3] = {
+			UInt32 address[4] = {
 				static_cast<UInt32>(pRenderTarget->GetFormat()),
 				static_cast<UInt32>(pRenderTarget->GetSample()),
-				static_cast<UInt32>(op.loadOp)
+				static_cast<UInt32>(op.loadOp),
+				static_cast<UInt32>(op.storeOp),
 			};
-			return HashMemory32Array(address, 3, hash);
+			return HashMemory32Array(address, 4, hash);
 		}
 		else
 		{

@@ -161,24 +161,12 @@ namespace SG
 	/// VulkanFrameBuffer
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	VulkanFrameBuffer::VulkanFrameBuffer(VulkanDevice& d, const vector<VulkanRenderTarget*>& renderTargets, const vector<ClearValue>& clearValues, VulkanRenderPass* pRenderPass)
+	VulkanFrameBuffer::VulkanFrameBuffer(VulkanDevice& d, const vector<VulkanRenderTarget*>& renderTargets, VulkanRenderPass* pRenderPass)
 		:device(d)
 	{
 		vector<VkImageView> imageViews;
 		for (auto* pRt : renderTargets)
 			imageViews.emplace_back(pRt->imageView);
-
-		UInt32 index = 0;
-		for (auto& value : clearValues)
-		{
-			VkClearValue clearValue = {};
-			if (!renderTargets[index]->IsDepth())
-				clearValue.color = { { value.color.x, value.color.y, value.color.z, value.color.w } };
-			else
-				clearValue.depthStencil = { value.depthStencil.depth, value.depthStencil.stencil };
-			this->clearValues.push_back(clearValue);
-			++index;
-		}
 
 		VkFramebufferCreateInfo frameBufferCreateInfo = {};
 		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -203,7 +191,7 @@ namespace SG
 			this->height = frameBufferCreateInfo.height = 0;
 			frameBufferCreateInfo.layers = 1;
 		}
-		currRenderPass = pRenderPass;
+		this->pRenderPass = pRenderPass;
 
 		VK_CHECK(vkCreateFramebuffer(device.logicalDevice, &frameBufferCreateInfo, nullptr, &frameBuffer),
 			SG_LOG_ERROR("Failed to create vulkan frame buffer!"););
@@ -214,7 +202,7 @@ namespace SG
 		vkDestroyFramebuffer(device.logicalDevice, frameBuffer, nullptr);
 	}
 
-	VulkanFrameBuffer::Builder& VulkanFrameBuffer::Builder::AddRenderTarget(VulkanRenderTarget* pRenderTarget, const ClearValue& clearValue)
+	VulkanFrameBuffer::Builder& VulkanFrameBuffer::Builder::AddRenderTarget(VulkanRenderTarget* pRenderTarget)
 	{
 		//if (!renderTargets.empty())
 		//{
@@ -226,7 +214,6 @@ namespace SG
 		//}
 
 		renderTargets.emplace_back(pRenderTarget);
-		clearValues.push_back(clearValue);
 		return *this;
 	}
 
@@ -243,7 +230,7 @@ namespace SG
 
 	VulkanFrameBuffer* VulkanFrameBuffer::Builder::Build()
 	{
-		return New(VulkanFrameBuffer, device, renderTargets, clearValues, pRenderPass);
+		return New(VulkanFrameBuffer, device, renderTargets, pRenderPass);
 	}
 
 }

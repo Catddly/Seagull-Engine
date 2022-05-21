@@ -1,8 +1,9 @@
 #pragma once
 
-#include "RendererVulkan/Config.h"
+#include "Render/Query.h"
 #include "Math/MathBasic.h"
 
+#include "Stl/vector.h"
 #include "eastl/array.h"
 
 namespace SG
@@ -103,17 +104,18 @@ namespace SG
 	{
 		UInt32 culledSceneObjects = 0;
 		eastl::array<UInt64, 8> pipelineStatistics = {};
-		eastl::array<double, 3> gpuRenderPassTime;
+		vector<QueryResult> gpuRenderPassTimes;
+		float timePeriod = -1.0f;
 	};
 
 	// temporary
-	SG_RENDERER_VK_API LightUBO&  GetLightUBO();
-	SG_RENDERER_VK_API ShadowUBO& GetShadowUBO();
-	SG_RENDERER_VK_API SkyboxUBO& GetSkyboxUBO();
-	SG_RENDERER_VK_API CameraUBO& GetCameraUBO();
-	SG_RENDERER_VK_API CompositionUBO& GetCompositionUBO();
-	SG_RENDERER_VK_API GPUCullUBO& GetGPUCullUBO();
+	LightUBO&  GetLightUBO();
+	ShadowUBO& GetShadowUBO();
+	SkyboxUBO& GetSkyboxUBO();
+	CameraUBO& GetCameraUBO();
+	CompositionUBO& GetCompositionUBO();
+	GPUCullUBO& GetGPUCullUBO();
 
-	SG_RENDERER_VK_API StatisticData& GetStatisticData();
+	StatisticData& GetStatisticData();
 
 }

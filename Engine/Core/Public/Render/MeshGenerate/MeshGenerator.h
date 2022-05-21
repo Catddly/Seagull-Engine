@@ -22,6 +22,8 @@ namespace SG
 		//! Vertex: [0] vertex pos.
 		//! No indices. Vertices only.
 		static void GenSkybox(vector<float>& outVertices);
+		//! Line list representation.
+		static void GenDebugBox(vector<float>& outVertices);
 	};
 
 }

@@ -24,8 +24,9 @@ namespace SG
 		void Wake() { bSleep = false; }
 		void Sleep() { bSleep = true; }
 
-		const vector<QueryResult>& GetQueryResult();
-		double GetTimeStampDurationMs(UInt32 begin, UInt32 end);
+		float GetTimePeriod() const { return timePeriod; }
+		eastl::pair<vector<QueryResult>, bool> GetQueryResult() const;
+		//double GetTimeStampDurationMs(UInt32 begin, UInt32 end);
 
 		static VulkanQueryPool* Create(VulkanDevice& d, ERenderQueryType type, EPipelineStageQueryType pipelineStageTypes);
 		static VulkanQueryPool* Create(VulkanDevice& d, ERenderQueryType type, UInt32 maxQueryCount);
@@ -37,7 +38,7 @@ namespace SG
 
 		UInt32 queryCount;
 		float  timePeriod;
-		vector<QueryResult> results;
+		mutable vector<QueryResult> results;
 		bool   bSleep;
 	};
 

@@ -3,8 +3,8 @@
 #include "Scene/RenderDataBuilder.h"
 
 #include "RendererVulkan/Renderer/RenderInfo.h"
-#include "RendererVulkan/Resource/DrawCall.h"
 #include "RendererVulkan/RenderDevice/MeshPass.h"
+#include "RendererVulkan/RenderDevice/DrawCall.h"
 
 #include "Stl/SmartPtr.h"
 #include "Stl/unordered_map.h"
@@ -22,8 +22,6 @@ namespace SG
 	class VulkanFence;
 	class VulkanPipelineSignature;
 	class VulkanShader;
-
-	//class VulkanQueryPool;
 
 	//! State machine, a functionality class to record draw command, and persist the render context.
 	class IndirectRenderer
@@ -80,13 +78,9 @@ namespace SG
 		static VulkanPipeline*                 mpDrawCallCompactPipeline;
 		static RefPtr<VulkanShader>            mpDrawCallCompactShader;
 
-		//static VulkanQueryPool* pComputeResetQueryPool;
-		//static VulkanQueryPool* pComputeCullingQueryPool;
-
 		static bool mbRendererInit;
 		static bool mbBeginDraw;
 		static bool mbDrawCallReady;
-
 	};
 
 }

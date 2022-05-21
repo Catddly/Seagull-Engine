@@ -230,4 +230,115 @@ namespace SG
 		outVertices.push_back(-1.0f);
 	}
 
+	void MeshGenerator::GenDebugBox(vector<float>& outVertices)
+	{
+		// Line [0]
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		// Line [1]
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		// Line [2]
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+
+		// Line [3]
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		// Line [4]
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+
+		// Line [5]
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		// Line [6]
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		// Line [7]
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+
+		// Line [8]
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+
+		// Line [9]
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+		outVertices.push_back(1.0f);
+
+		// Line [10]
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+
+		// Line [11]
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(1.0f);
+
+		outVertices.push_back(1.0f);
+		outVertices.push_back(-1.0f);
+		outVertices.push_back(-1.0f);
+	}
+
 }

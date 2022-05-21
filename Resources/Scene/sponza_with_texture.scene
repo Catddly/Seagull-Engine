@@ -3,24 +3,24 @@
         {
             "CameraComponent": {
                 "CameraPos": [
-                    -50.222782135009766,
-                    36.5914421081543,
-                    6.1774492263793945
+                    -75.96084594726563,
+                    29.524032592773438,
+                    -15.264054298400879
                 ],
                 "FrontVector": [
-                    0.9269020557403564,
-                    -0.3535464107990265,
-                    -0.12592679262161255
+                    0.9453253149986267,
+                    -0.25111982226371765,
+                    0.20808416604995728
                 ],
                 "RightVector": [
-                    0.13462071120738983,
+                    -0.21497556567192078,
                     0.0,
-                    0.9908972382545471
+                    0.9766194820404053
                 ],
                 "UpVector": [
-                    0.3503274619579315,
-                    0.9354172348976135,
-                    -0.047594521194696426
+                    0.2452547401189804,
+                    0.9679545164108276,
+                    0.05398319661617279
                 ]
             },
             "EntityID": "2468517968452275",
@@ -89,18 +89,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*0",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_5",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*2",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -110,7 +110,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0-0"
+                        "Name": "wall_0"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -142,18 +142,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*3",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_6",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*5",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -163,7 +163,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0-1"
+                        "Name": "wall_1"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -195,18 +195,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*6",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_7",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*8",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -216,7 +216,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0-2"
+                        "Name": "wall_2"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -248,18 +248,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*9",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_8",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*11",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -269,7 +269,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0-3"
+                        "Name": "pillar_0"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -301,18 +301,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*12",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_9",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*14",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -322,7 +322,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0-4"
+                        "Name": "floor"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -354,18 +354,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*15",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_10",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*17",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -375,7 +375,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0-5"
+                        "Name": "pillar_1"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -407,18 +407,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*18",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_11",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.25,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*20",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.6000000238418579
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -428,7 +428,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0-6"
+                        "Name": "door"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -460,18 +460,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*21",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_12",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*23",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -481,7 +481,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0-7"
+                        "Name": "pillar_2"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -513,7 +513,7 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*24",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_2",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -528,7 +528,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0-8"
+                        "Name": "unknown"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -560,18 +560,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*25",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_1",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*27",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -581,7 +581,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.001"
+                        "Name": "flower_pots"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -613,18 +613,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*28",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_3",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.019999999552965164,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*30",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -634,7 +634,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.002"
+                        "Name": "flowers"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -666,18 +666,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*31",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_4",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.800000011920929,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*33",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.15000000596046448
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -687,7 +687,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.003-0"
+                        "Name": "lions_0"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -719,18 +719,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*34",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_23",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.800000011920929,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*36",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.15000000596046448
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -740,7 +740,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.003-1"
+                        "Name": "lions_1"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -772,18 +772,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*37",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_0",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.019999999552965164,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*39",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -793,7 +793,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.004"
+                        "Name": "shrub"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -825,18 +825,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*40",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_14",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*42",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -846,7 +846,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.005-0"
+                        "Name": "curtain_green_0"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -878,18 +878,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*43",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_19",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*45",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -899,7 +899,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.005-1"
+                        "Name": "curtain_green_1"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -931,18 +931,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*46",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_15",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*47",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -952,7 +952,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.006-0"
+                        "Name": "curtain_blue_0"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -984,7 +984,7 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*48",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_17",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -993,7 +993,7 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*49",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "Roughness": 0.75
                     },
@@ -1005,7 +1005,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.006-1"
+                        "Name": "curtain_blue_1"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -1037,18 +1037,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*50",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_16",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*51",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1058,7 +1058,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.007-0"
+                        "Name": "curtain_red_0"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -1090,18 +1090,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*52",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_18",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*53",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1111,7 +1111,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.007-1"
+                        "Name": "curtain_red_1"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -1143,18 +1143,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*54",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_21",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.800000011920929,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*56",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.30000001192092896
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1164,7 +1164,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.008"
+                        "Name": "braziers"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -1196,18 +1196,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*57",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_20",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.800000011920929,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*59",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.4000000059604645
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1217,7 +1217,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.009"
+                        "Name": "brazier_chains"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -1249,18 +1249,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*60",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_22",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*62",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1270,7 +1270,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.010"
+                        "Name": "fountains"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -1302,18 +1302,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*63",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_13",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.30000001192092896,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*65",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.550000011920929
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1323,7 +1323,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.011"
+                        "Name": "rods"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -1355,18 +1355,18 @@
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*66",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
                         "AssetName": "Material_24",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
+                        "Metallic": 0.05000000074505806,
                         "NormalTextureAsset": {
                             "Filename": "sponza_gltf_khronos_fixed_and_split",
                             "IsCubeMap": false,
                             "Name": "embedded_texture_*68",
-                            "NeedMipmap": false
+                            "NeedMipmap": true
                         },
-                        "Roughness": 0.75
+                        "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
@@ -1376,7 +1376,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "Mesh_0.012"
+                        "Name": "roof"
                     },
                     "TransformComponent": {
                         "Position": [

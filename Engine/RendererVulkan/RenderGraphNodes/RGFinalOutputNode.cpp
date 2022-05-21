@@ -8,6 +8,8 @@
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
+#include "RendererVulkan/Backend/VulkanTexture.h"
+#include "RendererVulkan/Backend/VulkanQueue.h"
 #include "RendererVulkan/Backend/VulkanBuffer.h"
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Backend/VulkanPipelineSignature.h"

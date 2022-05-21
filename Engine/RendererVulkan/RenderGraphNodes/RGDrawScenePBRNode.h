@@ -1,14 +1,11 @@
 #pragma once
 
 #include "Render/FrameBuffer.h"
-#include "Scene/Camera/ICamera.h"
 #include "Event/MessageBus/MessageBus.h"
 
 #include "RendererVulkan/Backend/VulkanCommand.h"
 #include "RendererVulkan/Backend/VulkanShader.h"
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
-
-#include "volk.h"
 
 #include "Stl/vector.h"
 #include "Stl/SmartPtr.h"
@@ -17,8 +14,6 @@ namespace SG
 {
 
 	class VulkanContext;
-
-	class VulkanRenderTarget;
 	class VulkanShader;
 	class VulkanPipeline;
 	class VulkanPipelineSignature;

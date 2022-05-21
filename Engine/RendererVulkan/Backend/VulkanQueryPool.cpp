@@ -61,25 +61,17 @@ namespace SG
 		vkDestroyQueryPool(device.logicalDevice, queryPool, nullptr);
 	}
 
-	const vector<QueryResult>& VulkanQueryPool::GetQueryResult()
+	eastl::pair<eastl::vector<SG::QueryResult>, bool> VulkanQueryPool::GetQueryResult() const
 	{
 		if (bSleep)
-			return results;
+			return { results, false };
 
-		vkGetQueryPoolResults(device.logicalDevice, queryPool,
+		auto res = vkGetQueryPoolResults(device.logicalDevice, queryPool,
 			0, queryCount,
 			results.size() * sizeof(QueryResult), results.data(), sizeof(QueryResult),
-			VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
-		return results;
-	}
+			VK_QUERY_RESULT_64_BIT);
 
-	double VulkanQueryPool::GetTimeStampDurationMs(UInt32 begin, UInt32 end)
-	{
-		if (bSleep)
-			return 0.0f;
-
-		SG_ASSERT(timePeriod != -1.0f);
-		return (results[end].result - results[begin].result) * (timePeriod / 1e6);
+		return { results, res != VK_NOT_READY };
 	}
 
 	VulkanQueryPool* VulkanQueryPool::Create(VulkanDevice& d, ERenderQueryType type, EPipelineStageQueryType pipelineStageTypes)

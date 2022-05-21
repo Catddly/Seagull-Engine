@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Base/BasicTypes.h"
+#include "Render/FrameBuffer.h"
 #include "Render/Swapchain.h"
 #include "Render/ResourceBarriers.h"
 
@@ -14,6 +15,7 @@ namespace SG
 {
 
 	class VulkanPipeline;
+	class VulkanRenderPass;
 	class VulkanFrameBuffer;
 	class VulkanTexture;
 	class VulkanRenderTarget;
@@ -29,7 +31,7 @@ namespace SG
 		void EndRecord();
 		void Reset(bool bReleaseResource = false);
 
-		void BeginRenderPass(VulkanFrameBuffer* pFrameBuffer);
+		void BeginRenderPass(VulkanFrameBuffer* pFrameBuffer, const ClearValue* pClearValues, UInt32 numClearValue);
 		void EndRenderPass();
 
 		void SetViewport(float width, float height, float minDepth, float maxDepth);

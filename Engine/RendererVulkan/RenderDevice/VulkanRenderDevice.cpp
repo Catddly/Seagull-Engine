@@ -28,11 +28,14 @@
 #include "RendererVulkan/RenderGraphNodes/RGDrawSceneNode.h"
 // this node draw the scene and do lighting calculation (with IBL-BRDF-PBR)
 #include "RendererVulkan/RenderGraphNodes/RGDrawScenePBRNode.h"
+// this node draw the debug mesh on the screen.
+#include "RendererVulkan/RenderGraphNodes/RGDebugNode.h"
 // this node draw the final image and the GUI on the top.
 #include "RendererVulkan/RenderGraphNodes/RGFinalOutputNode.h"
 
 #include "RendererVulkan/Renderer/Renderer.h"
 #include "RendererVulkan/Renderer/IndirectRenderer.h"
+#include "RendererVulkan/Renderer/DebugRenderer.h"
 
 #include "RendererVulkan/GUI/ImGuiDriver.h"
 #include "RendererVulkan/GUI/TestGUILayer.h"
@@ -114,6 +117,8 @@ namespace SG
 		IndirectRenderer::OnInit(*mpContext);
 		IndirectRenderer::CollectRenderData(SSystem()->GetRenderDataBuilder());
 
+		DebugRenderer::OnInit(*mpContext);
+
 		//mpGUIDriver->PushUserLayer(MakeRef<TestGUILayer>());
 		mpDockSpaceGUILayer = MakeRef<DockSpaceLayer>();
 		mpGUIDriver->PushUserLayer(mpDockSpaceGUILayer);
@@ -131,6 +136,7 @@ namespace SG
 
 		mpContext->device.WaitIdle();
 
+		DebugRenderer::OnShutdown();
 		IndirectRenderer::OnShutdown();
 
 		mpRenderGraph.reset();
@@ -248,15 +254,15 @@ namespace SG
 			// copy the query result
 			if (!mpContext->pPipelineStatisticsQueryPool->IsSleep())
 			{
-				auto& pipelineResult = mpContext->pPipelineStatisticsQueryPool->GetQueryResult();
-				memcpy(statisticData.pipelineStatistics.data(), pipelineResult.data(), sizeof(QueryResult) * pipelineResult.size());
+				auto& [result, bSuccess] = mpContext->pPipelineStatisticsQueryPool->GetQueryResult();
+				if (bSuccess)
+				memcpy(statisticData.pipelineStatistics.data(), result.data(), sizeof(QueryResult) * result.size());
 			}
 			if (!mpContext->pTimeStampQueryPool->IsSleep())
 			{
-				mpContext->pTimeStampQueryPool->GetQueryResult();
-				statisticData.gpuRenderPassTime[0] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(0, 1);
-				statisticData.gpuRenderPassTime[1] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(2, 3);
-				statisticData.gpuRenderPassTime[2] = mpContext->pTimeStampQueryPool->GetTimeStampDurationMs(4, 5);
+				auto& [result, bSuccess] = mpContext->pTimeStampQueryPool->GetQueryResult();
+				if (bSuccess)
+					statisticData.gpuRenderPassTimes = result;
 			}
 		}
 
@@ -285,6 +291,7 @@ namespace SG
 		mpRenderGraph = RenderGraphBuilder("Default", mpContext)
 			.NewRenderPass<RGShadowNode>()
 			.NewRenderPass<RGDrawScenePBRNode>()
+			//.NewRenderPass<RGDebugNode>()
 			.NewRenderPass<RGFinalOutputNode>()
 			.Build();
 	}

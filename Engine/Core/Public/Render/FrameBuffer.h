@@ -34,14 +34,24 @@ namespace SG
 		}
 	};
 
-	struct ClearValue
+	// copy from the vulkan clear value definition
+	union ClearColorValue
 	{
-		Vector4f color = { 0.0f, 0.0f, 0.0f, 1.0f };
-		struct
-		{
-			float   depth = 1.0f;
-			UInt32  stencil = 0;
-		} depthStencil;
+		float  float32[4];
+		Int32  int32[4];
+		UInt32 uint32[4];
+	};
+
+	struct ClearDepthStencilValue
+	{
+		float  depth;
+		UInt32 stencil;
+	};
+
+	union ClearValue
+	{
+		ClearColorValue color;
+		ClearDepthStencilValue depthStencil;
 	};
 
 }
