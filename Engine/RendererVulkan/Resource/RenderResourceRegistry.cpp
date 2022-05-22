@@ -16,6 +16,7 @@
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
 #include "ktx/ktx.h"
+#include "Render/CommonRenderData.h"
 
 namespace SG
 {
@@ -167,6 +168,8 @@ namespace SG
 		auto& skyboxUbo = GetSkyboxUBO();
 		auto& cameraUbo = GetCameraUBO();
 
+		bool bNeedToUpdateDirectionalLight = false;
+
 		if (pCamera->IsProjDirty())
 		{
 			cameraUbo.proj = pCamera->GetProjMatrix();
@@ -178,6 +181,8 @@ namespace SG
 			cameraUbo.viewPos = pCamera->GetPosition();
 			cameraUbo.view = pCamera->GetViewMatrix();
 			skyboxUbo.model = Matrix4f(Matrix3f(cameraUbo.view)); // eliminate the translation part of the matrix
+
+			bNeedToUpdateDirectionalLight = true;
 		}
 
 		if (pCamera->IsViewDirty() || pCamera->IsProjDirty())
@@ -208,7 +213,7 @@ namespace SG
 		bool bNeedUpdateLightUbo = false;
 		auto& lightUbo = GetLightUBO();
 
-		pScene->TraverseEntityContext([this, pSSBOObject, &bNeedUpdateLightUbo, &lightUbo, pScene](Scene::EntityContext& context)
+		pScene->TraverseEntityContext([this, pSSBOObject, &bNeedUpdateLightUbo, &lightUbo, pScene, pCamera, bNeedToUpdateDirectionalLight](Scene::EntityContext& context)
 			{
 				auto& entity = context.entity;
 
@@ -229,10 +234,13 @@ namespace SG
 						auto [trans, light] = entity.GetComponent<TransformComponent, DirectionalLightComponent>();
 
 						auto& shadowUbo = GetShadowUBO();
-						shadowUbo.lightSpaceVP = CalcDirectionalLightViewProj(trans);
-						lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
 						lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
 						lightUbo.directionalColor = { light.color, 1.0f };
+
+						float aspect = OperatingSystem::GetMainWindow()->GetAspectRatio();
+						shadowUbo.lightSpaceVP = CalcDirectionalLightViewProj(trans, lightUbo.viewDirection, pCamera->GetPosition(), 
+							aspect, light.shadowMapScaleFactor, light.zNear, light.zFar);
+						lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
 						UpdataBufferData("shadowUbo", &shadowUbo);
 						bNeedUpdateLightUbo |= true;
 					}
@@ -252,6 +260,24 @@ namespace SG
 						pSSBOObject->UploadData(&renderData, sizeof(ObjcetRenderData), sizeof(ObjcetRenderData) * mesh.objectId);
 					}
 					tag.bDirty = false;
+				}
+				else if (bNeedToUpdateDirectionalLight)
+				{
+					if (entity.HasComponent<DirectionalLightComponent>())
+					{
+						auto [trans, light] = entity.GetComponent<TransformComponent, DirectionalLightComponent>();
+
+						auto& shadowUbo = GetShadowUBO();
+						lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
+						lightUbo.directionalColor = { light.color, 1.0f };
+
+						float aspect = OperatingSystem::GetMainWindow()->GetAspectRatio();
+						shadowUbo.lightSpaceVP = CalcDirectionalLightViewProj(trans, lightUbo.viewDirection, pCamera->GetPosition(), 
+							aspect, light.shadowMapScaleFactor, light.zNear, light.zFar);
+						lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
+						UpdataBufferData("shadowUbo", &shadowUbo);
+						bNeedUpdateLightUbo |= true;
+					}
 				}
 			});
 

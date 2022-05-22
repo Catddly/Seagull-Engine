@@ -1,7 +1,5 @@
 #version 460
 
-// #extension GL_EXT_gpu_shader4 : enable // for bitwise operand
-
 layout (location = 0) in vec3 inNormalWS;
 layout (location = 1) in vec3 inPosWS;
 layout (location = 2) in vec2 inUV;
@@ -228,7 +226,7 @@ void main()
 		N = CalculateNormal();
 		
 	vec3 V = normalize(inViewPosWS - inPosWS);
-	vec3 R = reflect(-V, N); 
+	vec3 R = reflect(-V, N);
 
 	float metallic = perObjectBuffer.objects[inId].mr.r;
 	float roughness = perObjectBuffer.objects[inId].mr.g;

@@ -26,7 +26,6 @@ namespace SG
 
 		float GetTimePeriod() const { return timePeriod; }
 		eastl::pair<vector<QueryResult>, bool> GetQueryResult() const;
-		//double GetTimeStampDurationMs(UInt32 begin, UInt32 end);
 
 		static VulkanQueryPool* Create(VulkanDevice& d, ERenderQueryType type, EPipelineStageQueryType pipelineStageTypes);
 		static VulkanQueryPool* Create(VulkanDevice& d, ERenderQueryType type, UInt32 maxQueryCount);

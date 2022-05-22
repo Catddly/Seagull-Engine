@@ -118,6 +118,9 @@ namespace SG
 			{
 				auto& light = entity.GetComponent<DirectionalLightComponent>();
 				lightNode["Color"] = light.color;
+				lightNode["ShadowMapScaleFactor"] = light.shadowMapScaleFactor;
+				lightNode["zNear"] = light.zNear;
+				lightNode["zFar"] = light.zFar;
 			}
 		}
 
@@ -127,6 +130,7 @@ namespace SG
 			{
 				auto& cam = entity.GetComponent<CameraComponent>();
 				camNode["CameraPos"] = cam.pCamera->GetPosition();
+				camNode["CameraMoveSpeed"] = cam.pCamera->GetMoveSpeed();
 				if (cam.type == ECameraType::eFirstPerson)
 				{
 					auto* pFPSCam = static_cast<FirstPersonCamera*>(cam.pCamera.get());
@@ -676,6 +680,9 @@ namespace SG
 
 			auto& light = pEntity->AddComponent<DirectionalLightComponent>();
 			directionalLightComp["Color"].get_to(light.color);
+			directionalLightComp["ShadowMapScaleFactor"].get_to(light.shadowMapScaleFactor);
+			directionalLightComp["zNear"].get_to(light.zNear);
+			directionalLightComp["zFar"].get_to(light.zFar);
 		}
 
 		if (auto node = entity.find("CameraComponent"); node != entity.end())
@@ -689,7 +696,7 @@ namespace SG
 			FPSCam->SetRightVector(cameraComp["RightVector"].get<Vector3f>());
 			FPSCam->SetFrontVector(cameraComp["FrontVector"].get<Vector3f>());
 			cam.pCamera = FPSCam;
-			cam.pCamera->SetMoveSpeed(50.0f);
+			cam.pCamera->SetMoveSpeed(cameraComp["CameraMoveSpeed"].get<float>());
 			mpCameraEntity = pEntity;
 		}
 

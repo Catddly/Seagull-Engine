@@ -207,6 +207,9 @@ namespace SG
 	struct DirectionalLightComponent
 	{
 		Vector3f color = Vector3f(1.0f);
+		float    shadowMapScaleFactor = 1.0f;
+		float    zNear = 1.0f;
+		float    zFar = 1.0f;
 		              
 		DirectionalLightComponent() = default;
 		DirectionalLightComponent(const Vector3f& c)
@@ -218,20 +221,23 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		//Vector3f rotatedVec = Vector4f(SG_ENGINE_FRONT_VEC(), 0.0f) * glm::toMat4(Quaternion(glm::radians(trans.rotation)));
-		//return glm::normalize(rotatedVec);
+		Vector3f rotatedVec = Vector4f(SG_ENGINE_FRONT_VEC(), 0.0f) * glm::toMat4(Quaternion(glm::radians(trans.rotation)));
+		return glm::normalize(rotatedVec);
 
-		Vector3f direction = -trans.position;
-		return glm::normalize(direction);
+		//Vector3f direction = -trans.position;
+		//return glm::normalize(direction);
 	}
 
-	SG_INLINE Matrix4f CalcDirectionalLightViewProj(const TransformComponent& trans)
+	SG_INLINE Matrix4f CalcDirectionalLightViewProj(const TransformComponent& trans, const Vector3f& viewDirection, const Vector3f& cameraPos, 
+		float aspectRatio, float shadowMapScaleFactor, float zNear, float zFar)
 	{
 		SG_PROFILE_FUNCTION();
 
-		return BuildOrthographicMatrix(-150.0f, 150.0f, -150.0f, 150.0f, 1.0f, 500.0f) *
-			BuildViewMatrixCenter(trans.position, Vector3f(0.0f), SG_ENGINE_UP_VEC());
-			//BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
+		//float yDiff = trans.position.y - cameraPos.y;
+		//float scaleFactor = yDiff / viewDirection.y;
+		return BuildOrthographicMatrix(-shadowMapScaleFactor * aspectRatio, shadowMapScaleFactor * aspectRatio, -shadowMapScaleFactor, shadowMapScaleFactor, zNear, zFar) *
+			BuildViewMatrixCenter(cameraPos - (viewDirection * trans.position.y), cameraPos, SG_ENGINE_UP_VEC());
+		//BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
 
 		//return BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0f, 300.0f) *
 		//	BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());

@@ -256,7 +256,7 @@ namespace SG
 			{
 				auto& [result, bSuccess] = mpContext->pPipelineStatisticsQueryPool->GetQueryResult();
 				if (bSuccess)
-				memcpy(statisticData.pipelineStatistics.data(), result.data(), sizeof(QueryResult) * result.size());
+					memcpy(statisticData.pipelineStatistics.data(), result.data(), sizeof(QueryResult) * result.size());
 			}
 			if (!mpContext->pTimeStampQueryPool->IsSleep())
 			{

@@ -159,6 +159,16 @@ namespace SG
 		DrawComponent<DirectionalLightComponent>(entity, [&entity, &tag](DirectionalLightComponent& comp)
 			{
 				tag.bDirty |= DrawGUIColorEdit3("Color", comp.color);
+				tag.bDirty |= DrawGUIDragFloat("ShadowMapScaleFactor", comp.shadowMapScaleFactor);
+				tag.bDirty |= DrawGUIDragFloat("zNear", comp.zNear);
+				tag.bDirty |= DrawGUIDragFloat("zFar", comp.zFar);
+			});
+		DrawComponent<CameraComponent>(entity, [&entity, &tag](CameraComponent& comp)
+			{
+				auto pCamera = comp.pCamera;
+				float speed = pCamera->GetMoveSpeed();
+				tag.bDirty |= DrawGUIDragFloat("Move Speed", speed);
+				pCamera->SetMoveSpeed(speed);
 			});
 		ImGui::PopID();
 
