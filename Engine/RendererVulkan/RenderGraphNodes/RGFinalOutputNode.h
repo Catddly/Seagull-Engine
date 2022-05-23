@@ -3,9 +3,6 @@
 #include "Render/FrameBuffer.h"
 #include "Render/GUI/IGUIDriver.h"
 
-// should we include this here??
-#include "RendererVulkan/Backend/VulkanDescriptor.h"
-#include "RendererVulkan/Backend/VulkanShader.h"
 #include "RendererVulkan/RenderGraph/RenderGraphNode.h"
 
 #include "Stl/SmartPtr.h"

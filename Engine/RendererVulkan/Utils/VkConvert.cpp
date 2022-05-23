@@ -117,6 +117,7 @@ namespace SG
 		case EImageFormat::eSint_A2R10G10B10: return VK_FORMAT_A2R10G10B10_SINT_PACK32;
 		case EImageFormat::eUint_R32G32: return VK_FORMAT_R32G32_UINT;
 		case EImageFormat::eSint_R32G32: return VK_FORMAT_R32G32_SINT;
+		case EImageFormat::eSfloat_R16G16B16A16: return VK_FORMAT_R16G16B16A16_SFLOAT;
 		case EImageFormat::eSfloat_R32G32: return VK_FORMAT_R32G32_SFLOAT;
 		case EImageFormat::eUint_R32G32B32: return VK_FORMAT_R32G32B32_UINT;
 		case EImageFormat::eSint_R32G32B32: return VK_FORMAT_R32G32B32_SINT;

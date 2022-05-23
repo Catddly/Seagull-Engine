@@ -115,25 +115,25 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		mpShadowInstancePipeline = VulkanPipeline::Builder(mContext.device)
+			.BindRenderPass(pRenderpass)
+			.BindSignature(mpShadowPipelineSignature, true)
+			.BindShader(mpShadowInstanceShader)
 			.SetInputVertexRange(sizeof(Vertex), EVertexInputRate::ePerVertex)
 			.SetInputVertexRange(sizeof(PerInstanceData), EVertexInputRate::ePerInstance)
 			.SetDepthStencil(true)
 			.SetColorBlend(false)
 			.SetRasterizer(ECullMode::eBack)
 			.SetDynamicStates(VK_DYNAMIC_STATE_DEPTH_BIAS)
-			.BindSignature(mpShadowPipelineSignature)
-			.BindShader(mpShadowInstanceShader)
-			.BindRenderPass(pRenderpass)
 			.Build();
 
 		mpShadowPipeline = VulkanPipeline::Builder(mContext.device)
+			.BindRenderPass(pRenderpass)
+			.BindSignature(mpShadowPipelineSignature, true)
+			.BindShader(mpShadowShader)
 			.SetDepthStencil(true)
 			.SetColorBlend(false)
 			.SetRasterizer(ECullMode::eBack)
 			.SetDynamicStates(VK_DYNAMIC_STATE_DEPTH_BIAS)
-			.BindSignature(mpShadowPipelineSignature)
-			.BindShader(mpShadowShader)
-			.BindRenderPass(pRenderpass)
 			.Build();
 	}
 

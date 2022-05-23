@@ -233,8 +233,6 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		//float yDiff = trans.position.y - cameraPos.y;
-		//float scaleFactor = yDiff / viewDirection.y;
 		return BuildOrthographicMatrix(-shadowMapScaleFactor * aspectRatio, shadowMapScaleFactor * aspectRatio, -shadowMapScaleFactor, shadowMapScaleFactor, zNear, zFar) *
 			BuildViewMatrixCenter(cameraPos - (viewDirection * trans.position.y), cameraPos, SG_ENGINE_UP_VEC());
 		//BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());

@@ -1,12 +1,16 @@
 #version 460
 
-layout (location = 0) in vec3 inNormalWS;
-layout (location = 1) in vec3 inPosWS;
-layout (location = 2) in vec2 inUV;
-layout (location = 3) in vec3 inTangentWS;
-layout (location = 4) in vec3 inViewPosWS;
-layout (location = 5) in vec4 inShadowMapPos;
-layout (location = 6) in flat uint inId;
+layout (location = 0) in vec2 inUV;
+
+layout (location = 0) out vec4 outColor;
+
+layout (set = 0, binding = 0) uniform CameraUBO
+{
+	mat4 view;
+	mat4 proj;
+	mat4 viewProj;
+    vec3 viewPos;
+} cameraUbo;
 
 layout (set = 0, binding = 1) uniform LightUBO
 {
@@ -25,48 +29,18 @@ layout (set = 0, binding = 2) uniform CompositionUBO
     float exposure;
 } compositionUbo;
 
-struct ObjectRenderData
-{
-	mat4 model;
-	mat4 inverseTransposeModel;
-	vec2 mr;
-    int instanceId;
-    int meshId;
-	vec3 albedo;
-	uint texFlag;
-};
-
-// all object matrices
-layout(std140, set = 1, binding = 0) readonly buffer PerObjectBuffer
-{
-	ObjectRenderData objects[];
-} perObjectBuffer;
-
 layout(set = 0, binding = 3) uniform sampler2D sShadowMap;
 layout(set = 0, binding = 4) uniform sampler2D sBrdfLutMap;
 layout(set = 0, binding = 5) uniform samplerCube sIrradianceCubeMap;
 layout(set = 0, binding = 6) uniform samplerCube sPrefilterCubeMap;
 
-layout(set = 1, binding = 1) uniform sampler2D sAlbedoMap;
-layout(set = 1, binding = 2) uniform sampler2D sMetallicMap;
-layout(set = 1, binding = 3) uniform sampler2D sRoughnessMap;
-layout(set = 1, binding = 4) uniform sampler2D sAOMap;
-layout(set = 1, binding = 5) uniform sampler2D sNormalMap;
+layout (set = 1, binding = 0) uniform sampler2D sPositionMap;
+layout (set = 1, binding = 1) uniform sampler2D sNormalMap;
+layout (set = 1, binding = 2) uniform sampler2D sAlbedoMap;
+layout (set = 1, binding = 3) uniform sampler2D sMRAOMap;
 
-layout (location = 0) out vec4 outColor;
-
-//#define ALBEDO pow(texture(sAlbedoMap, inUV).rgb, vec3(2.2)) // gamma correction to the texture
-//#define ALBEDO perObjectBuffer.objects[inId].albedo
-//#define ALBEDO vec3(1.0, 1.0, 1.0)
-//#define ALBEDO cullingOutputData.objects[inId].albedo
 #define PI 3.1415926535897932384626433832795
 #define SHADOW_COLOR vec3(0.0, 0.0, 0.0)
-
-#define ALBEDO_TEX_MASK 0x01
-#define METALLIC_TEX_MASK 0x02
-#define ROUGHNESS_TEX_MASK 0x04
-#define NORMAL_TEX_MASK 0x08
-#define AO_TEX_MASK 0x10
 
 float SampleShadowMap(vec4 shadowMapPos)
 {
@@ -199,41 +173,31 @@ vec3 directLight(vec3 albedo, vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, f
 	return color;
 }
 
-vec3 CalculateNormal()
+const mat4 biasMat = mat4( 
+	0.5, 0.0, 0.0, 0.0,
+	0.0, 0.5, 0.0, 0.0,
+	0.0, 0.0, 1.0, 0.0,
+	0.5, 0.5, 0.0, 1.0 );
+
+void main() 
 {
-	vec3 normalFromMap = texture(sNormalMap, inUV).xyz * 2.0 - 1.0; // shift from [0, 1] to [-1, 1] 
+    // get data from g-buffer
+	vec4 albedoRGBA = texture(sAlbedoMap, inUV);
+    if (albedoRGBA.a < 0.5)
+        discard;
+    vec3 albedo = albedoRGBA.rgb;
+    vec3 fragPos = texture(sPositionMap, inUV).rgb;
 
-	vec3 T = normalize(inTangentWS);
-	vec3 N = normalize(inNormalWS);
-	vec3 B = normalize(cross(N, T));
-	mat3 TBN = mat3(T, B, N);
-	return normalize(TBN * normalFromMap);
-}
+    vec4 inShadowMapPos = biasMat * lightUbo.lightSpaceVP * vec4(fragPos, 1.0);
 
-void main()
-{		
-	vec3 albedo = perObjectBuffer.objects[inId].albedo;
-	if ((perObjectBuffer.objects[inId].texFlag & ALBEDO_TEX_MASK) != 0)
-	{
-		vec4 texColor = texture(sAlbedoMap, inUV);
-		if (texColor.a < 0.5)
-			discard;
-		albedo = pow(texColor.rgb, vec3(2.2));
-	}
+	vec4 mrao = texture(sMRAOMap, inUV);
 
-	vec3 N = normalize(inNormalWS);
-	if ((perObjectBuffer.objects[inId].texFlag & NORMAL_TEX_MASK) != 0)
-		N = CalculateNormal();
-		
-	vec3 V = normalize(inViewPosWS - inPosWS);
+	float metallic = mrao.r;
+	float roughness = mrao.g;
+
+	vec3 N = texture(sNormalMap, inUV).rgb;
+	vec3 V = normalize(cameraUbo.viewPos - fragPos);
 	vec3 R = reflect(-V, N);
-
-	float metallic = perObjectBuffer.objects[inId].mr.r;
-	float roughness = perObjectBuffer.objects[inId].mr.g;
-	if ((perObjectBuffer.objects[inId].texFlag & METALLIC_TEX_MASK) != 0)
-		metallic = texture(sMetallicMap, inUV).r;
-	if ((perObjectBuffer.objects[inId].texFlag & ROUGHNESS_TEX_MASK) != 0)
-		roughness = texture(sRoughnessMap, inUV).r;
 
 	vec3 F0 = vec3(0.04);
 	F0 = mix(F0, albedo, metallic);
@@ -241,8 +205,8 @@ void main()
 	vec3 directLighting = vec3(0.0);
 	{
 		// point light
-		vec3 pointLightRadiance = CalcPointLightRadiance(normalize(lightUbo.pointLightPos - inPosWS), lightUbo.pointLightColor, lightUbo.pointLightRadius);
-		directLighting += directLight(albedo, normalize(lightUbo.pointLightPos - inPosWS), V, N, F0, metallic, roughness, pointLightRadiance);
+		vec3 pointLightRadiance = CalcPointLightRadiance(normalize(lightUbo.pointLightPos - fragPos), lightUbo.pointLightColor, lightUbo.pointLightRadius);
+		directLighting += directLight(albedo, normalize(lightUbo.pointLightPos - fragPos), V, N, F0, metallic, roughness, pointLightRadiance);
 
 		// directional light
 		vec3 directionalLightRadiance = directLight(albedo, -lightUbo.viewDirection, V, N, F0, metallic, roughness, lightUbo.directionalColor.rgb);
@@ -250,7 +214,6 @@ void main()
 		directLighting += mix(directionalLightRadiance, SHADOW_COLOR, shadow);
 	}
 
-	
 	vec3 indirectLighting = vec3(0.0);
 	{
 		vec2 brdf = texture(sBrdfLutMap, vec2(max(dot(N, V), 0.0), roughness)).xy;
@@ -264,9 +227,7 @@ void main()
 		vec3 diffuseIBL = kD * irradiance * albedo;
 		vec3 specularIBL = reflectionColor * (kS * brdf.x + brdf.y);
 
-		vec3 ao = vec3(1.0);
-		if ((perObjectBuffer.objects[inId].texFlag & AO_TEX_MASK) != 0)
-			ao = texture(sAOMap, inUV).rrr;
+		vec3 ao = mrao.bbb;
 		indirectLighting = (diffuseIBL + specularIBL) * ao;
 	}
 

@@ -46,54 +46,39 @@ namespace SG
 #ifdef SG_ENABLE_HDR
 		CreateColorRt();
 #endif
-		// load cube map texture
-		TextureResourceLoader texLoader;
-		Raw2DTexture texData = {};
-		texLoader.LoadFromFile("cubemap_yokohama_rgba.ktx", texData, true, true);
-		TextureCreateDesc texCI = {};
-		texCI.name = "cubemap";
-		texCI.width = texData.width;
-		texCI.height = texData.height;
-		texCI.depth = 1;
-		texCI.array = texData.array;
-		texCI.mipLevel = texData.mipLevel;
-		texCI.format = EImageFormat::eUnorm_R8G8B8A8;
-		texCI.sample = ESampleCount::eSample_1;
-		texCI.usage = EImageUsage::efSample;
-		texCI.type = EImageType::e2D;
-		texCI.pInitData = texData.pData;
-		texCI.sizeInByte = texData.sizeInByte;
-		texCI.pUserData = texData.pUserData;
-		VK_RESOURCE()->CreateTexture(texCI);
-		VK_RESOURCE()->FlushTextures();
 
-		SamplerCreateDesc samplerCI = {};
-		samplerCI.name = "cubemap_sampler";
-		samplerCI.filterMode = EFilterMode::eLinear;
-		samplerCI.mipmapMode = EFilterMode::eLinear;
-		samplerCI.addressMode = EAddressMode::eClamp_To_Edge;
-		samplerCI.lodBias = 0.0f;
-		samplerCI.minLod = 0.0f;
-		samplerCI.maxLod = (float)texCI.mipLevel;
-		samplerCI.enableAnisotropy = true;
-		VK_RESOURCE()->CreateSampler(samplerCI);
+#if SG_ENABLE_DEFERRED_SHADING
+		CreateDeferredShadingRts();
+#endif
+
+		LoadAndGenerateCubemapResource();
 
 		mpShader = VulkanShader::Create(mContext.device);
 		mpInstanceShader = VulkanShader::Create(mContext.device);
-		mpSkyboxShader = VulkanShader::Create(mContext.device);
 		ShaderCompiler compiler;
+#if SG_ENABLE_DEFERRED_SHADING
+		compiler.CompileGLSLShader("deferred/deferred_sample", mpShader);
+		compiler.CompileGLSLShader("deferred/deferred_sample_instance", "deferred/deferred_sample", mpInstanceShader);
+#else
 		compiler.CompileGLSLShader("brdf", mpShader);
-		compiler.CompileGLSLShader("skybox", mpSkyboxShader);
 		compiler.CompileGLSLShader("brdf_instance", "brdf", mpInstanceShader);
+#endif
 
-		GenerateBRDFLut();
-		PreCalcIrradianceCubemap();
-		PrefilterCubemap();
+#if !SG_ENABLE_DEFERRED_SHADING
+		mpSkyboxShader = VulkanShader::Create(mContext.device);
+		compiler.CompileGLSLShader("skybox", mpSkyboxShader);
 
 		mpSkyboxPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpSkyboxShader)
 			.AddCombindSamplerImage("cubemap_sampler", "cubemap")
 			.Build();
+#endif
 
+#if SG_ENABLE_DEFERRED_SHADING
+		// no shadow map and others here, deferred to composite render pass
+		mpPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShader)
+			.Build();
+#else
+		// just bind set 0 resource here.
 		mpPipelineSignature = VulkanPipelineSignature::Builder(mContext, mpShader)
 			.AddCombindSamplerImage("shadow_sampler", "shadow map")
 			.AddCombindSamplerImage("brdf_lut_sampler", "brdf_lut")
@@ -105,25 +90,34 @@ namespace SG
 			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_ao")
 			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*2")
 			.Build();
+#endif
 
 		// TEMPORARY
 		mContext.pTempPipelineSignature = mpPipelineSignature.get();
 		mContext.pShader = mpShader;
 
-#ifdef SG_ENABLE_HDR
+#if SG_ENABLE_DEFERRED_SHADING
+		ClearValue cv = {};
+		cv.color = { 0.0f, 0.0f, 0.0f, 0.0f };
+		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("position_deferred_rt"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+		AttachResource(1, { VK_RESOURCE()->GetRenderTarget("normal_deferred_rt"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+		AttachResource(2, { VK_RESOURCE()->GetRenderTarget("albedo_deferred_rt"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+		AttachResource(3, { VK_RESOURCE()->GetRenderTarget("mrao_deferred_rt"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+
+		cv = {};
+		cv.depthStencil.depth = 1.0f;
+		cv.depthStencil.stencil = 0;
+		AttachResource(4, { mContext.depthRt, mDepthRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil });
+#else
+#	ifdef SG_ENABLE_HDR
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
 		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("HDRColor"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
-#endif
+#	endif
 		cv = {};
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
 		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil });
-
-#ifndef SG_ENABLE_HDR
-		ClearValue cv = {};
-		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
-		AttachResource(0, { mContext.colorRts[frameIndex], mColorRtLoadStoreOp, cv });
 #endif
 	}
 
@@ -131,7 +125,9 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
+#if !SG_ENABLE_DEFERRED_SHADING
 		Delete(mpSkyboxPipeline);
+#endif
 		Delete(mpInstancePipeline);
 		Delete(mpPipeline);
 	}
@@ -140,13 +136,28 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		mMessageBusMember.ListenFor("RenderDataRebuild", SG_BIND_MEMBER_FUNC(OnRenderDataRebuild));
+		//mMessageBusMember.ListenFor("RenderDataRebuild", SG_BIND_MEMBER_FUNC(OnRenderDataRebuild));
 	}
 
 	void RGDrawScenePBRNode::Reset()
 	{
 		SG_PROFILE_FUNCTION();
 
+#if SG_ENABLE_DEFERRED_SHADING
+		DestroyDeferredShadingRts();
+		CreateDeferredShadingRts();
+
+		ClearValue cv = {};
+		cv.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("position_deferred_rt"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+		AttachResource(1, { VK_RESOURCE()->GetRenderTarget("normal_deferred_rt"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+		AttachResource(2, { VK_RESOURCE()->GetRenderTarget("albedo_deferred_rt"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+
+		cv = {};
+		cv.depthStencil.depth = 1.0f;
+		cv.depthStencil.stencil = 0;
+		AttachResource(3, { mContext.depthRt, mDepthRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil });
+#else
 #ifdef SG_ENABLE_HDR
 		DestroyColorRt();
 		CreateColorRt();
@@ -155,40 +166,58 @@ namespace SG
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };
 		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("HDRColor"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
 #endif
+
 		cv = {};
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
 		AttachResource(1, { mContext.depthRt, mDepthRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil });
+#endif
 	}
 
 	void RGDrawScenePBRNode::Prepare(VulkanRenderPass* pRenderpass)
 	{
 		SG_PROFILE_FUNCTION();
 
+#if !SG_ENABLE_DEFERRED_SHADING
 		mpSkyboxPipeline = VulkanPipeline::Builder(mContext.device)
+			.BindSignature(mpSkyboxPipelineSignature)
+			.BindRenderPass(pRenderpass)
 			.SetRasterizer(ECullMode::eFront)
 			.SetColorBlend(false)
-			.BindSignature(mpSkyboxPipelineSignature)
 			.SetDynamicStates()
-			.BindRenderPass(pRenderpass)
 			.Build();
+#endif
 
 		mpInstancePipeline = VulkanPipeline::Builder(mContext.device)
-			.SetInputVertexRange(sizeof(Vertex), EVertexInputRate::ePerVertex)
-			.SetInputVertexRange(sizeof(PerInstanceData), EVertexInputRate::ePerInstance)
-			.SetColorBlend(false)
 			.BindSignature(mpPipelineSignature, true)
 			.BindShader(mpInstanceShader)
-			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
+			.SetInputVertexRange(sizeof(Vertex), EVertexInputRate::ePerVertex)
+			.SetInputVertexRange(sizeof(PerInstanceData), EVertexInputRate::ePerInstance)
+#if SG_ENABLE_DEFERRED_SHADING
+			.SetColorBlend(false) // for position_deferred_rt
+			.SetColorBlend(false) // for normal_deferred_rt
+			.SetColorBlend(false) // for albedo_deferred_rt
+			.SetColorBlend(false) // for mrao_deferred_rt
+#else
+			.SetColorBlend(false)
+#endif
+			.SetDynamicStates()
 			.Build();
 
 		mpPipeline = VulkanPipeline::Builder(mContext.device)
-			.SetColorBlend(false)
 			.BindSignature(mpPipelineSignature, true)
 			.BindShader(mpShader)
-			.SetDynamicStates()
 			.BindRenderPass(pRenderpass)
+#if SG_ENABLE_DEFERRED_SHADING
+			.SetColorBlend(false) // for position_deferred_rt
+			.SetColorBlend(false) // for normal_deferred_rt
+			.SetColorBlend(false) // for albedo_deferred_rt
+			.SetColorBlend(false) // for mrao_deferred_rt
+#else
+			.SetColorBlend(false)
+#endif
+			.SetDynamicStates()
 			.Build();
 	}
 
@@ -199,6 +228,7 @@ namespace SG
 		auto& pBuf = *context.pCmd;
 		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efTop_Of_Pipeline, 2);
 
+#if !SG_ENABLE_DEFERRED_SHADING
 		// 1. Draw Skybox
 		{
 			pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 1.0f, 1.0f); // set z to 1.0
@@ -211,6 +241,7 @@ namespace SG
 			pBuf.BindVertexBuffer(0, 1, *skybox.drawMesh.pVertexBuffer, &skybox.drawMesh.vBOffset);
 			pBuf.Draw(36, 1, 0, 0);
 		}
+#endif
 
 		// 2. Draw Scene
 		pBuf.BeginQuery(mContext.pPipelineStatisticsQueryPool, 0);
@@ -291,12 +322,12 @@ namespace SG
 			.Build();
 
 		auto* pBrdfLutPipeline = VulkanPipeline::Builder(mContext.device)
+			.BindRenderPass(pTempVulkanRenderPass)
 			.BindSignature(pBrdfLutPipelineSignature)
 			.SetRasterizer(ECullMode::eNone)
 			.SetColorBlend(false)
 			.SetDepthStencil(false)
 			.SetDynamicStates()
-			.BindRenderPass(pTempVulkanRenderPass)
 			.Build();
 
 		VulkanFence* pFence = VulkanFence::Create(mContext.device);
@@ -400,28 +431,28 @@ namespace SG
 			.Build();
 
 		auto* pIrradiancePipeline = VulkanPipeline::Builder(mContext.device)
+			.BindRenderPass(pTempVulkanRenderPass)
 			.BindSignature(pIrradiancePipelineSignature)
 			.SetRasterizer(ECullMode::eNone)
 			.SetDepthStencil(false)
 			.SetColorBlend(false)
 			.SetDynamicStates()
-			.BindRenderPass(pTempVulkanRenderPass)
 			.Build();
 
 		// matrixs to rotate the corresponding faces of the cube to the right place.
 		eastl::array<Matrix4f, 6> directionMats = {
 			// +X
-			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), glm::radians(90.0f), 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(0.0f, glm::radians(-90.0f), 0.0f))) * glm::scale(Matrix4f(1.0f), { -1.0f, 1.0f, 1.0f }),
 			// -X
-			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), glm::radians(-90.0f), 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(0.0f, glm::radians(90.0f), 0.0f))) * glm::scale(Matrix4f(1.0f), { -1.0f, 1.0f, 1.0f }),
 			// +Y
-			glm::toMat4(Quaternion(Vector3f(glm::radians(-90.0f), 0.0f, 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(90.0f), 0.0f, 0.0f))) * glm::scale(Matrix4f(1.0f), { 1.0f, -1.0f, 1.0f }),
 			// -Y
-			glm::toMat4(Quaternion(Vector3f(glm::radians(90.0f), 0.0f, 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(-90.0f), 0.0f, 0.0f))) * glm::scale(Matrix4f(1.0f), { 1.0f, -1.0f, 1.0f }),
 			// +Z
-			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), 0.0f, 0.0f))),
+			glm::scale(Matrix4f(1.0f), { 1.0f, 1.0f, -1.0f }),
 			// -Z
-			glm::toMat4(Quaternion(Vector3f(0.0f, 0.0f, glm::radians(180.0f))))
+			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), 0.0f, glm::radians(180.0f)))) * glm::scale(Matrix4f(1.0f), { 1.0f, 1.0f, -1.0f })
 		};
 
 		struct PushConstant
@@ -562,35 +593,35 @@ namespace SG
 			.Build();
 
 		auto* pPrefilterPipeline = VulkanPipeline::Builder(mContext.device)
+			.BindRenderPass(pTempVulkanRenderPass)
 			.BindSignature(pPrefilterPipelineSignature)
 			.SetRasterizer(ECullMode::eNone)
 			.SetDepthStencil(false)
 			.SetColorBlend(false)
 			.SetDynamicStates()
-			.BindRenderPass(pTempVulkanRenderPass)
 			.Build();
 
 		// matrices to rotate the corresponding faces of the cube to the right place.
 		eastl::array<Matrix4f, 6> directionMats = {
 			// +X
-			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), glm::radians(90.0f), 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(0.0f, glm::radians(-90.0f), 0.0f))) * glm::scale(Matrix4f(1.0f), { -1.0f, 1.0f, 1.0f }),
 			// -X
-			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), glm::radians(-90.0f), 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(0.0f, glm::radians(90.0f), 0.0f))) * glm::scale(Matrix4f(1.0f), { -1.0f, 1.0f, 1.0f }),
 			// +Y
-			glm::toMat4(Quaternion(Vector3f(glm::radians(-90.0f), 0.0f, 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(90.0f), 0.0f, 0.0f))) * glm::scale(Matrix4f(1.0f), { 1.0f, -1.0f, 1.0f }),
 			// -Y
-			glm::toMat4(Quaternion(Vector3f(glm::radians(90.0f), 0.0f, 0.0f))),
+			glm::toMat4(Quaternion(Vector3f(glm::radians(-90.0f), 0.0f, 0.0f))) * glm::scale(Matrix4f(1.0f), { 1.0f, -1.0f, 1.0f }),
 			// +Z
-			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), 0.0f, 0.0f))),
+			glm::scale(Matrix4f(1.0f), { 1.0f, 1.0f, -1.0f }),
 			// -Z
-			glm::toMat4(Quaternion(Vector3f(0.0f, 0.0f, glm::radians(180.0f))))
+			glm::toMat4(Quaternion(Vector3f(glm::radians(180.0f), 0.0f, glm::radians(180.0f)))) * glm::scale(Matrix4f(1.0f), { 1.0f, 1.0f, -1.0f })
 		};
 
 		struct PushConstant
 		{
 			Matrix4f mvp;
 			float    roughness;
-			UINT32   numSample;
+			UInt32   numSample;
 		};
 
 		cmd.Reset();
@@ -700,5 +731,134 @@ namespace SG
 		//	.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*2")
 		//	.ReBind(defaultDesriptorSet);
 	}
+
+	void RGDrawScenePBRNode::LoadAndGenerateCubemapResource()
+	{
+		// load cube map texture
+		TextureResourceLoader texLoader;
+		Raw2DTexture texData = {};
+		texLoader.LoadFromFile("cubemap_yokohama_rgba.ktx", texData, true, true);
+		TextureCreateDesc texCI = {};
+		texCI.name = "cubemap";
+		texCI.width = texData.width;
+		texCI.height = texData.height;
+		texCI.depth = 1;
+		texCI.array = texData.array;
+		texCI.mipLevel = texData.mipLevel;
+		texCI.format = EImageFormat::eUnorm_R8G8B8A8;
+		texCI.sample = ESampleCount::eSample_1;
+		texCI.usage = EImageUsage::efSample;
+		texCI.type = EImageType::e2D;
+		texCI.pInitData = texData.pData;
+		texCI.sizeInByte = texData.sizeInByte;
+		texCI.pUserData = texData.pUserData;
+		VK_RESOURCE()->CreateTexture(texCI);
+		VK_RESOURCE()->FlushTextures();
+
+		SamplerCreateDesc samplerCI = {};
+		samplerCI.name = "cubemap_sampler";
+		samplerCI.filterMode = EFilterMode::eLinear;
+		samplerCI.mipmapMode = EFilterMode::eLinear;
+		samplerCI.addressMode = EAddressMode::eClamp_To_Edge;
+		samplerCI.lodBias = 0.0f;
+		samplerCI.minLod = 0.0f;
+		samplerCI.maxLod = (float)texCI.mipLevel;
+		samplerCI.enableAnisotropy = true;
+		VK_RESOURCE()->CreateSampler(samplerCI);
+
+		GenerateBRDFLut();
+		PreCalcIrradianceCubemap();
+		PrefilterCubemap();
+	}
+
+#if SG_ENABLE_DEFERRED_SHADING
+	void RGDrawScenePBRNode::CreateDeferredShadingRts()
+	{
+		// position deferred render target
+		TextureCreateDesc rtCI = {};
+		rtCI.name = "position_deferred_rt";
+		rtCI.width = mContext.colorRts[0]->GetWidth();
+		rtCI.height = mContext.colorRts[0]->GetHeight();
+		rtCI.depth = mContext.colorRts[0]->GetDepth();
+		rtCI.array = 1;
+		rtCI.mipLevel = 1;
+		rtCI.format = EImageFormat::eSfloat_R16G16B16A16;
+		rtCI.sample = ESampleCount::eSample_1;
+		rtCI.type = EImageType::e2D;
+		rtCI.usage = EImageUsage::efColor | EImageUsage::efSample;
+		rtCI.initLayout = EImageLayout::eUndefined;
+		rtCI.memoryFlag = EGPUMemoryFlag::efDedicated_Memory;
+		VK_RESOURCE()->CreateRenderTarget(rtCI);
+
+		// normal deferred render target
+		rtCI = {};
+		rtCI.name = "normal_deferred_rt";
+		rtCI.width = mContext.colorRts[0]->GetWidth();
+		rtCI.height = mContext.colorRts[0]->GetHeight();
+		rtCI.depth = mContext.colorRts[0]->GetDepth();
+		rtCI.array = 1;
+		rtCI.mipLevel = 1;
+		rtCI.format = EImageFormat::eSfloat_R16G16B16A16;
+		rtCI.sample = ESampleCount::eSample_1;
+		rtCI.type = EImageType::e2D;
+		rtCI.usage = EImageUsage::efColor | EImageUsage::efSample;
+		rtCI.initLayout = EImageLayout::eUndefined;
+		rtCI.memoryFlag = EGPUMemoryFlag::efDedicated_Memory;
+		VK_RESOURCE()->CreateRenderTarget(rtCI);
+
+		// albedo deferred render target
+		rtCI = {};
+		rtCI.name = "albedo_deferred_rt";
+		rtCI.width = mContext.colorRts[0]->GetWidth();
+		rtCI.height = mContext.colorRts[0]->GetHeight();
+		rtCI.depth = mContext.colorRts[0]->GetDepth();
+		rtCI.array = 1;
+		rtCI.mipLevel = 1;
+		rtCI.format = EImageFormat::eUnorm_R8G8B8A8;
+		rtCI.sample = ESampleCount::eSample_1;
+		rtCI.type = EImageType::e2D;
+		rtCI.usage = EImageUsage::efColor | EImageUsage::efSample;
+		rtCI.initLayout = EImageLayout::eUndefined;
+		rtCI.memoryFlag = EGPUMemoryFlag::efDedicated_Memory;
+		VK_RESOURCE()->CreateRenderTarget(rtCI);
+
+		// metallic, roughness and ao deferred render target
+		rtCI = {};
+		rtCI.name = "mrao_deferred_rt";
+		rtCI.width = mContext.colorRts[0]->GetWidth();
+		rtCI.height = mContext.colorRts[0]->GetHeight();
+		rtCI.depth = mContext.colorRts[0]->GetDepth();
+		rtCI.array = 1;
+		rtCI.mipLevel = 1;
+		rtCI.format = EImageFormat::eSfloat_R16G16B16A16;
+		rtCI.sample = ESampleCount::eSample_1;
+		rtCI.type = EImageType::e2D;
+		rtCI.usage = EImageUsage::efColor | EImageUsage::efSample;
+		rtCI.initLayout = EImageLayout::eUndefined;
+		rtCI.memoryFlag = EGPUMemoryFlag::efDedicated_Memory;
+		VK_RESOURCE()->CreateRenderTarget(rtCI);
+
+		// translate color rt from undefined to shader read
+		VulkanCommandBuffer pCmd;
+		mContext.pGraphicCommandPool->AllocateCommandBuffer(pCmd);
+		pCmd.BeginRecord();
+		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("position_deferred_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
+		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("normal_deferred_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
+		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("albedo_deferred_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
+		pCmd.ImageBarrier(VK_RESOURCE()->GetRenderTarget("mrao_deferred_rt"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
+		pCmd.EndRecord();
+		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&pCmd, nullptr, nullptr, nullptr, nullptr);
+		mContext.pGraphicQueue->WaitIdle();
+		mContext.pGraphicCommandPool->FreeCommandBuffer(pCmd);
+	}
+
+	void RGDrawScenePBRNode::DestroyDeferredShadingRts()
+	{
+		VK_RESOURCE()->DeleteRenderTarget("position_deferred_rt");
+		VK_RESOURCE()->DeleteRenderTarget("normal_deferred_rt");
+		VK_RESOURCE()->DeleteRenderTarget("albedo_deferred_rt");
+		VK_RESOURCE()->DeleteRenderTarget("mrao_deferred_rt");
+	}
+#endif
 
 }

@@ -68,6 +68,7 @@ namespace SG
 		eSfloat_R16,
 		eSfloat_R16G16,
 		eSfloat_R16G16B16,
+		eSfloat_R16G16B16A16,
 		eSbfloat_R16G16,
 		eUnorm_A2R10G10B10,
 		eUint_A2R10G10B10,

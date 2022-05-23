@@ -31,6 +31,13 @@ namespace SG
 	private:
 		void CreateColorRt();
 		void DestroyColorRt();
+		
+		void LoadAndGenerateCubemapResource();
+
+#if SG_ENABLE_DEFERRED_SHADING
+		void CreateDeferredShadingRts();
+		void DestroyDeferredShadingRts();
+#endif
 
 		void GenerateBRDFLut();
 		//! For IBL-PBR(image based lighting in physical based rendering) diffuse calculation.
@@ -47,9 +54,11 @@ namespace SG
 		LoadStoreClearOp      mColorRtLoadStoreOp;
 		LoadStoreClearOp      mDepthRtLoadStoreOp;
 
+#if !SG_ENABLE_DEFERRED_SHADING
 		RefPtr<VulkanPipelineSignature> mpSkyboxPipelineSignature;
 		VulkanPipeline*                 mpSkyboxPipeline;
 		RefPtr<VulkanShader>            mpSkyboxShader;
+#endif
 
 		RefPtr<VulkanPipelineSignature> mpPipelineSignature;
 		VulkanPipeline*					mpInstancePipeline;

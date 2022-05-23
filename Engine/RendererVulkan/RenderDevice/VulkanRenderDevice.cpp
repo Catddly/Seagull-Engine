@@ -30,6 +30,8 @@
 #include "RendererVulkan/RenderGraphNodes/RGDrawScenePBRNode.h"
 // this node draw the debug mesh on the screen.
 #include "RendererVulkan/RenderGraphNodes/RGDebugNode.h"
+// this node composite the g-buffer generated in RGDrawScenePBRNode.
+#include "RendererVulkan/RenderGraphNodes/RGDeferredCompositeNode.h"
 // this node draw the final image and the GUI on the top.
 #include "RendererVulkan/RenderGraphNodes/RGFinalOutputNode.h"
 
@@ -292,6 +294,9 @@ namespace SG
 			.NewRenderPass<RGShadowNode>()
 			.NewRenderPass<RGDrawScenePBRNode>()
 			//.NewRenderPass<RGDebugNode>()
+#if SG_ENABLE_DEFERRED_SHADING
+			.NewRenderPass<RGDeferredCompositeNode>()
+#endif
 			.NewRenderPass<RGFinalOutputNode>()
 			.Build();
 	}

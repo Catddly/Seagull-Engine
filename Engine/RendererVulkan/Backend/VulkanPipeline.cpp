@@ -168,7 +168,6 @@ namespace SG
 			// set the default status of pipeline
 			SetInputAssembly();
 			SetRasterizer(ECullMode::eBack, EPolygonMode::eFill, false);
-			SetColorBlend(true);
 			SetDepthStencil(true);
 			SetViewport();
 			SetMultiSample(ESampleCount::eSample_1);
@@ -266,7 +265,12 @@ namespace SG
 
 	VulkanPipeline::Builder& VulkanPipeline::Builder::SetColorBlend(bool enable)
 	{
-		createInfos.colorBlends.clear();
+		if (!pShader)
+		{
+			SG_LOG_ERROR("Please bind signature or shader before you set the color blend!");
+			SG_ASSERT(false);
+		}
+
 		VkPipelineColorBlendAttachmentState blendAttachmentState = {};
 		blendAttachmentState.blendEnable    = enable ? VK_TRUE : VK_FALSE;
 		if (enable)
@@ -279,14 +283,8 @@ namespace SG
 			blendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
 		}
 		blendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		createInfos.colorBlends.emplace_back(blendAttachmentState);
 
-		VkPipelineColorBlendStateCreateInfo colorBlendState = {};
-		colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-		colorBlendState.attachmentCount = 1;
-		colorBlendState.pAttachments = createInfos.colorBlends.data();
-
-		createInfos.colorBlendCI = eastl::move(colorBlendState);
+		createInfos.colorBlends.push_back(blendAttachmentState);
 		return *this;
 	}
 
@@ -370,6 +368,13 @@ namespace SG
 	{
 		if (pipelineType == EPipelineType::eGraphic)
 		{
+			VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo = {};
+			pipelineColorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+			pipelineColorBlendStateCreateInfo.attachmentCount = static_cast<UInt32>(createInfos.colorBlends.size());
+			pipelineColorBlendStateCreateInfo.pAttachments = createInfos.colorBlends.data();
+
+			createInfos.colorBlendCI = eastl::move(pipelineColorBlendStateCreateInfo);
+
 			SetVertexLayout(pShader->GetAttributesLayout(EShaderStage::efVert));
 			return New(VulkanPipeline, device, createInfos, pLayout, pRenderPass, pShader);
 		}

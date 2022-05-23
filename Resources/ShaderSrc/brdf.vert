@@ -62,7 +62,7 @@ void main()
 	outViewPosWS = cameraUbo.viewPos;
 	outPosWS = vec3(perObjectBuffer.objects[gl_BaseInstance].model * vec4(inPos, 1.0));
 	outNormalWS = mat3(perObjectBuffer.objects[gl_BaseInstance].inverseTransposeModel) * inNormalLS;
-	outTangentWS = mat3(perObjectBuffer.objects[gl_BaseInstance].model) * inTangentLS;
+	outTangentWS = mat3(perObjectBuffer.objects[gl_BaseInstance].inverseTransposeModel) * inTangentLS;
 	outShadowMapPos = biasMat * lightUbo.lightSpaceVP * vec4(outPosWS, 1.0);
 	outId = gl_BaseInstance;
 

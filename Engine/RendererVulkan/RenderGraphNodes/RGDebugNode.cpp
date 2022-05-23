@@ -92,12 +92,12 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		mpDebugLinePipeline = VulkanPipeline::Builder(mContext.device)
+			.BindSignature(mpDebugLinePipelineSignature)
+			.BindRenderPass(pRenderpass)
 			.SetColorBlend(false)
 			.SetDynamicStates()
 			.SetRasterizer(ECullMode::eNone)
 			.SetInputAssembly(VK_PRIMITIVE_TOPOLOGY_LINE_LIST)
-			.BindSignature(mpDebugLinePipelineSignature)
-			.BindRenderPass(pRenderpass)
 			.Build();
 	}
 

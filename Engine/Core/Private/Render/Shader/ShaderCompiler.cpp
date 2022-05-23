@@ -219,6 +219,17 @@ namespace SG
 		string vertActualName = vertShaderName + ".vert";
 		if (FileSystem::Exist(EResourceDirectory::eShader_Sources, vertActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
 		{
+			string folderPath = "";
+			Size beginPos = 0;
+			Size slashPos = vertShaderName.find_first_of('/', beginPos);
+			while (slashPos != string::npos) // this shader is inside a folder
+			{
+				folderPath += vertShaderName.substr(beginPos, slashPos - beginPos + 1);
+				beginPos = slashPos + 1;
+				slashPos = vertShaderName.find_first_of('/', beginPos);
+			}
+			FileSystem::ExistOrCreate(EResourceDirectory::eShader_Binarires, folderPath); // create folders in ShaderBin
+
 			bool bForceToRecompile = false;
 			// Get the time stamp of this shader to check if this shader should force to recompile.
 			TimePoint prevTp = ShaderLibrary::GetInstance()->GetShaderTimeStamp(vertActualName);
@@ -248,7 +259,7 @@ namespace SG
 #endif
 				{
 					Size splitPos = pOut.find_last_of('/');
-					if (!CheckCompileError(vertActualName, pOut.substr(splitPos + 1, pOut.size() - splitPos - 1)))
+					if (!CheckCompileError(vertActualName, folderPath + pOut.substr(splitPos + 1, pOut.size() - splitPos - 1)))
 						shaderBits |= (1 << 0); // record what shader stage we had compiled
 				}
 				else
@@ -259,6 +270,17 @@ namespace SG
 		string fragActualName = fragShaderName + ".frag";
 		if (FileSystem::Exist(EResourceDirectory::eShader_Sources, fragActualName.c_str(), SG_ENGINE_DEBUG_BASE_OFFSET))
 		{
+			string folderPath = "";
+			Size beginPos = 0;
+			Size slashPos = fragActualName.find_first_of('/', beginPos);
+			while (slashPos != string::npos) // this shader is inside a folder
+			{
+				folderPath += fragActualName.substr(beginPos, slashPos - beginPos + 1);
+				beginPos = slashPos + 1;
+				slashPos = fragActualName.find_first_of('/', beginPos);
+			}
+			FileSystem::ExistOrCreate(EResourceDirectory::eShader_Binarires, folderPath); // create folders in ShaderBin
+
 			bool bForceToRecompile = false;
 			// Get the time stamp of this shader to check if this shader should force to recompile.
 			TimePoint prevTp = ShaderLibrary::GetInstance()->GetShaderTimeStamp(fragActualName);
@@ -286,7 +308,7 @@ namespace SG
 #endif
 				{
 					Size splitPos = pOut.find_last_of('/');
-					if (!CheckCompileError(fragActualName, pOut.substr(splitPos + 1, pOut.size() - splitPos - 1)))
+					if (!CheckCompileError(fragActualName, folderPath + pOut.substr(splitPos + 1, pOut.size() - splitPos - 1)))
 						shaderBits |= (1 << 4); // record what shader stage we had compiled
 				}
 				else

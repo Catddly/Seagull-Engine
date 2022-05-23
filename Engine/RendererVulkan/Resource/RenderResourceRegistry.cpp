@@ -7,7 +7,7 @@
 #include "Render/SwapChain.h"
 #include "Archive/MeshDataArchive.h"
 #include "Profile/Profile.h"
-#include "TipECS/Entity.h"
+#include "Render/CommonRenderData.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanQueue.h"
@@ -16,7 +16,6 @@
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
 #include "ktx/ktx.h"
-#include "Render/CommonRenderData.h"
 
 namespace SG
 {

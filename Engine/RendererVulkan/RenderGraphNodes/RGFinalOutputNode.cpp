@@ -176,11 +176,12 @@ namespace SG
 		//	.Build();
 
 		mpGUIPipeline = VulkanPipeline::Builder(mContext.device)
+			.BindRenderPass(pRenderpass)
+			.BindSignature(mpGUIPipelineSignature)
 			.SetRasterizer(ECullMode::eNone)
 			.SetDynamicStates()
+			.SetColorBlend(true)
 			.SetDepthStencil(false)
-			.BindSignature(mpGUIPipelineSignature)
-			.BindRenderPass(pRenderpass)
 			.Build();
 	}
 
