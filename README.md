@@ -34,6 +34,9 @@ Automatically detect the modification of the shader and recompile it to SPIR-V s
 - Simple IBL And PBR Rendering  
 Now have brdf implemented. PBR Lighting and PBR camera need to be done later.
 
+- Some Common Render Techs  
+For now deferred rendering...(will be more in the future)
+
 - Frame Graph(Or Render Graph) Based Render System  
 RenderPasses are constructed into nodes, it is easy to figure out the dependencies between renderpass and easy to do custom rendering.
 
