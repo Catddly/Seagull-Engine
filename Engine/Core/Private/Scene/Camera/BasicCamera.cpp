@@ -1,6 +1,9 @@
 #include "StdAfx.h"
 #include "Scene/Camera/BasicCamera.h"
 
+#include "System/Logger.h"
+#include "Profile/Profile.h"
+
 namespace SG
 {
 
@@ -17,6 +20,8 @@ namespace SG
 
 	void BasicCamera::SetPerspective(float fovyInDegrees, float aspect, float zNear, float zFar)
 	{
+		SG_PROFILE_FUNCTION();
+
 		static float sFovyInDegrees = 0, sZNear = 0, sZFar = 0;
 
 		if (mbUseOrtho || fovyInDegrees != sFovyInDegrees || aspect != mAspectRatio || zNear != sZNear || zFar != sZFar)
@@ -31,11 +36,14 @@ namespace SG
 			sZFar          = zFar;
 
 			CalcFrustum();
+			CalcFrustumBoundingBox();
 		}
 	}
 
 	void BasicCamera::SetOrthographic(float left, float right, float top, float bottom, float zNear, float zFar)
 	{
+		SG_PROFILE_FUNCTION();
+
 		static float sLeft = 0, sRight = 0, sTop = 0, sBottom = 0, sZNear = 0, sZFar = 0;
 
 		if (!mbUseOrtho || left != sLeft || right != sRight || top != sTop || bottom != sBottom || zNear != sZNear || zFar != sZFar)
@@ -54,6 +62,7 @@ namespace SG
 			sZFar   = zFar;
 
 			CalcFrustum();
+			CalcFrustumBoundingBox();
 		}
 	}
 
@@ -62,14 +71,18 @@ namespace SG
 		return mFrustum;
 	}
 
+	BoundingBox BasicCamera::GetFrustumBoundingBox() const
+	{
+		return mFrustumBoundingBox;
+	}
+
 	void BasicCamera::CalcFrustum()
 	{
-		// for test, force set the fovy to 20.f
-		//Matrix4f proj = BuildPerspectiveMatrix(glm::radians(25.0f), gAspect, 0.01f, 256.0f);
-		// fast way to build a frustum
-		//Matrix4f viewProj = proj * mViewMatrix;
+		SG_PROFILE_FUNCTION();
+
 		Matrix4f viewProj = mProjectionMatrix * mViewMatrix;
 
+		// fast way to build a frustum
 		Plane topPlane({
 			viewProj[0].w - viewProj[0].y,
 			viewProj[1].w - viewProj[1].y,
@@ -107,6 +120,40 @@ namespace SG
 			viewProj[3].w + viewProj[3].z });
 		backPlane /= Sqrt(glm::dot(Vector3f(Vector4f(backPlane)), Vector3f(Vector4f(backPlane))));
 		mFrustum = { frontPlane, backPlane, rightPlane, leftPlane, topPlane, bottomPlane };
+	}
+
+	void BasicCamera::CalcFrustumBoundingBox()
+	{
+		SG_PROFILE_FUNCTION();
+
+		constexpr const int NUM_CORNER_POINTS = 8;
+
+		const Vector3f frustumPointsNDCSpace[NUM_CORNER_POINTS] = {
+			Vector3f(-1.0f, -1.0f, 1.0f),
+			Vector3f( 1.0f, -1.0f, 1.0f),
+			Vector3f( 1.0f,  1.0f, 1.0f),
+			Vector3f(-1.0f,  1.0f, 1.0f),
+			Vector3f(-1.0f, -1.0f, 0.0f),
+			Vector3f( 1.0f, -1.0f, 0.0f),
+			Vector3f( 1.0f,  1.0f, 0.0f),
+			Vector3f(-1.0f,  1.0f, 0.0f) 
+		};
+
+		Matrix4f inverseVPMat = glm::inverse(mProjectionMatrix * mViewMatrix);
+		BBoxReset(mFrustumBoundingBox);
+
+		for (int i = 0; i < NUM_CORNER_POINTS; ++i)
+		{
+			const Vector4f frustumCornerPointWithW = inverseVPMat * Vector4f{ frustumPointsNDCSpace[i].x, frustumPointsNDCSpace[i].y, frustumPointsNDCSpace[i].z, 1.0f};
+			// normalized
+			const Vector3f frustumCornerPointWorldSpace = {
+				frustumCornerPointWithW.x / frustumCornerPointWithW.w,
+				frustumCornerPointWithW.y / frustumCornerPointWithW.w,
+				frustumCornerPointWithW.z / frustumCornerPointWithW.w
+			};
+
+			BBoxMerge(mFrustumBoundingBox, frustumCornerPointWorldSpace);
+		}
 	}
 
 }

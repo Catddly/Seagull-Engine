@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "RendererVulkan/RenderGraphNodes/RGDebugNode.h"
 
+#include "System/System.h"
 #include "Profile/Profile.h"
 #include "Render/Shader/ShaderComiler.h"
 
@@ -104,6 +105,16 @@ namespace SG
 	void RGDebugNode::Draw(DrawInfo& context)
 	{
 		SG_PROFILE_FUNCTION();
+
+		//auto pCam = SSystem()->GetMainScene()->GetMainCamera().GetComponent<CameraComponent>().pCamera;
+		//const BoundingBox camFrustumBBox = pCam->GetFrustumBoundingBox();
+
+		BoundingBox camFrustumBBox;
+		camFrustumBBox.minBound = { -40.0f, 0.0f, -40.0f };
+		camFrustumBBox.maxBound = {  40.0f, 20.0f, 40.0f };
+
+		mDebugObjectModelMat = glm::translate(Matrix4f(1.0f), BBoxCenter(camFrustumBBox)) *
+			glm::scale(Matrix4f(1.0f), BBoxExtent(camFrustumBBox));
 		
 		auto& cmd = *context.pCmd;
 
@@ -112,6 +123,8 @@ namespace SG
 		cmd.BindVertexBuffer(0, 1, pVertexBuffer, offset);
 		cmd.BindPipelineSignatureNonDynamic(mpDebugLinePipelineSignature.get());
 		cmd.BindPipeline(mpDebugLinePipeline);
+
+		cmd.PushConstants(mpDebugLinePipelineSignature.get(), EShaderStage::efVert, sizeof(Matrix4f), 0, &mDebugObjectModelMat);
 
 		cmd.Draw(12 * 2, 1, 0, 0);
 	}

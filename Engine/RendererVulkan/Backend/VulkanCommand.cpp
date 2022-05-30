@@ -164,16 +164,16 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		for (auto& trans : gpCurrRenderPass->transitions)
-		{
-			if (trans.srcLayout != VK_IMAGE_LAYOUT_UNDEFINED && trans.pRenderTarget->currLayouts[0] != trans.srcLayout)
-			{
-				SG_LOG_WARN("Mismatch renderpass rendertarget image layout.");
-				SG_ASSERT(false);
-			}
-			else
-				trans.pRenderTarget->currLayouts[0] = trans.dstLayout;
-		}
+		//for (auto& trans : gpCurrRenderPass->transitions)
+		//{
+		//	if (trans.srcLayout != VK_IMAGE_LAYOUT_UNDEFINED && trans.pRenderTarget->currLayouts[0] != trans.srcLayout)
+		//	{
+		//		SG_LOG_WARN("Mismatch renderpass rendertarget image layout.");
+		//		SG_ASSERT(false);
+		//	}
+		//	else
+		//		trans.pRenderTarget->currLayouts[0] = trans.dstLayout;
+		//}
 		vkCmdEndRenderPass(commandBuffer);
 		gpCurrRenderPass = nullptr;
 	}
@@ -437,36 +437,10 @@ namespace SG
 
 		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+
 		barrier.oldLayout = ToVkImageLayout(oldBarrier);
-
-		if (pTex) // layout transition checking
-		{
-			if (mipLevel == -1) // compare all
-			{
-				for (auto& layout : pTex->currLayouts)
-				{
-					if (layout != barrier.oldLayout)
-					{
-						SG_LOG_ERROR("Unmatched image layout transition!");
-						return;
-					}
-				}
-			}
-			else
-			{
-				if (pTex->currLayouts[mipLevel] != barrier.oldLayout) // just compoare this mipLevel
-				{
-					SG_LOG_ERROR("Unmatched image layout transition!");
-					return;
-				}
-			}
-		}
-		else
-		{
-			SG_LOG_ERROR("pTex is a nullptr!");
-		}
-
 		barrier.newLayout = ToVkImageLayout(newBarrier);
+
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.image = pTex->image;

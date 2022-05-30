@@ -27,6 +27,8 @@ namespace SG
 		LoadStoreClearOp mColorRtLoadStoreOp;
 		LoadStoreClearOp mDepthRtLoadStoreOp;
 
+		Matrix4f mDebugObjectModelMat;
+
 		RefPtr<VulkanPipelineSignature> mpDebugLinePipelineSignature;
 		VulkanPipeline*                 mpDebugLinePipeline;
 		RefPtr<VulkanShader>            mpDebugLineShader;

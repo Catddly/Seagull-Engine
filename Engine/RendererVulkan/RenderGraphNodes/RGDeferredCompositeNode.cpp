@@ -75,6 +75,13 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
+		VulkanPipelineSignature::ShaderDataBinder(mpGBufferCompositePipelineSignature.get(), mpGBufferCompositeShader, 1)
+			.AddCombindSamplerImage("deferred_rt_sampler", "position_deferred_rt")
+			.AddCombindSamplerImage("deferred_rt_sampler", "normal_deferred_rt")
+			.AddCombindSamplerImage("deferred_rt_sampler", "albedo_deferred_rt")
+			.AddCombindSamplerImage("deferred_rt_sampler", "mrao_deferred_rt")
+			.ReBind();
+
 #ifdef SG_ENABLE_HDR
 		ClearValue cv = {};
 		cv.color = { 0.04f, 0.04f, 0.04f, 1.0f };

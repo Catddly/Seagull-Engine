@@ -10,23 +10,22 @@ namespace SG
 
 	class VulkanRenderTarget;
 
-	struct VulkanImageTransitions
-	{
-		VulkanRenderTarget* pRenderTarget;
-		VkImageLayout       srcLayout;
-		VkImageLayout       dstLayout;
+	//struct VulkanImageTransitions
+	//{
+	//	VulkanRenderTarget* pRenderTarget;
+	//	VkImageLayout       srcLayout;
+	//	VkImageLayout       dstLayout;
 
-		VulkanImageTransitions(VulkanRenderTarget* pRt, VkImageLayout sLayout, VkImageLayout dLayout)
-			:pRenderTarget(pRt), srcLayout(sLayout), dstLayout(dLayout)
-		{}
-	};
+	//	VulkanImageTransitions(VulkanRenderTarget* pRt, VkImageLayout sLayout, VkImageLayout dLayout)
+	//		:pRenderTarget(pRt), srcLayout(sLayout), dstLayout(dLayout)
+	//	{}
+	//};
 
 	class VulkanRenderPass
 	{
 	public:
 		VulkanRenderPass(VulkanDevice& d, const vector<VkAttachmentDescription>& attachments, 
-			const vector<VkSubpassDependency>& dependencies, const vector<VkSubpassDescription>& subpasses,
-			const vector<VulkanImageTransitions>& trans);
+			const vector<VkSubpassDependency>& dependencies, const vector<VkSubpassDescription>& subpasses);
 		~VulkanRenderPass();
 
 		// The data in the builder will not be cached!
@@ -44,16 +43,13 @@ namespace SG
 			Builder& CombineAsSubpass(); // TODO: support multiple subpass (better for mobile GPU)
 			VulkanRenderPass* Build();
 		private:
-		private:
 			VulkanDevice& device;
 			vector<VkAttachmentDescription> attachments;
 			vector<VkSubpassDependency>     dependencies;
 			vector<VkAttachmentReference>   colorReferences;
-			bool                            bHaveDepth;
 			VkAttachmentReference           depthReference;
 			vector<VkSubpassDescription>    subpasses;
-
-			vector<VulkanImageTransitions> transitions;
+			bool                            bHaveDepth;
 		};
 	private:
 		friend class VulkanCommandBuffer;
@@ -62,7 +58,6 @@ namespace SG
 
 		VulkanDevice& device;
 		VkRenderPass  renderPass;
-		vector<VulkanImageTransitions> transitions;
 	};
 
 	class VulkanFrameBuffer

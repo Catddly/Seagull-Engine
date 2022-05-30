@@ -293,10 +293,10 @@ namespace SG
 		mpRenderGraph = RenderGraphBuilder("Default", mpContext)
 			.NewRenderPass<RGShadowNode>()
 			.NewRenderPass<RGDrawScenePBRNode>()
-			//.NewRenderPass<RGDebugNode>()
 #if SG_ENABLE_DEFERRED_SHADING
 			.NewRenderPass<RGDeferredCompositeNode>()
 #endif
+			.NewRenderPass<RGDebugNode>()
 			.NewRenderPass<RGFinalOutputNode>()
 			.Build();
 	}

@@ -5,6 +5,7 @@
 
 #include "Math/MathBasic.h"
 #include "Math/Frustum.h"
+#include "Math/BoundingBox.h"
 
 namespace SG
 {
@@ -36,6 +37,7 @@ namespace SG
 		virtual void  SetRotateSpeed(float speed) = 0;
 
 		virtual Frustum GetFrustum() const = 0;
+		virtual BoundingBox GetFrustumBoundingBox() const = 0;
 
 		virtual bool IsViewDirty() const = 0;
 		virtual bool IsProjDirty() const = 0;

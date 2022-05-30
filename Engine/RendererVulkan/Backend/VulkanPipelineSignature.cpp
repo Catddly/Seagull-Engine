@@ -256,6 +256,12 @@ namespace SG
 		Bind(set);
 	}
 
+	void VulkanPipelineSignature::SetDataBinder::Rebind()
+	{
+		auto& set = mPipelineSignature.GetDescriptorSet(mSet, "__non_dynamic");
+		Bind(set);
+	}
+
 	VulkanDescriptorSet& VulkanPipelineSignature::SetDataBinder::BindNew(const string& name)
 	{
 		auto& newDescriptorSet = mPipelineSignature.NewDescripotrSet(mSet, name);
@@ -287,6 +293,12 @@ namespace SG
 	{
 		//mContext.pDefaultDescriptorPool->FreeDescriptorSet(set);
 		BindSet(set);
+	}
+
+	void VulkanPipelineSignature::ShaderDataBinder::ReBind()
+	{
+		auto& set = mPipelineSignature.GetDescriptorSet(mSet, "__non_dynamic");
+		Bind(set);
 	}
 
 	VulkanDescriptorSet& VulkanPipelineSignature::ShaderDataBinder::BindNew(const string& name)

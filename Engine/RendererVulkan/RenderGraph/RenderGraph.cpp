@@ -123,6 +123,8 @@ namespace SG
 			Delete(beg->second);
 		mFrameBuffersMap.clear();
 
+		mResourceStatusKeeper.Clear();
+
 		// after the resizing, all the render targets had been recreated,
 		// reset the node to update the resources which is using.
 		for (auto* pCurrNode : mpNodes)

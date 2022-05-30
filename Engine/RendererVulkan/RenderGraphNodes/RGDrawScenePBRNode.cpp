@@ -144,19 +144,23 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 #if SG_ENABLE_DEFERRED_SHADING
+		DestroyColorRt();
+		CreateColorRt();
+
 		DestroyDeferredShadingRts();
 		CreateDeferredShadingRts();
 
 		ClearValue cv = {};
-		cv.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+		cv.color = { 0.0f, 0.0f, 0.0f, 0.0f };
 		AttachResource(0, { VK_RESOURCE()->GetRenderTarget("position_deferred_rt"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
 		AttachResource(1, { VK_RESOURCE()->GetRenderTarget("normal_deferred_rt"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
 		AttachResource(2, { VK_RESOURCE()->GetRenderTarget("albedo_deferred_rt"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
+		AttachResource(3, { VK_RESOURCE()->GetRenderTarget("mrao_deferred_rt"), mColorRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource });
 
 		cv = {};
 		cv.depthStencil.depth = 1.0f;
 		cv.depthStencil.stencil = 0;
-		AttachResource(3, { mContext.depthRt, mDepthRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil });
+		AttachResource(4, { mContext.depthRt, mDepthRtLoadStoreOp, cv, EResourceBarrier::efUndefined, EResourceBarrier::efDepth_Stencil });
 #else
 #ifdef SG_ENABLE_HDR
 		DestroyColorRt();
@@ -257,7 +261,7 @@ namespace SG
 
 		auto& pBuf = *drawInfo.pCmd;
 		pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
-		//pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
+		pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
 		IndirectRenderer::Begin(drawInfo);
 
@@ -347,6 +351,8 @@ namespace SG
 			cmdBuf.Draw(3, 1, 0, 0);
 		}
 		cmdBuf.EndRenderPass();
+		// why it is not be implicitly transition by the renderpass?
+		cmdBuf.ImageBarrier(VK_RESOURCE()->GetRenderTarget("brdf_lut"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
 		cmdBuf.EndRecord();
 
 		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&cmdBuf, nullptr, nullptr, nullptr, pFence);

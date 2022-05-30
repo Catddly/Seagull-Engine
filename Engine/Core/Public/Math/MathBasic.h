@@ -91,6 +91,20 @@ namespace SG
 
 	SG_INLINE float Clamp(float& v, float min, float max) { return v < min ? min : (v > max ? max : v); }
 
+	SG_INLINE void Floor(Vector3f& lhs, const Vector3f& rhs)
+	{
+		lhs.x = eastl::min(lhs.x, rhs.x);
+		lhs.y = eastl::min(lhs.y, rhs.y);
+		lhs.z = eastl::min(lhs.z, rhs.z);
+	}
+
+	SG_INLINE void Ceil(Vector3f& lhs, const Vector3f& rhs)
+	{
+		lhs.x = eastl::max(lhs.x, rhs.x);
+		lhs.y = eastl::max(lhs.y, rhs.y);
+		lhs.z = eastl::max(lhs.z, rhs.z);
+	}
+
 	SG_INLINE Quaternion RotationBetweenVector(const Vector3f& v1, const Vector3f& v2)
 	{
 		if (glm::dot(v1, v2) > 0.999999f || glm::dot(v1, v2) < -0.999999f)

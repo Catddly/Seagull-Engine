@@ -44,6 +44,8 @@ namespace SG
 			SetDataBinder& AddCombindSamplerImage(UInt32 binding, const char* samplerName, const char* textureName);
 			void Bind(VulkanDescriptorSet& set);
 			void Rebind(VulkanDescriptorSet& set);
+			// rebind its default descriptor set
+			void Rebind();
 			VulkanDescriptorSet& BindNew(const string& name);
 		private:
 			VulkanContext& mContext;
@@ -62,6 +64,7 @@ namespace SG
 			ShaderDataBinder& AddCombindSamplerImage(const char* samplerName, const char* textureName);
 			void Bind(VulkanDescriptorSet& set);
 			void ReBind(VulkanDescriptorSet& set);
+			void ReBind();
 			VulkanDescriptorSet& BindNew(const string& name);
 		private:
 			void BindSet(VulkanDescriptorSet& set);

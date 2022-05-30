@@ -69,6 +69,7 @@ namespace SG
 	{
 		mViewMatrix = BuildViewMatrixCenter(mPosition, mPosition + mFrontVec, SG_ENGINE_UP_VEC());
 		CalcFrustum();
+		CalcFrustumBoundingBox();
 	}
 
 }

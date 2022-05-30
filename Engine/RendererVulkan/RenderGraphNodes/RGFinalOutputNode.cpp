@@ -147,10 +147,12 @@ namespace SG
 		//	.Build();
 
 		VK_RESOURCE()->RemoveDescriptorSet("ViewportTex");
+
 		VulkanDescriptorSet* pViewportSet = New(VulkanDescriptorSet);
 		VulkanPipelineSignature::SetDataBinder(mpGUIPipelineSignature, 0)
 			.AddCombindSamplerImage(0, "comp_sampler", "HDRColor")
 			.Bind(*pViewportSet);
+
 		VK_RESOURCE()->AddDescriptorSet("ViewportTex", pViewportSet, true);
 		auto* pViewportTexDescSet = VK_RESOURCE()->GetDescriptorSet("ViewportTex");
 		auto* pLogoTexDescSet = VK_RESOURCE()->GetDescriptorSet("logo");

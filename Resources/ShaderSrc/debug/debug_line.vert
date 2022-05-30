@@ -10,7 +10,12 @@ layout (set = 0, binding = 0) uniform CameraUBO
     vec3 viewPos;
 } cameraUbo;
 
+layout(push_constant) uniform PushConstant 
+{
+	mat4 model;
+} pushConstant;
+
 void main()
 {
-    gl_Position = cameraUbo.viewProj * vec4(inPosLS, 1.0);
+    gl_Position = cameraUbo.viewProj * pushConstant.model * vec4(inPosLS, 1.0);
 }

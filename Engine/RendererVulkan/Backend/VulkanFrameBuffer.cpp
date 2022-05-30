@@ -31,7 +31,7 @@ namespace SG
 			attachDesc.initialLayout = ToVkImageLayout(initStatus);
 			attachDesc.finalLayout   = ToVkImageLayout(dstStatus);
 
-			transitions.emplace_back(pRenderTarget, attachDesc.initialLayout, attachDesc.finalLayout);
+			//transitions.emplace_back(pRenderTarget, attachDesc.initialLayout, attachDesc.finalLayout);
 			attachments.emplace_back(eastl::move(attachDesc));
 		}
 		else // depth render target
@@ -51,7 +51,7 @@ namespace SG
 			attachDesc.initialLayout = ToVkImageLayout(initStatus);
 			attachDesc.finalLayout = ToVkImageLayout(dstStatus);
 
-			transitions.emplace_back(pRenderTarget, attachDesc.initialLayout, attachDesc.finalLayout);
+			//transitions.emplace_back(pRenderTarget, attachDesc.initialLayout, attachDesc.finalLayout);
 
 			// source dependency is when this subpass depend on. (i.e. this subpass will wait for source dependency finished then it will run)
 			// destination dependency is when this subpass run on. (i.e. this subpass will run on this stage and make sure it will end in this stage)
@@ -132,12 +132,12 @@ namespace SG
 			return nullptr;
 		}
 
-		return New(VulkanRenderPass, device, eastl::move(attachments), eastl::move(dependencies), eastl::move(subpasses), eastl::move(transitions));
+		return New(VulkanRenderPass, device, eastl::move(attachments), eastl::move(dependencies), eastl::move(subpasses));
 	}
 
 	VulkanRenderPass::VulkanRenderPass(VulkanDevice& d, const vector<VkAttachmentDescription>& attachments, 
-		const vector<VkSubpassDependency>& dependencies, const vector<VkSubpassDescription>& subpasses, const vector<VulkanImageTransitions>& trans)
-		:device(d), transitions(trans)
+		const vector<VkSubpassDependency>& dependencies, const vector<VkSubpassDescription>& subpasses)
+		:device(d)
 	{
 		VkRenderPassCreateInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
