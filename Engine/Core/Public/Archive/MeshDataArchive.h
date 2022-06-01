@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Archive/IDAllocator.h"
+#include "Math/BoundingBox.h"
 
 #include "Stl/vector.h"
 #include "Stl/string.h"
@@ -13,11 +14,12 @@ namespace SG
 	{
 		vector<float>  vertices = {};
 		vector<UInt32> indices = {};
+		BoundingBox    aabb;
 		string subMeshName = "";
 		string filename = ""; //! Ref pointer to its parent.
-		bool   bIsProceduralMesh = false;
 
 		UInt32 materialAssetId = IDAllocator<UInt32>::INVALID_ID; //! If this sub-mesh have embedded texture, it will contain an valid id.
+		bool   bIsProceduralMesh = false;
 	};
 
 	struct MeshData
@@ -39,7 +41,9 @@ namespace SG
 		//SG_CORE_API const MeshData* GetData(const string& filename) const;
 		//SG_CORE_API const MeshData* GetData(UInt32 meshId) const;
 
+		SG_CORE_API SubMeshData* GetData(const string& filename);
 		SG_CORE_API const SubMeshData* GetData(const string& filename) const;
+		SG_CORE_API SubMeshData* GetData(UInt32 meshId);
 		SG_CORE_API const SubMeshData* GetData(UInt32 meshId) const;
 
 		SG_CORE_API UInt32 GetMeshID(const string& filename) const;

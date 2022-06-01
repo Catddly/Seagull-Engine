@@ -4,24 +4,24 @@
             "CameraComponent": {
                 "CameraMoveSpeed": 5.0,
                 "CameraPos": [
-                    3.2661197185516357,
-                    4.321791648864746,
-                    7.692641735076904
+                    3.97809100151062,
+                    4.804143905639648,
+                    9.213175773620605
                 ],
                 "FrontVector": [
-                    -0.1980847269296646,
-                    -0.30511486530303955,
-                    -0.9314866662025452
+                    -0.22144503891468048,
+                    -0.28722336888313293,
+                    -0.9319145679473877
                 ],
                 "RightVector": [
-                    0.9781284928321838,
+                    0.9729099273681641,
                     0.0,
-                    -0.20800134539604187
+                    -0.23118463158607483
                 ],
                 "UpVector": [
-                    -0.06346409767866135,
-                    0.9523168206214905,
-                    -0.2984376549720764
+                    -0.06640135496854782,
+                    0.9578648805618286,
+                    -0.2794385254383087
                 ]
             },
             "EntityID": "2468517968452275",
@@ -124,6 +124,14 @@
                 "Roughness": 1.0
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -165,6 +173,14 @@
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -206,6 +222,14 @@
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -247,6 +271,14 @@
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -288,6 +320,14 @@
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -329,6 +369,14 @@
                 "Roughness": 0.5
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -370,6 +418,14 @@
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -411,6 +467,14 @@
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -452,6 +516,14 @@
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -493,6 +565,14 @@
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -534,6 +614,14 @@
                 "Roughness": 1.0
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -575,6 +663,14 @@
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -616,6 +712,14 @@
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -657,6 +761,14 @@
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -698,6 +810,14 @@
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -739,6 +859,14 @@
                 "Roughness": 0.5
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -780,6 +908,14 @@
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -821,6 +957,14 @@
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -862,6 +1006,14 @@
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -903,6 +1055,14 @@
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -944,6 +1104,14 @@
                 "Roughness": 1.0
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -985,6 +1153,14 @@
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1026,6 +1202,14 @@
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1067,6 +1251,14 @@
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1108,6 +1300,14 @@
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1149,6 +1349,14 @@
                 "Roughness": 0.5
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1190,6 +1398,14 @@
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1231,6 +1447,14 @@
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1272,6 +1496,14 @@
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1313,6 +1545,14 @@
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1354,6 +1594,14 @@
                 "Roughness": 1.0
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1395,6 +1643,14 @@
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1436,6 +1692,14 @@
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1477,6 +1741,14 @@
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1518,6 +1790,14 @@
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1559,6 +1839,14 @@
                 "Roughness": 0.5
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1600,6 +1888,14 @@
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1641,6 +1937,14 @@
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1682,6 +1986,14 @@
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1723,6 +2035,14 @@
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1764,6 +2084,14 @@
                 "Roughness": 1.0
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1805,6 +2133,14 @@
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1846,6 +2182,14 @@
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1887,6 +2231,14 @@
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1928,6 +2280,14 @@
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -1969,6 +2329,14 @@
                 "Roughness": 0.5
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2010,6 +2378,14 @@
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2051,6 +2427,14 @@
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2092,6 +2476,14 @@
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2133,6 +2525,14 @@
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2174,6 +2574,14 @@
                 "Roughness": 1.0
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2215,6 +2623,14 @@
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2256,6 +2672,14 @@
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2297,6 +2721,14 @@
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2338,6 +2770,14 @@
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2379,6 +2819,14 @@
                 "Roughness": 0.5
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2420,6 +2868,14 @@
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2461,6 +2917,14 @@
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2502,6 +2966,14 @@
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2543,6 +3015,14 @@
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2584,6 +3064,14 @@
                 "Roughness": 1.0
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2625,6 +3113,14 @@
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2666,6 +3162,14 @@
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2707,6 +3211,14 @@
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2748,6 +3260,14 @@
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2789,6 +3309,14 @@
                 "Roughness": 0.5
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2830,6 +3358,14 @@
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2871,6 +3407,14 @@
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2912,6 +3456,14 @@
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2953,6 +3505,14 @@
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -2994,6 +3554,14 @@
                 "Roughness": 1.0
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3035,6 +3603,14 @@
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3076,6 +3652,14 @@
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3117,6 +3701,14 @@
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3158,6 +3750,14 @@
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3199,6 +3799,14 @@
                 "Roughness": 0.5
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3240,6 +3848,14 @@
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3281,6 +3897,14 @@
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3322,6 +3946,14 @@
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3363,6 +3995,14 @@
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3404,6 +4044,14 @@
                 "Roughness": 1.0
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3445,6 +4093,14 @@
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3486,6 +4142,14 @@
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3527,6 +4191,14 @@
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3568,6 +4240,14 @@
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3609,6 +4289,14 @@
                 "Roughness": 0.5
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3650,6 +4338,14 @@
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3691,6 +4387,14 @@
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3732,6 +4436,14 @@
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3773,6 +4485,14 @@
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3814,6 +4534,14 @@
                 "Roughness": 1.0
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3855,6 +4583,14 @@
                 "Roughness": 0.9000000357627869
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3896,6 +4632,14 @@
                 "Roughness": 0.800000011920929
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3937,6 +4681,14 @@
                 "Roughness": 0.699999988079071
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -3978,6 +4730,14 @@
                 "Roughness": 0.6000000238418579
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -4019,6 +4779,14 @@
                 "Roughness": 0.5
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -4060,6 +4828,14 @@
                 "Roughness": 0.4000000059604645
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -4101,6 +4877,14 @@
                 "Roughness": 0.30000001192092896
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -4142,6 +4926,14 @@
                 "Roughness": 0.20000000298023224
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -4183,6 +4975,14 @@
                 "Roughness": 0.10000000149011612
             },
             "MeshComponent": {
+                "AABB": [
+                    -1.0000022649765015,
+                    -1.0,
+                    -1.0,
+                    1.0000019073486328,
+                    1.0,
+                    1.0000035762786865
+                ],
                 "Filename": "sphere",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -4254,6 +5054,14 @@
                 }
             },
             "MeshComponent": {
+                "AABB": [
+                    -0.39986246824264526,
+                    -0.9441743493080139,
+                    -2.391145706176758,
+                    0.25040629506111145,
+                    0.3755760192871094,
+                    0.730975866317749
+                ],
                 "Filename": "cerberus",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,
@@ -4301,6 +5109,14 @@
                 "Roughness": 0.8999999761581421
             },
             "MeshComponent": {
+                "AABB": [
+                    -0.39986246824264526,
+                    -0.9441743493080139,
+                    -2.391145706176758,
+                    0.25040629506111145,
+                    0.3755760192871094,
+                    0.730975866317749
+                ],
                 "Filename": "cerberus",
                 "HaveEmbeddedResource": false,
                 "IsProceduralMesh": false,

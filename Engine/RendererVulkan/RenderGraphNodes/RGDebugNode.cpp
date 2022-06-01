@@ -67,6 +67,11 @@ namespace SG
 		Delete(mpDebugLinePipeline);
 	}
 
+	void RGDebugNode::Update()
+	{
+		mMessageBusMember.ListenFor<Scene::TreeNode*>("OnSelectedEntityChanged", SG_BIND_MEMBER_FUNC(OnSelectedEntityChanged));
+	}
+
 	void RGDebugNode::Reset()
 	{
 		SG_PROFILE_FUNCTION();
@@ -109,24 +114,34 @@ namespace SG
 		//auto pCam = SSystem()->GetMainScene()->GetMainCamera().GetComponent<CameraComponent>().pCamera;
 		//const BoundingBox camFrustumBBox = pCam->GetFrustumBoundingBox();
 
-		BoundingBox camFrustumBBox;
-		camFrustumBBox.minBound = { -40.0f, 0.0f, -40.0f };
-		camFrustumBBox.maxBound = {  40.0f, 20.0f, 40.0f };
+		if (mpSelectedEntityTreeNode && mpSelectedEntityTreeNode->pEntity->HasComponent<MeshComponent>())
+		{
+			auto& mesh = mpSelectedEntityTreeNode->pEntity->GetComponent<MeshComponent>();
+			const auto* pSubMeshData = MeshDataArchive::GetInstance()->GetData(mesh.meshId);
 
-		mDebugObjectModelMat = glm::translate(Matrix4f(1.0f), BBoxCenter(camFrustumBBox)) *
-			glm::scale(Matrix4f(1.0f), BBoxExtent(camFrustumBBox));
-		
-		auto& cmd = *context.pCmd;
+			BoundingBox camFrustumBBox = pSubMeshData->aabb;
 
-		UInt64 offset[] = { 0 };
-		auto& pVertexBuffer = *VK_RESOURCE()->GetBuffer("debug_geo");
-		cmd.BindVertexBuffer(0, 1, pVertexBuffer, offset);
-		cmd.BindPipelineSignatureNonDynamic(mpDebugLinePipelineSignature.get());
-		cmd.BindPipeline(mpDebugLinePipeline);
+			mDebugObjectModelMat = GetTransform(mpSelectedEntityTreeNode);
+			mDebugObjectModelMat *= glm::translate(Matrix4f(1.0f), BBoxCenter(camFrustumBBox)) *
+				glm::scale(Matrix4f(1.0f), BBoxExtent(camFrustumBBox));
 
-		cmd.PushConstants(mpDebugLinePipelineSignature.get(), EShaderStage::efVert, sizeof(Matrix4f), 0, &mDebugObjectModelMat);
+			auto& cmd = *context.pCmd;
 
-		cmd.Draw(12 * 2, 1, 0, 0);
+			UInt64 offset[] = { 0 };
+			auto& pVertexBuffer = *VK_RESOURCE()->GetBuffer("debug_geo");
+			cmd.BindVertexBuffer(0, 1, pVertexBuffer, offset);
+			cmd.BindPipelineSignatureNonDynamic(mpDebugLinePipelineSignature.get());
+			cmd.BindPipeline(mpDebugLinePipeline);
+
+			cmd.PushConstants(mpDebugLinePipelineSignature.get(), EShaderStage::efVert, sizeof(Matrix4f), 0, &mDebugObjectModelMat);
+
+			cmd.Draw(12 * 2, 1, 0, 0);
+		}
+	}
+
+	void RGDebugNode::OnSelectedEntityChanged(Scene::TreeNode* pTreeNode)
+	{
+		mpSelectedEntityTreeNode = pTreeNode;
 	}
 
 }

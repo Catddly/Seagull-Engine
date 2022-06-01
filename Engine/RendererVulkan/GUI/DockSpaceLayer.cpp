@@ -337,7 +337,10 @@ namespace SG
 			DrawSceneTreeNode(pChild, false);
 
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+		{
 			mpSelectedEntityNode = nullptr;
+			mMessageBusMember.PushEvent<Scene::TreeNode*>("OnSelectedEntityChanged", mpSelectedEntityNode);
+		}
 
 		ImGui::End();
 	}
@@ -370,7 +373,10 @@ namespace SG
 			bool bOpened = ImGui::TreeNodeEx(tag.name.c_str(), flags);
 
 			if (ImGui::IsItemClicked())
+			{
 				mpSelectedEntityNode = pNode;
+				mMessageBusMember.PushEvent<Scene::TreeNode*>("OnSelectedEntityChanged", mpSelectedEntityNode);
+			}
 
 			if (bOpened)
 			{
@@ -516,6 +522,7 @@ namespace SG
 
 		Input::ForceReleaseAllEvent(); // to avoid causing short cut key status error
 		mpSelectedEntityNode = nullptr;
+		mMessageBusMember.PushEvent<Scene::TreeNode*>("OnSelectedEntityChanged", mpSelectedEntityNode);
 	}
 
 }

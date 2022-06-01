@@ -32,7 +32,7 @@ namespace SG
 		{
 		case EMeshType::eOBJ: return ".obj"; break;
 		case EMeshType::eGLTF: return ".gltf"; break;
-		case EMeshType::eUnknown:
+		case EMeshType::eUnknown: return ".unknown"; break;
 		default:
 			SG_LOG_ERROR("Invalid mesh type!");
 			break;

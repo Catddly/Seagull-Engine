@@ -12,6 +12,13 @@
 namespace SG
 {
 
+	enum class ELoadMeshFlag : UInt32
+	{
+		efLoadEmbeddedMaterials = BIT(0),
+		efGenerateAABB = BIT(1),
+	};
+	SG_ENUM_CLASS_FLAG(UInt32, ELoadMeshFlag);
+
 	template <EResourceTypeCategory type>
 	class ResourceLoaderBase
 	{
@@ -84,7 +91,7 @@ namespace SG
 		MeshResourceLoader() = default;
 		~MeshResourceLoader() = default;
 
-		SG_CORE_API bool LoadFromFile(const string& name, EMeshType type, MeshData& meshData, bool bLoadMaterials = false);
+		SG_CORE_API bool LoadFromFile(const string& name, EMeshType type, MeshData& meshData, ELoadMeshFlag flag = ELoadMeshFlag(0));
 	private:
 	};
 

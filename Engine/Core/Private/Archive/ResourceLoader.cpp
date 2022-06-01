@@ -118,7 +118,7 @@ namespace SG
 		return true;
 	}
 
-	bool MeshResourceLoader::LoadFromFile(const string& name, EMeshType type, MeshData& meshData, bool bLoadMaterials)
+	bool MeshResourceLoader::LoadFromFile(const string& name, EMeshType type, MeshData& meshData, ELoadMeshFlag flag)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -133,7 +133,10 @@ namespace SG
 		path += fullName;
 
 		Assimp::Importer importer;
-		auto* scene = importer.ReadFile(path.c_str(), aiProcess_CalcTangentSpace);
+		UInt32 assimpFlag = aiProcess_CalcTangentSpace | aiProcess_RemoveRedundantMaterials;
+		if (SG_HAS_ENUM_FLAG(flag, ELoadMeshFlag::efGenerateAABB))
+			assimpFlag |= aiProcess_GenBoundingBoxes;
+		auto* scene = importer.ReadFile(path.c_str(), assimpFlag);
 
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
 		{
@@ -172,7 +175,7 @@ namespace SG
 
 		vector<RefPtr<MaterialAsset>> loadInMaterials;
 
-		if (bLoadMaterials)
+		if (SG_HAS_ENUM_FLAG(flag, ELoadMeshFlag::efLoadEmbeddedMaterials))
 		{
 			SG_LOG_DEBUG("Loading Mesh Embedded Materials: Count of %d", scene->mNumMaterials);
 			if (scene->HasMaterials())
@@ -253,11 +256,14 @@ namespace SG
 				auto& subMesh = meshData.subMeshDatas.emplace_back();
 				subMesh.filename = name;
 				subMesh.bIsProceduralMesh = false;
-				if (bLoadMaterials)
+				if (SG_HAS_ENUM_FLAG(flag, ELoadMeshFlag::efLoadEmbeddedMaterials))
 					subMesh.materialAssetId = loadInMaterials[i]->GetAssetID();
 
 				const aiMesh* pMesh = scene->mMeshes[i];
 				subMesh.subMeshName = pMesh->mName.C_Str();
+				auto& aabb = pMesh->mAABB;
+				subMesh.aabb.minBound = { aabb.mMin.x, aabb.mMin.y, aabb.mMin.z };
+				subMesh.aabb.maxBound = { aabb.mMax.x, aabb.mMax.y, aabb.mMax.z };
 				SG_LOG_DEBUG("    Loading submesh: %s", subMesh.subMeshName.c_str());
 
 				SG_ASSERT(pMesh->HasNormals());

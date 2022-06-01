@@ -11,6 +11,10 @@ namespace SG
 		Vector3f maxBound;
 	};
 
+	// serialization code
+	void to_json(SG::json& node, const BoundingBox& v);
+	void from_json(const SG::json& node, BoundingBox& v);
+
 	SG_INLINE void BBoxReset(BoundingBox& bbox)
 	{
 		bbox.minBound = { SG_MAX_FLOAT_VALUE, SG_MAX_FLOAT_VALUE, SG_MAX_FLOAT_VALUE };

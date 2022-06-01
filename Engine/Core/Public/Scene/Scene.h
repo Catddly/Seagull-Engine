@@ -62,7 +62,7 @@ namespace SG
 		SG_CORE_API Entity* CreateEntity(const string& name);
 		SG_CORE_API Entity* CreateEntity(const string& name, const Vector3f& pos, const Vector3f& scale, const Vector3f& rot);
 
-		SG_CORE_API Entity* CreateEntityWithMesh(const string& name, const string& filename, EMeshType type, bool bLoadMaterials = false);
+		SG_CORE_API Entity* CreateEntityWithMesh(const string& name, const string& filename, EMeshType type, ELoadMeshFlag flag = ELoadMeshFlag(0));
 
 		SG_CORE_API void    DestroyEntity(Entity& entity);
 		SG_CORE_API void    DestroyEntityByName(const string& name);
@@ -105,7 +105,7 @@ namespace SG
 		EntityContext* CreateEntityContext(const string& name);
 		EntityContext* CreateEntityContext(const string& name, const Vector3f& pos, const Vector3f& scale, const Vector3f& rot);
 
-		EntityContext* CreateEntityContextWithMesh(const string& name, const string& filename, EMeshType type, bool bLoadMaterials = false);
+		EntityContext* CreateEntityContextWithMesh(const string& name, const string& filename, EMeshType type, ELoadMeshFlag flag = ELoadMeshFlag(0));
 	private:
 		void DefaultScene();
 		void MaterialScene();

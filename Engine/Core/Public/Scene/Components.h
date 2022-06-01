@@ -92,6 +92,8 @@ namespace SG
 			subMesh.bIsProceduralMesh = true;
 			if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
 				MeshGenerator::GenGrid(subMesh.vertices, subMesh.indices);
+			subMesh.aabb.minBound = { -0.51f, -0.01f, -0.51f };
+			subMesh.aabb.maxBound = { 0.51f, 0.01f, 0.51f };
 		}
 		else if (type == EGennerateMeshType::eSkybox)
 		{
@@ -108,7 +110,7 @@ namespace SG
 		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData.subMeshDatas[0]);
 	}
 
-	SG_INLINE void LoadMesh(const char* filename, EMeshType type, MeshComponent& comp)
+	SG_INLINE void LoadMesh(const char* filename, EMeshType type, MeshComponent& comp, ELoadMeshFlag flag = ELoadMeshFlag(0))
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -118,7 +120,7 @@ namespace SG
 		if (!MeshDataArchive::GetInstance()->HaveMeshData(filename))
 		{
 			MeshResourceLoader loader;
-			if (!loader.LoadFromFile(filename, type, meshData))
+			if (!loader.LoadFromFile(filename, type, meshData, flag))
 				SG_LOG_WARN("Mesh %s load failure!", filename);
 		}
 
@@ -126,7 +128,7 @@ namespace SG
 		comp.meshId = MeshDataArchive::GetInstance()->SetData(meshData.subMeshDatas[0]);
 	}
 
-	SG_INLINE void LoadMesh(const char* filename, const char* subMeshName, EMeshType type, MeshComponent& comp, bool bLoadMaterial = false)
+	SG_INLINE void LoadMesh(const char* filename, const char* subMeshName, EMeshType type, MeshComponent& comp, ELoadMeshFlag flag = ELoadMeshFlag(0))
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -136,7 +138,7 @@ namespace SG
 		if (!MeshDataArchive::GetInstance()->HaveMeshData(subMeshName))
 		{
 			MeshResourceLoader loader;
-			if (!loader.LoadFromFile(filename, type, meshData, bLoadMaterial))
+			if (!loader.LoadFromFile(filename, type, meshData, flag))
 				SG_LOG_WARN("Mesh %s load failure!", filename);
 			for (auto& subMeshData : meshData.subMeshDatas)
 				MeshDataArchive::GetInstance()->SetData(subMeshData);

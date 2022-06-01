@@ -150,6 +150,12 @@ namespace SG
 				ImGui::Text("ObjectId:   %d", comp.objectId);
 				ImGui::Text("MeshId:     %d", comp.meshId);
 				ImGui::Text("InstanceId: %d", comp.instanceId);
+				auto* pSubMeshData = MeshDataArchive::GetInstance()->GetData(comp.meshId);
+				if (!pSubMeshData->bIsProceduralMesh)
+				{
+					DrawGUIDragFloat3("AABBMin", pSubMeshData->aabb.minBound);
+					DrawGUIDragFloat3("AABBMax", pSubMeshData->aabb.maxBound);
+				}
 			});
 		DrawComponent<PointLightComponent>(entity, [&entity, &tag](PointLightComponent& comp)
 			{

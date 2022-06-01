@@ -44,8 +44,6 @@ namespace SG
 	using Byte = unsigned char;
 #endif
 
-	//typedef void* Handle;
-
 #define SG_FLOAT_EPSILON  std::numeric_limits<float>::epsilon()
 #define SG_DOUBLE_EPSILON std::numeric_limits<double>::epsilon()
 
@@ -53,11 +51,15 @@ namespace SG
 #define SG_MAX_FLOAT_VALUE std::numeric_limits<float>::max()
 
 #ifdef __cplusplus
-#	define SG_ENUM_CLASS_FLAG(VALUE_TYPE, ENUM_TYPE)																		      \
-	static SG_INLINE ENUM_TYPE operator| (ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) | (VALUE_TYPE)(b)); }  \
-	static SG_INLINE ENUM_TYPE operator& (ENUM_TYPE a, ENUM_TYPE b)   { return (ENUM_TYPE)((VALUE_TYPE)(a) & (VALUE_TYPE)(b)); }  \
-	static SG_INLINE ENUM_TYPE operator|=(ENUM_TYPE a, ENUM_TYPE b)   { return a | b; }                                           \
-	static SG_INLINE ENUM_TYPE operator&=(ENUM_TYPE a, ENUM_TYPE b)   { return a & b; } 
+#	define SG_ENUM_CLASS_FLAG(VALUE_TYPE, ENUM_TYPE)																	   \
+	constexpr ENUM_TYPE  operator| (ENUM_TYPE a, VALUE_TYPE b)  { return (ENUM_TYPE)((VALUE_TYPE)(a) | b); }  \
+	constexpr ENUM_TYPE  operator| (ENUM_TYPE a, ENUM_TYPE b)  { return (ENUM_TYPE)((VALUE_TYPE)(a) | (VALUE_TYPE)(b)); }  \
+	constexpr ENUM_TYPE  operator& (ENUM_TYPE a, VALUE_TYPE b)  { return (ENUM_TYPE)((VALUE_TYPE)(a) & b); }  \
+	constexpr ENUM_TYPE  operator& (ENUM_TYPE a, ENUM_TYPE b)  { return (ENUM_TYPE)((VALUE_TYPE)(a) & (VALUE_TYPE)(b)); }  \
+	constexpr ENUM_TYPE& operator|=(ENUM_TYPE& a, VALUE_TYPE b) { a = (ENUM_TYPE)((VALUE_TYPE)(a) | b); return a; }  \
+	constexpr ENUM_TYPE& operator|=(ENUM_TYPE& a, ENUM_TYPE b) { a = (ENUM_TYPE)((VALUE_TYPE)(a) | (VALUE_TYPE)(b)); return a; }   \
+	constexpr ENUM_TYPE& operator&=(ENUM_TYPE& a, VALUE_TYPE b) { a = (ENUM_TYPE)((VALUE_TYPE)(a) & b); return a; }  \
+	constexpr ENUM_TYPE& operator&=(ENUM_TYPE& a, ENUM_TYPE b) { a = (ENUM_TYPE)((VALUE_TYPE)(a) & (VALUE_TYPE)(b)); return a; } 
 #endif
 #define SG_HAS_ENUM_FLAG(VALUE, FLAG) static_cast<bool>((VALUE) & (FLAG))
 

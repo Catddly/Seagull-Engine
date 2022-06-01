@@ -88,7 +88,19 @@ namespace SG
 		return &mSubMeshDatas[meshId].first;
 	}
 
+	SubMeshData* MeshDataArchive::GetData(UInt32 meshId)
+	{
+		SG_ASSERT(meshId < mSubMeshDatas.size());
+		return &mSubMeshDatas[meshId].first;
+	}
+
 	const SubMeshData* MeshDataArchive::GetData(const string& filename) const
+	{
+		UInt32 meshId = GetMeshID(filename);
+		return GetData(meshId);
+	}
+
+	SubMeshData* MeshDataArchive::GetData(const string& filename)
 	{
 		UInt32 meshId = GetMeshID(filename);
 		return GetData(meshId);

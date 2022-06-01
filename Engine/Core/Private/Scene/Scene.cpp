@@ -57,6 +57,11 @@ namespace SG
 				meshNode["Type"] = mesh.meshType;
 				meshNode["IsProceduralMesh"] = pMeshData->bIsProceduralMesh;
 				meshNode["HaveEmbeddedResource"] = pMeshData->materialAssetId != IDAllocator<UInt32>::INVALID_ID;
+				if (!pMeshData->bIsProceduralMesh)
+				{
+					auto& aabb = pMeshData->aabb;
+					meshNode["AABB"] = aabb;
+				}
 			}
 		}
 
@@ -269,12 +274,12 @@ namespace SG
 		return pEntityContext;
 	}
 
-	Scene::Entity* Scene::CreateEntityWithMesh(const string& name, const string& filename, EMeshType type, bool bLoadMaterials)
+	Scene::Entity* Scene::CreateEntityWithMesh(const string& name, const string& filename, EMeshType type, ELoadMeshFlag flag)
 	{
-		return &(CreateEntityContextWithMesh(name, filename, type, bLoadMaterials)->entity);
+		return &(CreateEntityContextWithMesh(name, filename, type, flag)->entity);
 	}
 
-	Scene::EntityContext* Scene::CreateEntityContextWithMesh(const string& name, const string& filename, EMeshType type, bool bLoadMaterials)
+	Scene::EntityContext* Scene::CreateEntityContextWithMesh(const string& name, const string& filename, EMeshType type, ELoadMeshFlag flag)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -291,7 +296,7 @@ namespace SG
 		if (!MeshDataArchive::GetInstance()->HaveMeshData(filename))
 		{
 			MeshResourceLoader loader;
-			if (!loader.LoadFromFile(filename, type, meshData, bLoadMaterials))
+			if (!loader.LoadFromFile(filename, type, meshData, flag))
 				SG_LOG_WARN("Mesh %s load failure!", filename);
 		}
 		else
@@ -557,7 +562,16 @@ namespace SG
 			else
 			{
 				EMeshType type = (EMeshType)meshComp["Type"];
-				LoadMesh(filename.c_str(), subMeshName.c_str(), type, mesh, bHaveEmbeddedResource);
+				ELoadMeshFlag flag = bHaveEmbeddedResource ? ELoadMeshFlag::efLoadEmbeddedMaterials : ELoadMeshFlag(0);
+				if (meshComp.find("AABB") == meshComp.end())
+					flag |= ELoadMeshFlag::efGenerateAABB;
+				LoadMesh(filename.c_str(), subMeshName.c_str(), type, mesh, flag);
+
+				if (meshComp.find("AABB") != meshComp.end())
+				{
+					auto* pSubMeshData = MeshDataArchive::GetInstance()->GetData(subMeshName);
+					meshComp["AABB"].get_to(pSubMeshData->aabb);
+				}
 			}
 		}
 

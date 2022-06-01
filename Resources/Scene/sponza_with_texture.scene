@@ -4,24 +4,24 @@
             "CameraComponent": {
                 "CameraMoveSpeed": 50.0,
                 "CameraPos": [
-                    29.623891830444336,
-                    31.031225204467773,
-                    -7.932885646820068
+                    -90.28548431396484,
+                    51.33426284790039,
+                    4.496792793273926
                 ],
                 "FrontVector": [
-                    -0.9738292098045349,
-                    -0.22259658575057983,
-                    0.04590722173452377
+                    0.9828494191169739,
+                    -0.17778731882572174,
+                    -0.048976343125104904
                 ],
                 "RightVector": [
-                    -0.04708683490753174,
+                    0.04977129399776459,
                     0.0,
-                    -0.9988908767700195
+                    0.9987607002258301
                 ],
                 "UpVector": [
-                    -0.22236275672912598,
-                    0.9749076962471008,
-                    0.010484307073056698
+                    0.17758341133594513,
+                    0.9840659499168396,
+                    -0.008849873207509518
                 ]
             },
             "EntityID": "2468517968452275",
@@ -107,6 +107,14 @@
                         "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -1866.98291015625,
+                            -126.44249725341797,
+                            -1139.030517578125,
+                            1746.69287109375,
+                            1347.19580078125,
+                            1039.711181640625
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -160,6 +168,14 @@
                         "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -1052.875732421875,
+                            211.39549255371094,
+                            -318.1059875488281,
+                            921.9354858398438,
+                            1275.01123046875,
+                            245.81419372558594
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -213,6 +229,14 @@
                         "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -1429.452392578125,
+                            215.80360412597656,
+                            -645.1483154296875,
+                            1302.20166015625,
+                            1263.927978515625,
+                            574.9027099609375
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -266,6 +290,14 @@
                         "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -1057.22021484375,
+                            -2.460700035095215,
+                            -316.86920166015625,
+                            925.6038208007813,
+                            220.99710083007813,
+                            246.61489868164063
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -319,6 +351,14 @@
                         "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -1432.224365234375,
+                            -2.506200075149536,
+                            -645.4310302734375,
+                            1302.220947265625,
+                            415.5303039550781,
+                            574.1851806640625
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -372,6 +412,14 @@
                         "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -1430.30517578125,
+                            182.6522979736328,
+                            -646.9678955078125,
+                            1303.27197265625,
+                            695.3228149414063,
+                            575.7255249023438
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -425,6 +473,14 @@
                         "Roughness": 0.6000000238418579
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -509.68328857421875,
+                            -2.2155001163482666,
+                            -651.5385131835938,
+                            1315.5244140625,
+                            716.8505859375,
+                            605.0136108398438
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -478,6 +534,14 @@
                         "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -1037.651611328125,
+                            506.6332092285156,
+                            -309.70550537109375,
+                            907.4069213867188,
+                            699.61181640625,
+                            234.77340698242188
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -521,10 +585,18 @@
                         },
                         "AssetName": "Material_2",
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
-                        "Metallic": 0.10000000149011612,
-                        "Roughness": 0.75
+                        "Metallic": 0.8500000238418579,
+                        "Roughness": 0.20000000298023224
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -119.40730285644531,
+                            256.7309875488281,
+                            568.6583862304688,
+                            -8.262900352478027,
+                            348.1973876953125,
+                            575.5051879882813
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -532,7 +604,7 @@
                         "Type": 1
                     },
                     "TagComponent": {
-                        "Name": "unknown"
+                        "Name": "metal"
                     },
                     "TransformComponent": {
                         "Position": [
@@ -578,6 +650,14 @@
                         "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -990.7388916015625,
+                            -4.030700206756592,
+                            -251.64309692382813,
+                            859.2954711914063,
+                            56.199501037597656,
+                            179.31080627441406
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -631,6 +711,14 @@
                         "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -992.9603881835938,
+                            42.31909942626953,
+                            -261.83648681640625,
+                            861.8858032226563,
+                            73.12359619140625,
+                            187.85159301757813
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -684,6 +772,14 @@
                         "Roughness": 0.15000000596046448
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -1428.27490234375,
+                            40.818599700927734,
+                            -163.38650512695313,
+                            1299.8668212890625,
+                            758.5531005859375,
+                            88.62689971923828
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -737,6 +833,14 @@
                         "Roughness": 0.15000000596046448
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -1427.434326171875,
+                            79.90480041503906,
+                            -114.69149780273438,
+                            1299.0263671875,
+                            264.7611999511719,
+                            42.85340118408203
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -790,6 +894,14 @@
                         "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -680.2642211914063,
+                            -28.04960060119629,
+                            -341.1361999511719,
+                            551.2263793945313,
+                            225.1020965576172,
+                            266.4422912597656
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -843,6 +955,14 @@
                         "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -783.794189453125,
+                            339.4429931640625,
+                            -324.5262145996094,
+                            651.9561767578125,
+                            520.5938720703125,
+                            252.28579711914063
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -896,6 +1016,14 @@
                         "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -946.2379150390625,
+                            -0.30889999866485596,
+                            -289.25689697265625,
+                            448.0338134765625,
+                            283.6809997558594,
+                            213.4824981689453
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -949,6 +1077,14 @@
                         "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -786.898681640625,
+                            339.4429931640625,
+                            -324.5262145996094,
+                            648.8516845703125,
+                            520.5938720703125,
+                            252.28570556640625
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -1002,6 +1138,14 @@
                         "Roughness": 0.75
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -577.6201782226563,
+                            -0.30889999866485596,
+                            -295.25439453125,
+                            820.1740112304688,
+                            283.6809997558594,
+                            213.4824981689453
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -1055,6 +1199,14 @@
                         "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -418.2926025390625,
+                            339.4429931640625,
+                            -324.5262145996094,
+                            283.3501892089844,
+                            520.5938720703125,
+                            252.2855987548828
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -1108,6 +1260,14 @@
                         "Roughness": 0.8500000238418579
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -946.2379150390625,
+                            -0.30889999866485596,
+                            -295.25439453125,
+                            820.1740112304688,
+                            283.6809997558594,
+                            213.4824981689453
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -1161,6 +1321,14 @@
                         "Roughness": 0.30000001192092896
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -654.1837768554688,
+                            98.67289733886719,
+                            -246.83450317382813,
+                            522.611572265625,
+                            216.9512939453125,
+                            170.47579956054688
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -1214,6 +1382,14 @@
                         "Roughness": 0.4000000059604645
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -644.93310546875,
+                            133.72129821777344,
+                            -221.48719787597656,
+                            513.3607788085938,
+                            214.3549041748047,
+                            145.12840270996094
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -1267,6 +1443,14 @@
                         "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -1276.67333984375,
+                            -0.6934000253677368,
+                            -523.4995727539063,
+                            1194.1705322265625,
+                            133.0167999267578,
+                            478.2618103027344
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -1320,6 +1504,14 @@
                         "Roughness": 0.550000011920929
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -958.6978149414063,
+                            274.9595947265625,
+                            -289.70361328125,
+                            830.2938842773438,
+                            886.1389770507813,
+                            209.11500549316406
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
@@ -1373,6 +1565,14 @@
                         "Roughness": 0.949999988079071
                     },
                     "MeshComponent": {
+                        "AABB": [
+                            -1920.9459228515625,
+                            1280.513427734375,
+                            -1182.80712890625,
+                            1799.9080810546875,
+                            1429.4332275390625,
+                            1105.426025390625
+                        ],
                         "Filename": "sponza_gltf_khronos_fixed_and_split",
                         "HaveEmbeddedResource": true,
                         "IsProceduralMesh": false,
