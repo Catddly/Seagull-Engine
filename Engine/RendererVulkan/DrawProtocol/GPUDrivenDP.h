@@ -2,7 +2,7 @@
 
 #include "Scene/RenderDataBuilder.h"
 
-#include "RendererVulkan/Renderer/RenderInfo.h"
+#include "RendererVulkan/RenderGraph/RenderInfo.h"
 #include "RendererVulkan/RenderDevice/MeshPass.h"
 #include "RendererVulkan/RenderDevice/DrawCall.h"
 
@@ -24,7 +24,7 @@ namespace SG
 	class VulkanShader;
 
 	//! State machine, a functionality class to record draw command, and persist the render context.
-	class IndirectRenderer
+	class GPUDrivenDP
 	{
 	public:
 		static void OnInit(VulkanContext& context);

@@ -1,11 +1,10 @@
 #include "StdAfx.h"
-#include "IndirectRenderer.h"
+#include "GPUDrivenDP.h"
 
 #include "System/System.h"
 #include "Archive/MeshDataArchive.h"
 #include "Render/Shader/ShaderComiler.h"
 #include "Profile/Profile.h"
-//#include "Render/CommonRenderData.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanCommand.h"
@@ -14,49 +13,48 @@
 #include "RendererVulkan/Backend/VulkanPipelineSignature.h"
 #include "RendererVulkan/Backend/VulkanPipeline.h"
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
-//#include "RendererVulkan/Backend/VulkanQueryPool.h"
 
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
 namespace SG
 {
 
-	VulkanContext* IndirectRenderer::mpContext = nullptr;
-	VulkanCommandBuffer* IndirectRenderer::mpCmdBuf = nullptr;
-	UInt32 IndirectRenderer::mCurrFrameIndex = 0;
+	VulkanContext* GPUDrivenDP::mpContext = nullptr;
+	VulkanCommandBuffer* GPUDrivenDP::mpCmdBuf = nullptr;
+	UInt32 GPUDrivenDP::mCurrFrameIndex = 0;
 
-	//VulkanQueryPool* IndirectRenderer::pComputeResetQueryPool = nullptr;
-	//VulkanQueryPool* IndirectRenderer::pComputeCullingQueryPool = nullptr;
+	//VulkanQueryPool* GPUDrivenDP::pComputeResetQueryPool = nullptr;
+	//VulkanQueryPool* GPUDrivenDP::pComputeCullingQueryPool = nullptr;
 
-	eastl::fixed_map<EMeshPass, vector<IndirectDrawCall>, (UInt32)EMeshPass::NUM_MESH_PASS> IndirectRenderer::mDrawCallMap;
-	UInt32 IndirectRenderer::mPackedVBCurrOffset = 0;
-	UInt32 IndirectRenderer::mPackedVIBCurrOffset = 0;
-	UInt32 IndirectRenderer::mPackedIBCurrOffset = 0;
-	UInt32 IndirectRenderer::mCurrDrawCallIndex = 0;
+	eastl::fixed_map<EMeshPass, vector<IndirectDrawCall>, (UInt32)EMeshPass::NUM_MESH_PASS> GPUDrivenDP::mDrawCallMap;
+	UInt32 GPUDrivenDP::mPackedVBCurrOffset = 0;
+	UInt32 GPUDrivenDP::mPackedVIBCurrOffset = 0;
+	UInt32 GPUDrivenDP::mPackedIBCurrOffset = 0;
+	UInt32 GPUDrivenDP::mCurrDrawCallIndex = 0;
 
-	vector<VulkanCommandBuffer> IndirectRenderer::mResetCommands;
-	vector<VulkanCommandBuffer> IndirectRenderer::mCullingCommands;
-	vector<VulkanCommandBuffer> IndirectRenderer::mTransferCommands;
-	vector<VulkanFence*> IndirectRenderer::mTransferFences;
-	VulkanSemaphore* IndirectRenderer::mpWaitResetSemaphore = nullptr;
+	vector<VulkanCommandBuffer> GPUDrivenDP::mResetCommands;
+	vector<VulkanCommandBuffer> GPUDrivenDP::mCullingCommands;
+	vector<VulkanCommandBuffer> GPUDrivenDP::mTransferCommands;
+	vector<VulkanFence*> GPUDrivenDP::mTransferFences;
+	VulkanSemaphore* GPUDrivenDP::mpWaitResetSemaphore = nullptr;
 
-	RefPtr<VulkanPipelineSignature> IndirectRenderer::mpResetCullingPipelineSignature = nullptr;
-	VulkanPipeline*                 IndirectRenderer::mpResetCullingPipeline = nullptr;
-	RefPtr<VulkanShader>            IndirectRenderer::mpResetCullingShader = nullptr;
+	RefPtr<VulkanPipelineSignature> GPUDrivenDP::mpResetCullingPipelineSignature = nullptr;
+	VulkanPipeline*                 GPUDrivenDP::mpResetCullingPipeline = nullptr;
+	RefPtr<VulkanShader>            GPUDrivenDP::mpResetCullingShader = nullptr;
 
-	RefPtr<VulkanPipelineSignature> IndirectRenderer::mpGPUCullingPipelineSignature = nullptr;
-	VulkanPipeline*                 IndirectRenderer::mpGPUCullingPipeline = nullptr;
-	RefPtr<VulkanShader>            IndirectRenderer::mpGPUCullingShader = nullptr;
+	RefPtr<VulkanPipelineSignature> GPUDrivenDP::mpGPUCullingPipelineSignature = nullptr;
+	VulkanPipeline*                 GPUDrivenDP::mpGPUCullingPipeline = nullptr;
+	RefPtr<VulkanShader>            GPUDrivenDP::mpGPUCullingShader = nullptr;
 
-	RefPtr<VulkanPipelineSignature> IndirectRenderer::mpDrawCallCompactPipelineSignature = nullptr;
-	VulkanPipeline*                 IndirectRenderer::mpDrawCallCompactPipeline = nullptr;
-	RefPtr<VulkanShader>            IndirectRenderer::mpDrawCallCompactShader = nullptr;
+	RefPtr<VulkanPipelineSignature> GPUDrivenDP::mpDrawCallCompactPipelineSignature = nullptr;
+	VulkanPipeline*                 GPUDrivenDP::mpDrawCallCompactPipeline = nullptr;
+	RefPtr<VulkanShader>            GPUDrivenDP::mpDrawCallCompactShader = nullptr;
 
-	bool IndirectRenderer::mbRendererInit = false;
-	bool IndirectRenderer::mbBeginDraw = false;
-	bool IndirectRenderer::mbDrawCallReady = false;
+	bool GPUDrivenDP::mbRendererInit = false;
+	bool GPUDrivenDP::mbBeginDraw = false;
+	bool GPUDrivenDP::mbDrawCallReady = false;
 
-	void IndirectRenderer::OnInit(VulkanContext& context)
+	void GPUDrivenDP::OnInit(VulkanContext& context)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -137,7 +135,7 @@ namespace SG
 		mbRendererInit = true;
 	}
 
-	void IndirectRenderer::OnShutdown()
+	void GPUDrivenDP::OnShutdown()
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -191,7 +189,7 @@ namespace SG
 		mbRendererInit = false;
 	}
 
-	void IndirectRenderer::CollectRenderData(RefPtr<RenderDataBuilder> pRenderDataBuilder)
+	void GPUDrivenDP::CollectRenderData(RefPtr<RenderDataBuilder> pRenderDataBuilder)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -425,7 +423,7 @@ namespace SG
 		mbDrawCallReady = true;
 	}
 
-	void IndirectRenderer::Begin(DrawInfo& drawInfo)
+	void GPUDrivenDP::Begin(DrawInfo& drawInfo)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -445,7 +443,7 @@ namespace SG
 		mCurrFrameIndex = drawInfo.frameIndex;
 	}
 
-	void IndirectRenderer::End()
+	void GPUDrivenDP::End()
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -460,7 +458,7 @@ namespace SG
 		mCurrFrameIndex = UInt32(-1);
 	}
 
-	void IndirectRenderer::CullingReset()
+	void GPUDrivenDP::CullingReset()
 	{
 		// [Critical] Here discovered severe performance fluctuation.
 		SG_PROFILE_FUNCTION();
@@ -490,7 +488,7 @@ namespace SG
 #endif
 	}
 
-	void IndirectRenderer::DoCulling()
+	void GPUDrivenDP::DoCulling()
 	{
 		// [Critical] Here discovered severe performance fluctuation.
 		SG_PROFILE_FUNCTION();
@@ -542,7 +540,7 @@ namespace SG
 #endif
 	}
 
-	void IndirectRenderer::CopyStatisticsData()
+	void GPUDrivenDP::CopyStatisticsData()
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -559,14 +557,14 @@ namespace SG
 		mpContext->pTransferQueue->SubmitCommands<1, 0, 1>(&cmd, waitStage, nullptr, &mpContext->pComputeCompleteSemaphore, mTransferFences[mCurrFrameIndex]);
 	}
 
-	void IndirectRenderer::WaitForStatisticsCopyed()
+	void GPUDrivenDP::WaitForStatisticsCopyed()
 	{
 #if SG_ENABLE_GPU_CULLING
 		mTransferFences[mCurrFrameIndex]->WaitAndReset();
 #endif
 	}
 
-	void IndirectRenderer::Draw(EMeshPass meshPass)
+	void GPUDrivenDP::Draw(EMeshPass meshPass)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -579,7 +577,7 @@ namespace SG
 		}
 	}
 
-	void IndirectRenderer::DrawWithoutBindMaterial(EMeshPass meshPass)
+	void GPUDrivenDP::DrawWithoutBindMaterial(EMeshPass meshPass)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -591,7 +589,7 @@ namespace SG
 		}
 	}
 
-	void IndirectRenderer::BindMesh(const DrawMesh& drawMesh)
+	void GPUDrivenDP::BindMesh(const DrawMesh& drawMesh)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -601,7 +599,7 @@ namespace SG
 		mpCmdBuf->BindIndexBuffer(*drawMesh.pIndexBuffer, drawMesh.iBOffset);
 	}
 
-	void IndirectRenderer::BindMaterial(const DrawMaterial& drawMaterial)
+	void GPUDrivenDP::BindMaterial(const DrawMaterial& drawMaterial)
 	{
 		SG_PROFILE_FUNCTION();
 
@@ -613,7 +611,7 @@ namespace SG
 		}
 	}
 
-	void IndirectRenderer::LogDebugInfo()
+	void GPUDrivenDP::LogDebugInfo()
 	{
 		SG_LOG_DEBUG("Indirect Renderer Debug Info:");
 		for (auto& dc : mDrawCallMap)

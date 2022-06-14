@@ -24,8 +24,8 @@
 #include "RendererVulkan/RenderDevice/DrawCall.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
-#include "RendererVulkan/Renderer/Renderer.h"
-#include "RendererVulkan/Renderer/IndirectRenderer.h"
+#include "RendererVulkan/DrawProtocol/ForwardDP.h"
+#include "RendererVulkan/DrawProtocol/GPUDrivenDP.h"
 
 namespace SG
 {
@@ -191,6 +191,7 @@ namespace SG
 			.BindSignature(mpPipelineSignature, true)
 			.BindShader(mpInstanceShader)
 			.BindRenderPass(pRenderpass)
+			.SetRasterizer(ECullMode::eBack)
 			.SetInputVertexRange(sizeof(Vertex), EVertexInputRate::ePerVertex)
 			.SetInputVertexRange(sizeof(PerInstanceData), EVertexInputRate::ePerInstance)
 #if SG_ENABLE_DEFERRED_SHADING
@@ -258,16 +259,16 @@ namespace SG
 		pBuf.SetViewport((float)mContext.colorRts[0]->GetWidth(), (float)mContext.colorRts[0]->GetHeight(), 0.0f, 1.0f);
 		pBuf.SetScissor({ 0, 0, (int)mContext.colorRts[0]->GetWidth(), (int)mContext.colorRts[0]->GetHeight() });
 
-		IndirectRenderer::Begin(drawInfo);
+		GPUDrivenDP::Begin(drawInfo);
 
 		// 1.1 Forward Mesh Pass
 		pBuf.BindPipeline(mpPipeline);
-		IndirectRenderer::Draw(EMeshPass::eForward);
+		GPUDrivenDP::Draw(EMeshPass::eForward);
 
 		// 1.2 Forward Instanced Mesh Pass
 		pBuf.BindPipeline(mpInstancePipeline);
-		IndirectRenderer::Draw(EMeshPass::eForwardInstanced);
-		IndirectRenderer::End();
+		GPUDrivenDP::Draw(EMeshPass::eForwardInstanced);
+		GPUDrivenDP::End();
 	}
 
 	void RGDrawScenePBRNode::GenerateBRDFLut()

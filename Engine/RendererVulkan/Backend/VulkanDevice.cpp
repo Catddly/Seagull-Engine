@@ -115,6 +115,8 @@ namespace SG
 			deviceFeatures.samplerAnisotropy = VK_TRUE;
 		if (physicalDeviceFeatures.multiDrawIndirect)
 			deviceFeatures.multiDrawIndirect = VK_TRUE;
+		if (physicalDeviceFeatures.fillModeNonSolid) // draw wireframe
+			deviceFeatures.fillModeNonSolid = VK_TRUE;
 #ifdef SG_DEBUG
 		if (physicalDeviceFeatures.pipelineStatisticsQuery) // enable pipeline statistics query
 			deviceFeatures.pipelineStatisticsQuery = VK_TRUE;

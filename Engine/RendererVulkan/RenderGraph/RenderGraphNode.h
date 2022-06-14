@@ -2,7 +2,7 @@
 
 #include "Defs/Defs.h"
 
-#include "RendererVulkan/Renderer/RenderInfo.h"
+#include "RenderInfo.h"
 #include "RenderGraphResource.h"
 
 #include "Stl/vector.h"

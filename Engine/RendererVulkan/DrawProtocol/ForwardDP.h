@@ -14,7 +14,7 @@ namespace SG
 
 	//! State machine, a functionality class to record draw command,
 	//! and persist the render context.
-	class Renderer
+	class ForwardDP
 	{
 	public:
 		//! Collect the render data from RenderDataBuilder, make render resource and packed to drawcall.

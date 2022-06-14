@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "RendererVulkan/Renderer/Renderer.h"
+#include "RendererVulkan/DrawProtocol/ForwardDP.h"
 
 #include "System/Logger.h"
 #include "Archive/MeshDataArchive.h"
@@ -9,16 +9,16 @@
 namespace SG
 {
 
-	VulkanCommandBuffer* Renderer::mpCmdBuf = nullptr;
+	VulkanCommandBuffer* ForwardDP::mpCmdBuf = nullptr;
 
-	eastl::fixed_map<EMeshPass, vector<DrawCall>, (UInt32)EMeshPass::NUM_MESH_PASS> Renderer::mDrawCallMap;
-	UInt64 Renderer::mPackedVBCurrOffset = 0;
-	UInt64 Renderer::mPackedIBCurrOffset = 0;
+	eastl::fixed_map<EMeshPass, vector<DrawCall>, (UInt32)EMeshPass::NUM_MESH_PASS> ForwardDP::mDrawCallMap;
+	UInt64 ForwardDP::mPackedVBCurrOffset = 0;
+	UInt64 ForwardDP::mPackedIBCurrOffset = 0;
 
-	bool Renderer::mbBeginDraw = false;
-	bool Renderer::mbDrawCallReady = false;
+	bool ForwardDP::mbBeginDraw = false;
+	bool ForwardDP::mbDrawCallReady = false;
 
-	void Renderer::CollectRenderData(RefPtr<RenderDataBuilder> pRenderDataBuilder)
+	void ForwardDP::CollectRenderData(RefPtr<RenderDataBuilder> pRenderDataBuilder)
 	{
 		pRenderDataBuilder->TraverseRenderData([&](UInt32 meshId, const RendererBuildData& buildData)
 			{
@@ -104,7 +104,7 @@ namespace SG
 		mbDrawCallReady = true;
 	}
 
-	void Renderer::Begin(VulkanCommandBuffer* pCmdBuf)
+	void ForwardDP::Begin(VulkanCommandBuffer* pCmdBuf)
 	{
 		if (mbBeginDraw)
 		{
@@ -121,7 +121,7 @@ namespace SG
 		mpCmdBuf = pCmdBuf;
 	}
 
-	void Renderer::End()
+	void ForwardDP::End()
 	{
 		if (!mbBeginDraw)
 		{
@@ -133,7 +133,7 @@ namespace SG
 		mpCmdBuf = nullptr;
 	}
 
-	void Renderer::Draw(EMeshPass meshPass)
+	void ForwardDP::Draw(EMeshPass meshPass)
 	{
 		for (auto& dc : mDrawCallMap[meshPass])
 		{
@@ -144,7 +144,7 @@ namespace SG
 		}
 	}
 
-	void Renderer::BindMesh(const DrawMesh& drawMesh)
+	void ForwardDP::BindMesh(const DrawMesh& drawMesh)
 	{
 		mpCmdBuf->BindVertexBuffer(0, 1, *drawMesh.pVertexBuffer, &drawMesh.vBOffset);
 		if (drawMesh.pInstanceBuffer)
@@ -152,7 +152,7 @@ namespace SG
 		mpCmdBuf->BindIndexBuffer(*drawMesh.pIndexBuffer, drawMesh.iBOffset);
 	}
 
-	void Renderer::BindMaterial(const DrawMaterial& drawMaterial)
+	void ForwardDP::BindMaterial(const DrawMaterial& drawMaterial)
 	{
 
 	}
