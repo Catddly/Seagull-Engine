@@ -71,6 +71,8 @@ namespace SG
 		UInt32    instanceId = 0;          //! Used to identify instance, if this mesh do not have instance, the default is 0. Because one object can be seen as one instance.
 		UInt32    objectId   = UInt32(-1); //! Used as UUID(or GUID) in Object System.
 
+		AABB aabb;
+
 		MeshComponent() = default;
 		MeshComponent(EMeshType t, UInt32 mId, UInt32 iId)
 			:meshType(t), meshId(mId), instanceId(iId)
@@ -92,8 +94,8 @@ namespace SG
 			subMesh.bIsProceduralMesh = true;
 			if (!MeshDataArchive::GetInstance()->HaveMeshData(meshData.filename))
 				MeshGenerator::GenGrid(subMesh.vertices, subMesh.indices);
-			subMesh.aabb.minBound = { -0.51f, -0.01f, -0.51f };
-			subMesh.aabb.maxBound = { 0.51f, 0.01f, 0.51f };
+			subMesh.aabb.min = { -0.51f, -0.01f, -0.51f };
+			subMesh.aabb.max = { 0.51f, 0.01f, 0.51f };
 		}
 		else if (type == EGennerateMeshType::eSkybox)
 		{
@@ -226,22 +228,20 @@ namespace SG
 		Vector3f rotatedVec = Vector4f(SG_ENGINE_FRONT_VEC(), 0.0f) * glm::toMat4(Quaternion(glm::radians(trans.rotation)));
 		return glm::normalize(rotatedVec);
 
-		//Vector3f direction = -trans.position;
-		//return glm::normalize(direction);
 	}
 
-	SG_INLINE Matrix4f CalcDirectionalLightViewProj(const TransformComponent& trans, const Vector3f& viewDirection, const Vector3f& cameraPos, 
-		float aspectRatio, float shadowMapScaleFactor, float zNear, float zFar)
-	{
-		SG_PROFILE_FUNCTION();
+	//SG_INLINE Matrix4f CalcDirectionalLightViewProj(const TransformComponent& trans, const Vector3f& viewDirection, const Vector3f& cameraPos, 
+	//	float aspectRatio, float shadowMapScaleFactor, float zNear, float zFar)
+	//{
+	//	SG_PROFILE_FUNCTION();
 
-		return BuildOrthographicMatrix(-shadowMapScaleFactor * aspectRatio, shadowMapScaleFactor * aspectRatio, -shadowMapScaleFactor, shadowMapScaleFactor, zNear, zFar) *
-			BuildViewMatrixCenter(cameraPos - (viewDirection * trans.position.y), cameraPos, SG_ENGINE_UP_VEC());
-		//BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
+	//	return BuildOrthographicMatrix(-shadowMapScaleFactor * aspectRatio, shadowMapScaleFactor * aspectRatio, -shadowMapScaleFactor, shadowMapScaleFactor, zNear, zFar) *
+	//		BuildViewMatrixCenter(cameraPos - (viewDirection * trans.position.y), cameraPos, SG_ENGINE_UP_VEC());
+	//	//BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
 
-		//return BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0f, 300.0f) *
-		//	BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
-	}
+	//	//return BuildPerspectiveMatrix(glm::radians(45.0f), 1.0f, 1.0f, 300.0f) *
+	//	//	BuildViewMatrixDirection(trans.position, CalcViewDirectionNormalized(trans), SG_ENGINE_UP_VEC());
+	//}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// CameraComponent
@@ -274,10 +274,13 @@ END(LightTag)
 	using Signature2 = TipECS::Signature<TagComponent, PointLightComponent>;
 	using Signature3 = TipECS::Signature<LightTag>;
 	using Signature4 = TipECS::Signature<TransformComponent, CameraComponent>;
+	using Signature5 = TipECS::Signature<TagComponent, TransformComponent, MeshComponent>;
 
 #define SIGNATURES(F, END) \
 F(Signature1) \
 F(Signature3) \
+F(Signature4) \
+F(Signature5) \
 END(Signature2)
 
 #define MACRO_EXPAND(NAME) NAME,

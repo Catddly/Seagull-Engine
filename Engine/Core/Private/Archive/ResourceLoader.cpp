@@ -261,9 +261,12 @@ namespace SG
 
 				const aiMesh* pMesh = scene->mMeshes[i];
 				subMesh.subMeshName = pMesh->mName.C_Str();
-				auto& aabb = pMesh->mAABB;
-				subMesh.aabb.minBound = { aabb.mMin.x, aabb.mMin.y, aabb.mMin.z };
-				subMesh.aabb.maxBound = { aabb.mMax.x, aabb.mMax.y, aabb.mMax.z };
+				if (SG_HAS_ENUM_FLAG(flag, ELoadMeshFlag::efGenerateAABB))
+				{
+					auto& aabb = pMesh->mAABB;
+					subMesh.aabb.min = { aabb.mMin.x, aabb.mMin.y, aabb.mMin.z };
+					subMesh.aabb.max = { aabb.mMax.x, aabb.mMax.y, aabb.mMax.z };
+				}
 				SG_LOG_DEBUG("    Loading submesh: %s", subMesh.subMeshName.c_str());
 
 				SG_ASSERT(pMesh->HasNormals());

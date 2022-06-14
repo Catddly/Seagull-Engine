@@ -23,4 +23,11 @@ namespace SG
 		LayerSystem mLayerSystem;
 	};
 
+	enum class EGUIFontWeight : UInt32
+	{
+		eRegular = 0,
+		eBold,
+		eLight
+	};
+
 }

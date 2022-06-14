@@ -1,13 +1,12 @@
 #include "StdAfx.h"
 #include "Scene/RenderDataBuilder.h"
 
+#include "System/Logger.h"
 #include "Scene/Components.h"
 #include "Archive/MeshDataArchive.h"
 #include "Archive/MaterialAssetArchive.h"
 #include "Profile/Profile.h"
 #include "TipECS/Entity.h"
-
-#include "System/Logger.h"
 
 namespace SG
 {
@@ -129,6 +128,7 @@ namespace SG
 
 		// reset render status
 		mRenderMeshBuildDataMap.clear();
+		AABBReset(mSceneAABB);
 
 		// collect instance info and set instance id.
 		pScene->TraverseEntity([this](auto& entity)
@@ -138,6 +138,8 @@ namespace SG
 					auto& meshComp = entity.GetComponent<MeshComponent>();
 					auto meshId = meshComp.meshId;
 					auto objectId = meshComp.objectId;
+					
+					AABBMerge(mSceneAABB, meshComp.aabb);
 
 					auto node = mRenderMeshBuildDataMap.find(meshId);
 					if (node == mRenderMeshBuildDataMap.end())

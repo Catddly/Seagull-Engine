@@ -111,8 +111,11 @@ namespace SG
 		void MaterialScene();
 		void MaterialTexturedScene();
 
+		void UpdateMeshAABB();
+
 		virtual void Serialize(json& node) override;
 		virtual void Deserialize(json& node) override;
+		void SerializeEntity(Scene::TreeNode* pTreeNode, json& node);
 		void DeserializeEntity(Scene::TreeNode* pTreeNode, json& entity);
 
 		void Refresh();

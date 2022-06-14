@@ -3,6 +3,7 @@
 #include "Core/Config.h"
 #include "Thread/Thread.h"
 
+#include "Render/GUI/IGUIDriver.h"
 #include "System/FileSystem.h"
 #include "Scene/Scene.h"
 #include "Scene/RenderDataBuilder.h"
@@ -66,6 +67,7 @@ namespace SG
 
 		SG_CORE_API RefPtr<Scene> GetMainScene();
 		SG_CORE_API RefPtr<RenderDataBuilder> GetRenderDataBuilder();
+		SG_CORE_API RefPtr<IGUIDriver> GetGUIDriver();
 
 		//! Get current memory usage for all the modules.
 		SG_CORE_API UInt32 GetTotalMemoryUsage() const;
@@ -123,6 +125,7 @@ namespace SG
 
 		RefPtr<Scene> mp3DScene = nullptr;
 		RefPtr<RenderDataBuilder> mpRenderDataBuilder = nullptr;
+		RefPtr<IGUIDriver> mpGUIDriver = nullptr;
 	};
 
 	template <class T>

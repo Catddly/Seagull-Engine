@@ -45,10 +45,16 @@ namespace SG
 			{ 
 				float dy = -deltaYPos * mRotateSpeed * mDeltaTime * mAspectRatio;
 				Matrix4f transform = glm::rotate(Matrix4f(1.0f), dy, mRightVec);
-				mUpVec    = glm::normalize(Vector4f(mUpVec, 0.0f) * transform);
-				mFrontVec = glm::normalize(Vector4f(mFrontVec, 0.0f) * transform);
-				UpdateViewMatrix();
-				mbIsViewDirty = true;
+				// do clamp to prevent axis flip
+				const float dotFrontVec = glm::dot(Vector3f(glm::normalize(Vector4f(mFrontVec, 0.0f) * transform)), SG_ENGINE_UP_VEC());
+				if (dotFrontVec < 0.99f && dotFrontVec > -0.99f)
+				{
+					mFrontVec = glm::normalize(Vector4f(mFrontVec, 0.0f) * transform);
+					mUpVec = glm::normalize(Vector4f(mUpVec, 0.0f) * transform);
+
+					UpdateViewMatrix();
+					mbIsViewDirty = true;
+				}
 			}
 			
 			if (deltaXPos != 0)

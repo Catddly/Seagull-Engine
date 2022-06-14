@@ -71,7 +71,7 @@ namespace SG
 		return mFrustum;
 	}
 
-	BoundingBox BasicCamera::GetFrustumBoundingBox() const
+	AABB BasicCamera::GetFrustumAABB() const
 	{
 		return mFrustumBoundingBox;
 	}
@@ -140,7 +140,7 @@ namespace SG
 		};
 
 		Matrix4f inverseVPMat = glm::inverse(mProjectionMatrix * mViewMatrix);
-		BBoxReset(mFrustumBoundingBox);
+		AABBReset(mFrustumBoundingBox);
 
 		for (int i = 0; i < NUM_CORNER_POINTS; ++i)
 		{
@@ -152,7 +152,7 @@ namespace SG
 				frustumCornerPointWithW.z / frustumCornerPointWithW.w
 			};
 
-			BBoxMerge(mFrustumBoundingBox, frustumCornerPointWorldSpace);
+			AABBMerge(mFrustumBoundingBox, frustumCornerPointWorldSpace);
 		}
 	}
 

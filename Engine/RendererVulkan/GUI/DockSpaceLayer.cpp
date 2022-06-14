@@ -10,7 +10,7 @@
 
 #include "RendererVulkan/Backend/VulkanDescriptor.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
-#include "RendererVulkan/GUI/Utility.h"
+#include "RendererVulkan/GUI/GUIUtility.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -461,6 +461,7 @@ namespace SG
 
 		pNewScene->GetMainCamera().GetComponent<CameraComponent>().pCamera->SetPerspective(60.0f, mLastViewportSize.x / mLastViewportSize.y);
 
+		pNewScene->OnUpdate(0.0f); // update for the AABBs and etc.
 		OnSceneRebuild(pNewScene);
 	}
 
@@ -481,6 +482,7 @@ namespace SG
 
 		pNewScene->GetMainCamera().GetComponent<CameraComponent>().pCamera->SetPerspective(60.0f, mLastViewportSize.x / mLastViewportSize.y);
 
+		pNewScene->OnUpdate(0.0f); // update for the AABBs and etc.
 		OnSceneRebuild(pNewScene);
 	}
 

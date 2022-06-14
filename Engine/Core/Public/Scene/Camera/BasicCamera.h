@@ -35,7 +35,7 @@ namespace SG
 		SG_CORE_API virtual bool IsProjDirty() const override { return mbIsProjDirty; }
 
 		SG_CORE_API virtual Frustum GetFrustum() const override;
-		SG_CORE_API virtual BoundingBox GetFrustumBoundingBox() const override;
+		SG_CORE_API virtual AABB GetFrustumAABB() const override;
 
 		SG_CORE_API virtual void ViewBeUpdated() override { mbIsViewDirty = false; }
 		SG_CORE_API virtual void ProjBeUpdated() override { mbIsProjDirty = false; }
@@ -55,7 +55,7 @@ namespace SG
 		Matrix4f mProjectionMatrix;
 
 		Frustum     mFrustum;
-		BoundingBox mFrustumBoundingBox;
+		AABB mFrustumBoundingBox;
 
 		float mMoveSpeed = 5.0f;
 		float mRotateSpeed = 1.5f;

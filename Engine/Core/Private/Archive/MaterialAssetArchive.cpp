@@ -19,11 +19,6 @@ namespace SG
 
 	RefPtr<MaterialAsset> MaterialAssetArchive::GetMaterialAsset(const string& assetName)
 	{
-		for (auto& node : mMaterialAssets)
-		{
-			SG_LOG_DEBUG("%s", node.first.c_str());
-		}
-
 		auto node = mMaterialAssets.find(assetName);
 		if (node == mMaterialAssets.end())
 			return nullptr;

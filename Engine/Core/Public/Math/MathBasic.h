@@ -154,7 +154,7 @@ namespace SG
 	{
 		Matrix4f mat = glm::perspective(fovYInRadians, aspect, zNear, zFar);
 		// inverse the proj matrix for vulkan's clip space coordinate
-#ifdef SG_PROJ_FLIP_Y
+#if SG_PROJ_FLIP_Y
 		mat[1][1] *= -1.0f;
 #endif
 		return mat;
@@ -166,7 +166,7 @@ namespace SG
 	{
 		Matrix4f mat = glm::ortho(left, right, bottom, top, zNear, zFar);
 		// inverse the proj matrix for vulkan's clip space coordinate
-#ifdef SG_PROJ_FLIP_Y
+#if SG_PROJ_FLIP_Y
 		mat[1][1] *= -1.0f;
 #endif
 		return mat;

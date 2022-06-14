@@ -7,7 +7,6 @@
 #include "Event/MessageBus/MessageBus.h"
 
 #include "Render/IRenderDevice.h"
-#include "Render/GUI/IGUIDriver.h"
 
 #include "Stl/vector.h"
 #include "Stl/SmartPtr.h"
@@ -50,7 +49,6 @@ namespace SG
 		MessageBusMember mMessageBusMember;
 
 		UniquePtr<RenderGraph> mpRenderGraph = nullptr;
-		UniquePtr<IGUIDriver>  mpGUIDriver = nullptr;
 		UInt32 mCurrentFrame = 0;
 
 		RefPtr<DockSpaceLayer> mpDockSpaceGUILayer = nullptr;

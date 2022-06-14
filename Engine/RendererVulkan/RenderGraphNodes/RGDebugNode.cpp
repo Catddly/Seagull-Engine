@@ -111,19 +111,30 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		//auto pCam = SSystem()->GetMainScene()->GetMainCamera().GetComponent<CameraComponent>().pCamera;
-		//const BoundingBox camFrustumBBox = pCam->GetFrustumBoundingBox();
-
 		if (mpSelectedEntityTreeNode && mpSelectedEntityTreeNode->pEntity->HasComponent<MeshComponent>())
 		{
 			auto& mesh = mpSelectedEntityTreeNode->pEntity->GetComponent<MeshComponent>();
-			const auto* pSubMeshData = MeshDataArchive::GetInstance()->GetData(mesh.meshId);
+			mDebugObjectModelMat = glm::translate(Matrix4f(1.0f), AABBCenter(mesh.aabb)) *
+				glm::scale(Matrix4f(1.0f), AABBExtent(mesh.aabb));
 
-			BoundingBox camFrustumBBox = pSubMeshData->aabb;
+			auto& cmd = *context.pCmd;
 
-			mDebugObjectModelMat = GetTransform(mpSelectedEntityTreeNode);
-			mDebugObjectModelMat *= glm::translate(Matrix4f(1.0f), BBoxCenter(camFrustumBBox)) *
-				glm::scale(Matrix4f(1.0f), BBoxExtent(camFrustumBBox));
+			UInt64 offset[] = { 0 };
+			auto& pVertexBuffer = *VK_RESOURCE()->GetBuffer("debug_geo");
+			cmd.BindVertexBuffer(0, 1, pVertexBuffer, offset);
+			cmd.BindPipelineSignatureNonDynamic(mpDebugLinePipelineSignature.get());
+			cmd.BindPipeline(mpDebugLinePipeline);
+
+			cmd.PushConstants(mpDebugLinePipelineSignature.get(), EShaderStage::efVert, sizeof(Matrix4f), 0, &mDebugObjectModelMat);
+
+			cmd.Draw(12 * 2, 1, 0, 0);
+		}
+		else
+		{
+			auto sceneAABB = SSystem()->GetRenderDataBuilder()->GetSceneAABB();
+
+			mDebugObjectModelMat = Matrix4f(1.0f) * glm::translate(Matrix4f(1.0f), AABBCenter(sceneAABB)) *
+				glm::scale(Matrix4f(1.0f), AABBExtent(sceneAABB));
 
 			auto& cmd = *context.pCmd;
 

@@ -14,7 +14,7 @@ namespace SG
 	{
 		vector<float>  vertices = {};
 		vector<UInt32> indices = {};
-		BoundingBox    aabb;
+		AABB    aabb; // this aabb is the mesh aabb, not the world space aabb.
 		string subMeshName = "";
 		string filename = ""; //! Ref pointer to its parent.
 

@@ -27,133 +27,6 @@ namespace SG
 		gObjectIdAllocator.Restore(comp.objectId);
 	}
 
-	static void _SerializeEntity(Scene::TreeNode* pTreeNode, json& node)
-	{
-		auto& entity = *pTreeNode->pEntity;
-		node["EntityID"] = "2468517968452275"; // TEMPORARY
-
-		auto& tagNode = node["TagComponent"];
-		{
-			auto& tag = entity.GetComponent<TagComponent>();
-			tagNode["Name"] = tag.name.c_str();
-		}
-
-		auto& transNode = node["TransformComponent"];
-		{
-			auto& trans = entity.GetComponent<TransformComponent>();
-			transNode["Position"] = trans.position;
-			transNode["Rotation"] = trans.rotation;
-			transNode["Scale"] = trans.scale;
-		}
-
-		if (entity.HasComponent<MeshComponent>())
-		{
-			auto& meshNode = node["MeshComponent"];
-			{
-				auto& mesh = entity.GetComponent<MeshComponent>();
-				auto* pMeshData = MeshDataArchive::GetInstance()->GetData(mesh.meshId);
-				meshNode["Filename"] = pMeshData->filename.c_str();
-				meshNode["SubMeshName"] = pMeshData->subMeshName.c_str();
-				meshNode["Type"] = mesh.meshType;
-				meshNode["IsProceduralMesh"] = pMeshData->bIsProceduralMesh;
-				meshNode["HaveEmbeddedResource"] = pMeshData->materialAssetId != IDAllocator<UInt32>::INVALID_ID;
-				if (!pMeshData->bIsProceduralMesh)
-				{
-					auto& aabb = pMeshData->aabb;
-					meshNode["AABB"] = aabb;
-				}
-			}
-		}
-
-		if (entity.HasComponent<MaterialComponent>())
-		{
-			auto& matNode = node["MaterialComponent"];
-			{
-				auto& mat = entity.GetComponent<MaterialComponent>();
-				auto pMatAsset = mat.materialAsset.lock();
-				matNode["AssetName"] = pMatAsset->GetAssetName().c_str();
-				matNode["Filename"] = pMatAsset->GetFileName().c_str();
-
-				matNode["Albedo"] = pMatAsset->GetAlbedo();
-				matNode["Metallic"] = pMatAsset->GetMetallic();
-				matNode["Roughness"] = pMatAsset->GetRoughness();
-				UInt32 texMask = pMatAsset->GetTextureMask();
-				if ((texMask & MaterialAsset::ALBEDO_TEX_MASK) != 0)
-				{
-					auto& assetNode = matNode["AlbedoTextureAsset"];
-					pMatAsset->GetAlbedoTexture()->Serialize(assetNode);
-				}
-				if ((texMask & MaterialAsset::METALLIC_TEX_MASK) != 0)
-				{
-					auto& assetNode = matNode["MetallicTextureAsset"];
-					pMatAsset->GetMetallicTexture()->Serialize(assetNode);
-				}
-				if ((texMask & MaterialAsset::ROUGHNESS_TEX_MASK) != 0)
-				{
-					auto& assetNode = matNode["RoughnessTextureAsset"];
-					pMatAsset->GetRoughnessTexture()->Serialize(assetNode);
-				}
-				if ((texMask & MaterialAsset::NORMAL_TEX_MASK) != 0)
-				{
-					auto& assetNode = matNode["NormalTextureAsset"];
-					pMatAsset->GetNormalTexture()->Serialize(assetNode);
-				}
-				if ((texMask & MaterialAsset::AO_TEX_MASK) != 0)
-				{
-					auto& assetNode = matNode["AOTextureAsset"];
-					pMatAsset->GetAOTexture()->Serialize(assetNode);
-				}
-
-			}
-		}
-
-		if (entity.HasComponent<PointLightComponent>())
-		{
-			auto& lightNode = node["PointLightComponent"];
-			{
-				auto& light = entity.GetComponent<PointLightComponent>();
-				lightNode["Color"] = light.color;
-				lightNode["Radius"] = light.radius;
-			}
-		}
-
-		if (entity.HasComponent<DirectionalLightComponent>())
-		{
-			auto& lightNode = node["DirectionalLightComponent"];
-			{
-				auto& light = entity.GetComponent<DirectionalLightComponent>();
-				lightNode["Color"] = light.color;
-				lightNode["ShadowMapScaleFactor"] = light.shadowMapScaleFactor;
-				lightNode["zNear"] = light.zNear;
-				lightNode["zFar"] = light.zFar;
-			}
-		}
-
-		if (entity.HasComponent<CameraComponent>())
-		{
-			auto& camNode = node["CameraComponent"];
-			{
-				auto& cam = entity.GetComponent<CameraComponent>();
-				camNode["CameraPos"] = cam.pCamera->GetPosition();
-				camNode["CameraMoveSpeed"] = cam.pCamera->GetMoveSpeed();
-				if (cam.type == ECameraType::eFirstPerson)
-				{
-					auto* pFPSCam = static_cast<FirstPersonCamera*>(cam.pCamera.get());
-					camNode["UpVector"] = pFPSCam->GetUpVector();
-					camNode["RightVector"] = pFPSCam->GetRightVector();
-					camNode["FrontVector"] = pFPSCam->GetFrontVector();
-				}
-			}
-		}
-
-		if (!pTreeNode->pChilds.empty()) // this node have children
-		{
-			node["Children"] = {};
-			for (auto* pChild : pTreeNode->pChilds)
-				_SerializeEntity(pChild, node["Children"].emplace_back());
-		}
-	}
-
 	Scene::Scene()
 	{
 		mEntityManager.GetComponentHooker<MeshComponent>().HookOnAdded(_OnMeshComponentAdded);
@@ -232,6 +105,7 @@ namespace SG
 
 		//totalTime += deltaTime * speed;
 
+		UpdateMeshAABB();
 		mEntityManager.ReFresh();
 	}
 
@@ -499,13 +373,135 @@ namespace SG
 		node["Scene"] = "My Default Scene";
 		node["Entities"] = {};
 
-		//TraverseEntity([&](auto& entity)
-		//	{
-		//		_SerializeEntity(entity, node["Entities"].emplace_back());
-		//	});
-
 		for (auto* pChild : mpRootNode->pChilds)
-			_SerializeEntity(pChild, node["Entities"].emplace_back());
+			SerializeEntity(pChild, node["Entities"].emplace_back());
+	}
+
+	void Scene::SerializeEntity(Scene::TreeNode* pTreeNode, json& node)
+	{
+		auto& entity = *pTreeNode->pEntity;
+		node["EntityID"] = "2468517968452275"; // TEMPORARY
+
+		auto& tagNode = node["TagComponent"];
+		{
+			auto& tag = entity.GetComponent<TagComponent>();
+			tagNode["Name"] = tag.name.c_str();
+		}
+
+		auto& transNode = node["TransformComponent"];
+		{
+			auto& trans = entity.GetComponent<TransformComponent>();
+			transNode["Position"] = trans.position;
+			transNode["Rotation"] = trans.rotation;
+			transNode["Scale"] = trans.scale;
+		}
+
+		if (entity.HasComponent<MeshComponent>())
+		{
+			auto& meshNode = node["MeshComponent"];
+			{
+				auto& mesh = entity.GetComponent<MeshComponent>();
+				auto* pMeshData = MeshDataArchive::GetInstance()->GetData(mesh.meshId);
+				meshNode["Filename"] = pMeshData->filename.c_str();
+				meshNode["SubMeshName"] = pMeshData->subMeshName.c_str();
+				meshNode["Type"] = mesh.meshType;
+				meshNode["IsProceduralMesh"] = pMeshData->bIsProceduralMesh;
+				meshNode["HaveEmbeddedResource"] = pMeshData->materialAssetId != IDAllocator<UInt32>::INVALID_ID;
+				if (!pMeshData->bIsProceduralMesh)
+				{
+					auto& aabb = pMeshData->aabb;
+					meshNode["AABB"] = aabb;
+				}
+			}
+		}
+
+		if (entity.HasComponent<MaterialComponent>())
+		{
+			auto& matNode = node["MaterialComponent"];
+			{
+				auto& mat = entity.GetComponent<MaterialComponent>();
+				auto pMatAsset = mat.materialAsset.lock();
+				matNode["AssetName"] = pMatAsset->GetAssetName().c_str();
+				matNode["Filename"] = pMatAsset->GetFileName().c_str();
+
+				matNode["Albedo"] = pMatAsset->GetAlbedo();
+				matNode["Metallic"] = pMatAsset->GetMetallic();
+				matNode["Roughness"] = pMatAsset->GetRoughness();
+				UInt32 texMask = pMatAsset->GetTextureMask();
+				if ((texMask & MaterialAsset::ALBEDO_TEX_MASK) != 0)
+				{
+					auto& assetNode = matNode["AlbedoTextureAsset"];
+					pMatAsset->GetAlbedoTexture()->Serialize(assetNode);
+				}
+				if ((texMask & MaterialAsset::METALLIC_TEX_MASK) != 0)
+				{
+					auto& assetNode = matNode["MetallicTextureAsset"];
+					pMatAsset->GetMetallicTexture()->Serialize(assetNode);
+				}
+				if ((texMask & MaterialAsset::ROUGHNESS_TEX_MASK) != 0)
+				{
+					auto& assetNode = matNode["RoughnessTextureAsset"];
+					pMatAsset->GetRoughnessTexture()->Serialize(assetNode);
+				}
+				if ((texMask & MaterialAsset::NORMAL_TEX_MASK) != 0)
+				{
+					auto& assetNode = matNode["NormalTextureAsset"];
+					pMatAsset->GetNormalTexture()->Serialize(assetNode);
+				}
+				if ((texMask & MaterialAsset::AO_TEX_MASK) != 0)
+				{
+					auto& assetNode = matNode["AOTextureAsset"];
+					pMatAsset->GetAOTexture()->Serialize(assetNode);
+				}
+
+			}
+		}
+
+		if (entity.HasComponent<PointLightComponent>())
+		{
+			auto& lightNode = node["PointLightComponent"];
+			{
+				auto& light = entity.GetComponent<PointLightComponent>();
+				lightNode["Color"] = light.color;
+				lightNode["Radius"] = light.radius;
+			}
+		}
+
+		if (entity.HasComponent<DirectionalLightComponent>())
+		{
+			auto& lightNode = node["DirectionalLightComponent"];
+			{
+				auto& light = entity.GetComponent<DirectionalLightComponent>();
+				lightNode["Color"] = light.color;
+				lightNode["ShadowMapScaleFactor"] = light.shadowMapScaleFactor;
+				lightNode["zNear"] = light.zNear;
+				lightNode["zFar"] = light.zFar;
+			}
+		}
+
+		if (entity.HasComponent<CameraComponent>())
+		{
+			auto& camNode = node["CameraComponent"];
+			{
+				auto& cam = entity.GetComponent<CameraComponent>();
+				camNode["CameraPos"] = cam.pCamera->GetPosition();
+				camNode["CameraMoveSpeed"] = cam.pCamera->GetMoveSpeed();
+				if (cam.type == ECameraType::eFirstPerson)
+				{
+					auto* pFPSCam = static_cast<FirstPersonCamera*>(cam.pCamera.get());
+					camNode["UpVector"] = pFPSCam->GetUpVector();
+					camNode["RightVector"] = pFPSCam->GetRightVector();
+					camNode["FrontVector"] = pFPSCam->GetFrontVector();
+				}
+			}
+		}
+
+		if (!pTreeNode->pChilds.empty()) // this node have children
+		{
+			node["Children"] = {};
+			for (auto* pChild : pTreeNode->pChilds)
+				SerializeEntity(pChild, node["Children"].emplace_back());
+		}
 	}
 
 	void Scene::Deserialize(json& node)
@@ -573,6 +569,10 @@ namespace SG
 					meshComp["AABB"].get_to(pSubMeshData->aabb);
 				}
 			}
+			//auto* pSubMeshData = MeshDataArchive::GetInstance()->GetData(subMeshName);
+			//auto& trans = pEntity->GetComponent<TransformComponent>();
+			//Matrix4f bboxTransform = glm::scale(Matrix4f(1.0f), trans.scale);
+			//mesh.aabb = AABBoxTransform(pSubMeshData->aabb, bboxTransform);
 		}
 
 		if (auto node = entity.find("MaterialComponent"); node != entity.end())
@@ -758,6 +758,24 @@ namespace SG
 		for (auto* pChild : pTreeNode->pChilds)
 			FreeTreeNode(pChild);
 		Delete(pTreeNode);
+	}
+
+	void Scene::UpdateMeshAABB()
+	{
+		// update AABB for the meshes
+		auto view = View<TagComponent, TransformComponent, MeshComponent>();
+		for (auto& entity : view)
+		{
+			auto [tag, trans, mesh] = entity.GetComponent<TagComponent, TransformComponent, MeshComponent>();
+			if (tag.bDirty)
+			{
+				const auto* pSubMeshData = MeshDataArchive::GetInstance()->GetData(mesh.meshId);
+				const auto* pEntityContext = GetEntityContextByName(tag.name);
+				mesh.aabb = AABBTransform(pSubMeshData->aabb, GetTransform(pEntityContext->pTreeNode));
+			}
+			// here we ain't going to mark dirty flag as false, because the renderer will use it again
+			// the renderer will mark it as false
+		}
 	}
 
 }

@@ -1,9 +1,8 @@
 #include "StdAfx.h"
-#include "RendererVulkan/GUI/Utility.h"
+#include "RendererVulkan/GUI/GUIUtility.h"
 
+#include "Render/GUI/IGUIDriver.h"
 #include "Reflection/Name.h"
-
-#include "RendererVulkan/GUI/ImGuiDriver.h"
 
 #include "glm/gtc/type_ptr.hpp"
 
@@ -150,12 +149,10 @@ namespace SG
 				ImGui::Text("ObjectId:   %d", comp.objectId);
 				ImGui::Text("MeshId:     %d", comp.meshId);
 				ImGui::Text("InstanceId: %d", comp.instanceId);
-				auto* pSubMeshData = MeshDataArchive::GetInstance()->GetData(comp.meshId);
-				if (!pSubMeshData->bIsProceduralMesh)
-				{
-					DrawGUIDragFloat3("AABBMin", pSubMeshData->aabb.minBound);
-					DrawGUIDragFloat3("AABBMax", pSubMeshData->aabb.maxBound);
-				}
+				ImGui::Text("AABBMin: (%.2f, %.2f, %.2f)", comp.aabb.min.x, comp.aabb.min.y, comp.aabb.min.z);
+				ImGui::Text("AABBMax: (%.2f, %.2f, %.2f)", comp.aabb.max.x, comp.aabb.max.y, comp.aabb.max.z);
+				//DrawGUIDragFloat3("AABBMin", comp.aabb.min);
+				//DrawGUIDragFloat3("AABBMax", comp.aabb.max);
 			});
 		DrawComponent<PointLightComponent>(entity, [&entity, &tag](PointLightComponent& comp)
 			{

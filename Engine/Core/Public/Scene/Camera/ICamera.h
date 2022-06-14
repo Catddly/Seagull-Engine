@@ -37,7 +37,7 @@ namespace SG
 		virtual void  SetRotateSpeed(float speed) = 0;
 
 		virtual Frustum GetFrustum() const = 0;
-		virtual BoundingBox GetFrustumBoundingBox() const = 0;
+		virtual AABB GetFrustumAABB() const = 0;
 
 		virtual bool IsViewDirty() const = 0;
 		virtual bool IsProjDirty() const = 0;

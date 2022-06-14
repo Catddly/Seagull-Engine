@@ -8,6 +8,8 @@
 #include "Event/MessageBus/MessageBus.h"
 #include "Archive/Serialization.h"
 
+#include "Render/GUI/ImGuiDriver.h"
+
 #include "Render/Shader/ShaderLibrary.h"
 
 #include "Profile/Timer.h"
@@ -50,6 +52,9 @@ namespace SG
 		if (mpCurrActiveProcess)
 			mpCurrActiveProcess->OnInit();
 
+		mpGUIDriver = MakeRef<ImGuiDriver>();
+		mpGUIDriver->OnInit();
+
 		mp3DScene = MakeRef<Scene>();
 		mp3DScene->OnSceneLoad();
 
@@ -66,14 +71,15 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		ShaderLibrary::GetInstance()->OnShutdown();
-		mp3DScene->OnSceneUnLoad();
-
 		if (mpCurrActiveProcess)
 		{
 			mpCurrActiveProcess->OnShutdown();
 			Delete(mpCurrActiveProcess);
 		}
+
+		ShaderLibrary::GetInstance()->OnShutdown();
+		mp3DScene->OnSceneUnLoad();
+		mpGUIDriver->OnShutdown();
 
 		OperatingSystem::OnShutdown();
 		Input::OnShutdown();
@@ -118,6 +124,7 @@ namespace SG
 			// update input messages
 			Input::OnUpdate(deltaTime);
 
+			mpGUIDriver->OnUpdate(deltaTime);
 			mp3DScene->OnUpdate(deltaTime);
 
 			// modules OnUpdate()
@@ -169,6 +176,13 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		return mpRenderDataBuilder;
+	}
+
+	RefPtr<IGUIDriver> System::GetGUIDriver()
+	{
+		SG_PROFILE_FUNCTION();
+
+		return mpGUIDriver;
 	}
 
 	UInt32 System::GetTotalMemoryUsage() const

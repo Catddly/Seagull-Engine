@@ -47,7 +47,7 @@ namespace SG
 #define SG_FLOAT_EPSILON  std::numeric_limits<float>::epsilon()
 #define SG_DOUBLE_EPSILON std::numeric_limits<double>::epsilon()
 
-#define SG_MIN_FLOAT_VALUE std::numeric_limits<float>::min()
+#define SG_MIN_FLOAT_VALUE std::numeric_limits<float>::lowest()
 #define SG_MAX_FLOAT_VALUE std::numeric_limits<float>::max()
 
 #ifdef __cplusplus

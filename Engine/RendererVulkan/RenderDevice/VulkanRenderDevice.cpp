@@ -39,7 +39,6 @@
 #include "RendererVulkan/Renderer/IndirectRenderer.h"
 #include "RendererVulkan/Renderer/DebugRenderer.h"
 
-#include "RendererVulkan/GUI/ImGuiDriver.h"
 #include "RendererVulkan/GUI/TestGUILayer.h"
 #include "RendererVulkan/GUI/DockSpaceLayer.h"
 
@@ -60,9 +59,6 @@ namespace SG
 	void VulkanRenderDevice::OnInit()
 	{
 		SG_PROFILE_FUNCTION();
-
-		mpGUIDriver = MakeUnique<ImGuiDriver>();
-		mpGUIDriver->OnInit();
 
 		mpContext = New(VulkanContext);
 		VK_RESOURCE()->Initialize(mpContext);
@@ -123,13 +119,14 @@ namespace SG
 
 		//mpGUIDriver->PushUserLayer(MakeRef<TestGUILayer>());
 		mpDockSpaceGUILayer = MakeRef<DockSpaceLayer>();
-		mpGUIDriver->PushUserLayer(mpDockSpaceGUILayer);
-
-		// update one frame here to avoid imgui do not draw the first frame.
-		mpGUIDriver->OnUpdate(0.00000001f);
+		auto pGUIDriver = SSystem()->GetGUIDriver();
+		pGUIDriver->PushUserLayer(mpDockSpaceGUILayer);
 
 		// wait for all the resource in the transfer queue.
 		VK_RESOURCE()->WaitBuffersUpdated();
+
+		// update one frame here to avoid imgui do not draw the first frame.
+		pGUIDriver->OnUpdate(0.00000001f);
 	}
 
 	void VulkanRenderDevice::OnShutdown()
@@ -145,15 +142,11 @@ namespace SG
 		VK_RESOURCE()->Shutdown();
 		Delete(mpContext);
 		SG_LOG_INFO("RenderDevice - Vulkan Shutdown");
-
-		mpGUIDriver->OnShutdown();
 	}
 
 	void VulkanRenderDevice::OnUpdate(float deltaTime)
 	{
 		SG_PROFILE_FUNCTION();
-
-		mpGUIDriver->OnUpdate(deltaTime);
 
 		{
 			SG_PROFILE_SCOPE("Listening Events");
@@ -310,8 +303,9 @@ namespace SG
 		mpRenderGraph->WindowResize();
 
 		// pop and push the layer to call OnAttach() and OnDetach().
-		mpGUIDriver->PopUserLayer(mpDockSpaceGUILayer);
-		mpGUIDriver->PushUserLayer(mpDockSpaceGUILayer);
+		auto pGUIDriver = SSystem()->GetGUIDriver();
+		pGUIDriver->PopUserLayer(mpDockSpaceGUILayer);
+		pGUIDriver->PushUserLayer(mpDockSpaceGUILayer);
 	}
 
 	void VulkanRenderDevice::CreateVKResourceFromAsset(RefPtr<RenderDataBuilder> pRenderDataBuilder)

@@ -3,6 +3,7 @@
 #include "Scene/Scene.h"
 #include "Render/CommonRenderData.h"
 #include "Render/Buffer.h"
+#include "Math/BoundingBox.h"
 
 #include "Stl/vector.h"
 #include "Stl/SmartPtr.h"
@@ -45,6 +46,8 @@ namespace SG
 		const eastl::unordered_map<UInt32, WeakRefPtr<IAsset>>& GetCurrentFrameNewAssets() const noexcept { return mCurrentFrameNewAssets; }
 		const eastl::unordered_map<UInt32, WeakRefPtr<IAsset>>& GetAssets() const noexcept { return mAssets; }
 
+		AABB GetSceneAABB() const noexcept { SG_ASSERT(mbIsRenderDataReady); return mSceneAABB; }
+
 		template <typename Func>
 		void TraverseRenderData(Func&& func);
 	private:
@@ -54,6 +57,8 @@ namespace SG
 		eastl::map<UInt32, RendererBuildData> mRenderMeshBuildDataMap; // meshId -> RenderMeshBuildData (ordered with meshId)
 		eastl::unordered_map<UInt32, WeakRefPtr<IAsset>> mCurrentFrameNewAssets; // assetId -> IAsset
 		eastl::unordered_map<UInt32, WeakRefPtr<IAsset>> mAssets; // assetId -> IAsset
+
+		AABB mSceneAABB;
 
 		bool mbIsRenderDataReady = false;
 	};

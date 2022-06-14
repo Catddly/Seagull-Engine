@@ -97,6 +97,8 @@ namespace SG
 		void OnRenderDataRebuild();
 
 		bool IsTextureNeedToGenerateMipmap(UInt32 width, UInt32 height, EImageFormat imageFormat, UInt32 dataByteSize, UInt32 mipmap) const;
+
+		Matrix4f ComputeShadowedLightViewProj(RefPtr<ICamera> pCamera, const Vector3f& lightDirection);
 	private:
 		VulkanContext* mpContext;
 		MessageBusMember mMessageBusMember;

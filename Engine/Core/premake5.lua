@@ -38,6 +38,7 @@ project "SCore"
         "../../Libs/ktx/include/",
         "../../Libs/tracy/",
         "../../Libs/json/single_include/",
+        "../../Libs/imgui/include/",
     }
 
     links

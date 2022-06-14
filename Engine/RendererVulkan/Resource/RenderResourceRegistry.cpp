@@ -8,6 +8,7 @@
 #include "Archive/MeshDataArchive.h"
 #include "Profile/Profile.h"
 #include "Render/CommonRenderData.h"
+#include "Math/BoundingBox.h"
 
 #include "RendererVulkan/Backend/VulkanContext.h"
 #include "RendererVulkan/Backend/VulkanQueue.h"
@@ -16,6 +17,9 @@
 #include "RendererVulkan/Backend/VulkanSynchronizePrimitive.h"
 
 #include "ktx/ktx.h"
+#include "glm/ext/matrix_clip_space.hpp"
+
+#include "eastl/utility.h"
 
 namespace SG
 {
@@ -236,9 +240,7 @@ namespace SG
 						lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
 						lightUbo.directionalColor = { light.color, 1.0f };
 
-						float aspect = OperatingSystem::GetMainWindow()->GetAspectRatio();
-						shadowUbo.lightSpaceVP = CalcDirectionalLightViewProj(trans, lightUbo.viewDirection, pCamera->GetPosition(), 
-							aspect, light.shadowMapScaleFactor, light.zNear, light.zFar);
+						shadowUbo.lightSpaceVP = ComputeShadowedLightViewProj(pCamera, lightUbo.viewDirection);
 						lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
 						UpdataBufferData("shadowUbo", &shadowUbo);
 						bNeedUpdateLightUbo |= true;
@@ -270,9 +272,7 @@ namespace SG
 						lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
 						lightUbo.directionalColor = { light.color, 1.0f };
 
-						float aspect = OperatingSystem::GetMainWindow()->GetAspectRatio();
-						shadowUbo.lightSpaceVP = CalcDirectionalLightViewProj(trans, lightUbo.viewDirection, pCamera->GetPosition(), 
-							aspect, light.shadowMapScaleFactor, light.zNear, light.zFar);
+						shadowUbo.lightSpaceVP = ComputeShadowedLightViewProj(pCamera, lightUbo.viewDirection);
 						lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
 						UpdataBufferData("shadowUbo", &shadowUbo);
 						bNeedUpdateLightUbo |= true;
@@ -320,6 +320,34 @@ namespace SG
 	{
 		return width * height * ImageFormatToMemoryByte(imageFormat) == dataByteSize &&
 			mipmap > 1;
+	}
+
+	Matrix4f VulkanResourceRegistry::ComputeShadowedLightViewProj(RefPtr<ICamera> pCamera, const Vector3f& lightDirection)
+	{
+		const AABB camFrustumAABB = pCamera->GetFrustumAABB();
+		const AABB sceneAABB = SSystem()->GetRenderDataBuilder()->GetSceneAABB();
+
+		const Vector3f frustumAABBCenter = AABBCenter(camFrustumAABB);
+		const Vector3f frustumAABBExtent = AABBExtent(camFrustumAABB);
+		// eyes on the bounding sphere of frustumAABB
+		const Vector3f viewPos = frustumAABBCenter + glm::normalize(lightDirection) * glm::length(frustumAABBExtent);
+		//const Vector3f viewCenter = { frustumAABBCenter.x, camFrustumAABB.min.y + camFrustumAABB.max.y, frustumAABBCenter.z };
+
+		const Matrix4f viewMat = BuildViewMatrixCenter(viewPos, frustumAABBCenter, SG_ENGINE_UP_VEC());
+
+		const AABB camFrustumAABBViewSpace = AABBTransform(camFrustumAABB, viewMat);
+		const AABB sceneAABBViewSpace = AABBTransform(sceneAABB, viewMat);
+
+		const Matrix4f projMat = glm::ortho(
+			eastl::max(camFrustumAABBViewSpace.min.x, sceneAABBViewSpace.min.x), // left
+			eastl::min(camFrustumAABBViewSpace.max.x, sceneAABBViewSpace.max.x), // right
+			eastl::min(camFrustumAABBViewSpace.max.z, sceneAABBViewSpace.max.z), // top
+			eastl::max(camFrustumAABBViewSpace.min.z, sceneAABBViewSpace.min.z), // bottom
+			1.0f, // zNear
+			250.0f // zFar
+		);
+
+		return (projMat * viewMat);
 	}
 
 	void VulkanResourceRegistry::WaitBuffersUpdated() const

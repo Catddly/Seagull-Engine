@@ -4,22 +4,22 @@
 namespace SG
 {
 
-	void to_json(json& node, const BoundingBox& v)
+	void to_json(json& node, const AABB& v)
 	{
 		node = {
-			v.minBound.x, v.minBound.y, v.minBound.z,
-			v.maxBound.x, v.maxBound.y, v.maxBound.z
+			v.min.x, v.min.y, v.min.z,
+			v.max.x, v.max.y, v.max.z
 		};
 	}
 
-	void from_json(const json& node, BoundingBox& v)
+	void from_json(const json& node, AABB& v)
 	{
-		node.at(0).get_to(v.minBound.x);
-		node.at(1).get_to(v.minBound.y);
-		node.at(2).get_to(v.minBound.z);
-		node.at(3).get_to(v.maxBound.x);
-		node.at(4).get_to(v.maxBound.y);
-		node.at(5).get_to(v.maxBound.z);
+		node.at(0).get_to(v.min.x);
+		node.at(1).get_to(v.min.y);
+		node.at(2).get_to(v.min.z);
+		node.at(3).get_to(v.max.x);
+		node.at(4).get_to(v.max.y);
+		node.at(5).get_to(v.max.z);
 	}
 
 }
