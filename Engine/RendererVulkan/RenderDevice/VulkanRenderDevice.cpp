@@ -35,9 +35,8 @@
 // this node draw the final image and the GUI on the top.
 #include "RendererVulkan/RenderGraphNodes/RGFinalOutputNode.h"
 
-#include "RendererVulkan/Renderer/Renderer.h"
-#include "RendererVulkan/Renderer/IndirectRenderer.h"
-#include "RendererVulkan/Renderer/DebugRenderer.h"
+#include "RendererVulkan/DrawProtocol/ForwardDP.h"
+#include "RendererVulkan/DrawProtocol/GPUDrivenDP.h"
 
 #include "RendererVulkan/GUI/TestGUILayer.h"
 #include "RendererVulkan/GUI/DockSpaceLayer.h"
@@ -112,10 +111,8 @@ namespace SG
 		BuildRenderGraph();
 
 		// create all the mesh resource
-		IndirectRenderer::OnInit(*mpContext);
-		IndirectRenderer::CollectRenderData(SSystem()->GetRenderDataBuilder());
-
-		DebugRenderer::OnInit(*mpContext);
+		GPUDrivenDP::OnInit(*mpContext);
+		GPUDrivenDP::CollectRenderData(SSystem()->GetRenderDataBuilder());
 
 		//mpGUIDriver->PushUserLayer(MakeRef<TestGUILayer>());
 		mpDockSpaceGUILayer = MakeRef<DockSpaceLayer>();
@@ -135,8 +132,7 @@ namespace SG
 
 		mpContext->device.WaitIdle();
 
-		DebugRenderer::OnShutdown();
-		IndirectRenderer::OnShutdown();
+		GPUDrivenDP::OnShutdown();
 
 		mpRenderGraph.reset();
 		VK_RESOURCE()->Shutdown();
@@ -369,7 +365,7 @@ namespace SG
 	{
 		auto pRenderDataBuilder = SSystem()->GetRenderDataBuilder();
 		CreateVKResourceFromAsset(pRenderDataBuilder);
-		IndirectRenderer::CollectRenderData(pRenderDataBuilder);
+		GPUDrivenDP::CollectRenderData(pRenderDataBuilder);
 
 		VK_RESOURCE()->WaitBuffersUpdated();
 	}

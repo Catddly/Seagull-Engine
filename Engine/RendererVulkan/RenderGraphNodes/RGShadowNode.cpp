@@ -21,8 +21,8 @@
 #include "RendererVulkan/RenderDevice/DrawCall.h"
 #include "RendererVulkan/Resource/RenderResourceRegistry.h"
 
-#include "RendererVulkan/Renderer/Renderer.h"
-#include "RendererVulkan/Renderer/IndirectRenderer.h"
+#include "RendererVulkan/DrawProtocol/ForwardDP.h"
+#include "RendererVulkan/DrawProtocol/GPUDrivenDP.h"
 
 namespace SG
 {
@@ -141,11 +141,11 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
-		IndirectRenderer::Begin(context);
+		GPUDrivenDP::Begin(context);
 #if SG_ENABLE_GPU_CULLING
-		IndirectRenderer::CullingReset();
-		IndirectRenderer::DoCulling();
-		IndirectRenderer::CopyStatisticsData();
+		GPUDrivenDP::CullingReset();
+		GPUDrivenDP::DoCulling();
+		GPUDrivenDP::CopyStatisticsData();
 #endif
 
 		auto& pBuf = *context.pCmd;
@@ -162,15 +162,15 @@ namespace SG
 
 			// 1.1 Forward Mesh Pass
 			pBuf.BindPipeline(mpShadowPipeline);
-			IndirectRenderer::DrawWithoutBindMaterial(EMeshPass::eForward);
+			GPUDrivenDP::DrawWithoutBindMaterial(EMeshPass::eForward);
 
 			// 1.2 Forward Instanced Mesh Pass
 			pBuf.BindPipeline(mpShadowInstancePipeline);
-			IndirectRenderer::DrawWithoutBindMaterial(EMeshPass::eForwardInstanced);
+			GPUDrivenDP::DrawWithoutBindMaterial(EMeshPass::eForwardInstanced);
 		}
 		pBuf.WriteTimeStamp(mContext.pTimeStampQueryPool, EPipelineStage::efBottom_Of_Pipeline, 1);
 
-		IndirectRenderer::End();
+		GPUDrivenDP::End();
 	}
 
 }
