@@ -84,11 +84,6 @@ namespace SG
 			.AddCombindSamplerImage("brdf_lut_sampler", "brdf_lut")
 			.AddCombindSamplerImage("irradiance_cubemap_sampler", "cubemap_irradiance")
 			.AddCombindSamplerImage("prefilter_cubemap_sampler", "cubemap_prefilter")
-			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*0")
-			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_metallic")
-			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_roughness")
-			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "cerberus_ao")
-			//.AddCombindSamplerImage("texture_1k_mipmap_sampler", "embedded_texture_*2")
 			.Build();
 #endif
 
@@ -321,13 +316,13 @@ namespace SG
 			.Build();
 
 		auto* pTempFrameBuffer = VulkanFrameBuffer::Builder(mContext.device)
-			.AddRenderTarget(VK_RESOURCE()->GetRenderTarget("brdf_lut"))
 			.BindRenderPass(pTempVulkanRenderPass)
+			.AddRenderTarget(VK_RESOURCE()->GetRenderTarget("brdf_lut"))
 			.Build();
 
 		auto* pBrdfLutPipeline = VulkanPipeline::Builder(mContext.device)
-			.BindRenderPass(pTempVulkanRenderPass)
 			.BindSignature(pBrdfLutPipelineSignature)
+			.BindRenderPass(pTempVulkanRenderPass)
 			.SetRasterizer(ECullMode::eNone)
 			.SetColorBlend(false)
 			.SetDepthStencil(false)

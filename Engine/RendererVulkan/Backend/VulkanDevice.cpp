@@ -124,6 +124,8 @@ namespace SG
 		vector<const char*> deviceExtensions = {};
 		if (SupportExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
 			deviceExtensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+		if (SupportExtension(VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME))
+			deviceExtensions.emplace_back(VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME);
 		if (SupportExtension(VK_EXT_DEBUG_MARKER_EXTENSION_NAME))
 			deviceExtensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
 
