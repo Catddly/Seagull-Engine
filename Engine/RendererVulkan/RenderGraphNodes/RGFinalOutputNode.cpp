@@ -118,8 +118,14 @@ namespace SG
 				.AddCombindSamplerImage(0, "comp_sampler", "logo")
 				.Bind(*pLogoSet);
 
+			VulkanDescriptorSet* pImageViewerTexSet = New(VulkanDescriptorSet);
+			VulkanPipelineSignature::SetDataBinder(mpGUIPipelineSignature, 0)
+				.AddCombindSamplerImage(0, "comp_sampler", "shadow map")
+				.Bind(*pImageViewerTexSet);
+
 			VK_RESOURCE()->AddDescriptorSet("ViewportTex", pViewportSet, true);
 			VK_RESOURCE()->AddDescriptorSet("logo", pLogoSet);
+			VK_RESOURCE()->AddDescriptorSet("ImageViewerTex", pImageViewerTexSet, true);
 
 			VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex").SetFallBackData(pLogoSet);
 		}

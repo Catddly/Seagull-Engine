@@ -33,6 +33,7 @@ namespace SG
 		void DrawStatistics(float deltaTime);
 		void DrawSceneHirerchy();
 		void DrawSelectedEntityProperty();
+		void DrawImageViewer();
 
 		void DrawSaveSceneProgressBar();
 
@@ -56,6 +57,7 @@ namespace SG
 		Vector2f mLastViewportSize = { 0.0f, 0.0f };
 
 		ReadOnlyHandle<VulkanDescriptorSet*> mViewportTexHandle;
+		ReadOnlyHandle<VulkanDescriptorSet*> mImageViewerTexHandle;
 		Scene::TreeNode* mpSelectedEntityNode;
 
 		string mSavedSceneName = "default.scene";

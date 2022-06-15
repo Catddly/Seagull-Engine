@@ -41,6 +41,7 @@ namespace SG
 		SG_PROFILE_FUNCTION();
 
 		mViewportTexHandle = VK_RESOURCE()->GetDescriptorSetHandle("ViewportTex").ReadOnly();
+		mImageViewerTexHandle = VK_RESOURCE()->GetDescriptorSetHandle("ImageViewerTex").ReadOnly();
 	}
 
 	void DockSpaceLayer::OnDetach()
@@ -59,6 +60,8 @@ namespace SG
 		DrawSelectedEntityProperty();
 		DrawStatistics(deltaTime);
 		DrawSettingPanel();
+
+		DrawImageViewer();
 
 		static float showProgressWindowTime = 0.0f;
 		if (mbShowSaveSceneProgressBar)
@@ -410,6 +413,15 @@ namespace SG
 
 		if (mpSelectedEntityNode)
 			DrawEntityProperty(mpSelectedEntityNode);
+
+		ImGui::End();
+	}
+
+	void DockSpaceLayer::DrawImageViewer()
+	{
+		ImGui::Begin("Image Viewer");
+
+		ImGui::Image(mImageViewerTexHandle.GetData(), ImGui::GetContentRegionAvail());
 
 		ImGui::End();
 	}

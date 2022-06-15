@@ -312,7 +312,7 @@ namespace SG
 
 		// do once irradiance command
 		auto* pTempVulkanRenderPass = VulkanRenderPass::Builder(mContext.device)
-			.BindRenderTarget(VK_RESOURCE()->GetRenderTarget("brdf_lut"), mColorRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource)
+			.BindRenderTarget(VK_RESOURCE()->GetRenderTarget("brdf_lut"), mColorRtLoadStoreOp, EResourceBarrier::efUndefined, EResourceBarrier::efRenderTarget)
 			.CombineAsSubpass()
 			.Build();
 
@@ -348,7 +348,7 @@ namespace SG
 		}
 		cmdBuf.EndRenderPass();
 		// why it is not be implicitly transition by the renderpass?
-		cmdBuf.ImageBarrier(VK_RESOURCE()->GetRenderTarget("brdf_lut"), EResourceBarrier::efUndefined, EResourceBarrier::efShader_Resource);
+		cmdBuf.ImageBarrier(VK_RESOURCE()->GetRenderTarget("brdf_lut"), EResourceBarrier::efRenderTarget, EResourceBarrier::efShader_Resource);
 		cmdBuf.EndRecord();
 
 		mContext.pGraphicQueue->SubmitCommands<0, 0, 0>(&cmdBuf, nullptr, nullptr, nullptr, pFence);
