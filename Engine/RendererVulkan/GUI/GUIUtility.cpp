@@ -165,6 +165,7 @@ namespace SG
 				tag.bDirty |= DrawGUIDragFloat("ShadowMapScaleFactor", comp.shadowMapScaleFactor);
 				tag.bDirty |= DrawGUIDragFloat("zNear", comp.zNear);
 				tag.bDirty |= DrawGUIDragFloat("zFar", comp.zFar);
+				tag.bDirty |= DrawGUIDragFloat("aspectRatio", comp.aspectRatio);
 			});
 		DrawComponent<CameraComponent>(entity, [&entity, &tag](CameraComponent& comp)
 			{
@@ -172,6 +173,12 @@ namespace SG
 				float speed = pCamera->GetMoveSpeed();
 				tag.bDirty |= DrawGUIDragFloat("Move Speed", speed);
 				pCamera->SetMoveSpeed(speed);
+			});
+		DrawComponent<DDGIVolumnComponent>(entity, [&entity, &tag](DDGIVolumnComponent& comp)
+			{
+				ImGui::Text("AABBMin: (%.2f, %.2f, %.2f)", comp.volumn.min.x, comp.volumn.min.y, comp.volumn.min.z);
+				ImGui::Text("AABBMax: (%.2f, %.2f, %.2f)", comp.volumn.max.x, comp.volumn.max.y, comp.volumn.max.z);
+				ImGui::Text("ProbeSpacing: (%.2f, %.2f, %.2f)", comp.probeSpacing.x, comp.probeSpacing.y, comp.probeSpacing.z);
 			});
 		ImGui::PopID();
 

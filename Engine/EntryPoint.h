@@ -9,10 +9,11 @@
 
 #include "RendererVulkan/RenderDevice/VulkanRenderDevice.h"
 
-//#ifdef SG_DEBUG
-//#	define _CRTDBG_MAP_ALLOC
-//#	include <crtdbg.h>
-//#endif
+#ifdef SG_DEBUG
+#	define _CRTDBG_MAP_ALLOC
+#	include <stdlib.h>
+#	include <crtdbg.h>
+#endif
 
 int main(int argv, char** argc)
 {
@@ -20,11 +21,13 @@ int main(int argv, char** argc)
 
 	// enable memory leak detection
 	// there is some memory leak that i can't find where it is.
-//#ifdef SG_DEBUG
-//	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
-//	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
-//	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-//#endif
+#ifdef SG_DEBUG
+	//_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+#endif
+
+	_CrtSetBreakAlloc(99);
 
 	extern IApp* GetAppInstance();
 	IApp* app = GetAppInstance();
@@ -39,7 +42,7 @@ int main(int argv, char** argc)
 
 	Main::Shutdown();
 
-//#ifdef SG_DEBUG
-//		_CrtDumpMemoryLeaks();
-//#endif
+#ifdef SG_DEBUG
+	_CrtDumpMemoryLeaks();
+#endif
 }

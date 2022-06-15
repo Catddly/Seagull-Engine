@@ -12,7 +12,11 @@ namespace SG
 
 	void* DefaultAllocator::allocate(Size size) noexcept
 	{
+#if SG_USE_DEFAULT_MEMORY_ALLOCATION
+		void* ptr = malloc(size);
+#else
 		void* ptr = mi_malloc(size);
+#endif
 #if SG_ENABLE_MEMORY_PROFILE
 		SG_PROFILE_ALLOC(ptr, size);
 #endif
@@ -24,7 +28,11 @@ namespace SG
 		SG_NO_USE(flags);
 		if ((alignmentOffset % alignment) == 0)
 		{
+#if SG_USE_DEFAULT_MEMORY_ALLOCATION
+			void* ptr = malloc(MinValueAlignTo(static_cast<UInt32>(size), static_cast<UInt32>(alignment)));
+#else
 			void* ptr = mi_malloc_aligned(size, alignment);
+#endif
 #if SG_ENABLE_MEMORY_PROFILE
 			SG_PROFILE_ALLOC(ptr, MinValueAlignTo(static_cast<UInt32>(size), static_cast<UInt32>(alignment)));
 #endif
@@ -39,7 +47,11 @@ namespace SG
 #if SG_ENABLE_MEMORY_PROFILE
 		SG_PROFILE_FREE(ptr);
 #endif
+#if SG_USE_DEFAULT_MEMORY_ALLOCATION
+		free(ptr);
+#else
 		mi_free(ptr);
+#endif
 	}
 
 	DefaultAllocator::DefaultAllocator(const char* pName)

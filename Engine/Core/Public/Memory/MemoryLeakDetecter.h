@@ -25,7 +25,10 @@ namespace SG
 	class MemoryLeakDetecter
 	{
 	public:
-		~MemoryLeakDetecter() = default;
+		~MemoryLeakDetecter()
+		{
+			GetInstance()->DumpLeak();
+		}
 
 		template <typename T, typename... Args>
 		T* RecordNew(const string& file, unsigned int l, const string& func, Args&&... args)

@@ -79,7 +79,7 @@ namespace SG
 				if (*beg == pMember)
 				{
 					//SG_LOG_DEBUG("Member Leave: (0x%p)", *beg);
-					mMembers.erase(beg);
+					beg = mMembers.erase(beg);
 					break;
 				}
 			}

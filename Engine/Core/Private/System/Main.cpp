@@ -15,9 +15,6 @@ namespace SG
 	void Main::Shutdown()
 	{
 		SSystem()->Shutdown();
-#if SG_ENABLE_MEMORY_LEAK_DETECTION
-		MemoryLeakDetecter::GetInstance()->DumpLeak();
-#endif
 	}
 
 	void Main::AddUserApp(IApp* pApp)

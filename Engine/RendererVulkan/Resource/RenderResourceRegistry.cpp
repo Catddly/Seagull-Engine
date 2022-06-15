@@ -240,7 +240,7 @@ namespace SG
 						lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
 						lightUbo.directionalColor = { light.color, 1.0f };
 
-						shadowUbo.lightSpaceVP = ComputeShadowedLightViewProj(pCamera, lightUbo.viewDirection);
+						shadowUbo.lightSpaceVP = ComputeShadowedLightViewProj(pCamera, trans, light);
 						lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
 						UpdataBufferData("shadowUbo", &shadowUbo);
 						bNeedUpdateLightUbo |= true;
@@ -272,7 +272,7 @@ namespace SG
 						lightUbo.viewDirection = CalcViewDirectionNormalized(trans);
 						lightUbo.directionalColor = { light.color, 1.0f };
 
-						shadowUbo.lightSpaceVP = ComputeShadowedLightViewProj(pCamera, lightUbo.viewDirection);
+						shadowUbo.lightSpaceVP = ComputeShadowedLightViewProj(pCamera, trans, light);
 						lightUbo.lightSpaceVP = shadowUbo.lightSpaceVP;
 						UpdataBufferData("shadowUbo", &shadowUbo);
 						bNeedUpdateLightUbo |= true;
@@ -322,32 +322,39 @@ namespace SG
 			mipmap > 1;
 	}
 
-	Matrix4f VulkanResourceRegistry::ComputeShadowedLightViewProj(RefPtr<ICamera> pCamera, const Vector3f& lightDirection)
+	Matrix4f VulkanResourceRegistry::ComputeShadowedLightViewProj(RefPtr<ICamera> pCamera, const TransformComponent& trans, const DirectionalLightComponent& lightComp)
 	{
-		const AABB camFrustumAABB = pCamera->GetFrustumAABB();
-		const AABB sceneAABB = SSystem()->GetRenderDataBuilder()->GetSceneAABB();
+		//const AABB camFrustumAABB = pCamera->GetFrustumAABB();
+		//const AABB sceneAABB = SSystem()->GetRenderDataBuilder()->GetSceneAABB();
 
-		const Vector3f frustumAABBCenter = AABBCenter(camFrustumAABB);
-		const Vector3f frustumAABBExtent = AABBExtent(camFrustumAABB);
-		// eyes on the bounding sphere of frustumAABB
-		const Vector3f viewPos = frustumAABBCenter + glm::normalize(lightDirection) * glm::length(frustumAABBExtent);
-		//const Vector3f viewCenter = { frustumAABBCenter.x, camFrustumAABB.min.y + camFrustumAABB.max.y, frustumAABBCenter.z };
+		//const Vector3f frustumAABBCenter = AABBCenter(camFrustumAABB);
+		//const Vector3f frustumAABBExtent = AABBExtent(camFrustumAABB);
+		//// eyes on the bounding sphere of frustumAABB
+		//const Vector3f viewPos = frustumAABBCenter + glm::normalize(lightDirection) * glm::length(frustumAABBExtent);
+		////const Vector3f viewCenter = { frustumAABBCenter.x, camFrustumAABB.min.y + camFrustumAABB.max.y, frustumAABBCenter.z };
 
-		const Matrix4f viewMat = BuildViewMatrixCenter(viewPos, frustumAABBCenter, SG_ENGINE_UP_VEC());
+		//const Matrix4f viewMat = BuildViewMatrixCenter(viewPos, frustumAABBCenter, SG_ENGINE_UP_VEC());
 
-		const AABB camFrustumAABBViewSpace = AABBTransform(camFrustumAABB, viewMat);
-		const AABB sceneAABBViewSpace = AABBTransform(sceneAABB, viewMat);
+		//const AABB camFrustumAABBViewSpace = AABBTransform(camFrustumAABB, viewMat);
+		//const AABB sceneAABBViewSpace = AABBTransform(sceneAABB, viewMat);
 
-		const Matrix4f projMat = glm::ortho(
-			eastl::max(camFrustumAABBViewSpace.min.x, sceneAABBViewSpace.min.x), // left
-			eastl::min(camFrustumAABBViewSpace.max.x, sceneAABBViewSpace.max.x), // right
-			eastl::min(camFrustumAABBViewSpace.max.z, sceneAABBViewSpace.max.z), // top
-			eastl::max(camFrustumAABBViewSpace.min.z, sceneAABBViewSpace.min.z), // bottom
-			1.0f, // zNear
-			250.0f // zFar
-		);
+		//const Matrix4f projMat = glm::ortho(
+		//	eastl::max(camFrustumAABBViewSpace.min.x, sceneAABBViewSpace.min.x), // left
+		//	eastl::min(camFrustumAABBViewSpace.max.x, sceneAABBViewSpace.max.x), // right
+		//	eastl::min(camFrustumAABBViewSpace.max.z, sceneAABBViewSpace.max.z), // top
+		//	eastl::max(camFrustumAABBViewSpace.min.z, sceneAABBViewSpace.min.z), // bottom
+		//	1.0f, // zNear
+		//	250.0f // zFar
+		//);
 
-		return (projMat * viewMat);
+		//return (projMat * viewMat);
+
+		return BuildOrthographicMatrix(
+			-lightComp.shadowMapScaleFactor * lightComp.aspectRatio, 
+			lightComp.shadowMapScaleFactor * lightComp.aspectRatio,
+			-lightComp.shadowMapScaleFactor, lightComp.shadowMapScaleFactor,
+			lightComp.zNear, lightComp.zFar) * 
+			BuildViewMatrixCenter(trans.position, Vector3f(0.0f), SG_ENGINE_UP_VEC());
 	}
 
 	void VulkanResourceRegistry::WaitBuffersUpdated() const
@@ -707,8 +714,6 @@ namespace SG
 			}
 
 			++index;
-			if (pTex->GetNumArray() == 6) // cubemap resource destroy
-				ktxTexture_Destroy(reinterpret_cast<ktxTexture*>(pTex->GetUserData()));
 		}
 		pCmd.EndRecord();
 

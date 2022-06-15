@@ -31,7 +31,7 @@ namespace SG
 		{
 			Entity* pEntity = nullptr;
 			SceneTreeNode* pParent = nullptr;
-			eastl::list<SceneTreeNode*> pChilds;
+			eastl::vector<SceneTreeNode*> pChilds;
 
 			SceneTreeNode() = default;
 			SceneTreeNode(Entity* ptr)
@@ -123,7 +123,7 @@ namespace SG
 		void ClearTreeNodes();
 		void FreeTreeNode(TreeNode* pTreeNode);
 	private:
-		Entity mSkyboxEntity;
+		Entity  mSkyboxEntity;
 		Entity* mpCameraEntity;  // TODO: support multiply switchable camera
 
 		Size mMeshEntityCount = 0;

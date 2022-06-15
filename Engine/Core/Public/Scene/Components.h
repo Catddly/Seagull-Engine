@@ -10,6 +10,8 @@
 #include "Asset/Asset.h"
 #include "Profile/Profile.h"
 
+#include "RenderFeatures/DDGI/DDGIDefs.h"
+
 #include "TipECS/Registry.h"
 
 #include "Stl/SmartPtr.h"
@@ -214,6 +216,7 @@ namespace SG
 		float    shadowMapScaleFactor = 1.0f;
 		float    zNear = 1.0f;
 		float    zFar = 1.0f;
+		float    aspectRatio = 1.0f;
 		              
 		DirectionalLightComponent() = default;
 		DirectionalLightComponent(const Vector3f& c)
@@ -263,6 +266,7 @@ F(PointLightComponent) \
 F(DirectionalLightComponent) \
 F(MaterialComponent) \
 F(CameraComponent) \
+F(DDGIVolumnComponent) \
 END(TransformComponent)
 
 	struct LightTag {};

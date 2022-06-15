@@ -756,6 +756,7 @@ namespace SG
 		texCI.pUserData = texData.pUserData;
 		VK_RESOURCE()->CreateTexture(texCI);
 		VK_RESOURCE()->FlushTextures();
+		texData.FreeMemory();
 
 		SamplerCreateDesc samplerCI = {};
 		samplerCI.name = "cubemap_sampler";

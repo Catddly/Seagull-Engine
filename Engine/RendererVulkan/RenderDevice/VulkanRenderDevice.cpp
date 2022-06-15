@@ -83,6 +83,7 @@ namespace SG
 		textureCI.sizeInByte = texture.sizeInByte;
 		VK_RESOURCE()->CreateTexture(textureCI);
 		VK_RESOURCE()->FlushTextures();
+		texture.FreeMemory();
 
 		SamplerCreateDesc samplerCI = {};
 		samplerCI.name = "texture_2k_mipmap_sampler";

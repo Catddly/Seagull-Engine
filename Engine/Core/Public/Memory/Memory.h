@@ -42,7 +42,6 @@ namespace SG
 			SG_CORE_API void* MallocInternal(Size size) noexcept;
 			SG_CORE_API void* MallocAlignInternal(Size size, Size alignment) noexcept;
 			SG_CORE_API void* CallocInternal(Size count, Size size) noexcept;
-			SG_CORE_API void* CallocAlignInternal(Size count, Size size, Size alignment) noexcept;
 			SG_CORE_API void* ReallocInternal(void* ptr, Size newSize) noexcept;
 			SG_CORE_API void* ReallocAlignInternal(void* ptr, Size newSize, Size alignment) noexcept;
 

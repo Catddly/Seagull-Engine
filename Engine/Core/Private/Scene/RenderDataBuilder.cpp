@@ -214,6 +214,16 @@ namespace SG
 				node.second.perInstanceData.set_capacity(0);
 		}
 
+		pScene->TraverseEntity([this](auto& entity)
+			{
+				if (entity.HasComponent<DDGIVolumnComponent>())
+				{
+					auto& ddgiComp = entity.GetComponent<DDGIVolumnComponent>();
+					ddgiComp.volumn = mSceneAABB;
+					ddgiComp.probeSpacing = CalcProbeSpacing(ddgiComp.volumn);
+				}
+			});
+
 		LogDebugInfo();
 
 		mbIsRenderDataReady = true;

@@ -61,28 +61,13 @@ namespace SG
 		unsigned char* pData = nullptr;
 		void* pUserData = nullptr;
 
-		SG_INLINE bool IsValid() const noexcept
-		{
-			return pData != nullptr;
-		}
-
-		SG_INLINE void FreeMemory() noexcept
-		{
-			free(pData);
-			pData = nullptr;
-		}
+		bool IsValid() const noexcept;
+		void FreeMemory() noexcept;
 
 		Raw2DTexture() = default;
 		Raw2DTexture(UInt32 w, UInt32 h, UInt32 arr, UInt32 mip, UInt32 dim)
 			: width(w), height(h), array(arr), mipLevel(mip), dimention(dim), type(ETextureType::eUnknown), pData(nullptr)
 		{}
-
-		~Raw2DTexture()
-		{
-			//! Warning!! this is dangerous. Figure out a better way to do this.
-			if (pData && !pUserData)
-				FreeMemory();
-		}
 	};
 
 }

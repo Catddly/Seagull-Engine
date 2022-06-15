@@ -98,7 +98,7 @@ namespace SG
 
 		bool IsTextureNeedToGenerateMipmap(UInt32 width, UInt32 height, EImageFormat imageFormat, UInt32 dataByteSize, UInt32 mipmap) const;
 
-		Matrix4f ComputeShadowedLightViewProj(RefPtr<ICamera> pCamera, const Vector3f& lightDirection);
+		Matrix4f ComputeShadowedLightViewProj(RefPtr<ICamera> pCamera, const TransformComponent& trans, const DirectionalLightComponent& lightComp);
 	private:
 		VulkanContext* mpContext;
 		MessageBusMember mMessageBusMember;

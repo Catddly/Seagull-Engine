@@ -111,42 +111,44 @@ namespace SG
 	{
 		SG_PROFILE_FUNCTION();
 
+		auto DrawDebugBox = [this](VulkanCommandBuffer& cmd)
+		{
+			UInt64 offset[] = { 0 };
+			auto& pVertexBuffer = *VK_RESOURCE()->GetBuffer("debug_geo");
+			cmd.BindVertexBuffer(0, 1, pVertexBuffer, offset);
+			cmd.BindPipelineSignatureNonDynamic(mpDebugLinePipelineSignature.get());
+			cmd.BindPipeline(mpDebugLinePipeline);
+
+			cmd.PushConstants(mpDebugLinePipelineSignature.get(), EShaderStage::efVert, sizeof(Matrix4f), 0, &mDebugObjectModelMat);
+
+			cmd.Draw(12 * 2, 1, 0, 0);
+		};
+
+		auto& cmd = *context.pCmd;
+
 		if (mpSelectedEntityTreeNode && mpSelectedEntityTreeNode->pEntity->HasComponent<MeshComponent>())
 		{
 			auto& mesh = mpSelectedEntityTreeNode->pEntity->GetComponent<MeshComponent>();
 			mDebugObjectModelMat = glm::translate(Matrix4f(1.0f), AABBCenter(mesh.aabb)) *
 				glm::scale(Matrix4f(1.0f), AABBExtent(mesh.aabb));
 
-			auto& cmd = *context.pCmd;
+			DrawDebugBox(cmd);
+		}
+		else if (mpSelectedEntityTreeNode && mpSelectedEntityTreeNode->pEntity->HasComponent<DDGIVolumnComponent>())
+		{
+			auto& ddgiVolumn = mpSelectedEntityTreeNode->pEntity->GetComponent<DDGIVolumnComponent>();
+			mDebugObjectModelMat = Matrix4f(1.0f) * glm::translate(Matrix4f(1.0f), AABBCenter(ddgiVolumn.volumn)) *
+				glm::scale(Matrix4f(1.0f), AABBExtent(ddgiVolumn.volumn));
 
-			UInt64 offset[] = { 0 };
-			auto& pVertexBuffer = *VK_RESOURCE()->GetBuffer("debug_geo");
-			cmd.BindVertexBuffer(0, 1, pVertexBuffer, offset);
-			cmd.BindPipelineSignatureNonDynamic(mpDebugLinePipelineSignature.get());
-			cmd.BindPipeline(mpDebugLinePipeline);
-
-			cmd.PushConstants(mpDebugLinePipelineSignature.get(), EShaderStage::efVert, sizeof(Matrix4f), 0, &mDebugObjectModelMat);
-
-			cmd.Draw(12 * 2, 1, 0, 0);
+			DrawDebugBox(cmd);
 		}
 		else
 		{
 			auto sceneAABB = SSystem()->GetRenderDataBuilder()->GetSceneAABB();
-
 			mDebugObjectModelMat = Matrix4f(1.0f) * glm::translate(Matrix4f(1.0f), AABBCenter(sceneAABB)) *
 				glm::scale(Matrix4f(1.0f), AABBExtent(sceneAABB));
 
-			auto& cmd = *context.pCmd;
-
-			UInt64 offset[] = { 0 };
-			auto& pVertexBuffer = *VK_RESOURCE()->GetBuffer("debug_geo");
-			cmd.BindVertexBuffer(0, 1, pVertexBuffer, offset);
-			cmd.BindPipelineSignatureNonDynamic(mpDebugLinePipelineSignature.get());
-			cmd.BindPipeline(mpDebugLinePipeline);
-
-			cmd.PushConstants(mpDebugLinePipelineSignature.get(), EShaderStage::efVert, sizeof(Matrix4f), 0, &mDebugObjectModelMat);
-
-			cmd.Draw(12 * 2, 1, 0, 0);
+			DrawDebugBox(cmd);
 		}
 	}
 

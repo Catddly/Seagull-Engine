@@ -56,28 +56,31 @@ namespace SG
 		auto& cam = mpCameraEntity->AddComponent<CameraComponent>();
 		cam.pCamera = MakeRef<FirstPersonCamera>(camPos);
 		cam.pCamera->SetPerspective(60.0f, OperatingSystem::GetMainWindow()->GetAspectRatio());
-		cam.pCamera->SetMoveSpeed(50.0f);
+		cam.pCamera->SetMoveSpeed(5.0f);
 
-		//auto* pEntity = CreateEntity("directional_light_0", Vector3f{ 0.0f, 150.0f, 0.35f }, Vector3f(1.0f), Vector3f(0.0f, 0.0f, 0.0f));
-		//pEntity->AddTag<LightTag>();
-		//pEntity->AddComponent<DirectionalLightComponent>();
+		auto* pEntity = CreateEntity("directional_light_0", Vector3f{ 0.0f, 150.0f, 0.35f }, Vector3f(1.0f), Vector3f(0.0f, 0.0f, 0.0f));
+		pEntity->AddTag<LightTag>();
+		pEntity->AddComponent<DirectionalLightComponent>();
 
-		//pEntity = CreateEntity("point_light_0", { 1.25f, 0.75f, -0.3f }, Vector3f(1.0f), Vector3f(0.0f));
-		//pEntity->AddTag<LightTag>();
-		//auto& pointLight = pEntity->AddComponent<PointLightComponent>();
-		//pointLight.radius = 3.0f;
-		//pointLight.color = { 0.0f, 1.0f, 0.705f };
+		pEntity = CreateEntity("point_light_0", { 1.25f, 0.75f, -0.3f }, Vector3f(1.0f), Vector3f(0.0f));
+		pEntity->AddTag<LightTag>();
+		auto& pointLight = pEntity->AddComponent<PointLightComponent>();
+		pointLight.radius = 3.0f;
+		pointLight.color = { 0.0f, 1.0f, 0.705f };
 
-		//DefaultScene();
+		DefaultScene();
 		//MaterialScene();
 		//MaterialTexturedScene();
+
+		pEntity = CreateEntity("ddgi_volumn");
+		auto& ddgiVolumn = pEntity->AddComponent<DDGIVolumnComponent>();
 		
 		//pEntity = CreateEntityWithMesh("sponza", "sponza_gltf_khronos_fixed_and_split", EMeshType::eGLTF, true);
 		//auto& trans = pEntity->GetComponent<TransformComponent>();
 		//trans.rotation = { 0.0f, 0.0f, 0.0f };
 		//trans.scale = { 0.1f, 0.1f, 0.1f };
 
-		Refresh();
+		OnUpdate(0.0f);
 	}
 
 	void Scene::OnSceneUnLoad()
@@ -137,8 +140,8 @@ namespace SG
 
 		auto* pEntityContext = CreateEntityContextWithoutTreeNode(name);
 		pEntityContext->pTreeNode = New(TreeNode, &pEntityContext->entity);
-		pEntityContext->pTreeNode->pParent = mpRootNode;
 		mpRootNode->pChilds.emplace_back(pEntityContext->pTreeNode);
+		pEntityContext->pTreeNode->pParent = mpRootNode;
 
 		auto& trans = pEntityContext->entity.GetComponent<TransformComponent>();
 		trans.position = pos;
@@ -286,7 +289,7 @@ namespace SG
 		auto* pEntity = CreateEntity("model");
 		pEntity->AddComponent<MaterialComponent>("model_mat", Vector3f(1.0f), 0.2f, 0.8f);
 		auto& mesh = pEntity->AddComponent<MeshComponent>();
-		LoadMesh("model", EMeshType::eOBJ, mesh);
+		LoadMesh("model", EMeshType::eOBJ, mesh, ELoadMeshFlag::efGenerateAABB);
 
 		pEntity = CreateEntity("model_1", { 0.0f, 0.0f, -1.5f }, { 0.6f, 0.6f, 0.6f }, Vector3f(0.0f));
 		pEntity->AddComponent<MaterialComponent>("model_1_mat", Vector3f(1.0f), 0.8f, 0.35f);
@@ -569,10 +572,6 @@ namespace SG
 					meshComp["AABB"].get_to(pSubMeshData->aabb);
 				}
 			}
-			//auto* pSubMeshData = MeshDataArchive::GetInstance()->GetData(subMeshName);
-			//auto& trans = pEntity->GetComponent<TransformComponent>();
-			//Matrix4f bboxTransform = glm::scale(Matrix4f(1.0f), trans.scale);
-			//mesh.aabb = AABBoxTransform(pSubMeshData->aabb, bboxTransform);
 		}
 
 		if (auto node = entity.find("MaterialComponent"); node != entity.end())
